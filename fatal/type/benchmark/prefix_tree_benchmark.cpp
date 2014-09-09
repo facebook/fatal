@@ -10,7 +10,7 @@
 #include <fatal/type/prefix_tree.h>
 #include <fatal/type/string.h>
 
-#include <fatal/type/benchmark/driver.h>
+#include <fatal/benchmark/driver.h>
 
 #include <string>
 #include <array>

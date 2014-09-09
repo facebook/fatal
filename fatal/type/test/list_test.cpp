@@ -459,10 +459,15 @@ private:
   bool visited_ = false;
 };
 
-TEST(type_list, visit) {
-  auto const no_visit = [](auto tag, auto index) { EXPECT_TRUE(false); };
+struct visit_no_visit_test_visitor {
+  template <typename T, std::size_t Index>
+  void operator ()(indexed_type_tag<T, Index>, std::size_t) {
+    EXPECT_TRUE(false);
+  }
+};
 
-  EXPECT_FALSE((el::visit(0, no_visit)));
+TEST(type_list, visit) {
+  EXPECT_FALSE((el::visit(0, visit_no_visit_test_visitor())));
 
   using list = type_list<double, float, long, bool, int>;
 
@@ -471,7 +476,7 @@ TEST(type_list, visit) {
   EXPECT_TRUE(list::visit(2, visit_test_visitor<long>(), 2));
   EXPECT_TRUE(list::visit(3, visit_test_visitor<bool>(), 3));
   EXPECT_TRUE(list::visit(4, visit_test_visitor<int>(), 4));
-  EXPECT_FALSE(list::visit(5, no_visit, 5));
+  EXPECT_FALSE(list::visit(5, visit_no_visit_test_visitor(), 5));
 }
 
 //////////////////////////
