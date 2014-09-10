@@ -9,6 +9,9 @@ other than hard-core library writers.
 ## Examples
 Demonstration applications can be found under the `demo/` directory.
 
+## Philosophy
+Fatal moves fast, therefore it uses the latest and greatest in C++ standards. It aims to adopt new standard features as soon as they're officially out, as long as they provide benefits like performance, productivity and usability improvements.
+
 ## Requirements
 There are no external dependencies in order to use Fatal as a library.
 
