@@ -140,7 +140,7 @@ using to_operation_command_list = typename TDataType::operations::template trans
 // metadata //
 //////////////
 
-typedef ftl::type_list<
+using known = ftl::type_list<
   data_type<
     str::list, std::vector<std::string>,
     constructor<>,
@@ -163,7 +163,7 @@ typedef ftl::type_list<
     operation<str::insert, method::emplace::member_function, void(std::string, std::string)>,
     operation<str::size, method::size::member_function, std::size_t()>
   >
-> known;
+>;
 
 } // namespace metadata {
 
