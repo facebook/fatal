@@ -11,7 +11,7 @@
 
 #include <fatal/test/driver.h>
 
-namespace ftl {
+namespace fatal {
 
 template <typename> struct type1_t {};
 template <typename> struct type2_t {};
@@ -1368,4 +1368,4 @@ TEST(type_map, clustered_index) {
   >();
 }
 
-} // namespace ftl {
+} // namespace fatal {

@@ -14,7 +14,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 
 /**
  * Type pair for template metaprogramming.
@@ -111,4 +111,4 @@ struct type_get_traits<type_pair<TFirst, TSecond>, Index> {
   typedef typename std::conditional<Index == 0, TFirst, TSecond>::type type;
 };
 
-} // namespace ftl
+} // namespace fatal

@@ -18,7 +18,7 @@
 
 #include <cassert>
 
-namespace ftl {
+namespace fatal {
 
 //////////////////////
 // type_prefix_tree //
@@ -319,7 +319,7 @@ template <typename...> struct builder;
  * `TLessComparer` must represent a total order relation between the sequence
  * elements. It defaults to `constants_comparison_lt` when omitted.
  *
- * See also: `type_string` and `FTL_STR`
+ * See also: `type_string` and `FATAL_STR`
  *
  * Example:
  *
@@ -630,4 +630,4 @@ std::size_t type_prefix_tree<TSequence, TNodes...>::match<TComparer>::prefixes(
   return found;
 }
 
-} // namespace ftl {
+} // namespace fatal {

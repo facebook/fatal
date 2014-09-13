@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <climits>
 
-namespace ftl {
+namespace fatal {
 
 /**
  * Returns the amount of bits that can be represented using the
@@ -607,4 +607,4 @@ private:
   continuous_type const adjustment_;
 };
 
-} // namespace ftl {
+} // namespace fatal {

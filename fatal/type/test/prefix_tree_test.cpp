@@ -16,30 +16,30 @@
 
 #include <type_traits>
 
-namespace ftl {
+namespace fatal {
 
-FTL_STR(a, "a");
-FTL_STR(ab, "ab");
-FTL_STR(abc, "abc");
-FTL_STR(abcd, "abcd");
-FTL_STR(abcde, "abcde");
-FTL_STR(abcdef, "abcdef");
-FTL_STR(abcx, "abcx");
-FTL_STR(abcxy, "abcxy");
-FTL_STR(abcxyz, "abcxyz");
+FATAL_STR(a, "a");
+FATAL_STR(ab, "ab");
+FATAL_STR(abc, "abc");
+FATAL_STR(abcd, "abcd");
+FATAL_STR(abcde, "abcde");
+FATAL_STR(abcdef, "abcdef");
+FATAL_STR(abcx, "abcx");
+FATAL_STR(abcxy, "abcxy");
+FATAL_STR(abcxyz, "abcxyz");
 
 typedef type_prefix_tree_builder<>::build<
   a, ab, abc, abcd, abcde, abcdef, abcx, abcxy, abcxyz
 > abc_tree;
 
-FTL_STR(h, "h");
-FTL_STR(ha, "ha");
-FTL_STR(hat, "hat");
-FTL_STR(hi, "hi");
-FTL_STR(hit, "hit");
-FTL_STR(hint, "hint");
-FTL_STR(ho, "ho");
-FTL_STR(hot, "hot");
+FATAL_STR(h, "h");
+FATAL_STR(ha, "ha");
+FATAL_STR(hat, "hat");
+FATAL_STR(hi, "hi");
+FATAL_STR(hit, "hit");
+FATAL_STR(hint, "hint");
+FATAL_STR(ho, "ho");
+FATAL_STR(hot, "hot");
 
 typedef type_prefix_tree_builder<>::build<
   h, ha, hat, hi, hint, hit, ho, hot
@@ -525,4 +525,4 @@ TEST(type_prefix_tree, match_prefixes_abc_abcxYZ) {
   check_match<>::prefixes<abc_tree, a, ab, abc, abcx>("abcxYZ");
 }
 
-} // namespace ftl {
+} // namespace fatal {

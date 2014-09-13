@@ -15,14 +15,14 @@
 
 #include <cstring>
 
-namespace ftl {
+namespace fatal {
 
 #define ENUMIFY_TEST_ENUM(FIRST, MID, LAST, ...) \
   FIRST(state0, __VA_ARGS__) \
   MID(state1, 4, __VA_ARGS__) \
   MID(state2, 97, __VA_ARGS__) \
   LAST(state3, __VA_ARGS__)
-FTL_RICH_ENUM(test_enum, str_class, ENUMIFY_TEST_ENUM);
+FATAL_RICH_ENUM(test_enum, str_class, ENUMIFY_TEST_ENUM);
 #undef ENUMIFY_TEST_ENUM
 
 ///////////
@@ -139,4 +139,4 @@ TEST(enums, try_parse) {
   } while (false);
 }
 
-} // namespace ftl {
+} // namespace fatal {

@@ -17,7 +17,7 @@
 #include <tuple>
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 namespace transform {
 
 template <typename> struct T1 {};
@@ -281,4 +281,4 @@ TEST(transform_alias, apply_args) {
 }
 
 } // namespace transform {
-} // namespace ftl {
+} // namespace fatal {

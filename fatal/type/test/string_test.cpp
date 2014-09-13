@@ -13,7 +13,7 @@
 
 #include <type_traits>
 
-namespace ftl {
+namespace fatal {
 
 /////////////////
 // type_string //
@@ -28,14 +28,14 @@ namespace ftl {
 #define UTF16_STR u"UTF-16 String"
 #define UTF32_STR U"UTF-32 String"
 
-FTL_STR(a_str, A_STR);
-FTL_STR(z_str, Z_STR);
-FTL_STR(empty_str, EMPTY_STR);
-FTL_STR(hello_str, HELLO_STR);
-FTL_STR(test_str, TEST_STR);
-FTL_STR(utf8_str, UTF8_STR);
-FTL_STR(utf16_str, UTF16_STR);
-FTL_STR(utf32_str, UTF32_STR);
+FATAL_STR(a_str, A_STR);
+FATAL_STR(z_str, Z_STR);
+FATAL_STR(empty_str, EMPTY_STR);
+FATAL_STR(hello_str, HELLO_STR);
+FATAL_STR(test_str, TEST_STR);
+FATAL_STR(utf8_str, UTF8_STR);
+FATAL_STR(utf16_str, UTF16_STR);
+FATAL_STR(utf32_str, UTF32_STR);
 
 template <typename TString, std::size_t Expected>
 void check_size() {
@@ -91,4 +91,4 @@ TEST(type_string, string) {
   CREATE_TEST_CALLS(check_string);
 }
 
-} // namespace ftl {
+} // namespace fatal {

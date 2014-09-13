@@ -13,7 +13,7 @@
 
 #include <type_traits>
 
-namespace ftl {
+namespace fatal {
 
 struct foo {
   void noncv();
@@ -174,4 +174,4 @@ TEST(reflect_member_function, reflect_member_function) {
   CHECK_REFLECT(gaz<long>, fn, int, c, bool, long const &, double *);
 }
 
-} // namespace ftl {
+} // namespace fatal {

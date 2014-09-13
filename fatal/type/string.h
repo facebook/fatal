@@ -12,7 +12,7 @@
 #include <fatal/preprocessor.h>
 #include <fatal/type/sequence.h>
 
-namespace ftl {
+namespace fatal {
 
 /**
  * A compile-time string for template metaprogramming. This class inherits
@@ -82,14 +82,14 @@ public:
  *
  *  // this is equivalent to
  *  // `typedef type_string<char, 'h', 'i'> hi;`
- *  FTL_STR("hi") hi;
+ *  FATAL_STR("hi") hi;
  *
  *  // this is equivalent to
  *  // `typedef type_string<char32_t, U'h', U'e', U'y'> hey;`
- *  FTL_STR(U"hey") hey;
+ *  FATAL_STR(U"hey") hey;
  */
-#define FTL_STR(Id, String) \
-  FTL_BUILD_STR_IMPL(String, FTL_CAT(Id, FTL_UID(build_cstr_impl_))) Id
+#define FATAL_STR(Id, String) \
+  FATAL_BUILD_STR_IMPL(String, FATAL_CAT(Id, FATAL_UID(build_cstr_impl_))) Id
 
 ///////////////////////////////////////
 // IMPLEMENTATION DETAILS DEFINITION //
@@ -99,7 +99,7 @@ namespace detail {
 namespace type_string_impl {
 
 /////////////
-// FTL_STR //
+// FATAL_STR //
 /////////////
 
 template <typename T, std::size_t Size>
@@ -111,7 +111,7 @@ constexpr std::size_t size(T const (&)[Size]) {
   return Size - 1;
 }
 
-#define FTL_BUILD_STR_IMPL(String, Class) \
+#define FATAL_BUILD_STR_IMPL(String, Class) \
   template <std::size_t... Indexes> \
   struct Class { \
     static_assert( \
@@ -119,16 +119,16 @@ constexpr std::size_t size(T const (&)[Size]) {
       "expecting a valid null-terminated string" \
     ); \
     typedef typename ::std::decay<decltype(*(String))>::type char_type; \
-    typedef ::ftl::type_string< \
+    typedef ::fatal::type_string< \
       char_type, \
       (String)[Indexes]... \
     > type; \
   }; \
   \
-  typedef typename ::ftl::constant_range< \
-    std::size_t, 0, ::ftl::detail::type_string_impl::size(String) \
+  typedef typename ::fatal::constant_range< \
+    std::size_t, 0, ::fatal::detail::type_string_impl::size(String) \
   >::apply<Class>::type
 
 } // namespace type_string_impl {
 } // namespace detail {
-} // namespace ftl {
+} // namespace fatal {

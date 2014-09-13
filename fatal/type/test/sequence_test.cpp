@@ -11,7 +11,7 @@
 
 #include <fatal/test/driver.h>
 
-namespace ftl {
+namespace fatal {
 
 /////////////////////////////
 // constant_sequence::type //
@@ -423,4 +423,4 @@ TEST(constant_range, constant_range) {
   check_array<char, '1', '2', '3', '4', '5'>();
 }
 
-} // namespace ftl {
+} // namespace fatal {

@@ -16,7 +16,7 @@ struct X {};
 struct Y {};
 struct Z {};
 
-namespace ftl {
+namespace fatal {
 
 template <typename TTag, typename TType>
 void check_tagged_type() {
@@ -298,4 +298,4 @@ TEST(make_tagged_tuple, make_tagged_tuple_tuple) {
   check_make_tagged_tuple_tuple<X, Y, Z>(5.6, 10, true);
 }
 
-} // namespace ftl {
+} // namespace fatal {

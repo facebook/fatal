@@ -15,7 +15,7 @@
 #include <tuple>
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 
 template <typename... TTags>
 struct tuple_tags {
@@ -131,4 +131,4 @@ struct tuple_tags {
   }
 };
 
-} // namespace ftl {
+} // namespace fatal {

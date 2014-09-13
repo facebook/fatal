@@ -18,7 +18,7 @@
 #include <utility>
 #include <typeinfo>
 
-namespace ftl {
+namespace fatal {
 
 //////////////////////////
 // type_map DECLARATION //
@@ -250,7 +250,7 @@ public:
 
   template <
     template <typename...> class TMappedTransform,
-    template <typename...> class TKeyTransform = ::ftl::transform::identity
+    template <typename...> class TKeyTransform = ::fatal::transform::identity
   >
   using transform = type_map<
     detail::type_map_impl::transform<Args, TKeyTransform, TMappedTransform>...
@@ -259,7 +259,7 @@ public:
   template <
     typename TKey,
     template <typename...> class TMappedTransform,
-    template <typename...> class TKeyTransform = ::ftl::transform::identity
+    template <typename...> class TKeyTransform = ::fatal::transform::identity
   >
   using transform_at = type_map<
     detail::type_map_impl::transform_at<
@@ -297,8 +297,8 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TKeyTransform = ::ftl::transform::identity,
-    template <typename...> class TMappedTransform = ::ftl::transform::identity
+    template <typename...> class TKeyTransform = ::fatal::transform::identity,
+    template <typename...> class TMappedTransform = ::fatal::transform::identity
   >
   using invert = type_map<
     detail::type_map_impl::invert_transform<
@@ -452,7 +452,7 @@ public:
   template <typename... UArgs>
   using insert = typename contents::template push_back<
     typename detail::type_map_impl::pair_resolver<UArgs...>::type
-  >::template apply<::ftl::type_map>;
+  >::template apply<::fatal::type_map>;
 
   /**
    * Inserts a new `TKey`, `TValue` mapping into the type_map in its sorted
@@ -485,7 +485,7 @@ public:
   using insert_sorted = typename contents::template insert_sorted<
     type_pair<TKey, TValue>,
     type_get_first_comparer<TLessComparer>::template type
-  >::template apply<::ftl::type_map>;
+  >::template apply<::fatal::type_map>;
 
   /**
    * Inserts a new `type_pair` mapping into the type_map in its sorted position
@@ -521,7 +521,7 @@ public:
   using insert_pair_sorted = typename contents::template insert_sorted<
     TPair,
     type_get_first_comparer<TLessComparer>::template type
-  >::template apply<::ftl::type_map>;
+  >::template apply<::fatal::type_map>;
 
   /**
    * Replaces with `TMapped` the mapped type of all pairs with key `TKey`.
@@ -545,7 +545,7 @@ public:
   template <typename TKey, typename TMapped>
   using replace = typename type_map::template transform_at<
     TKey,
-    ::ftl::transform::fixed<TMapped>::template type
+    ::fatal::transform::fixed<TMapped>::template type
   >;
 
   /**
@@ -569,7 +569,7 @@ public:
     detail::type_map_impl::curried_key_filter<
       type_list<UArgs...>::template contains
     >::template type
-  >::second::template apply<::ftl::type_map>;
+  >::second::template apply<::fatal::type_map>;
 
   /**
    * Returns a pair with two `type_map`s. One (first) with the pairs whose keys
@@ -645,11 +645,11 @@ public:
   >
   using merge_sort = typename contents::template merge_sort<
     type_get_first_comparer<TLessComparer>::template type
-  >::template apply<::ftl::type_map>;
+  >::template apply<::fatal::type_map>;
 
   template <
-    template <typename...> class TKeyTransform = ::ftl::transform::identity,
-    template <typename...> class TMappedTransform = ::ftl::transform::identity
+    template <typename...> class TKeyTransform = ::fatal::transform::identity,
+    template <typename...> class TMappedTransform = ::fatal::transform::identity
   >
   using cluster = typename detail::type_map_impl::cluster<
     detail::type_map_impl::transform<Args, TKeyTransform, TMappedTransform>...
@@ -1017,8 +1017,8 @@ using build_type_map = typename detail::type_map_impl::builder<Args...>::type;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TKeyTransform = ::ftl::transform::identity,
-  template <typename...> class TValueTransform = ::ftl::transform::identity
+  template <typename...> class TKeyTransform = ::fatal::transform::identity,
+  template <typename...> class TValueTransform = ::fatal::transform::identity
 >
 struct type_map_from {
   template <typename... UArgs>
@@ -1102,4 +1102,4 @@ struct recursive_type_merge_sort_impl<type_map<T...>, Depth> {
 };
 
 } // namespace transform {
-} // namespace ftl {
+} // namespace fatal {

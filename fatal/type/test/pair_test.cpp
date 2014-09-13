@@ -11,7 +11,7 @@
 
 #include <fatal/test/driver.h>
 
-namespace ftl {
+namespace fatal {
 
 template <typename> struct T1 {};
 template <typename> struct T2 {};
@@ -216,4 +216,4 @@ TEST(type_get, second_comparer) {
   ));
 }
 
-} // namespace ftl {
+} // namespace fatal {

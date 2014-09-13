@@ -11,7 +11,7 @@
 
 #include <fatal/test/driver.h>
 
-namespace ftl {
+namespace fatal {
 
 struct Foo {};
 struct Bar {};
@@ -69,4 +69,4 @@ TEST(tuple_tags, get) {
   EXPECT_EQ(999, tags::get<Gaz>(tuple));
 }
 
-} // namespace ftl {
+} // namespace fatal {

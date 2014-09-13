@@ -12,7 +12,7 @@
 #include <fatal/type/list.h>
 #include <fatal/type/sequence.h>
 
-namespace ftl {
+namespace fatal {
 
 //////////////////////
 // reflect_template //
@@ -275,4 +275,4 @@ struct reflect_template<T<V, Values...>> {
   using is_same_tvl = std::is_same<type, U<V, Values...>>;
 };
 
-} // namespace ftl
+} // namespace fatal

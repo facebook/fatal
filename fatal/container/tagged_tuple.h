@@ -16,7 +16,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 
 /////////////////
 // tagged_type //
@@ -121,4 +121,4 @@ constexpr auto make_tagged_tuple(std::tuple<Args...> tuple)
   return tagged_tuple<tagged_type<TTags, Args>...>(std::move(tuple));
 }
 
-} // namespace ftl {
+} // namespace fatal {

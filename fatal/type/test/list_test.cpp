@@ -14,7 +14,7 @@
 
 #include <folly/Conv.h>
 
-namespace ftl {
+namespace fatal {
 
 ///////////////
 // type_list //
@@ -1441,4 +1441,4 @@ TEST(type_list_from, type) {
   >();
 }
 
-} // namespace ftl {
+} // namespace fatal {

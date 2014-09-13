@@ -11,9 +11,9 @@
 
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 
-#define FTL_CALL_TRAITS(Name, ...) \
+#define FATAL_CALL_TRAITS(Name, ...) \
   struct Name { \
     struct member_function { \
       constexpr member_function() {} \
@@ -140,4 +140,4 @@ struct functor_call_traits {
   { return call(std::forward<T>(subject), std::forward<UArgs>(args)...); }
 };
 
-} // namespace ftl {
+} // namespace fatal {

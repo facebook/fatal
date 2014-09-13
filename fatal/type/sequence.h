@@ -14,7 +14,7 @@
 #include <type_traits>
 #include <array>
 
-namespace ftl {
+namespace fatal {
 
 /**
  * A compile-time sequence of values for template metaprogramming.
@@ -229,4 +229,4 @@ struct range_builder<T, Begin, End> {
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
-} // namespace ftl {
+} // namespace fatal {

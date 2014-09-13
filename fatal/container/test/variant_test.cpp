@@ -28,7 +28,7 @@
 #include <utility>
 #include <vector>
 
-namespace ftl {
+namespace fatal {
 
 using namespace folly;
 
@@ -2069,4 +2069,4 @@ TEST(variant, memory_leak) {
   EXPECT_EQ(allocated, freed);
 }
 
-} // namespace ftl {
+} // namespace fatal {

@@ -20,7 +20,7 @@
 
 #include <cstring>
 
-namespace ftl {
+namespace fatal {
 
 /**
  * TL;DR version of this file:
@@ -53,7 +53,7 @@ namespace ftl {
  *  // `my_enum_str` with methods to convert between `my_enum` <-> string
  *  // look for its documentation below for more information
  *  // on the class it creates
- *  FTL_RICH_ENUM(my_enum, my_enum_str, ENUMIFY_MY_ENUM);
+ *  FATAL_RICH_ENUM(my_enum, my_enum_str, ENUMIFY_MY_ENUM);
  *
  *  // our macro is not needed from this point onwards
  *  // so it's perfectly fine to clear it:
@@ -127,15 +127,15 @@ namespace ftl {
  * only and you should be fine. Otherwise, abandon all hope ye who enter here.
  */
 
-#define FTL_ENUMIFY_GET_1ST_ARG(Arg0, ...) Arg0
-#define FTL_ENUMIFY_GET_2ND_ARG(Arg0, Arg1, ...) Arg1
-#define FTL_ENUMIFY_IGNORE_ARGS_IMPL(...)
-#define FTL_ENUMIFY_DECLARE_LAST_IMPL(Field, Value, Handler, ...) \
+#define FATAL_ENUMIFY_GET_1ST_ARG(Arg0, ...) Arg0
+#define FATAL_ENUMIFY_GET_2ND_ARG(Arg0, Arg1, ...) Arg1
+#define FATAL_ENUMIFY_IGNORE_ARGS_IMPL(...)
+#define FATAL_ENUMIFY_DECLARE_LAST_IMPL(Field, Value, Handler, ...) \
   Field Handler(= Value, __VA_ARGS__)
-#define FTL_ENUMIFY_DECLARE_IMPL(...) FTL_ENUMIFY_DECLARE_LAST_IMPL(__VA_ARGS__),
+#define FATAL_ENUMIFY_DECLARE_IMPL(...) FATAL_ENUMIFY_DECLARE_LAST_IMPL(__VA_ARGS__),
 /**
  * Higher-order macro to declare enumerations. This can be used in
- * conjunction with FTL_DEFINE_ENUM_STR_CLASS (further below) to
+ * conjunction with FATAL_DEFINE_ENUM_STR_CLASS (further below) to
  * create helpers that convert enums to/from strings.
  *
  * You need to provide the ENUMIFY_FN higher-order macro, which
@@ -165,7 +165,7 @@ namespace ftl {
  *    L(field3, 101, __VA_ARGS__)
  *
  *  // then we call the macro which declares the enum
- *  FTL_DECLARE_ENUM(my_enum, ENUMIFY_MY_ENUM);
+ *  FATAL_DECLARE_ENUM(my_enum, ENUMIFY_MY_ENUM);
  *
  *  // our macro is no longer needed but this step is optional
  *  #undef ENUMIFY_MY_ENUM
@@ -176,28 +176,28 @@ namespace ftl {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FTL_DECLARE_ENUM(Enum, ENUMIFY_FN) \
+#define FATAL_DECLARE_ENUM(Enum, ENUMIFY_FN) \
   enum class Enum { \
     ENUMIFY_FN( \
-      FTL_ENUMIFY_DECLARE_IMPL, \
-      FTL_ENUMIFY_DECLARE_IMPL, \
-      FTL_ENUMIFY_DECLARE_LAST_IMPL, \
-      FTL_ENUMIFY_GET_1ST_ARG, \
-      FTL_ENUMIFY_IGNORE_ARGS_IMPL \
+      FATAL_ENUMIFY_DECLARE_IMPL, \
+      FATAL_ENUMIFY_DECLARE_IMPL, \
+      FATAL_ENUMIFY_DECLARE_LAST_IMPL, \
+      FATAL_ENUMIFY_GET_1ST_ARG, \
+      FATAL_ENUMIFY_IGNORE_ARGS_IMPL \
     ) \
   }
 
-#define FTL_ENUM_TO_STR_CASE_IMPL(Field, Value, Enum, Handler, ...) \
+#define FATAL_ENUM_TO_STR_CASE_IMPL(Field, Value, Enum, Handler, ...) \
   case Handler(Value, Enum)::Field: return FB_STRINGIZE(Field);
-#define FTL_ENUM_TO_CSTR_IMPL(Field, ...) FTL_STR(Field, FTL_AS_STR(Field));
-#define FTL_ENUM_VALUE_TO_LIST_LAST_IMPL(Field, Value, Enum, Handler, ...) \
+#define FATAL_ENUM_TO_CSTR_IMPL(Field, ...) FATAL_STR(Field, FATAL_AS_STR(Field));
+#define FATAL_ENUM_VALUE_TO_LIST_LAST_IMPL(Field, Value, Enum, Handler, ...) \
   Handler(Value, Enum)::Field
-#define FTL_ENUM_VALUE_TO_LIST_IMPL(...) \
-  FTL_ENUM_VALUE_TO_LIST_LAST_IMPL(__VA_ARGS__),
-#define FTL_ENUM_CSTR_TO_LIST_LAST_IMPL(Field, ...) \
+#define FATAL_ENUM_VALUE_TO_LIST_IMPL(...) \
+  FATAL_ENUM_VALUE_TO_LIST_LAST_IMPL(__VA_ARGS__),
+#define FATAL_ENUM_CSTR_TO_LIST_LAST_IMPL(Field, ...) \
   cstr::Field
-#define FTL_ENUM_CSTR_TO_LIST_IMPL(...) \
-  FTL_ENUM_CSTR_TO_LIST_LAST_IMPL(__VA_ARGS__),
+#define FATAL_ENUM_CSTR_TO_LIST_IMPL(...) \
+  FATAL_ENUM_CSTR_TO_LIST_LAST_IMPL(__VA_ARGS__),
 /**
  * Higher-order macro to define a class to handle enum <-> string conversions.
  * This can be used in conjunction with ENUMIFY_DECLARE_ENUM.
@@ -212,16 +212,16 @@ namespace ftl {
  * The following call to this macro (assume that ENUMIFY_MY_ENUM declares
  * enum fields `field0`, `field1` and `field2`):
  *
- *  FTL_DEFINE_ENUM_STR_CLASS(Enum, ClassName, ENUMIFY_MY_ENUM);
+ *  FATAL_DEFINE_ENUM_STR_CLASS(Enum, ClassName, ENUMIFY_MY_ENUM);
  *
  * will create a class following this declaration:
  *
  *  struct ClassName {
  *    struct cstr {
- *      FTL_STR(field0, "field0");
- *      FTL_STR(field1, "field1");
- *      FTL_STR(field2, "field2");
- *      FTL_STR(field3, "field3");
+ *      FATAL_STR(field0, "field0");
+ *      FATAL_STR(field1, "field1");
+ *      FATAL_STR(field2, "field2");
+ *      FATAL_STR(field3, "field3");
  *    };
  *
  *    typedef type_list<
@@ -276,37 +276,37 @@ namespace ftl {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FTL_DEFINE_ENUM_STR_CLASS(Enum, ClassName, ENUMIFY_FN) \
+#define FATAL_DEFINE_ENUM_STR_CLASS(Enum, ClassName, ENUMIFY_FN) \
   struct ClassName { \
     struct cstr { \
       ENUMIFY_FN( \
-        FTL_ENUM_TO_CSTR_IMPL, \
-        FTL_ENUM_TO_CSTR_IMPL, \
-        FTL_ENUM_TO_CSTR_IMPL \
+        FATAL_ENUM_TO_CSTR_IMPL, \
+        FATAL_ENUM_TO_CSTR_IMPL, \
+        FATAL_ENUM_TO_CSTR_IMPL \
       ) \
     }; \
-    typedef ::ftl::type_list< \
+    typedef ::fatal::type_list< \
       ENUMIFY_FN( \
-        FTL_ENUM_CSTR_TO_LIST_IMPL, \
-        FTL_ENUM_CSTR_TO_LIST_IMPL, \
-        FTL_ENUM_CSTR_TO_LIST_LAST_IMPL \
+        FATAL_ENUM_CSTR_TO_LIST_IMPL, \
+        FATAL_ENUM_CSTR_TO_LIST_IMPL, \
+        FATAL_ENUM_CSTR_TO_LIST_LAST_IMPL \
       ) \
     > strings; \
     typedef constant_sequence< \
       Enum, \
       ENUMIFY_FN( \
-        FTL_ENUM_VALUE_TO_LIST_IMPL, \
-        FTL_ENUM_VALUE_TO_LIST_IMPL, \
-        FTL_ENUM_VALUE_TO_LIST_LAST_IMPL, \
+        FATAL_ENUM_VALUE_TO_LIST_IMPL, \
+        FATAL_ENUM_VALUE_TO_LIST_IMPL, \
+        FATAL_ENUM_VALUE_TO_LIST_LAST_IMPL, \
         Enum, \
-        FTL_ENUMIFY_GET_2ND_ARG, \
-        FTL_ENUMIFY_GET_1ST_ARG \
+        FATAL_ENUMIFY_GET_2ND_ARG, \
+        FATAL_ENUMIFY_GET_1ST_ARG \
       ) \
     > values; \
     typedef values::list::apply<strings::zip>::apply<build_type_map> str_to_value; \
     typedef strings::apply<values::list::zip>::apply<build_type_map> value_to_str; \
     typedef strings::apply< \
-      ::ftl::type_prefix_tree_builder<>::build \
+      ::fatal::type_prefix_tree_builder<>::build \
     > prefix_tree; \
   private: \
     struct parse_visitor_impl { \
@@ -314,7 +314,7 @@ namespace ftl {
       void operator ()(type_tag<TString>, Enum &out) { \
         typedef typename str_to_value::template find<TString> value; \
         static_assert( \
-          !::std::is_same<value, ::ftl::type_not_found_tag>::value, \
+          !::std::is_same<value, ::fatal::type_not_found_tag>::value, \
           "missing enum mapping" \
         ); \
         out = value::value; \
@@ -325,12 +325,12 @@ namespace ftl {
       switch (e) { \
         default: return nullptr; \
         ENUMIFY_FN( \
-          FTL_ENUM_TO_STR_CASE_IMPL, \
-          FTL_ENUM_TO_STR_CASE_IMPL, \
-          FTL_ENUM_TO_STR_CASE_IMPL, \
+          FATAL_ENUM_TO_STR_CASE_IMPL, \
+          FATAL_ENUM_TO_STR_CASE_IMPL, \
+          FATAL_ENUM_TO_STR_CASE_IMPL, \
           Enum, \
-          FTL_ENUMIFY_GET_2ND_ARG, \
-          FTL_ENUMIFY_GET_1ST_ARG \
+          FATAL_ENUMIFY_GET_2ND_ARG, \
+          FATAL_ENUMIFY_GET_1ST_ARG \
         ) \
       } \
     } \
@@ -363,13 +363,13 @@ namespace ftl {
   } \
 
 /**
- * A convenience macro that combines both `FTL_DECLARE_ENUM` and
- * `FTL_DECLARE_ENUM` into a single one.
+ * A convenience macro that combines both `FATAL_DECLARE_ENUM` and
+ * `FATAL_DECLARE_ENUM` into a single one.
  *
  * See the documentation of both for more info on how they work.
  */
-#define FTL_RICH_ENUM(Enum, ClassName, ENUMIFY_FN) \
-  FTL_DECLARE_ENUM(Enum, ENUMIFY_FN); \
-  FTL_DEFINE_ENUM_STR_CLASS(Enum, ClassName, ENUMIFY_FN) \
+#define FATAL_RICH_ENUM(Enum, ClassName, ENUMIFY_FN) \
+  FATAL_DECLARE_ENUM(Enum, ENUMIFY_FN); \
+  FATAL_DEFINE_ENUM_STR_CLASS(Enum, ClassName, ENUMIFY_FN) \
 
-} // namespace ftl
+} // namespace fatal

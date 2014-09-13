@@ -16,7 +16,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 
 ////////////////////////////////////////
 // call_traits::member_function::call //
@@ -57,7 +57,7 @@ private:
   double d_;
 };
 
-FTL_CALL_TRAITS(mf_traits, test_fn);
+FATAL_CALL_TRAITS(mf_traits, test_fn);
 
 TEST(call_traits_member_function, call_const_this_ref) {
   member_fn const f;
@@ -269,7 +269,7 @@ struct static_fn {
   static constexpr int test_fn(int a, int b, int c) { return a + b + c; }
 };
 
-FTL_CALL_TRAITS(sm_traits, test_fn);
+FATAL_CALL_TRAITS(sm_traits, test_fn);
 
 TEST(call_traits_static_member, call_static_member) {
   EXPECT_THROW(
@@ -358,7 +358,7 @@ long test_fn(int x, bool b) { return b ? x : -x; }
 
 constexpr int test_fn(int a, int b, int c) { return a + b + c; }
 
-FTL_CALL_TRAITS(ff_traits, test_fn);
+FATAL_CALL_TRAITS(ff_traits, test_fn);
 
 TEST(call_traits_free_function, call_free_function) {
   EXPECT_THROW(ff_traits::free_function::call(0l, 0.0, 0, ""), std::exception);
@@ -583,4 +583,4 @@ TEST(functor_call_traits, non_const_this_ref_functor) {
   EXPECT_EQ(-57, functor(f, 57, false));
 }
 
-} // namespace ftl {
+} // namespace fatal {

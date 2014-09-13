@@ -17,7 +17,7 @@
 #include <type_traits>
 #include <string>
 
-namespace ftl {
+namespace fatal {
 
 template <typename T>
 std::string type_str() {
@@ -59,4 +59,4 @@ std::string type_str() {
 template <typename TExpected, typename TActual>
 void expect_same() { EXPECT_SAME(TExpected, TActual); }
 
-} // namespace ftl {
+} // namespace fatal {

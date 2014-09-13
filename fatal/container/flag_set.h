@@ -17,7 +17,7 @@
 
 #include <cassert>
 
-namespace ftl {
+namespace fatal {
 
 /**
  * A type-safe way to represent a set of boolean flags.
@@ -399,7 +399,7 @@ public:
   using expanded = typename std::conditional<
     tag_list::template contains<UFlag>::value,
     flag_set,
-    typename tag_list::template apply_back<ftl::flag_set, UFlag>
+    typename tag_list::template apply_back<fatal::flag_set, UFlag>
   >::type;
 
   /**
@@ -522,4 +522,4 @@ private:
   flags_type flags_;
 };
 
-} // namespace ftl {
+} // namespace fatal {

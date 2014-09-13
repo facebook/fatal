@@ -17,7 +17,7 @@
 #include <map>
 #include <memory>
 
-namespace ftl {
+namespace fatal {
 
 template <std::size_t> struct T {};
 template <std::size_t> struct S {};
@@ -589,12 +589,12 @@ TEST(type_traits, is_callable) {
   EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
 }
 
-///////////////////////////////////////////
-// FTL_CREATE_HAS_MEMBER_FUNCTION_TRAITS //
-///////////////////////////////////////////
+/////////////////////////////////////////////
+// FATAL_CREATE_HAS_MEMBER_FUNCTION_TRAITS //
+/////////////////////////////////////////////
 
 namespace fbhmft {
-  FTL_CREATE_HAS_MEMBER_FUNCTION_TRAITS(traits, fn);
+  FATAL_CREATE_HAS_MEMBER_FUNCTION_TRAITS(traits, fn);
 
   struct A {};
   struct B {};
@@ -608,7 +608,7 @@ namespace fbhmft {
   };
 };
 
-TEST(type_traits, ftl_create_has_member_function_traits) {
+TEST(type_traits, create_has_member_function_traits) {
   using namespace fbhmft;
 
   EXPECT_TRUE((traits<F>::has_member::value));
@@ -832,4 +832,4 @@ TEST(type_get, std_tuple) {
   >();
 }
 
-} // namespace ftl {
+} // namespace fatal {

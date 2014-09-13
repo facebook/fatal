@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 namespace transform {
 
 //////////////
@@ -353,4 +353,4 @@ using full_recursive_type_merge_sort = typename recursive_type_merge_sort<>
   ::template type<T>;
 
 } // namespace transform {
-} // namespace ftl
+} // namespace fatal

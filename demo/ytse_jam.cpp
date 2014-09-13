@@ -51,26 +51,26 @@ struct get_member {
 namespace metadata {
 namespace str {
 
-FTL_STR(list, "list"); FTL_STR(map, "map"); FTL_STR(string, "string");
+FATAL_STR(list, "list"); FATAL_STR(map, "map"); FATAL_STR(string, "string");
 
-FTL_STR(append, "append"); FTL_STR(at, "at"); FTL_STR(create, "create");
-FTL_STR(get, "get"); FTL_STR(help, "help"); FTL_STR(insert, "insert");
-FTL_STR(json, "json"); FTL_STR(size, "size"); FTL_STR(substr, "substr");
+FATAL_STR(append, "append"); FATAL_STR(at, "at"); FATAL_STR(create, "create");
+FATAL_STR(get, "get"); FATAL_STR(help, "help"); FATAL_STR(insert, "insert");
+FATAL_STR(json, "json"); FATAL_STR(size, "size"); FATAL_STR(substr, "substr");
 
 } // namespace str {
 
 struct method {
-  FTL_CALL_TRAITS(operator_square_bracket, operator []);
-  FTL_CALL_TRAITS(append, append);
-  FTL_CALL_TRAITS(at, at);
-  FTL_CALL_TRAITS(c_str, c_str);
-  FTL_CALL_TRAITS(emplace, emplace);
-  FTL_CALL_TRAITS(emplace_back, emplace_back);
-  FTL_CALL_TRAITS(size, size);
-  FTL_CALL_TRAITS(substr, substr);
+  FATAL_CALL_TRAITS(operator_square_bracket, operator []);
+  FATAL_CALL_TRAITS(append, append);
+  FATAL_CALL_TRAITS(at, at);
+  FATAL_CALL_TRAITS(c_str, c_str);
+  FATAL_CALL_TRAITS(emplace, emplace);
+  FATAL_CALL_TRAITS(emplace_back, emplace_back);
+  FATAL_CALL_TRAITS(size, size);
+  FATAL_CALL_TRAITS(substr, substr);
 };
 
-template <typename... Args> struct constructor { using args = ftl::type_list<Args...>; };
+template <typename... Args> struct constructor { using args = fatal::type_list<Args...>; };
 
 template <typename...> struct operation;
 template <typename TVerb, typename TMethod, typename TResult, typename... Args>
@@ -78,7 +78,7 @@ struct operation<TVerb, TMethod, TResult(Args...)> {
   using verb = TVerb;
   using method = TMethod;
   using result = TResult;
-  using args = ftl::type_list<Args...>;
+  using args = fatal::type_list<Args...>;
 };
 
 template <typename TName, typename T, typename... Args>
@@ -87,10 +87,10 @@ struct data_type {
   using type = T;
 
 private:
-  using info = ftl::type_list<Args...>;
-  using filtered_ctors = typename info::template filter<ftl::is_template<constructor>::template instantiation>;
+  using info = fatal::type_list<Args...>;
+  using filtered_ctors = typename info::template filter<fatal::is_template<constructor>::template instantiation>;
   using filtered_ops = typename filtered_ctors::second::template filter<
-    ftl::is_template<operation>::template instantiation
+    fatal::is_template<operation>::template instantiation
   >;
 
 public:
@@ -140,7 +140,7 @@ using to_operation_command_list = typename TDataType::operations::template trans
 // metadata //
 //////////////
 
-using known = ftl::type_list<
+using known = fatal::type_list<
   data_type<
     str::list, std::vector<std::string>,
     constructor<>,
@@ -170,32 +170,34 @@ using known = ftl::type_list<
 struct ytse_jam {
   using supported = metadata::known;
   using op_list = supported::transform<metadata::to_operation_command_list>::flatten<1>;
-  using instance_t = supported::transform<ftl::get_member_typedef::type>::apply<ftl::auto_variant>;
-  using result_t = op_list::transform<get_member::result>::filter<ftl::transform::alias<std::is_same, void>::type>
-    ::second::unique<>::apply<ftl::auto_variant>;
+  using instance_t = supported::transform<fatal::get_member_typedef::type>::apply<fatal::auto_variant>;
+  using result_t = op_list::transform<get_member::result>::filter<fatal::transform::alias<std::is_same, void>::type>
+    ::second::unique<>::apply<fatal::auto_variant>;
 
   result_t handle(std::string const &command, request_args &args);
 
 private:
-  using data_type_trie = supported::transform<get_member::name>::apply<ftl::type_prefix_tree_builder<>::build>;
+  using data_type_trie = supported::transform<get_member::name>::apply<fatal::type_prefix_tree_builder<>::build>;
   // data_type_name -> ctor
-  using ctor_index = ftl::type_map_from<get_member::name>::list<supported::transform<metadata::to_constructor_command>>;
-  using built_ins = ftl::type_list<metadata::str::create, metadata::str::json, metadata::str::help>;
+  using ctor_index = fatal::type_map_from<get_member::name>::list<
+    supported::transform<metadata::to_constructor_command>
+  >;
+  using built_ins = fatal::type_list<metadata::str::create, metadata::str::json, metadata::str::help>;
   using command_trie = op_list::transform<get_member::verb>::concat<built_ins>
-    ::apply<ftl::type_prefix_tree_builder<>::build>;
-  using op_trie = op_list::transform<get_member::verb>::apply<ftl::type_prefix_tree_builder<>::build>;
+    ::apply<fatal::type_prefix_tree_builder<>::build>;
+  using op_trie = op_list::transform<get_member::verb>::apply<fatal::type_prefix_tree_builder<>::build>;
   // data_type -> verb -> op
-  using op_index = ftl::clustered_index<op_list, ftl::get_member_typedef::type, get_member::verb>;
+  using op_index = fatal::clustered_index<op_list, fatal::get_member_typedef::type, get_member::verb>;
   using instances_map = std::unordered_map<std::string, instance_t>;
 
   template <typename T, typename TArgsList, std::size_t... Indexes>
-  static void call_ctor(ftl::constant_sequence<std::size_t, Indexes...>, instance_t &instance, request_args &args) {
+  static void call_ctor(fatal::constant_sequence<std::size_t, Indexes...>, instance_t &instance, request_args &args) {
     instance.template emplace<T>(args.template get<typename TArgsList::template at<Indexes>>(Indexes)...);
   }
 
   template <typename TMethod, typename TResult, typename TArgsList, typename T, std::size_t... Indexes>
   static void call_method(
-    ftl::constant_sequence<std::size_t, Indexes...>, result_t &out, T &&instance, request_args &args
+    fatal::constant_sequence<std::size_t, Indexes...>, result_t &out, T &&instance, request_args &args
   ) {
     out.set_result_of([&]() {
       return static_cast<TResult>(
@@ -215,7 +217,7 @@ private:
 
         if (op::args::size != args.size()) { throw std::invalid_argument("arguments list size mismatch"); }
 
-        using arg_indexes = ftl::constant_range<std::size_t, 0, op::args::size>;
+        using arg_indexes = fatal::constant_range<std::size_t, 0, op::args::size>;
 
         call_method<typename op::method, typename op::result, typename op::args>(
           arg_indexes(), out, std::forward<T>(instance), args
@@ -228,7 +230,7 @@ private:
 
   struct command_parser {
     template <typename TVerb>
-    void operator ()(ftl::type_tag<TVerb>, instances_map &instances, request_args &args, result_t &out) const {
+    void operator ()(fatal::type_tag<TVerb>, instances_map &instances, request_args &args, result_t &out) const {
       auto i = instances.find(args.next<std::string>());
       if (i == instances.end()) { throw std::invalid_argument("instance not found"); }
       if (!i->second.visit(call_visitor<TVerb>(), out, args)) {
@@ -239,7 +241,7 @@ private:
     // built-ins
 
     void operator ()(
-      ftl::type_tag<metadata::str::create>, instances_map &instances, request_args &args, result_t &out
+      fatal::type_tag<metadata::str::create>, instances_map &instances, request_args &args, result_t &out
     ) const {
       auto type = args.next<std::string>();
       auto instance = args.next<std::string>();
@@ -248,8 +250,8 @@ private:
         [&](auto data_type_name) { // type_tag<type_string>
           ctor_index::visit<typename decltype(data_type_name)::type>(
             [&](auto ctor_pair) { // type_pair<type_string, constructor>
-              using ctor = ftl::type_get_second<decltype(ctor_pair)>;
-              using arg_indexes = ftl::constant_range<std::size_t, 0, ctor::args::size>;
+              using ctor = fatal::type_get_second<decltype(ctor_pair)>;
+              using arg_indexes = fatal::constant_range<std::size_t, 0, ctor::args::size>;
 
               if (ctor::args::size != args.size()) { throw std::invalid_argument("arguments list size mismatch"); }
 
@@ -263,7 +265,7 @@ private:
     }
 
     void operator ()(
-      ftl::type_tag<metadata::str::help>, instances_map &instances, request_args &args, result_t &out
+      fatal::type_tag<metadata::str::help>, instances_map &instances, request_args &args, result_t &out
     ) const {
       supported::foreach([](auto data_type_tag) { // indexed_type_tag<data_type>
         using data_type = decltype(data_type_tag);
@@ -292,7 +294,7 @@ private:
     }
 
     void operator ()(
-      ftl::type_tag<metadata::str::json>, instances_map &instances, request_args &args, result_t &out
+      fatal::type_tag<metadata::str::json>, instances_map &instances, request_args &args, result_t &out
     ) const {
       std::cout << '{' << std::endl;
       supported::foreach([](auto data_type_tag) { // indexed_type_tag<data_type>

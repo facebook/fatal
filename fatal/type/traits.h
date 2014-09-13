@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 
 /////////////////
 // TYPE TRAITS //
@@ -808,7 +808,7 @@ constexpr bool is_callable<T, Args...>::value;
  * Example:
  *
  *  // checks for a member named `fn`
- *  FTL_CREATE_HAS_MEMBER_TRAITS(traits, fn);
+ *  FATAL_CREATE_HAS_MEMBER_TRAITS(traits, fn);
  *  // now we have a class names `traits`
  *
  *  struct A {};
@@ -839,7 +839,7 @@ constexpr bool is_callable<T, Args...>::value;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FTL_CREATE_HAS_MEMBER_FUNCTION_TRAITS(Class, Member) \
+#define FATAL_CREATE_HAS_MEMBER_FUNCTION_TRAITS(Class, Member) \
   template <typename TTheClass_, typename... TTheArgs_> \
   class Class { \
     template <typename> struct dummy; \
@@ -1020,4 +1020,4 @@ struct type_get_traits<std::tuple<Args...>, Index> {
   >::type type;
 };
 
-} // namespace ftl
+} // namespace fatal

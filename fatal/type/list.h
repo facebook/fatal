@@ -18,7 +18,7 @@
 #include <typeinfo>
 #include <utility>
 
-namespace ftl {
+namespace fatal {
 
 /**
  * READ ME FIRST: You probably want to jump to
@@ -880,7 +880,7 @@ struct binary_search_exact {
     // ternary needed due to C++11's constexpr restrictions
     return comparison < 0
       ? left::template apply<
-          ::ftl::detail::type_list_impl::binary_search_exact
+          ::fatal::detail::type_list_impl::binary_search_exact
         >::template search<TComparer, Offset>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
@@ -888,7 +888,7 @@ struct binary_search_exact {
         )
       : (0 < comparison
         ? right::template apply<
-            ::ftl::detail::type_list_impl::binary_search_exact
+            ::fatal::detail::type_list_impl::binary_search_exact
           >::template search<TComparer, Offset + left::size + 1>(
             std::forward<TNeedle>(needle),
             std::forward<TVisitor>(visitor),
@@ -959,14 +959,14 @@ struct binary_search_lower_bound {
       std::forward<TNeedle>(needle), pivot<Offset>{}
     ) < 0
       ? left::template apply<
-          ::ftl::detail::type_list_impl::binary_search_lower_bound
+          ::fatal::detail::type_list_impl::binary_search_lower_bound
         >::template recursion<TComparer, Offset>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
           std::forward<VArgs>(args)...
         )
       : right::template apply<
-          ::ftl::detail::type_list_impl::binary_search_lower_bound
+          ::fatal::detail::type_list_impl::binary_search_lower_bound
         >::template recursion<TComparer, Offset + left::size>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
@@ -1068,14 +1068,14 @@ struct binary_search_upper_bound {
       pivot<Offset>{}
     ) < 0
       ? left::template apply<
-          ::ftl::detail::type_list_impl::binary_search_upper_bound
+          ::fatal::detail::type_list_impl::binary_search_upper_bound
         >::template search<TComparer, Offset>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
           std::forward<VArgs>(args)...
         )
       : right::template apply<
-          ::ftl::detail::type_list_impl::binary_search_upper_bound
+          ::fatal::detail::type_list_impl::binary_search_upper_bound
         >::template search<TComparer, Offset + left::size>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
@@ -1319,7 +1319,7 @@ struct type_list {
    */
   template <
     template <typename...> class T,
-    template <typename...> class TTransform = ftl::transform::identity
+    template <typename...> class TTransform = fatal::transform::identity
   >
   using apply = T<TTransform<Args>...>;
 
@@ -1353,7 +1353,7 @@ struct type_list {
    */
   template <
     typename T, template <T...> class TTo,
-    template <typename...> class TGetter = ftl::transform::identity
+    template <typename...> class TGetter = fatal::transform::identity
   >
   using apply_values = TTo<TGetter<Args>::value...>;
 
@@ -1387,7 +1387,7 @@ struct type_list {
    */
   template <
     typename T, template <typename, T...> class TTo,
-    template <typename...> class TGetter = ftl::transform::identity
+    template <typename...> class TGetter = fatal::transform::identity
   >
   using apply_type_values = TTo<T, TGetter<Args>::value...>;
 
@@ -1511,7 +1511,7 @@ struct type_list {
   template <typename V, typename... VArgs>
   static constexpr bool foreach(V &&visitor, VArgs &&...args) {
     return 0 < foreach_if<
-      ftl::transform::fixed<std::true_type>::template type
+      fatal::transform::fixed<std::true_type>::template type
     >(std::forward<V>(visitor), std::forward<VArgs>(args)...);
   };
 
@@ -2079,7 +2079,7 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform = ftl::transform::identity>
+  template <template <typename...> class TTransform = fatal::transform::identity>
   using unique = typename detail::type_list_impl::unique<
     type_list<>, TTransform<Args>...
   >::type;
@@ -2306,4 +2306,4 @@ struct type_list {
 template <typename... Args> constexpr std::size_t type_list<Args...>::size;
 template <typename... Args> constexpr bool type_list<Args...>::empty;
 
-} // namespace ftl
+} // namespace fatal

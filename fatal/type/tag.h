@@ -11,7 +11,7 @@
 
 #include <type_traits>
 
-namespace ftl {
+namespace fatal {
 
 template <typename T> struct type_tag { typedef T type; };
 
@@ -24,4 +24,4 @@ struct indexed_type_tag:
 
 struct type_not_found_tag {};
 
-} // namespace ftl
+} // namespace fatal

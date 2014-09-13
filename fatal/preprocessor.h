@@ -9,14 +9,14 @@
 
 #pragma once
 
-namespace ftl {
+namespace fatal {
 
-#define FTL_CAT_IMPL(LHS, RHS) LHS##RHS
-#define FTL_CAT(LHS, RHS) FTL_CAT_IMPL(LHS, RHS)
+#define FATAL_CAT_IMPL(LHS, RHS) LHS##RHS
+#define FATAL_CAT(LHS, RHS) FATAL_CAT_IMPL(LHS, RHS)
 
-#define FTL_AS_STR_IMPL(String) #String
-#define FTL_AS_STR(String) FTL_AS_STR_IMPL(String)
+#define FATAL_AS_STR_IMPL(String) #String
+#define FATAL_AS_STR(String) FATAL_AS_STR_IMPL(String)
 
-#define FTL_UID(Prefix) FTL_CAT(Prefix, FTL_CAT(_, __LINE__))
+#define FATAL_UID(Prefix) FATAL_CAT(Prefix, FATAL_CAT(_, __LINE__))
 
-} // namespace ftl {
+} // namespace fatal {

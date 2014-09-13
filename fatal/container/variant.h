@@ -38,7 +38,7 @@
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 
-namespace ftl {
+namespace fatal {
 
 /**
  * #######################
@@ -135,7 +135,7 @@ typedef fixed_allocation_policy<false> automatic_allocation_policy;
  */
 template <
   typename TAllocator = std::allocator<void>,
-  typename TAllocationPolicy = ftl::default_allocation_policy<>,
+  typename TAllocationPolicy = fatal::default_allocation_policy<>,
   bool IsCopyable = true
 >
 struct default_storage_policy {
@@ -367,7 +367,7 @@ namespace detail {
 namespace variant_impl {
 
 /**
- * An internal traits class used by ftl::variant to handle variadic
+ * An internal traits class used by fatal::variant to handle variadic
  * recursion and runtime type erasure without the need for virtual calls.
  *
  * It basically provides a union comprised of all the types that need to
@@ -602,10 +602,10 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
   typedef typename storage_policy::template storage_type<value_type>::type
     storage_type;
 
-  typedef ftl::detail::variant_impl::variadic_union_traits<
+  typedef fatal::detail::variant_impl::variadic_union_traits<
     storage_policy, size_type, Depth, T
   > head_type;
-  typedef ftl::detail::variant_impl::variadic_union_traits<
+  typedef fatal::detail::variant_impl::variadic_union_traits<
     storage_policy, size_type, Depth + 1, Head, Tail...
   > tail_type;
 
@@ -871,7 +871,7 @@ struct is_variant<variant<UStoragePolicy, UArgs...>>:
  *
  * The underlying storage used to hold these values can be fully customized
  * by means of a StoragePolicy. A default implementation for this policy is
- * provided (ftl::default_storage_policy) which allows the usage of
+ * provided (fatal::default_storage_policy) which allows the usage of
  * either automatic or dynamic allocation to store the values (this can be
  * further customized per type by means of an AllocationPolicy, search for
  * 'STORAGE POLICY' for more details).
@@ -920,7 +920,7 @@ private:
 
 public:
   typedef typename control_block::type_tag type_tag;
-  typedef ftl::detail::variant_impl::variadic_union_traits<
+  typedef fatal::detail::variant_impl::variadic_union_traits<
     storage_policy,
     type_tag, std::numeric_limits<type_tag>::min(),
     typename std::remove_reference<Args>::type...
@@ -1514,25 +1514,25 @@ private:
 };
 
 template <typename... Args>
-using default_variant = ftl::variant<
-  ftl::default_storage_policy<>,
+using default_variant = fatal::variant<
+  fatal::default_storage_policy<>,
   Args...
 >;
 
 template <typename... Args>
-using auto_variant = ftl::variant<
-  ftl::default_storage_policy<
+using auto_variant = fatal::variant<
+  fatal::default_storage_policy<
     std::allocator<void>,
-    ftl::automatic_allocation_policy
+    fatal::automatic_allocation_policy
   >,
   Args...
 >;
 
 template <typename... Args>
-using default_dynamic_variant = ftl::variant<
-  ftl::default_storage_policy<
+using default_dynamic_variant = fatal::variant<
+  fatal::default_storage_policy<
     std::allocator<void>,
-    ftl::dynamic_allocation_policy
+    fatal::dynamic_allocation_policy
   >,
   Args...
 >;
@@ -1771,16 +1771,16 @@ result_type visit_def(
     : defaultValue;
 }
 
-} // namespace ftl {
+} // namespace fatal {
 
 namespace std {
 
 template <typename TStoragePolicy, typename... Args>
-struct hash<ftl::variant<TStoragePolicy, Args...>> {
+struct hash<fatal::variant<TStoragePolicy, Args...>> {
   typedef std::size_t result_type;
 
   result_type operator ()(
-    ftl::variant<TStoragePolicy, Args...> const &v
+    fatal::variant<TStoragePolicy, Args...> const &v
   ) const {
     hash_visitor visitor(std::hash<decltype(v.tag())>()(v.tag()));
 

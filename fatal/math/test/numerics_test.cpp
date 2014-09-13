@@ -14,7 +14,7 @@
 #include <folly/String.h>
 #include <folly/Random.h>
 
-namespace ftl {
+namespace fatal {
 
 ///////////////
 // data_bits //
@@ -702,4 +702,4 @@ TEST(discrete_to_continuous, sanity_check) {
 
 #undef C_TEST_IMPL
 
-} // namespace ftl {
+} // namespace fatal {

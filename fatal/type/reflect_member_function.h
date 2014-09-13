@@ -13,7 +13,7 @@
 
 #include <type_traits>
 
-namespace ftl {
+namespace fatal {
 
 ////////////////
 // qualifiers //
@@ -284,4 +284,4 @@ using reflect_member_function = decltype(
   detail::reflect_member_function_impl(static_cast<T>(nullptr))
 );
 
-} // namespace ftl
+} // namespace fatal
