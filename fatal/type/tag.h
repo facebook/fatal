@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <fatal/type/debug.h>
+
 #include <type_traits>
 
 namespace fatal {
@@ -20,7 +22,12 @@ struct indexed_type_tag:
   public std::integral_constant<std::size_t, Index>
 {
   typedef T type;
+
+  constexpr static std::size_t index = Index;
 };
+
+template <typename T, std::size_t Index>
+constexpr std::size_t indexed_type_tag<T, Index>::index;
 
 struct type_not_found_tag {};
 

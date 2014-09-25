@@ -46,7 +46,7 @@ fx const x051423s(x0, x5, x1, x4, x2, x3);
 
 template <typename TExpectedType, typename TActual, typename TExpectedValue>
 void check(TExpectedValue &&expected, TActual &&actual) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     typename std::decay<TExpectedType>::type,
     typename std::decay<TActual>::type
   >();

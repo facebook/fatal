@@ -39,7 +39,7 @@ template <long... values> using lseq = seq<long, values...>;
 /////////////////////////////////////
 
 TEST(reflect_template_non_template, type) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     foo,
     reflect_template<foo>::type
   >();
@@ -67,7 +67,7 @@ TEST(reflect_template_non_template, is_same_tvl) {
 //////////////////////////////////
 
 TEST(reflect_template_type_list, type) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     ilstt<0, 1, 2>,
     reflect_template<ilstt<0, 1, 2>>::type
   >();
@@ -81,14 +81,14 @@ TEST(reflect_template_type_list, tag) {
 }
 
 TEST(reflect_template_type_list, rebind) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     ilsts<0, 1, 2>,
     reflect_template<ilstt<0, 1, 2>>::rebind<S<0>, S<1>, S<2>>
   >();
 }
 
 TEST(reflect_template_type_list, types) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<T<0>, T<1>, T<2>>,
     reflect_template<ilstt<0, 1, 2>>::types
   >();
@@ -109,7 +109,7 @@ TEST(reflect_template_type_list, is_same_tvl) {
 /////////////////////////////////////////
 
 TEST(reflect_template_typed_value_list, type) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     iseq<0, 1, 2>,
     reflect_template<iseq<0, 1, 2>>::type
   >();
@@ -123,31 +123,31 @@ TEST(reflect_template_typed_value_list, tag) {
 }
 
 TEST(reflect_template_typed_value_list, value_type) {
-  expect_same<reflect_template<iseq<0, 1, 2>>::value_type, int>();
-  expect_same<reflect_template<lseq<0, 1, 2>>::value_type, long>();
+  FATAL_EXPECT_SAME<reflect_template<iseq<0, 1, 2>>::value_type, int>();
+  FATAL_EXPECT_SAME<reflect_template<lseq<0, 1, 2>>::value_type, long>();
 }
 
 TEST(reflect_template_typed_value_list, rebind) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     iseq<3, 4, 5>,
-    reflect_template<iseq<0, 1, 2>>::rebind<>::type<3, 4, 5>
+    reflect_template<iseq<0, 1, 2>>::rebind<>::apply<3, 4, 5>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     lseq<3, 4, 5>,
-    reflect_template<iseq<0, 1, 2>>::rebind<long>::type<3, 4, 5>
+    reflect_template<iseq<0, 1, 2>>::rebind<long>::apply<3, 4, 5>
   >();
 }
 
 TEST(reflect_template_typed_value_list, values) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     constant_sequence<int, 0, 1, 2>,
     reflect_template<iseq<0, 1, 2>>::values
   >();
 }
 
 TEST(reflect_template_typed_value_list, types) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<
       std::integral_constant<int, 0>,
       std::integral_constant<int, 1>,

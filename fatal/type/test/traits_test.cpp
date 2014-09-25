@@ -11,61 +11,22 @@
 
 #include <fatal/test/driver.h>
 
+#include <list>
+#include <map>
+#include <memory>
+#include <set>
 #include <string>
 #include <tuple>
 #include <utility>
-#include <map>
-#include <memory>
 
 namespace fatal {
 
 template <std::size_t> struct T {};
 template <std::size_t> struct S {};
 
-//////////////
-// currying //
-//////////////
-
-template <
-  typename TLHS,
-  typename TRHS,
-  template <typename, typename> class TUncurried,
-  template <typename> class TCurried
->
-void check_value_currying() {
-  EXPECT_EQ(
-    (TUncurried<TLHS, TRHS>::value),
-    (TCurried<TLHS>::template type<TRHS>::value)
-  );
-}
-
-/////////////////
-// is_template //
-/////////////////
-
-template <template <typename...> class TTemplate, typename T, bool Expected>
-void check_is_template() {
-  bool b = Expected;
-  EXPECT_EQ(b, (is_template<TTemplate>::template instantiation<T>::value));
-}
-
-TEST(type_traits, is_template) {
-  check_is_template<std::basic_string, std::string, true>();
-  check_is_template<std::basic_string, std::wstring, true>();
-  check_is_template<std::basic_string, std::basic_string<int>, true>();
-  check_is_template<std::basic_string, std::pair<int, double>, false>();
-  check_is_template<std::basic_string, std::vector<int>, false>();
-  check_is_template<std::basic_string, std::tuple<int>, false>();
-  check_is_template<std::basic_string, std::tuple<int, double>, false>();
-
-  check_is_template<std::tuple, std::string, false>();
-  check_is_template<std::tuple, std::wstring, false>();
-  check_is_template<std::tuple, std::basic_string<int>, false>();
-  check_is_template<std::tuple, std::pair<int, double>, false>();
-  check_is_template<std::tuple, std::vector<int>, false>();
-  check_is_template<std::tuple, std::tuple<int>, true>();
-  check_is_template<std::tuple, std::tuple<int, double>, true>();
-}
+template <typename> struct test_tag {};
+template <typename...> struct test_list {};
+template <typename T, T...> struct test_seq {};
 
 /////////////////
 // is_complete //
@@ -85,11 +46,43 @@ TEST(type_traits, is_complete) {
 // get_member_typedef //
 ////////////////////////
 
+struct get_member_typedef_test {
+  using tag = test_tag<void>;
+
+  using types = test_list<void, int, bool, long>;
+  using values = test_seq<int, 0, 2, 4, 6>;
+  using args = test_list<std::string, double, std::vector<char>>;
+
+  using pair = std::pair<float, long>;
+  using tuple = std::tuple<int, double, bool>;
+  using list = std::list<short>;
+  using map = std::map<int, bool>;
+  using set = std::set<double>;
+  using string = std::wstring;
+  using index = std::integral_constant<std::size_t, 5>;
+  using flag = std::true_type;
+};
+
 TEST(type_traits, get_member_typedef) {
 # define CREATE_TEST(Member, Type) \
   do { \
-    expect_same<Type::Member, get_member_typedef::Member<Type>>(); \
+    FATAL_EXPECT_SAME<Type::Member, get_member_typedef::Member<Type>>(); \
   } while (false)
+
+  CREATE_TEST(tag, get_member_typedef_test);
+
+  CREATE_TEST(types, get_member_typedef_test);
+  CREATE_TEST(values, get_member_typedef_test);
+  CREATE_TEST(args, get_member_typedef_test);
+
+  CREATE_TEST(pair, get_member_typedef_test);
+  CREATE_TEST(tuple, get_member_typedef_test);
+  CREATE_TEST(list, get_member_typedef_test);
+  CREATE_TEST(map, get_member_typedef_test);
+  CREATE_TEST(set, get_member_typedef_test);
+  CREATE_TEST(string, get_member_typedef_test);
+  CREATE_TEST(index, get_member_typedef_test);
+  CREATE_TEST(flag, get_member_typedef_test);
 
   typedef std::add_const<int> a_c;
   CREATE_TEST(type, a_c);
@@ -105,6 +98,9 @@ TEST(type_traits, get_member_typedef) {
 
   typedef std::shared_ptr<float> ptr;
   CREATE_TEST(element_type, ptr);
+
+  typedef std::char_traits<char> ctraits;
+  CREATE_TEST(char_type, ctraits);
 
   typedef std::string str;
   CREATE_TEST(traits_type, str);
@@ -132,9 +128,9 @@ TEST(type_traits, get_member_typedef) {
 
 TEST(type_traits, type_of) {
   typedef std::integral_constant<int, 5> i5;
-  expect_same<int, type_of<i5>>();
+  FATAL_EXPECT_SAME<int, type_of<i5>>();
 
-  expect_same<bool, type_of<std::true_type>>();
+  FATAL_EXPECT_SAME<bool, type_of<std::true_type>>();
 }
 
 //////////////////
@@ -143,8 +139,8 @@ TEST(type_traits, type_of) {
 
 template <typename T, typename TWhenTrue, typename TWhenFalse>
 void check_add_const_if() {
-  expect_same<TWhenTrue, add_const_if<T, true>>();
-  expect_same<TWhenFalse, add_const_if<T, false>>();
+  FATAL_EXPECT_SAME<TWhenTrue, add_const_if<T, true>>();
+  FATAL_EXPECT_SAME<TWhenFalse, add_const_if<T, false>>();
 }
 
 TEST(type_traits, add_const_if) {
@@ -332,6 +328,73 @@ TEST(type_traits, constants_comparison_gte) {
   EXPECT_TRUE((constants_comparison_gte<A, A>::value));
 }
 
+/////////////////
+// is_template //
+/////////////////
+
+template <typename T, bool Expected, template <typename...> class... TTemplates>
+void check_is_template() {
+  bool expected = Expected;
+  using checker = is_template<TTemplates...>;
+  bool actual = checker::template type<T>::value;
+  if (expected != actual) {
+    LOG(ERROR) << "checker: " << type_str<checker>();
+    LOG(ERROR) << "type: " << type_str<T>();
+    EXPECT_EQ(expected, actual);
+  }
+}
+
+TEST(type_traits, is_template) {
+  check_is_template<std::string, false, std::tuple>();
+  check_is_template<std::wstring, false, std::tuple>();
+  check_is_template<std::basic_string<int>, false, std::tuple>();
+  check_is_template<std::pair<int, double>, false, std::tuple>();
+  check_is_template<std::vector<int>, false, std::tuple>();
+  check_is_template<std::tuple<int>, true, std::tuple>();
+  check_is_template<std::tuple<int, double>, true, std::tuple>();
+
+  check_is_template<std::string, false, std::vector>();
+  check_is_template<std::wstring, false, std::vector>();
+  check_is_template<std::basic_string<int>, false, std::vector>();
+  check_is_template<std::pair<int, double>, false, std::vector>();
+  check_is_template<std::vector<int>, true, std::vector>();
+  check_is_template<std::tuple<int>, false, std::vector>();
+  check_is_template<std::tuple<int, double>, false, std::vector>();
+
+  check_is_template<std::string, true, std::basic_string>();
+  check_is_template<std::wstring, true, std::basic_string>();
+  check_is_template<std::basic_string<int>, true, std::basic_string>();
+  check_is_template<std::pair<int, double>, false, std::basic_string>();
+  check_is_template<std::vector<int>, false, std::basic_string>();
+  check_is_template<std::tuple<int>, false, std::basic_string>();
+  check_is_template<std::tuple<int, double>, false, std::basic_string>();
+
+  check_is_template<std::string, false, std::tuple, std::vector>();
+  check_is_template<std::wstring, false, std::tuple, std::vector>();
+  check_is_template<std::basic_string<int>, false, std::tuple, std::vector>();
+  check_is_template<std::pair<int, double>, false, std::tuple, std::vector>();
+  check_is_template<std::vector<int>, true, std::tuple, std::vector>();
+  check_is_template<std::tuple<int>, true, std::tuple, std::vector>();
+  check_is_template<std::tuple<int, double>, true, std::tuple, std::vector>();
+
+  check_is_template<std::string, true, std::tuple, std::basic_string>();
+  check_is_template<std::wstring, true, std::tuple, std::basic_string>();
+  check_is_template<
+    std::basic_string<int>, true,
+    std::tuple, std::basic_string
+  >();
+  check_is_template<
+    std::pair<int, double>, false,
+    std::tuple, std::basic_string
+  >();
+  check_is_template<std::vector<int>, false, std::tuple, std::basic_string>();
+  check_is_template<std::tuple<int>, true, std::tuple, std::basic_string>();
+  check_is_template<
+    std::tuple<int, double>, true,
+    std::tuple, std::basic_string
+  >();
+}
+
 ///////////////////////////
 // curried_type_comparer //
 ///////////////////////////
@@ -357,7 +420,7 @@ TEST(type_traits, curried_type_comparer) {
 
   EXPECT_TRUE((
     values_5_8::comparison<
-      curried_type_comparer<>::template type
+      curried_type_comparer<>::template compare
     >::value
   ));
 
@@ -365,7 +428,7 @@ TEST(type_traits, curried_type_comparer) {
     values_5_8::comparison<
       curried_type_comparer<
         constants_comparison_gt
-      >::template type
+      >::template compare
     >::value
   ));
 
@@ -379,7 +442,7 @@ TEST(type_traits, curried_type_comparer) {
       curried_type_comparer<
         constants_comparison_gt,
         get_member_typedef::template type
-      >::template type
+      >::template compare
     >::value
   ));
 }
@@ -449,65 +512,65 @@ TEST(type_traits, fast_pass_by_value) {
 ///////////////
 
 TEST(type_traits, fast_pass) {
-  expect_same<bool const, fast_pass<bool>>();
-  expect_same<bool const, fast_pass<bool &>>();
-  expect_same<bool const, fast_pass<bool &&>>();
-  expect_same<bool const, fast_pass<bool const>>();
-  expect_same<bool const, fast_pass<bool const &>>();
-  expect_same<bool const, fast_pass<bool const &&>>();
+  FATAL_EXPECT_SAME<bool const, fast_pass<bool>>();
+  FATAL_EXPECT_SAME<bool const, fast_pass<bool &>>();
+  FATAL_EXPECT_SAME<bool const, fast_pass<bool &&>>();
+  FATAL_EXPECT_SAME<bool const, fast_pass<bool const>>();
+  FATAL_EXPECT_SAME<bool const, fast_pass<bool const &>>();
+  FATAL_EXPECT_SAME<bool const, fast_pass<bool const &&>>();
 
-  expect_same<bool *const, fast_pass<bool *>>();
-  expect_same<bool *const, fast_pass<bool *&>>();
-  expect_same<bool *const, fast_pass<bool *&&>>();
-  expect_same<bool *const, fast_pass<bool * const &>>();
-  expect_same<bool *const, fast_pass<bool * const &&>>();
-  expect_same<bool const *const, fast_pass<bool const *>>();
-  expect_same<bool const *const, fast_pass<bool const *&>>();
-  expect_same<bool const *const, fast_pass<bool const *&&>>();
-  expect_same<bool const *const, fast_pass<bool const * const &>>();
-  expect_same<bool const *const, fast_pass<bool const * const &&>>();
+  FATAL_EXPECT_SAME<bool *const, fast_pass<bool *>>();
+  FATAL_EXPECT_SAME<bool *const, fast_pass<bool *&>>();
+  FATAL_EXPECT_SAME<bool *const, fast_pass<bool *&&>>();
+  FATAL_EXPECT_SAME<bool *const, fast_pass<bool * const &>>();
+  FATAL_EXPECT_SAME<bool *const, fast_pass<bool * const &&>>();
+  FATAL_EXPECT_SAME<bool const *const, fast_pass<bool const *>>();
+  FATAL_EXPECT_SAME<bool const *const, fast_pass<bool const *&>>();
+  FATAL_EXPECT_SAME<bool const *const, fast_pass<bool const *&&>>();
+  FATAL_EXPECT_SAME<bool const *const, fast_pass<bool const * const &>>();
+  FATAL_EXPECT_SAME<bool const *const, fast_pass<bool const * const &&>>();
 
-  expect_same<int const, fast_pass<int>>();
-  expect_same<int const, fast_pass<int &>>();
-  expect_same<int const, fast_pass<int &&>>();
-  expect_same<int const, fast_pass<int const>>();
-  expect_same<int const, fast_pass<int const &>>();
-  expect_same<int const, fast_pass<int const &&>>();
+  FATAL_EXPECT_SAME<int const, fast_pass<int>>();
+  FATAL_EXPECT_SAME<int const, fast_pass<int &>>();
+  FATAL_EXPECT_SAME<int const, fast_pass<int &&>>();
+  FATAL_EXPECT_SAME<int const, fast_pass<int const>>();
+  FATAL_EXPECT_SAME<int const, fast_pass<int const &>>();
+  FATAL_EXPECT_SAME<int const, fast_pass<int const &&>>();
 
-  expect_same<int *const, fast_pass<int *>>();
-  expect_same<int *const, fast_pass<int *&>>();
-  expect_same<int *const, fast_pass<int *&&>>();
-  expect_same<int *const, fast_pass<int * const &>>();
-  expect_same<int *const, fast_pass<int * const &&>>();
-  expect_same<int const *const, fast_pass<int const *>>();
-  expect_same<int const *const, fast_pass<int const *&>>();
-  expect_same<int const *const, fast_pass<int const *&&>>();
-  expect_same<int const *const, fast_pass<int const * const &>>();
-  expect_same<int const *const, fast_pass<int const * const &&>>();
+  FATAL_EXPECT_SAME<int *const, fast_pass<int *>>();
+  FATAL_EXPECT_SAME<int *const, fast_pass<int *&>>();
+  FATAL_EXPECT_SAME<int *const, fast_pass<int *&&>>();
+  FATAL_EXPECT_SAME<int *const, fast_pass<int * const &>>();
+  FATAL_EXPECT_SAME<int *const, fast_pass<int * const &&>>();
+  FATAL_EXPECT_SAME<int const *const, fast_pass<int const *>>();
+  FATAL_EXPECT_SAME<int const *const, fast_pass<int const *&>>();
+  FATAL_EXPECT_SAME<int const *const, fast_pass<int const *&&>>();
+  FATAL_EXPECT_SAME<int const *const, fast_pass<int const * const &>>();
+  FATAL_EXPECT_SAME<int const *const, fast_pass<int const * const &&>>();
 
-  expect_same<std::string const &, fast_pass<std::string>>();
-  expect_same<std::string const &, fast_pass<std::string &>>();
-  expect_same<std::string const &, fast_pass<std::string &&>>();
-  expect_same<std::string const &, fast_pass<std::string const>>();
-  expect_same<std::string const &, fast_pass<std::string const &>>();
-  expect_same<std::string const &, fast_pass<std::string const &&>>();
+  FATAL_EXPECT_SAME<std::string const &, fast_pass<std::string>>();
+  FATAL_EXPECT_SAME<std::string const &, fast_pass<std::string &>>();
+  FATAL_EXPECT_SAME<std::string const &, fast_pass<std::string &&>>();
+  FATAL_EXPECT_SAME<std::string const &, fast_pass<std::string const>>();
+  FATAL_EXPECT_SAME<std::string const &, fast_pass<std::string const &>>();
+  FATAL_EXPECT_SAME<std::string const &, fast_pass<std::string const &&>>();
 
-  expect_same<std::string *const, fast_pass<std::string *>>();
-  expect_same<std::string *const, fast_pass<std::string *&>>();
-  expect_same<std::string *const, fast_pass<std::string *&&>>();
-  expect_same<std::string *const, fast_pass<std::string * const &>>();
-  expect_same<std::string *const, fast_pass<std::string * const &&>>();
-  expect_same<std::string const *const, fast_pass<std::string const *>>();
-  expect_same<std::string const *const, fast_pass<std::string const *&>>();
-  expect_same<
+  FATAL_EXPECT_SAME<std::string *const, fast_pass<std::string *>>();
+  FATAL_EXPECT_SAME<std::string *const, fast_pass<std::string *&>>();
+  FATAL_EXPECT_SAME<std::string *const, fast_pass<std::string *&&>>();
+  FATAL_EXPECT_SAME<std::string *const, fast_pass<std::string * const &>>();
+  FATAL_EXPECT_SAME<std::string *const, fast_pass<std::string * const &&>>();
+  FATAL_EXPECT_SAME<std::string const *const, fast_pass<std::string const *>>();
+  FATAL_EXPECT_SAME<std::string const *const, fast_pass<std::string const *&>>();
+  FATAL_EXPECT_SAME<
     std::string const *const,
     fast_pass<std::string const *&&>
   >();
-  expect_same<
+  FATAL_EXPECT_SAME<
     std::string const *const,
     fast_pass<std::string const * const &>
   >();
-  expect_same<
+  FATAL_EXPECT_SAME<
     std::string const *const,
     fast_pass<std::string const * const &&>
   >();
@@ -789,8 +852,8 @@ template <typename, std::size_t, typename...> struct check_type_get_impl;
 template <typename T, std::size_t Index, typename TExpected, typename... Args>
 struct check_type_get_impl<T, Index, TExpected, Args...> {
   static void check() {
-    typedef typename type_get<Index>::template type<T> TActual;
-    expect_same<TExpected, TActual>();
+    typedef typename type_get<Index>::template from<T> TActual;
+    FATAL_EXPECT_SAME<TExpected, TActual>();
     check_type_get_impl<T, Index + 1, Args...>::check();
   }
 };

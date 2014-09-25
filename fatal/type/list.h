@@ -85,7 +85,8 @@ struct type_list_from {
    *  template <typename T> using get_third = typename T::third;
    *
    *  // yields `type_list<int, void, double>`
-   *  using result = type_list_from<get_first, get_second, get_third>::type<foo>;
+   *  using result = type_list_from<get_first, get_second, get_third>
+   *    ::type<foo>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -450,26 +451,26 @@ struct right {
   >::type type;
 };
 
-////////////
-// filter //
-////////////
+//////////////
+// separate //
+//////////////
 
-template <template <typename...> class, typename...> struct filter;
+template <template <typename...> class, typename...> struct separate;
 
-template <template <typename...> class TFilter>
-struct filter<TFilter> {
+template <template <typename...> class TPredicate>
+struct separate<TPredicate> {
   typedef type_pair<type_list<>, type_list<>> type;
 };
 
 template <
-  template <typename...> class TFilter,
+  template <typename...> class TPredicate,
   typename U, typename... UArgs
 >
-struct filter<TFilter, U, UArgs...> {
-  typedef typename filter<TFilter, UArgs...>::type tail;
+struct separate<TPredicate, U, UArgs...> {
+  typedef typename separate<TPredicate, UArgs...>::type tail;
 
   typedef typename std::conditional<
-    TFilter<U>::value,
+    TPredicate<U>::value,
     type_pair<
       typename tail::first::template push_front<U>,
       typename tail::second
@@ -536,7 +537,7 @@ struct skip<Next, Step, U, UArgs...> {
 template <std::size_t Step>
 struct curried_skip{
   template <typename... UArgs>
-  using type = skip<0, Step, UArgs...>;
+  using apply = skip<0, Step, UArgs...>;
 };
 
 ////////////
@@ -546,62 +547,19 @@ struct curried_skip{
 template <template <typename...> class, typename, typename...>
 struct search;
 
-template <template <typename...> class TFilter, typename TDefault>
-struct search<TFilter, TDefault> { typedef TDefault type; };
+template <template <typename...> class TPredicate, typename TDefault>
+struct search<TPredicate, TDefault> { typedef TDefault type; };
 
 template <
-  template <typename...> class TFilter,
+  template <typename...> class TPredicate,
   typename TDefault, typename U, typename... UArgs
 >
-struct search<TFilter, TDefault, U, UArgs...> {
+struct search<TPredicate, TDefault, U, UArgs...> {
   typedef typename std::conditional<
-    TFilter<U>::value,
+    TPredicate<U>::value,
     U,
-    typename search<TFilter, TDefault, UArgs...>::type
+    typename search<TPredicate, TDefault, UArgs...>::type
   >::type type;
-};
-
-/////////////
-// combine //
-/////////////
-
-template <
-  typename,
-  std::size_t,
-  template <typename...> class,
-  typename...
-> struct combine;
-
-template <
-  typename TRightList,
-  std::size_t Index,
-  template <typename...> class TCombiner
->
-struct combine<TRightList, Index, TCombiner> {
-  static_assert(
-    Index == TRightList::size,
-    "right type list is larger than left one"
-  );
-  typedef type_list<> type;
-};
-
-template <
-  typename TRightList,
-  std::size_t Index,
-  template <typename...> class TCombiner,
-  typename U,
-  typename... UArgs
->
-struct combine<TRightList, Index, TCombiner, U, UArgs...> {
-  static_assert(
-    Index < TRightList::size,
-    "left type list is larger than right one"
-  );
-  typedef typename combine<
-    TRightList, Index + 1, TCombiner, UArgs...
-  >::type::template push_front<
-    TCombiner<U, typename TRightList::template at<Index>>
-  > type;
 };
 
 /////////////
@@ -675,7 +633,7 @@ struct insert_sorted<TLessComparer, T, THead, TTail...> {
 template <typename TFrom, typename TTo>
 struct replace_transform {
   template <typename U>
-  using type = typename std::conditional<
+  using apply = typename std::conditional<
     std::is_same<U, TFrom>::value, TTo, U
   >::type;
 };
@@ -800,36 +758,30 @@ struct merge_entry_point {
   typedef typename merge<TLessComparer, TRHSList, TLHSArgs...>::type type;
 };
 
-////////////////
-// merge_sort //
-////////////////
+//////////
+// sort //
+//////////
 
 template <template <typename...> class TLessComparer, typename TList>
-struct merge_sort {
+struct sort {
   typedef typename TList::template split<TList::size / 2> unsorted;
-  typedef typename merge_sort<
+  typedef typename sort<
     TLessComparer, typename unsorted::first
   >::type sorted_left;
-  typedef typename merge_sort<
+  typedef typename sort<
     TLessComparer, typename unsorted::second
   >::type sorted_right;
 
-public:
   static_assert(TList::size > 1, "invalid specialization");
-  typedef typename sorted_left::template merge<
-    sorted_right, TLessComparer
-  > type;
+  using type = typename sorted_left::template merge<TLessComparer>
+    ::template list<sorted_right>;
 };
 
 template <template <typename...> class TLessComparer>
-struct merge_sort<TLessComparer, type_list<>> {
-  typedef type_list<> type;
-};
+struct sort<TLessComparer, type_list<>> { typedef type_list<> type; };
 
 template <template <typename...> class TLessComparer, typename T>
-struct merge_sort<TLessComparer, type_list<T>> {
-  typedef type_list<T> type;
-};
+struct sort<TLessComparer, type_list<T>> { typedef type_list<T> type; };
 
 ////////////
 // unique //
@@ -880,7 +832,7 @@ struct binary_search_exact {
     // ternary needed due to C++11's constexpr restrictions
     return comparison < 0
       ? left::template apply<
-          ::fatal::detail::type_list_impl::binary_search_exact
+          type_list_impl::binary_search_exact
         >::template search<TComparer, Offset>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
@@ -888,7 +840,7 @@ struct binary_search_exact {
         )
       : (0 < comparison
         ? right::template apply<
-            ::fatal::detail::type_list_impl::binary_search_exact
+            type_list_impl::binary_search_exact
           >::template search<TComparer, Offset + left::size + 1>(
             std::forward<TNeedle>(needle),
             std::forward<TVisitor>(visitor),
@@ -959,14 +911,14 @@ struct binary_search_lower_bound {
       std::forward<TNeedle>(needle), pivot<Offset>{}
     ) < 0
       ? left::template apply<
-          ::fatal::detail::type_list_impl::binary_search_lower_bound
+          type_list_impl::binary_search_lower_bound
         >::template recursion<TComparer, Offset>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
           std::forward<VArgs>(args)...
         )
       : right::template apply<
-          ::fatal::detail::type_list_impl::binary_search_lower_bound
+          type_list_impl::binary_search_lower_bound
         >::template recursion<TComparer, Offset + left::size>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
@@ -1068,14 +1020,14 @@ struct binary_search_upper_bound {
       pivot<Offset>{}
     ) < 0
       ? left::template apply<
-          ::fatal::detail::type_list_impl::binary_search_upper_bound
+          type_list_impl::binary_search_upper_bound
         >::template search<TComparer, Offset>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
           std::forward<VArgs>(args)...
         )
       : right::template apply<
-          ::fatal::detail::type_list_impl::binary_search_upper_bound
+          type_list_impl::binary_search_upper_bound
         >::template search<TComparer, Offset + left::size>(
           std::forward<TNeedle>(needle),
           std::forward<TVisitor>(visitor),
@@ -1319,9 +1271,11 @@ struct type_list {
    */
   template <
     template <typename...> class T,
-    template <typename...> class TTransform = fatal::transform::identity
+    template <typename...> class... TTransforms
   >
-  using apply = T<TTransform<Args>...>;
+  using apply = T<
+    typename transform_sequence<TTransforms...>::template apply<Args>...
+  >;
 
   /**
    * Uses the std::integral_constant-like class `TGetter` to extract
@@ -1353,7 +1307,7 @@ struct type_list {
    */
   template <
     typename T, template <T...> class TTo,
-    template <typename...> class TGetter = fatal::transform::identity
+    template <typename...> class TGetter = identity_transform
   >
   using apply_values = TTo<TGetter<Args>::value...>;
 
@@ -1387,12 +1341,12 @@ struct type_list {
    */
   template <
     typename T, template <typename, T...> class TTo,
-    template <typename...> class TGetter = fatal::transform::identity
+    template <typename...> class TGetter = identity_transform
   >
   using apply_type_values = TTo<T, TGetter<Args>::value...>;
 
   /**
-   * A shorted and cheaper version of
+   * A shorter and cheaper version of
    *
    *  this_list::concat<type_list<Suffix...>>::apply<T>
    *
@@ -1511,7 +1465,7 @@ struct type_list {
   template <typename V, typename... VArgs>
   static constexpr bool foreach(V &&visitor, VArgs &&...args) {
     return 0 < foreach_if<
-      fatal::transform::fixed<std::true_type>::template type
+      fixed_transform<std::true_type>::template apply
     >(std::forward<V>(visitor), std::forward<VArgs>(args)...);
   };
 
@@ -1584,7 +1538,7 @@ struct type_list {
   }
 
   /**
-   * Applies T to each element of this list.
+   * Applies `TTransform` to each element of this list.
    *
    * Example:
    *
@@ -1596,8 +1550,32 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class T>
-  using transform = type_list<T<Args>...>;
+  template <template <typename...> class TTransform>
+  using transform = type_list<TTransform<Args>...>;
+
+  /**
+   * TODO: TEST
+   * Applies `TTransform` to each element of this list that's accepted
+   * by the predicate. Every element rejected by the predicate remains
+   * untouched.
+   *
+   * Example:
+   *
+   *  using types = type_list<int, void, double, std::string, long>;
+   *
+   *  // yields `type_list<unsigned, void, double, std::string, unsigned long>`
+   *  types::transform_if<std::is_integral, std::make_unsigned_t>
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <
+    template <typename...> class TPredicate,
+    template <typename...> class TTransform
+  >
+  using transform_if = type_list<
+    typename conditional_transform<TPredicate, TTransform>
+      ::template apply<Args>...
+  >;
 
   /**
    * Applies T to each element/index pair of this list.
@@ -1631,7 +1609,7 @@ struct type_list {
    */
   template <typename TFrom, typename TTo>
   using replace = transform<
-    detail::type_list_impl::replace_transform<TFrom, TTo>::template type
+    detail::type_list_impl::replace_transform<TFrom, TTo>::template apply
   >;
 
   /**
@@ -1750,10 +1728,10 @@ struct type_list {
 
   /**
    * Returns a pair with two `type_list`s. One (first) with the types that
-   * got accepted by the filter and the other (second) with the types that
+   * got accepted by the predicate and the other (second) with the types that
    * weren't accepted by it.
    *
-   * TFilter is a std::integral_constant-like template whose value
+   * `TPredicate` is a std::integral_constant-like template whose value
    * evaluates to a boolean when fed with an element from this list.
    *
    * Example:
@@ -1764,14 +1742,52 @@ struct type_list {
    *  //   type_list<int, long>,
    *  //   type_list<std::string, double>
    *  // >`
-   *  typedef types::filter<std::is_integral> filtered;
+   *  using result = types::separate<std::is_integral>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TFilter>
-  using filter = typename detail::type_list_impl::filter<
-    TFilter, Args...
+  template <template <typename...> class TPredicate>
+  using separate = typename detail::type_list_impl::separate<
+    TPredicate, Args...
   >::type;
+
+  /**
+   * Returns a `type_list` containing only the types that got accepted
+   * by the predicate.
+   *
+   * `TPredicate` is a std::integral_constant-like template whose value
+   * evaluates to a boolean when fed with an element from this list.
+   *
+   * Example:
+   *
+   *  typedef type_list<int, std::string, double, long> types;
+   *
+   *  // yields `type_list<int, long>`
+   *  using result = types::filter<std::is_integral>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class TPredicate>
+  using filter = typename separate<TPredicate>::first;
+
+  /**
+   * Returns a `type_list` containing only the types that did not get
+   * accepted by the predicate.
+   *
+   * `TPredicate` is a std::integral_constant-like template whose value
+   * evaluates to a boolean when fed with an element from this list.
+   *
+   * Example:
+   *
+   *  typedef type_list<int, std::string, double, long> types;
+   *
+   *  // yields `type_list<std::string, double>`
+   *  using result = types::reject<std::is_integral>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class TPredicate>
+  using reject = typename separate<TPredicate>::second;
 
   /**
    * Removes all occurences of given types from the type list.
@@ -1786,7 +1802,7 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... UArgs>
-  using remove = typename filter<
+  using remove = typename separate<
     type_list<UArgs...>::template contains
   >::second;
 
@@ -1829,17 +1845,17 @@ struct type_list {
    */
   template <std::size_t Step, std::size_t Offset = 0>
   using unzip = typename tail<(Offset < size) ? Offset : size>::template apply<
-    detail::type_list_impl::curried_skip<Step>::template type
+    detail::type_list_impl::curried_skip<Step>::template apply
   >::type;
 
   /**
-   * Searches for the first type that satisfiest the given filter.
+   * Searches for the first type that satisfiest the given predicate.
    *
-   * `TFilter` is a std::integral_constant-like template whose value tells
-   * whether a given type satisfies the match or not.
+   * `TPredicate` is a std::integral_constant-like template whose value
+   * tells whether a given type satisfies the match or not.
    *
-   * If there's no type in this list that satisfies the filter, then `TDefault`
-   * is returned (defaults to `type_not_found_tag` when omitted).
+   * If there's no type in this list that satisfies the predicate, then
+   * `TDefault` is returned (defaults to `type_not_found_tag` when omitted).
    *
    * Example:
    *
@@ -1854,13 +1870,14 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TFilter,
+    template <typename...> class TPredicate,
     typename TDefault = type_not_found_tag
   >
   using search = typename detail::type_list_impl::search<
-    TFilter, TDefault, Args...
+    TPredicate, TDefault, Args...
   >::type;
 
+  // TODO: UPDATE DOCS
   /**
    * Combines two type lists of equal size into a single type list using the
    * `TCombiner` template.
@@ -1876,10 +1893,14 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TRightList, template <typename...> class TCombiner>
-  using combine = typename detail::type_list_impl::combine<
-    TRightList, 0, TCombiner, Args...
-  >::type;
+  template <template <typename...> class TCombiner>
+  struct combine {
+    template <typename... UArgs>
+    using args = type_list<TCombiner<Args, UArgs>...>;
+
+    template <typename UList>
+    using list = typename UList::template apply<args>;
+  };
 
   /**
    * Flattens elements from sublists into a single, topmost list.
@@ -1997,6 +2018,7 @@ struct type_list {
     TLessComparer, Args...
   >::type;
 
+  // TODO: Update docs
   /**
    * Merges two sorted type lists into a new sorted type list, according to
    * the given type comparer `TLessComparer`.
@@ -2016,12 +2038,17 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    typename TList,
     template <typename...> class TLessComparer = constants_comparison_lt
   >
-  using merge = typename detail::type_list_impl::merge_entry_point<
-    TLessComparer, TList, Args...
-  >::type;
+  struct merge {
+    template <typename TList>
+    using list = typename detail::type_list_impl::merge_entry_point<
+      TLessComparer, TList, Args...
+    >::type;
+
+    template <typename... UArgs>
+    using args = list<type_list<UArgs...>>;
+  };
 
   /**
    * Sorts this `type_list` using the stable merge sort algorithm, according to
@@ -2036,14 +2063,14 @@ struct type_list {
    *  typedef type_list<T<0>, T<5>, T<4>, T<2>, T<1>, T<3>> list;
    *
    *  // yields `type_list<T<0>, T<1>, T<2>, T<3>, T<4>, T<5>>`
-   *  typedef list::merge_sort<> result;
+   *  typedef list::sort<> result;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
     template <typename...> class TLessComparer = constants_comparison_lt
   >
-  using merge_sort = typename detail::type_list_impl::merge_sort<
+  using sort = typename detail::type_list_impl::sort<
     TLessComparer, type_list
   >::type;
 
@@ -2079,7 +2106,7 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform = fatal::transform::identity>
+  template <template <typename...> class TTransform = identity_transform>
   using unique = typename detail::type_list_impl::unique<
     type_list<>, TTransform<Args>...
   >::type;

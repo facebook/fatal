@@ -65,7 +65,7 @@ TEST(type_string, size) {
 
 template <typename TCSTR, typename TChar, std::size_t Size>
 void check_char_type(TChar const (&s)[Size]) {
-  expect_same<TChar, typename TCSTR::char_type>();
+  FATAL_EXPECT_SAME<TChar, typename TCSTR::char_type>();
 }
 
 TEST(type_string, char_type) {
@@ -79,7 +79,7 @@ void check_string(TChar const (&s)[Size]) {
 
   typedef std::basic_string<TChar> string_t;
 
-  expect_same<string_t, typename TCSTR::template string_type<>>();
+  FATAL_EXPECT_SAME<string_t, typename TCSTR::template string_type<>>();
 
   auto const string = TCSTR::string();
 

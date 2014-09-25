@@ -21,14 +21,14 @@ struct Gaz {};
 TEST(tuple_tags, tags) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
 
-  expect_same<type_list<Foo, Bar, Baz, Gaz>, tags::tags>();
+  FATAL_EXPECT_SAME<type_list<Foo, Bar, Baz, Gaz>, tags::tags>();
 }
 
 TEST(tuple_tags, tag_map) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   typedef std::tuple<int, double, bool, long> tuple;
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_map<
       type_pair<Foo, int>,
       type_pair<Bar, double>,
@@ -53,10 +53,10 @@ TEST(tuple_tags, type_of) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   typedef std::tuple<int, double, bool, long> tuple;
 
-  expect_same<int, tags::type_of<Foo, tuple>>();
-  expect_same<double, tags::type_of<Bar, tuple>>();
-  expect_same<bool, tags::type_of<Baz, tuple>>();
-  expect_same<long, tags::type_of<Gaz, tuple>>();
+  FATAL_EXPECT_SAME<int, tags::type_of<Foo, tuple>>();
+  FATAL_EXPECT_SAME<double, tags::type_of<Bar, tuple>>();
+  FATAL_EXPECT_SAME<bool, tags::type_of<Baz, tuple>>();
+  FATAL_EXPECT_SAME<long, tags::type_of<Gaz, tuple>>();
 }
 
 TEST(tuple_tags, get) {

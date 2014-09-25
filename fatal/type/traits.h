@@ -22,41 +22,6 @@ namespace fatal {
 /////////////////
 
 /**
- * Checks whether a given type is an instantiation of a class template.
- * Provides the template member `instantiation` which evaluates to either
- * `std::true_type` or `std::false_type`.
- *
- * Example:
- *
- *  // we want to know if a given type is a specialization of std::basic_string
- *  typedef is_template<std::basic_string> is_std_string;
- *
- *  // now we perform the checks
- *
- *  // yields `true` for std::string
- *  is_std_string::instantiation<std::string>::value
- *
- *  // yields `true` for std::wstring
- *  is_std_string::instantiation<std::wstring>::value
- *
- *  // yields `true` for std::basic_string<int>
- *  is_std_string::instantiation<std::basic_string<int>>::value
- *
- *  // yields `false` for std::vector<int>
- *  is_std_string::instantiation<std::vector<int>>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <template <typename...> class TTemplate>
-struct is_template {
-  template <typename... U> static std::true_type sfinae(TTemplate<U...> *);
-  static std::false_type sfinae(...);
-
-  template <typename U>
-  using instantiation = decltype(sfinae(static_cast<U *>(nullptr)));
-};
-
-/**
  * A traits class to check for incomplete types.
  *
  * Example:
@@ -121,6 +86,20 @@ struct get_member_typedef {
 
   CREATE_GET_MEMBER_TYPEDEF(type);
 
+  CREATE_GET_MEMBER_TYPEDEF(tag);
+  CREATE_GET_MEMBER_TYPEDEF(types);
+  CREATE_GET_MEMBER_TYPEDEF(values);
+  CREATE_GET_MEMBER_TYPEDEF(args);
+
+  CREATE_GET_MEMBER_TYPEDEF(pair);
+  CREATE_GET_MEMBER_TYPEDEF(tuple);
+  CREATE_GET_MEMBER_TYPEDEF(list);
+  CREATE_GET_MEMBER_TYPEDEF(map);
+  CREATE_GET_MEMBER_TYPEDEF(set);
+  CREATE_GET_MEMBER_TYPEDEF(string);
+  CREATE_GET_MEMBER_TYPEDEF(index);
+  CREATE_GET_MEMBER_TYPEDEF(flag);
+
   CREATE_GET_MEMBER_TYPEDEF(first_type);
   CREATE_GET_MEMBER_TYPEDEF(second_type);
 
@@ -128,6 +107,7 @@ struct get_member_typedef {
   CREATE_GET_MEMBER_TYPEDEF(mapped_type);
   CREATE_GET_MEMBER_TYPEDEF(value_type);
   CREATE_GET_MEMBER_TYPEDEF(element_type);
+  CREATE_GET_MEMBER_TYPEDEF(char_type);
 
   CREATE_GET_MEMBER_TYPEDEF(traits_type);
   CREATE_GET_MEMBER_TYPEDEF(allocator_type);
@@ -536,6 +516,51 @@ struct constants_comparison_gte:
 {};
 
 /**
+ * Checks whether a given type is an instantiation of at least one of a list of
+ * class templates.
+ *
+ * The template member `type` which evaluates to either `std::true_type` or
+ * `std::false_type`.
+ *
+ * Example:
+ *
+ *  // yields `true` for std::string
+ *  is_template<std::basic_string>::type<std::string>::value
+ *
+ *  // yields `true` for std::wstring
+ *  is_template<std::basic_string>::type<std::wstring>::value
+ *
+ *  // yields `true` for std::basic_string<int>
+ *  is_template<std::basic_string>::type<std::basic_string<int>>::value
+ *
+ *  // yields `false` for std::vector<int>
+ *  is_template<std::basic_string>::type<std::vector<int>>::value
+ *
+ *  // yields `true` for std::vector<int>
+ *  is_template<std::basic_string, std::vector>::type<std::string>::value
+ *
+ *  // yields `true` for std::vector<int>
+ *  is_template<std::basic_string, std::vector>::type<std::vector<int>>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <template <typename...> class... TTemplates>
+class is_template {
+  template <template <typename...> class UTemplate>
+  struct test {
+    template <typename... V> static std::true_type sfinae(UTemplate<V...> *);
+    static std::false_type sfinae(...);
+  };
+
+  template <template <typename...> class UTemplate, typename U>
+  using impl = decltype(test<UTemplate>::sfinae(static_cast<U *>(nullptr)));
+
+public:
+  template <typename U>
+  using type = logical_or_constants<impl<TTemplates, U>...>;
+};
+
+/**
  * A convenience template that binds to a type comparer
  * and to an optional transform that is applied to the
  * operands before the comparison takes place.
@@ -581,11 +606,11 @@ struct constants_comparison_gte:
  */
 template <
   template <typename...> class TComparer = constants_comparison_lt,
-  template <typename...> class TTransform = transform::identity
+  template <typename...> class TTransform = identity_transform
 >
 struct curried_type_comparer {
   template <typename TLHS, typename TRHS>
-  using type = TComparer<TTransform<TLHS>, TTransform<TRHS>>;
+  using compare = TComparer<TTransform<TLHS>, TTransform<TRHS>>;
 };
 
 /**
@@ -891,17 +916,17 @@ template <typename TDataStructure, std::size_t Index> struct type_get_traits;
  *  type_list<int, void, bool> list;
  *
  *  // yields `bool`
- *  typedef third = type_get<2>::type<list>
+ *  typedef third = type_get<2>::from<list>
  *
  *  // yields `int`
- *  typedef third = type_get<0>::type<list>
+ *  typedef third = type_get<0>::from<list>
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <std::size_t Index>
 struct type_get {
   template <typename TDataStructure>
-  using type = typename type_get_traits<TDataStructure, Index>::type;
+  using from = typename type_get_traits<TDataStructure, Index>::type;
 };
 
 /**
@@ -910,7 +935,7 @@ struct type_get {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using type_get_first = type_get<0>::template type<T>;
+using type_get_first = type_get<0>::template from<T>;
 
 /**
  * A convenience shortcut for type_get<1>.
@@ -918,7 +943,31 @@ using type_get_first = type_get<0>::template type<T>;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using type_get_second = type_get<1>::template type<T>;
+using type_get_second = type_get<1>::template from<T>;
+
+/**
+ * A convenience shortcut for type_get<2>.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using type_get_third = type_get<2>::template from<T>;
+
+/**
+ * A convenience shortcut for type_get<3>.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using type_get_fourth = type_get<3>::template from<T>;
+
+/**
+ * A convenience shortcut for type_get<4>.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using type_get_fifth = type_get<4>::template from<T>;
 
 /**
  * A convenience template that binds to a type comparer.

@@ -88,10 +88,8 @@ struct data_type {
 
 private:
   using info = fatal::type_list<Args...>;
-  using filtered_ctors = typename info::template filter<fatal::is_template<constructor>::template instantiation>;
-  using filtered_ops = typename filtered_ctors::second::template filter<
-    fatal::is_template<operation>::template instantiation
-  >;
+  using filtered_ctors = typename info::template separate<fatal::is_template<constructor>::template type>;
+  using filtered_ops = typename filtered_ctors::second::template separate<fatal::is_template<operation>::template type>;
 
 public:
   static_assert(filtered_ctors::first::size == 1, "data type needs exactly one constructor");
@@ -171,8 +169,8 @@ struct ytse_jam {
   using supported = metadata::known;
   using op_list = supported::transform<metadata::to_operation_command_list>::flatten<1>;
   using instance_t = supported::transform<fatal::get_member_typedef::type>::apply<fatal::auto_variant>;
-  using result_t = op_list::transform<get_member::result>::filter<fatal::transform::alias<std::is_same, void>::type>
-    ::second::unique<>::apply<fatal::auto_variant>;
+  using result_t = op_list::transform<get_member::result>::reject<fatal::transform_alias<std::is_same, void>::apply>
+    ::unique<>::apply<fatal::auto_variant>;
 
   result_t handle(std::string const &command, request_args &args);
 

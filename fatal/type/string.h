@@ -98,9 +98,9 @@ public:
 namespace detail {
 namespace type_string_impl {
 
-/////////////
+///////////////
 // FATAL_STR //
-/////////////
+///////////////
 
 template <typename T, std::size_t Size>
 constexpr std::size_t size(T const (&)[Size]) {

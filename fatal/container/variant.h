@@ -135,7 +135,7 @@ typedef fixed_allocation_policy<false> automatic_allocation_policy;
  */
 template <
   typename TAllocator = std::allocator<void>,
-  typename TAllocationPolicy = fatal::default_allocation_policy<>,
+  typename TAllocationPolicy = default_allocation_policy<>,
   bool IsCopyable = true
 >
 struct default_storage_policy {
@@ -602,10 +602,10 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
   typedef typename storage_policy::template storage_type<value_type>::type
     storage_type;
 
-  typedef fatal::detail::variant_impl::variadic_union_traits<
+  typedef variant_impl::variadic_union_traits<
     storage_policy, size_type, Depth, T
   > head_type;
-  typedef fatal::detail::variant_impl::variadic_union_traits<
+  typedef variant_impl::variadic_union_traits<
     storage_policy, size_type, Depth + 1, Head, Tail...
   > tail_type;
 
@@ -920,7 +920,7 @@ private:
 
 public:
   typedef typename control_block::type_tag type_tag;
-  typedef fatal::detail::variant_impl::variadic_union_traits<
+  typedef detail::variant_impl::variadic_union_traits<
     storage_policy,
     type_tag, std::numeric_limits<type_tag>::min(),
     typename std::remove_reference<Args>::type...
@@ -1514,25 +1514,25 @@ private:
 };
 
 template <typename... Args>
-using default_variant = fatal::variant<
-  fatal::default_storage_policy<>,
+using default_variant = variant<
+  default_storage_policy<>,
   Args...
 >;
 
 template <typename... Args>
-using auto_variant = fatal::variant<
-  fatal::default_storage_policy<
+using auto_variant = variant<
+  default_storage_policy<
     std::allocator<void>,
-    fatal::automatic_allocation_policy
+    automatic_allocation_policy
   >,
   Args...
 >;
 
 template <typename... Args>
-using default_dynamic_variant = fatal::variant<
-  fatal::default_storage_policy<
+using default_dynamic_variant = variant<
+  default_storage_policy<
     std::allocator<void>,
-    fatal::dynamic_allocation_policy
+    dynamic_allocation_policy
   >,
   Args...
 >;

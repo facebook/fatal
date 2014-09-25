@@ -82,9 +82,9 @@ TEST(type_list, empty) {
 ///////////////////
 
 TEST(type_list, at) {
-  expect_same<T<0>, tl::at<0>>();
-  expect_same<T<1>, tl::at<1>>();
-  expect_same<T<2>, tl::at<2>>();
+  FATAL_EXPECT_SAME<T<0>, tl::at<0>>();
+  FATAL_EXPECT_SAME<T<1>, tl::at<1>>();
+  FATAL_EXPECT_SAME<T<2>, tl::at<2>>();
 }
 
 ///////////////////////
@@ -92,10 +92,10 @@ TEST(type_list, at) {
 ///////////////////////
 
 TEST(type_list, try_at) {
-  expect_same<type_list<T<0>>, tl::try_at<0>>();
-  expect_same<type_list<T<1>>, tl::try_at<1>>();
-  expect_same<type_list<T<2>>, tl::try_at<2>>();
-  expect_same<type_list<>, tl::try_at<3>>();
+  FATAL_EXPECT_SAME<type_list<T<0>>, tl::try_at<0>>();
+  FATAL_EXPECT_SAME<type_list<T<1>>, tl::try_at<1>>();
+  FATAL_EXPECT_SAME<type_list<T<2>>, tl::try_at<2>>();
+  FATAL_EXPECT_SAME<type_list<>, tl::try_at<3>>();
 }
 
 /////////////////////////
@@ -227,8 +227,8 @@ TEST(type_list, contains) {
 //////////////////////////
 
 TEST(type_list, push_back) {
-  expect_same<tl::push_back<>, tl>();
-  expect_same<tl::push_back<S<0>, S<1>, S<2>>, tls>();
+  FATAL_EXPECT_SAME<tl::push_back<>, tl>();
+  FATAL_EXPECT_SAME<tl::push_back<S<0>, S<1>, S<2>>, tls>();
 }
 
 ///////////////////////////
@@ -236,8 +236,8 @@ TEST(type_list, push_back) {
 ///////////////////////////
 
 TEST(type_list, push_front) {
-  expect_same<tl::push_front<>, tl>();
-  expect_same<tl::push_front<P<0>, P<1>, P<2>>, tpl>();
+  FATAL_EXPECT_SAME<tl::push_front<>, tl>();
+  FATAL_EXPECT_SAME<tl::push_front<P<0>, P<1>, P<2>>, tpl>();
 }
 
 ///////////////////////
@@ -245,11 +245,11 @@ TEST(type_list, push_front) {
 ///////////////////////
 
 TEST(type_list, concat) {
-  expect_same<tp::concat<tl>, tpl>();
-  expect_same<tl::concat<ts>, tls>();
-  expect_same<tl::concat<el>, tl>();
-  expect_same<el::concat<tl>, tl>();
-  expect_same<el::concat<el>, el>();
+  FATAL_EXPECT_SAME<tp::concat<tl>, tpl>();
+  FATAL_EXPECT_SAME<tl::concat<ts>, tls>();
+  FATAL_EXPECT_SAME<tl::concat<el>, tl>();
+  FATAL_EXPECT_SAME<el::concat<tl>, tl>();
+  FATAL_EXPECT_SAME<el::concat<el>, el>();
 }
 
 //////////////////////////////
@@ -260,35 +260,35 @@ template <typename, typename> using false_comparison = std::false_type;
 template <typename, typename> using true_comparison = std::true_type;
 
 TEST(type_list, insert_sorted) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<int_val<0>>,
     el::insert_sorted<int_val<0>>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<int_val<0>, int_val<0>>,
     type_list<int_val<0>>::insert_sorted<int_val<0>>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<int_val<0>, int_val<1>, int_val<2>, int_val<3>>,
     type_list<int_val<0>, int_val<1>, int_val<3>>
       ::insert_sorted<int_val<2>>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<int_val<5>, int_val<4>, int_val<3>, int_val<1>>,
     type_list<int_val<5>, int_val<3>, int_val<1>>
       ::insert_sorted<int_val<4>, constants_comparison_gt>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<int_val<0>, int_val<1>, int_val<3>, int_val<2>>,
     type_list<int_val<0>, int_val<1>, int_val<3>>
       ::insert_sorted<int_val<2>, false_comparison>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<int_val<2>, int_val<0>, int_val<1>, int_val<3>>,
     type_list<int_val<0>, int_val<1>, int_val<3>>
       ::insert_sorted<int_val<2>, true_comparison>
@@ -300,7 +300,7 @@ TEST(type_list, insert_sorted) {
 //////////////////////
 
 TEST(type_list, apply) {
-  expect_same<tl::apply<std::tuple>, std::tuple<T<0>, T<1>, T<2>>>();
+  FATAL_EXPECT_SAME<tl::apply<std::tuple>, std::tuple<T<0>, T<1>, T<2>>>();
 }
 
 ///////////////////////////
@@ -308,7 +308,7 @@ TEST(type_list, apply) {
 ///////////////////////////
 
 TEST(type_list, apply_back) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     tl::apply_back<std::tuple, S<0>, S<1>, S<2>>,
     std::tuple<T<0>, T<1>, T<2>, S<0>, S<1>, S<2>>
   >();
@@ -319,7 +319,7 @@ TEST(type_list, apply_back) {
 ////////////////////////////
 
 TEST(type_list, apply_front) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     tl::apply_front<std::tuple, P<0>, P<1>, P<2>>,
     std::tuple<P<0>, P<1>, P<2>, T<0>, T<1>, T<2>>
   >();
@@ -330,12 +330,12 @@ TEST(type_list, apply_front) {
 ///////////////////////////
 
 template <template <int...> class TTemplate>
-struct foreach_if_filter {
+struct foreach_if_predicate {
   template <int... UArgs> static std::true_type sfinae(TTemplate<UArgs...> *);
   static std::false_type sfinae(...);
 
   template <typename U>
-  using type = decltype(sfinae(static_cast<U *>(nullptr)));
+  using apply = decltype(sfinae(static_cast<U *>(nullptr)));
 };
 
 typedef std::vector<std::pair<std::size_t, std::size_t>> foreach_if_expected;
@@ -368,7 +368,7 @@ void check_foreach_if(foreach_if_expected expected) {
   foreach_if_test_visitor<TTemplate> visitor(expected);
 
   auto const visited = TList::template foreach_if<
-    foreach_if_filter<TTemplate>::template type
+    foreach_if_predicate<TTemplate>::template apply
   >(visitor);
 
   EXPECT_EQ(expected.size(), visited);
@@ -395,7 +395,7 @@ struct foreach_test_visitor {
 
   template <typename U, std::size_t Index>
   void operator ()(indexed_type_tag<U, Index> type) {
-    expect_same<
+    FATAL_EXPECT_SAME<
       typename expected::template at<Index>,
       indexed_type_tag<U, Index>
     >();
@@ -451,7 +451,7 @@ struct visit_test_visitor {
   void operator ()(indexed_type_tag<T, Index>, std::size_t expected_index) {
     EXPECT_FALSE(visited_);
     visited_ = true;
-    EXPECT_SAME(TExpected, T);
+    FATAL_EXPECT_SAME<TExpected, T>();
     EXPECT_EQ(expected_index, Index);
   }
 
@@ -484,17 +484,17 @@ TEST(type_list, visit) {
 //////////////////////////
 
 TEST(type_list, transform) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<std::tuple<T<0>>, std::tuple<T<1>>, std::tuple<T<2>>>,
     tl::transform<std::tuple>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<std::tuple<T<0>>>,
     type_list<T<0>>::transform<std::tuple>
   >();
 
-  expect_same<el, el::transform<std::tuple>>();
+  FATAL_EXPECT_SAME<el, el::transform<std::tuple>>();
 }
 
 //////////////////////////////////
@@ -505,7 +505,7 @@ template <typename T, std::size_t N>
 using indexed_transform_test_impl = indexed_type_tag<T, N>;
 
 TEST(type_list, indexed_transform) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<
       indexed_type_tag<T<0>, 0>,
       indexed_type_tag<T<1>, 1>,
@@ -514,12 +514,12 @@ TEST(type_list, indexed_transform) {
     tl::indexed_transform<indexed_transform_test_impl>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<indexed_type_tag<T<0>, 0>>,
     single::indexed_transform<indexed_transform_test_impl>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     el,
     el::indexed_transform<indexed_transform_test_impl>
   >();
@@ -530,16 +530,16 @@ TEST(type_list, indexed_transform) {
 ////////////////////////
 
 TEST(type_list, replace) {
-  expect_same<el, el::replace<int, double>>();
-  expect_same<tl, tl::replace<int, double>>();
-  expect_same<tl, tl::replace<T<1>, T<1>>>();
+  FATAL_EXPECT_SAME<el, el::replace<int, double>>();
+  FATAL_EXPECT_SAME<tl, tl::replace<int, double>>();
+  FATAL_EXPECT_SAME<tl, tl::replace<T<1>, T<1>>>();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<T<0>, int, T<2>>,
     tl::replace<T<1>, int>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     tp,
     tl::replace<T<0>, P<0>>
       ::replace<T<1>, P<1>>
@@ -552,11 +552,11 @@ TEST(type_list, replace) {
 /////////////////////
 
 TEST(type_list, tail) {
-  expect_same<tl, tl::tail<0>>();
-  expect_same<type_list<T<1>, T<2>>, tl::tail<1>>();
-  expect_same<type_list<T<2>>, tl::tail<2>>();
-  expect_same<el, tl::tail<3>>();
-  expect_same<el, tl::tail<tl::size>>();
+  FATAL_EXPECT_SAME<tl, tl::tail<0>>();
+  FATAL_EXPECT_SAME<type_list<T<1>, T<2>>, tl::tail<1>>();
+  FATAL_EXPECT_SAME<type_list<T<2>>, tl::tail<2>>();
+  FATAL_EXPECT_SAME<el, tl::tail<3>>();
+  FATAL_EXPECT_SAME<el, tl::tail<tl::size>>();
 }
 
 //////////////////////
@@ -565,7 +565,7 @@ TEST(type_list, tail) {
 
 template <typename TList, std::size_t Index>
 void check_split_impl() {
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_pair<
       typename TList::template left<Index>,
       typename TList::template tail<Index>
@@ -604,11 +604,11 @@ TEST(type_list, split) {
 /////////////////////
 
 TEST(type_list, left) {
-  expect_same<el, tl::left<0>>();
-  expect_same<type_list<T<0>>, tl::left<1>>();
-  expect_same<type_list<T<0>, T<1>>, tl::left<2>>();
-  expect_same<tl, tl::left<3>>();
-  expect_same<tl, tl::left<tl::size>>();
+  FATAL_EXPECT_SAME<el, tl::left<0>>();
+  FATAL_EXPECT_SAME<type_list<T<0>>, tl::left<1>>();
+  FATAL_EXPECT_SAME<type_list<T<0>, T<1>>, tl::left<2>>();
+  FATAL_EXPECT_SAME<tl, tl::left<3>>();
+  FATAL_EXPECT_SAME<tl, tl::left<tl::size>>();
 }
 
 //////////////////////
@@ -616,19 +616,19 @@ TEST(type_list, left) {
 //////////////////////
 
 TEST(type_list, slice) {
-  expect_same<el, tl::slice<0, 0>>();
+  FATAL_EXPECT_SAME<el, tl::slice<0, 0>>();
 
-  expect_same<type_list<T<0>>, tl::slice<0, 1>>();
-  expect_same<type_list<>, tl::slice<1, 1>>();
+  FATAL_EXPECT_SAME<type_list<T<0>>, tl::slice<0, 1>>();
+  FATAL_EXPECT_SAME<type_list<>, tl::slice<1, 1>>();
 
-  expect_same<type_list<T<0>, T<1>>, tl::slice<0, 2>>();
-  expect_same<type_list<T<1>>, tl::slice<1, 2>>();
-  expect_same<type_list<>, tl::slice<2, 2>>();
+  FATAL_EXPECT_SAME<type_list<T<0>, T<1>>, tl::slice<0, 2>>();
+  FATAL_EXPECT_SAME<type_list<T<1>>, tl::slice<1, 2>>();
+  FATAL_EXPECT_SAME<type_list<>, tl::slice<2, 2>>();
 
-  expect_same<tl, tl::slice<0, tl::size>>();
-  expect_same<type_list<T<1>, T<2>>, tl::slice<1, tl::size>>();
-  expect_same<type_list<T<2>>, tl::slice<2, tl::size>>();
-  expect_same<type_list<>, tl::slice<tl::size, tl::size>>();
+  FATAL_EXPECT_SAME<tl, tl::slice<0, tl::size>>();
+  FATAL_EXPECT_SAME<type_list<T<1>, T<2>>, tl::slice<1, tl::size>>();
+  FATAL_EXPECT_SAME<type_list<T<2>>, tl::slice<2, tl::size>>();
+  FATAL_EXPECT_SAME<type_list<>, tl::slice<tl::size, tl::size>>();
 }
 
 //////////////////////
@@ -636,11 +636,34 @@ TEST(type_list, slice) {
 //////////////////////
 
 TEST(type_list, right) {
-  expect_same<el, tl::right<0>>();
-  expect_same<type_list<T<2>>, tl::right<1>>();
-  expect_same<type_list<T<1>, T<2>>, tl::right<2>>();
-  expect_same<tl, tl::right<3>>();
-  expect_same<tl, tl::right<tl::size>>();
+  FATAL_EXPECT_SAME<el, tl::right<0>>();
+  FATAL_EXPECT_SAME<type_list<T<2>>, tl::right<1>>();
+  FATAL_EXPECT_SAME<type_list<T<1>, T<2>>, tl::right<2>>();
+  FATAL_EXPECT_SAME<tl, tl::right<3>>();
+  FATAL_EXPECT_SAME<tl, tl::right<tl::size>>();
+}
+
+/////////////////////////
+// type_list::separate //
+/////////////////////////
+
+template <
+  typename TList,
+  template <typename...> class TPredicate,
+  typename TExpectedFirst,
+  typename TExpectedSecond
+>
+void check_separate()  {
+  typedef typename TList::template separate<TPredicate> actual;
+  FATAL_EXPECT_SAME<TExpectedFirst, typename actual::first>();
+  FATAL_EXPECT_SAME<TExpectedSecond, typename actual::second>();
+};
+
+TEST(type_list, separate) {
+  check_separate<el, false_predicate, el, el>();
+  check_separate<el, true_predicate, el, el>();
+  check_separate<tl, false_predicate, el, tl>();
+  check_separate<tl, true_predicate, tl, el>();
 }
 
 ///////////////////////
@@ -649,24 +672,41 @@ TEST(type_list, right) {
 
 template <
   typename TList,
-  template <typename, typename...> class TFilter,
-  typename TExpectedFirst,
-  typename TExpectedSecond
+  template <typename...> class TPredicate,
+  typename TExpected
 >
 void check_filter()  {
-  typedef typename TList::template filter<TFilter> actual;
-  expect_same<TExpectedFirst, typename actual::first>();
-  expect_same<TExpectedSecond, typename actual::second>();
+  FATAL_EXPECT_SAME<TExpected, typename TList::template filter<TPredicate>>();
 };
 
-template <typename> using all_filter = std::true_type;
-template <typename> using none_filter = std::false_type;
-
 TEST(type_list, filter) {
-  check_filter<el, none_filter, el, el>();
-  check_filter<el, all_filter, el,el>();
-  check_filter<tl, none_filter, el, tl>();
-  check_filter<tl, all_filter, tl, el>();
+  check_filter<el, false_predicate, el>();
+  check_filter<el, true_predicate, el>();
+  check_filter<tl, false_predicate, el>();
+  check_filter<tl, true_predicate, tl>();
+}
+
+///////////////////////
+// type_list::reject //
+///////////////////////
+
+template <
+  typename TList,
+  template <typename...> class TPredicate,
+  typename TExpected
+>
+void check_inverse_filter()  {
+  FATAL_EXPECT_SAME<
+    TExpected,
+    typename TList::template reject<TPredicate>
+  >();
+};
+
+TEST(type_list, reject) {
+  check_inverse_filter<el, false_predicate, el>();
+  check_inverse_filter<el, true_predicate, el>();
+  check_inverse_filter<tl, false_predicate, tl>();
+  check_inverse_filter<tl, true_predicate, el>();
 }
 
 ///////////////////////
@@ -674,28 +714,28 @@ TEST(type_list, filter) {
 ///////////////////////
 
 TEST(type_list, remove) {
-  expect_same<type_list<>, type_list<>::remove<>>();
-  expect_same<type_list<>, type_list<int>::remove<int>>();
-  expect_same<
+  FATAL_EXPECT_SAME<type_list<>, type_list<>::remove<>>();
+  FATAL_EXPECT_SAME<type_list<>, type_list<int>::remove<int>>();
+  FATAL_EXPECT_SAME<
     type_list<>,
     type_list<int, bool, float>::remove<bool, int, float>
   >();
 
-  expect_same<type_list<int>, type_list<int>::remove<>>();
-  expect_same<type_list<int>, type_list<int>::remove<void>>();
-  expect_same<type_list<int>, type_list<int>::remove<void, float>>();
+  FATAL_EXPECT_SAME<type_list<int>, type_list<int>::remove<>>();
+  FATAL_EXPECT_SAME<type_list<int>, type_list<int>::remove<void>>();
+  FATAL_EXPECT_SAME<type_list<int>, type_list<int>::remove<void, float>>();
 
-  expect_same<type_list<int, float>, type_list<int, float>::remove<>>();
-  expect_same<
+  FATAL_EXPECT_SAME<type_list<int, float>, type_list<int, float>::remove<>>();
+  FATAL_EXPECT_SAME<
     type_list<int, float>,
     type_list<int, float>::remove<void>
   >();
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<int, float>,
     type_list<int, float>::remove<void, bool>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<bool, float>,
     type_list<int, bool, int, float, void>::remove<int, void>
   >();
@@ -708,7 +748,7 @@ TEST(type_list, remove) {
 template <typename TLHS, typename TRHS, typename TExpected>
 void check_zip()  {
   typedef typename TRHS::template apply<TLHS::template zip> actual;
-  expect_same<TExpected, actual>();
+  FATAL_EXPECT_SAME<TExpected, actual>();
 };
 
 TEST(type_list, zip) {
@@ -730,7 +770,7 @@ template <
 >
 void check_unzip()  {
   typedef typename TList::template unzip<Step, Offset> actual;
-  expect_same<TExpected, actual>();
+  FATAL_EXPECT_SAME<TExpected, actual>();
 };
 
 template <typename TList>
@@ -766,85 +806,73 @@ TEST(type_list, unzip) {
 
 template <
   typename TList,
-  template <typename...> class TFilter,
+  template <typename...> class TPredicate,
   typename TDefault,
   typename TExpected
 >
 void check_search() {
-  typedef typename TList::template search<TFilter, TDefault> actual;
-  expect_same<TExpected, actual>();
+  typedef typename TList::template search<TPredicate, TDefault> actual;
+  FATAL_EXPECT_SAME<TExpected, actual>();
 }
 
 TEST(type_list, search) {
-  typedef transform::alias<std::is_same, T<0>> same_as_t0;
-  check_search<el, same_as_t0::template type, void, void>();
-  check_search<tl, same_as_t0::template type, void, T<0>>();
-  check_search<tp, same_as_t0::template type, void, void>();
+  typedef transform_alias<std::is_same, T<0>> same_as_t0;
+  check_search<el, same_as_t0::template apply, void, void>();
+  check_search<tl, same_as_t0::template apply, void, T<0>>();
+  check_search<tp, same_as_t0::template apply, void, void>();
 
-  typedef transform::alias<std::is_same, T<1>> same_as_t1;
-  check_search<el, same_as_t1::template type, void, void>();
-  check_search<tl, same_as_t1::template type, void, T<1>>();
-  check_search<tp, same_as_t1::template type, void, void>();
+  typedef transform_alias<std::is_same, T<1>> same_as_t1;
+  check_search<el, same_as_t1::template apply, void, void>();
+  check_search<tl, same_as_t1::template apply, void, T<1>>();
+  check_search<tp, same_as_t1::template apply, void, void>();
 
-  typedef transform::alias<std::is_same, T<2>> same_as_t2;
-  check_search<el, same_as_t2::template type, void, void>();
-  check_search<tl, same_as_t2::template type, void, T<2>>();
-  check_search<tp, same_as_t2::template type, void, void>();
+  typedef transform_alias<std::is_same, T<2>> same_as_t2;
+  check_search<el, same_as_t2::template apply, void, void>();
+  check_search<tl, same_as_t2::template apply, void, T<2>>();
+  check_search<tp, same_as_t2::template apply, void, void>();
 
   typedef is_template<std::basic_string> is_std_string;
   typedef is_template<std::tuple> is_std_tuple;
 
   typedef type_list<int, std::string, double, long> types1;
-  check_search<types1, is_std_string::instantiation, void, std::string>();
-  check_search<types1, is_std_tuple::instantiation, void, void>();
+  check_search<types1, is_std_string::type, void, std::string>();
+  check_search<types1, is_std_tuple::type, void, void>();
 
   typedef type_list<int, float, double, std::tuple<long, bool>> types2;
-  check_search<types2, is_std_string::instantiation, void, void>();
-  check_search<
-    types2, is_std_tuple::instantiation, void, std::tuple<long, bool>
-  >();
+  check_search<types2, is_std_string::type, void, void>();
+  check_search<types2, is_std_tuple::type, void, std::tuple<long, bool>>();
 }
 
 ////////////////////////
 // type_list::combine //
 ////////////////////////
 
+template <typename... TInput>
+struct check_combine {
+  template <template <typename...> class TCombiner, typename... Args>
+  struct test {
+    template <typename... TExpected>
+    static void expect() {
+      using expected = type_list<TExpected...>;
+      using input = type_list<TInput...>;
+      FATAL_EXPECT_SAME<
+        expected,
+        typename input::template combine<TCombiner>::template args<Args...>
+      >();
+      using rhs = type_list<Args...>;
+      FATAL_EXPECT_SAME<
+        expected,
+        typename input::template combine<TCombiner>::template list<rhs>
+      >();
+    }
+  };
+};
+
 TEST(type_list, combine) {
-  expect_same<
-    type_list<>,
-    type_list<>::combine<type_list<>, std::pair>
-  >();
-
-  expect_same<
-    type_list<std::pair<int, bool>>,
-    type_list<int>::combine<
-      type_list<bool>,
-      std::pair
-    >
-  >();
-
-  expect_same<
-    type_list<
-      std::pair<int, bool>,
-      std::pair<double, long>
-    >,
-    type_list<int, double>::combine<
-      type_list<bool, long>,
-      std::pair
-    >
-  >();
-
-  expect_same<
-    type_list<
-      std::pair<int, bool>,
-      std::pair<double, long>,
-      std::pair<short, float>
-    >,
-    type_list<int, double, short>::combine<
-      type_list<bool, long, float>,
-      std::pair
-    >
-  >();
+  check_combine<>::test<std::pair>::expect<>();
+  check_combine<int>::test<std::pair, bool>::expect<std::pair<int, bool>>();
+  check_combine<int, double>::test<std::pair, bool, long>::expect<std::pair<int, bool>, std::pair<double, long>>();
+  check_combine<int, double, short>::test<std::pair, bool, long, float>::expect<std::pair<int, bool>, std::pair<double, long>, std::pair<short, float>>();
 }
 
 /////////////
@@ -854,11 +882,11 @@ TEST(type_list, combine) {
 #define CHECK_FLATTEN(Expected, ...) \
   do { \
     typedef type_list<__VA_ARGS__> list; \
-    EXPECT_SAME(list, typename list::template flatten<>); \
-    EXPECT_SAME(list, typename list::template flatten<0>); \
-    EXPECT_SAME(list, typename list::template flatten<1>); \
-    EXPECT_SAME(list, typename list::template flatten<2>); \
-    EXPECT_SAME(list, typename list::template flatten<3>); \
+    FATAL_EXPECT_SAME<list, typename list::template flatten<>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template flatten<0>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template flatten<1>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template flatten<2>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template flatten<3>>(); \
   } while (false)
 
 TEST(type_list, flatten) {
@@ -877,13 +905,13 @@ TEST(type_list, flatten) {
     using expected3 = type_list<type_list<void>>;
     using expected_unlimited = type_list<void>;
 
-    EXPECT_SAME(expected_unlimited, list::flatten<>);
-    EXPECT_SAME(list, list::flatten<0>);
-    EXPECT_SAME(expected1, list::flatten<1>);
-    EXPECT_SAME(expected2, list::flatten<2>);
-    EXPECT_SAME(expected3, list::flatten<3>);
-    EXPECT_SAME(expected_unlimited, list::flatten<4>);
-    EXPECT_SAME(expected_unlimited, list::flatten<5>);
+    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<>>();
+    FATAL_EXPECT_SAME<list, list::flatten<0>>();
+    FATAL_EXPECT_SAME<expected1, list::flatten<1>>();
+    FATAL_EXPECT_SAME<expected2, list::flatten<2>>();
+    FATAL_EXPECT_SAME<expected3, list::flatten<3>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<4>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<5>>();
   }
 
   {
@@ -932,13 +960,13 @@ TEST(type_list, flatten) {
       std::vector<int>, std::wstring, short
     >;
 
-    EXPECT_SAME(expected_unlimited, list::flatten<>);
-    EXPECT_SAME(list, list::flatten<0>);
-    EXPECT_SAME(expected1, list::flatten<1>);
-    EXPECT_SAME(expected2, list::flatten<2>);
-    EXPECT_SAME(expected3, list::flatten<3>);
-    EXPECT_SAME(expected_unlimited, list::flatten<4>);
-    EXPECT_SAME(expected_unlimited, list::flatten<5>);
+    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<>>();
+    FATAL_EXPECT_SAME<list, list::flatten<0>>();
+    FATAL_EXPECT_SAME<expected1, list::flatten<1>>();
+    FATAL_EXPECT_SAME<expected2, list::flatten<2>>();
+    FATAL_EXPECT_SAME<expected3, list::flatten<3>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<4>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<5>>();
   }
 }
 
@@ -978,19 +1006,33 @@ TEST(type_list, is_sorted) {
 // type_list::merge //
 //////////////////////
 
-template <typename TLHS, typename TRHS, int... Expected>
-void check_merge() {
-  typedef int_seq<Expected...> expected;
-  typedef typename TLHS::template merge<
-    TRHS
-  >::template apply_values<int, int_seq> actual;
+template <typename TLHS, typename TRHS, typename TActual, int... Expected>
+void check_merge_impl() {
+  using expected = int_seq<Expected...> ;
 
-  if (!std::is_same<expected, actual>::value) {
-    LOG(INFO) << "lhs: '" << folly::demangle(typeid(TLHS).name()) << '\'';
-    LOG(INFO) << "rhs: '" << folly::demangle(typeid(TRHS).name()) << '\'';
+  if (!std::is_same<expected, TActual>::value) {
+    LOG(INFO) << "lhs: '" << type_str<TLHS>() << '\'';
+    LOG(INFO) << "rhs: '" << type_str<TRHS>() << '\'';
   }
 
-  expect_same<expected, actual>();
+  FATAL_EXPECT_SAME<expected, TActual>();
+}
+
+template <typename TLHS, typename TRHS, int... Expected>
+void check_merge() {
+  check_merge_impl<
+    TLHS, TRHS,
+    typename TLHS::template merge<>::template list<TRHS>
+      ::template apply_values<int, int_seq>,
+    Expected...
+  >();
+
+  check_merge_impl<
+    TLHS, TRHS,
+    typename TRHS::template apply<TLHS::template merge<>::template args>
+      ::template apply_values<int, int_seq>,
+    Expected...
+  >();
 }
 
 TEST(type_list, merge) {
@@ -1019,12 +1061,12 @@ TEST(type_list, merge) {
   >();
 }
 
-///////////////////////////
-// type_list::merge_sort //
-///////////////////////////
+/////////////////////
+// type_list::sort //
+/////////////////////
 
 template <typename TExpectedList, int... Values>
-void check_merge_sort() {
+void check_sort() {
   typedef TExpectedList expected;
 
   static_assert(
@@ -1033,7 +1075,7 @@ void check_merge_sort() {
   );
 
   typedef int_seq<Values...> input;
-  typedef typename input::template merge_sort<> sorted;
+  typedef typename input::template sort<> sorted;
   auto is_sorted = sorted::template is_sorted<>::value;
   typedef typename sorted::template apply_values<int, int_seq> actual;
 
@@ -1043,42 +1085,42 @@ void check_merge_sort() {
   }
 
   EXPECT_TRUE(is_sorted);
-  expect_same<expected, actual>();
+  FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(type_list, merge_sort) {
-  check_merge_sort<int_seq<>>();
-  check_merge_sort<int_seq<1>, 1>();
+TEST(type_list, sort) {
+  check_sort<int_seq<>>();
+  check_sort<int_seq<1>, 1>();
 
-  check_merge_sort<int_seq<1, 1>, 1, 1>();
-  check_merge_sort<int_seq<1, 2>, 1, 2>();
-  check_merge_sort<int_seq<1, 2>, 2, 1>();
+  check_sort<int_seq<1, 1>, 1, 1>();
+  check_sort<int_seq<1, 2>, 1, 2>();
+  check_sort<int_seq<1, 2>, 2, 1>();
 
-  check_merge_sort<int_seq<0, 1, 2>, 0, 1, 2>();
-  check_merge_sort<int_seq<0, 1, 2>, 0, 2, 1>();
-  check_merge_sort<int_seq<0, 1, 2>, 1, 0, 2>();
-  check_merge_sort<int_seq<0, 1, 2>, 1, 2, 0>();
-  check_merge_sort<int_seq<0, 1, 2>, 2, 0, 1>();
-  check_merge_sort<int_seq<0, 1, 2>, 2, 1, 0>();
+  check_sort<int_seq<0, 1, 2>, 0, 1, 2>();
+  check_sort<int_seq<0, 1, 2>, 0, 2, 1>();
+  check_sort<int_seq<0, 1, 2>, 1, 0, 2>();
+  check_sort<int_seq<0, 1, 2>, 1, 2, 0>();
+  check_sort<int_seq<0, 1, 2>, 2, 0, 1>();
+  check_sort<int_seq<0, 1, 2>, 2, 1, 0>();
 
-  check_merge_sort<int_seq<0, 1, 1>, 0, 1, 1>();
-  check_merge_sort<int_seq<0, 1, 1>, 0, 1, 1>();
-  check_merge_sort<int_seq<0, 1, 1>, 1, 0, 1>();
-  check_merge_sort<int_seq<0, 1, 1>, 1, 1, 0>();
-  check_merge_sort<int_seq<0, 1, 1>, 1, 0, 1>();
-  check_merge_sort<int_seq<0, 1, 1>, 1, 1, 0>();
+  check_sort<int_seq<0, 1, 1>, 0, 1, 1>();
+  check_sort<int_seq<0, 1, 1>, 0, 1, 1>();
+  check_sort<int_seq<0, 1, 1>, 1, 0, 1>();
+  check_sort<int_seq<0, 1, 1>, 1, 1, 0>();
+  check_sort<int_seq<0, 1, 1>, 1, 0, 1>();
+  check_sort<int_seq<0, 1, 1>, 1, 1, 0>();
 
-  check_merge_sort<int_seq<1, 1, 1>, 1, 1, 1>();
+  check_sort<int_seq<1, 1, 1>, 1, 1, 1>();
 
-  check_merge_sort<
+  check_sort<
     int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>,
     0, 2, 4, 6, 8, 1, 3, 5, 7, 9
   >();
-  check_merge_sort<
+  check_sort<
     int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>,
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9
   >();
-  check_merge_sort<
+  check_sort<
     int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>,
     9, 8, 7, 6, 5, 4, 3, 2, 1, 0
   >();
@@ -1089,17 +1131,17 @@ TEST(type_list, merge_sort) {
 ///////////////////////
 
 TEST(type_list, unique) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<int, double, bool, float>,
     type_list<int, double, double, int, bool, int, bool, float>::unique<>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     int_seq<0, 1, 4, 3, 2, 6>,
     int_seq<0, 1, 4, 3, 2, 6, 1, 2, 4, 3, 1, 2, 3, 0, 1, 2>::unique<>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     int_seq<0, 2, 8, 6, 4, 12>,
     int_seq<0, 1, 4, 3, 2, 6, 1, 2, 4, 3, 1, 2, 3, 0, 1, 2>::unique<
       multiply_transform<int, 2>::type
@@ -1373,11 +1415,11 @@ template <typename TList>
 struct check_type_get_visitor {
   template <typename T, std::size_t Index>
   void operator ()(indexed_type_tag<T, Index> const &) {
-    expect_same<T, typename type_get<Index>::template type<TList>>();
+    FATAL_EXPECT_SAME<T, typename type_get<Index>::template from<TList>>();
 
-    expect_same<
+    FATAL_EXPECT_SAME<
       typename TList::template at<Index>,
-      typename type_get<Index>::template type<TList>
+      typename type_get<Index>::template from<TList>
     >();
   }
 };
@@ -1405,36 +1447,29 @@ TEST(type_get, type_list) {
 //////////////////////////
 
 TEST(type_list_from, type) {
-  expect_same<type_list<>, type_list_from<>::type<void>>();
+  FATAL_EXPECT_SAME<type_list<>, type_list_from<>::type<void>>();
 
-  expect_same<
-    type_list<
-      void
-    >,
-    type_list_from<
-      transform::identity
-    >::type<void>
+  FATAL_EXPECT_SAME<
+    type_list<void>,
+    type_list_from<identity_transform>::type<void>
   >();
 
-  expect_same<
-    type_list<
-      double,
-      std::string
-    >,
+  FATAL_EXPECT_SAME<
+    type_list<double, std::string>,
     type_list_from<
       type_get_first,
       type_get_second
     >::type<std::pair<double, std::string>>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<
       std::pair<double, std::string>,
       double,
       std::string
     >,
     type_list_from<
-      transform::identity,
+      identity_transform,
       type_get_first,
       type_get_second
     >::type<std::pair<double, std::string>>

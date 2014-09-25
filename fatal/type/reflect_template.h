@@ -225,7 +225,7 @@ struct reflect_template<T<V, Values...>> {
   template <typename U = V>
   struct rebind {
     template <U... UValues>
-    using type = T<U, UValues...>;
+    using apply = T<U, UValues...>;
   };
 
   /**
@@ -274,5 +274,13 @@ struct reflect_template<T<V, Values...>> {
   template <template <typename X, X...> class U>
   using is_same_tvl = std::is_same<type, U<V, Values...>>;
 };
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using reflect_values = typename reflect_template<T>::values;
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using reflect_types = typename reflect_template<T>::types;
 
 } // namespace fatal

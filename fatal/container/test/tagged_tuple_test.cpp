@@ -18,29 +18,15 @@ struct Z {};
 
 namespace fatal {
 
-template <typename TTag, typename TType>
-void check_tagged_type() {
-  typedef tagged_type<TTag, TType> tagged;
-
-  expect_same<TTag, typename tagged::tag>();
-  expect_same<TType, typename tagged::type>();
-}
-
-TEST(tagged_type, sanity_check) {
-  check_tagged_type<void, bool>();
-  check_tagged_type<int, int>();
-  check_tagged_type<int, double>();
-}
-
 template <typename... TTags, typename... TData>
 void check_tags(TData &&...) {
   static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
 
   typedef tagged_tuple<
-    tagged_type<TTags, typename std::decay<TData>::type>...
+    type_pair<TTags, typename std::decay<TData>::type>...
   > actual;
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     tuple_tags<TTags...>,
     typename actual::tags
   >();
@@ -58,10 +44,10 @@ void check_tuple_type(TData &&...) {
   static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
 
   typedef tagged_tuple<
-    tagged_type<TTags, typename std::decay<TData>::type>...
+    type_pair<TTags, typename std::decay<TData>::type>...
   > actual;
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     std::tuple<typename std::decay<TData>::type...>,
     typename actual::tuple_type
   >();
@@ -78,7 +64,7 @@ template <typename... TTags, typename... TData>
 void check_default_ctor(TData &&...) {
   static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
 
-  tagged_tuple<tagged_type<TTags, typename std::decay<TData>::type>...> actual;
+  tagged_tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual;
 
   EXPECT_NE(nullptr, std::addressof(actual));
 }
@@ -94,7 +80,7 @@ template <typename... TTags, typename... TData>
 void check_forwarding_ctor(TData &&...data) {
   static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
 
-  tagged_tuple<tagged_type<TTags, typename std::decay<TData>::type>...> actual(
+  tagged_tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual(
     std::forward<TData>(data)...
   );
 
@@ -112,7 +98,7 @@ template <typename... TTags, typename... TData>
 void check_forwarding_ctor_tuple(TData &&...data) {
   static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
 
-  tagged_tuple<tagged_type<TTags, typename std::decay<TData>::type>...> actual(
+  tagged_tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual(
     std::make_tuple(std::forward<TData>(data)...)
   );
 
@@ -161,7 +147,7 @@ void check_get_const(TData &&...data) {
 
   auto const tuple = std::make_tuple(data...);
   tagged_tuple<
-    tagged_type<TTags, typename std::decay<TData>::type>...
+    type_pair<TTags, typename std::decay<TData>::type>...
   > const actual(std::forward<TData>(data)...);
 
   check_get_helper<TTags...>::check(tuple, actual);
@@ -179,7 +165,7 @@ void check_get(TData &&...data) {
   static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
 
   auto const tuple = std::make_tuple(data...);
-  tagged_tuple<tagged_type<TTags, typename std::decay<TData>::type>...> actual(
+  tagged_tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual(
     std::forward<TData>(data)...
   );
 
@@ -199,7 +185,7 @@ void check_tuple_const(TData &&...data) {
 
   auto const tuple = std::make_tuple(data...);
   tagged_tuple<
-    tagged_type<TTags, typename std::decay<TData>::type>...
+    type_pair<TTags, typename std::decay<TData>::type>...
   > const actual(std::forward<TData>(data)...);
 
   EXPECT_EQ(tuple, actual.tuple());
@@ -217,7 +203,7 @@ void check_tuple(TData &&...data) {
   static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
 
   auto const tuple = std::make_tuple(data...);
-  tagged_tuple<tagged_type<TTags, typename std::decay<TData>::type>...> actual(
+  tagged_tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual(
     std::forward<TData>(data)...
   );
 
@@ -236,20 +222,20 @@ void check_paired_tagged_tuple(TData &&...) {
   static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
 
   typedef tagged_tuple<
-    tagged_type<TTags, typename std::decay<TData>::type>...
+    type_pair<TTags, typename std::decay<TData>::type>...
   > expected;
 
   typedef typename type_list<TTags...>::template zip<
     typename std::decay<TData>::type...
-  >::template apply<paired_tagged_tuple> actual;
+  >::template apply<build_tagged_tuple> actual;
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     expected,
     actual
   >();
 }
 
-TEST(paired_tagged_tuple, paired_tagged_tuple) {
+TEST(build_tagged_tuple, build_tagged_tuple) {
   check_paired_tagged_tuple();
   check_paired_tagged_tuple<Y>("hello");
   check_paired_tagged_tuple<Z, X>('=', "world");
@@ -262,8 +248,8 @@ void check_make_tagged_tuple(TData &&...data) {
   auto const tuple = std::make_tuple(data...);
   auto const actual = make_tagged_tuple<TTags...>(std::forward<TData>(data)...);
 
-  expect_same<
-    tagged_tuple<tagged_type<TTags, typename std::decay<TData>::type>...>,
+  FATAL_EXPECT_SAME<
+    tagged_tuple<type_pair<TTags, typename std::decay<TData>::type>...>,
     typename std::decay<decltype(actual)>::type
   >();
 
@@ -283,8 +269,8 @@ void check_make_tagged_tuple_tuple(TData &&...data) {
   auto const tuple = std::make_tuple(std::forward<TData>(data)...);
   auto const actual = make_tagged_tuple<TTags...>(tuple);
 
-  expect_same<
-    tagged_tuple<tagged_type<TTags, typename std::decay<TData>::type>...>,
+  FATAL_EXPECT_SAME<
+    tagged_tuple<type_pair<TTags, typename std::decay<TData>::type>...>,
     typename std::decay<decltype(actual)>::type
   >();
 

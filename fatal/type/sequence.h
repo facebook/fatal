@@ -11,8 +11,8 @@
 
 #include <fatal/type/list.h>
 
-#include <type_traits>
 #include <array>
+#include <type_traits>
 
 namespace fatal {
 
@@ -154,6 +154,12 @@ struct constant_sequence {
 
   template <type Terminator = 0>
   static constexpr z_array_type z_array() { return {{Values..., Terminator}}; }
+
+  // TODO: DOCUMENT AND TEST (std::vector)
+  template <typename U, typename... UArgs>
+  static constexpr U init(UArgs &&...args) {
+    return U{Values..., std::forward<UArgs>(args)...};
+  }
 };
 
 ////////////////////////////////////////

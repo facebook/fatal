@@ -28,8 +28,8 @@ template <typename TFirst, typename TSecond>
 void check_type_pair_types() {
   typedef type_pair<TFirst, TSecond> pair_t;
 
-  expect_same<TFirst, typename pair_t::first>();
-  expect_same<TSecond, typename pair_t::second>();
+  FATAL_EXPECT_SAME<TFirst, typename pair_t::first>();
+  FATAL_EXPECT_SAME<TSecond, typename pair_t::second>();
 }
 
 TEST(type_pair, types) {
@@ -50,7 +50,7 @@ template <typename TFirst, typename TSecond>
 void check_invert() {
   typedef type_pair<TFirst, TSecond> pair;
   typedef type_pair<TSecond, TFirst> expected;
-  expect_same<expected, typename pair::invert>();
+  FATAL_EXPECT_SAME<expected, typename pair::invert>();
 }
 
 TEST(type_pair, invert) {
@@ -72,8 +72,8 @@ template <
   typename TSecond,
   typename TExpectedFirst,
   typename TExpectedSecond,
-  template <typename...> class TFirstTransform = transform::identity,
-  template <typename...> class TSecondTransform = transform::identity
+  template <typename...> class TFirstTransform = identity_transform,
+  template <typename...> class TSecondTransform = identity_transform
 >
 void check_transform() {
   typedef type_pair<TExpectedFirst, TExpectedSecond> expected;
@@ -81,7 +81,7 @@ void check_transform() {
     TFirstTransform, TSecondTransform
   > actual;
 
-  expect_same<expected, actual>();
+  FATAL_EXPECT_SAME<expected, actual>();
 }
 
 TEST(type_pair, transform) {
@@ -102,8 +102,8 @@ template <
   typename T,
   typename TExpectedFirst,
   typename TExpectedSecond,
-  template <typename...> class TFirstTransform = transform::identity,
-  template <typename...> class TSecondTransform = transform::identity
+  template <typename...> class TFirstTransform = identity_transform,
+  template <typename...> class TSecondTransform = identity_transform
 >
 void check_type_pair_from() {
   typedef type_pair<TExpectedFirst, TExpectedSecond> expected;
@@ -111,7 +111,7 @@ void check_type_pair_from() {
     TFirstTransform, TSecondTransform
   >::template type<T> actual;
 
-  expect_same<expected, actual>();
+  FATAL_EXPECT_SAME<expected, actual>();
 }
 
 TEST(type_pair_from, list) {
@@ -132,11 +132,11 @@ template <typename TFirst, typename TSecond>
 void check_type_get() {
   typedef type_pair<TFirst, TSecond> pair_t;
 
-  expect_same<typename pair_t::first, type_get<0>::template type<pair_t>>();
-  expect_same<typename pair_t::second, type_get<1>::template type<pair_t>>();
+  FATAL_EXPECT_SAME<typename pair_t::first, type_get<0>::template from<pair_t>>();
+  FATAL_EXPECT_SAME<typename pair_t::second, type_get<1>::template from<pair_t>>();
 
-  expect_same<typename pair_t::first, type_get_first<pair_t>>();
-  expect_same<typename pair_t::second, type_get_second<pair_t>>();
+  FATAL_EXPECT_SAME<typename pair_t::first, type_get_first<pair_t>>();
+  FATAL_EXPECT_SAME<typename pair_t::second, type_get_second<pair_t>>();
 }
 
 TEST(type_get, type_pair) {
@@ -175,19 +175,19 @@ public:
 TEST(type_get, first_comparer) {
   EXPECT_TRUE((
     Foo<5, 99, 8, 1>::comparison<
-      type_get_first_comparer<>::template type
+      type_get_first_comparer<>::template compare
     >::value
   ));
 
   EXPECT_TRUE((
     Foo<5, 99, 8, 1>::comparison<
-      type_get_first_comparer<constants_comparison_lt>::template type
+      type_get_first_comparer<constants_comparison_lt>::template compare
     >::value
   ));
 
   EXPECT_FALSE((
     Foo<5, 99, 8, 1>::comparison<
-      type_get_first_comparer<constants_comparison_gt>::template type
+      type_get_first_comparer<constants_comparison_gt>::template compare
     >::value
   ));
 }
@@ -199,19 +199,19 @@ TEST(type_get, first_comparer) {
 TEST(type_get, second_comparer) {
   EXPECT_TRUE((
     Foo<99, 5, 1, 8>::comparison<
-      type_get_second_comparer<>::template type
+      type_get_second_comparer<>::template compare
     >::value
   ));
 
   EXPECT_TRUE((
     Foo<99, 5, 1, 8>::comparison<
-      type_get_second_comparer<constants_comparison_lt>::template type
+      type_get_second_comparer<constants_comparison_lt>::template compare
     >::value
   ));
 
   EXPECT_FALSE((
     Foo<99, 5, 1, 8>::comparison<
-      type_get_second_comparer<constants_comparison_gt>::template type
+      type_get_second_comparer<constants_comparison_gt>::template compare
     >::value
   ));
 }

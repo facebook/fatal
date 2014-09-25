@@ -11,6 +11,7 @@
 
 #include <fatal/container/tuple_tags.h>
 #include <fatal/type/list.h>
+#include <fatal/type/pair.h>
 
 #include <tuple>
 #include <type_traits>
@@ -18,33 +19,16 @@
 
 namespace fatal {
 
-/////////////////
-// tagged_type //
-/////////////////
-
-template <typename TTag, typename T>
-struct tagged_type {
-  typedef TTag tag;
-  typedef T type;
-};
-
 //////////////////
 // tagged_tuple //
 //////////////////
 
 template <typename... Args>
-class tagged_tuple {
-  static_assert(
-    logical_and_constants<
-      std::true_type,
-      is_template<tagged_type>::template instantiation<Args>...
-    >::value,
-    "tagged_tuple parameters must be instantiations of tagged_type"
-  );
-
-public:
-  typedef tuple_tags<typename Args::tag...> tags;
-  typedef std::tuple<typename Args::type...> tuple_type;
+struct tagged_tuple {
+  using pairs = type_list<Args...>;
+  using tags = tuple_tags<type_get_first<Args>...>;
+  using values = type_list<type_get_second<Args>...>;
+  using tuple_type = typename values::template apply<std::tuple>;
 
   template <
     typename... UArgs,
@@ -55,7 +39,9 @@ public:
   {}
 
   template <typename TTag>
-  constexpr fast_pass<typename tags::template type_of<TTag, tuple_type>> get() const {
+  constexpr fast_pass<
+    typename tags::template type_of<TTag, tuple_type>
+  > get() const {
     return tags::template get<TTag>(data_);
   }
 
@@ -71,9 +57,9 @@ private:
   tuple_type data_;
 };
 
-/////////////////////////
-// paired_tagged_tuple //
-/////////////////////////
+////////////////////////
+// build_tagged_tuple //
+////////////////////////
 
 namespace detail {
 namespace tagged_tuple_impl {
@@ -88,16 +74,15 @@ class builder {
   static_assert(tags::size == types::size, "not all tags map to a type");
 
 public:
-  typedef typename tags::template combine<types, tagged_type>::template apply<
-    tagged_tuple
-  > type;
+  typedef typename tags::template combine<type_pair>::template list<types>
+    ::template apply<tagged_tuple> type;
 };
 
 } // namespace tagged_tuple_impl {
 } // namespace detail {
 
 template <typename... Args>
-using paired_tagged_tuple = typename detail::tagged_tuple_impl::builder<
+using build_tagged_tuple = typename detail::tagged_tuple_impl::builder<
   Args...
 >::type;
 
@@ -107,18 +92,18 @@ using paired_tagged_tuple = typename detail::tagged_tuple_impl::builder<
 
 template <typename... TTags, typename... Args>
 constexpr auto make_tagged_tuple(Args &&...args)
-  -> tagged_tuple<tagged_type<TTags, typename std::decay<Args>::type>...>
+  -> tagged_tuple<type_pair<TTags, typename std::decay<Args>::type>...>
 {
-  return tagged_tuple<tagged_type<TTags, typename std::decay<Args>::type>...>(
+  return tagged_tuple<type_pair<TTags, typename std::decay<Args>::type>...>(
     std::forward<Args>(args)...
   );
 }
 
 template <typename... TTags, typename... Args>
 constexpr auto make_tagged_tuple(std::tuple<Args...> tuple)
-  -> tagged_tuple<tagged_type<TTags, Args>...>
+  -> tagged_tuple<type_pair<TTags, Args>...>
 {
-  return tagged_tuple<tagged_type<TTags, Args>...>(std::move(tuple));
+  return tagged_tuple<type_pair<TTags, Args>...>(std::move(tuple));
 }
 
 } // namespace fatal {

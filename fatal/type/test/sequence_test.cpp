@@ -19,7 +19,7 @@ namespace fatal {
 
 template <typename TExpected, typename TSequence>
 void check_type() {
-  expect_same<TExpected, typename TSequence::type>();
+  FATAL_EXPECT_SAME<TExpected, typename TSequence::type>();
 }
 
 TEST(constant_sequence, type) {
@@ -38,7 +38,7 @@ TEST(constant_sequence, type) {
 
 template <typename T, T... Values>
 void check_list() {
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_list<std::integral_constant<T, Values>...>,
     typename constant_sequence<T, Values...>::list
   >();
@@ -102,7 +102,7 @@ TEST(constant_sequence, empty) {
 
 template <typename TExpected, typename TSeq, typename TSeq::type... Values>
 void check_push_front() {
-  expect_same<TExpected, typename TSeq::template push_front<Values...>>();
+  FATAL_EXPECT_SAME<TExpected, typename TSeq::template push_front<Values...>>();
 }
 
 TEST(constant_sequence, push_front) {
@@ -193,7 +193,7 @@ TEST(constant_sequence, push_front) {
 
 template <typename TExpected, typename TSeq, typename TSeq::type... Values>
 void check_push_back() {
-  expect_same<TExpected, typename TSeq::template push_back<Values...>>();
+  FATAL_EXPECT_SAME<TExpected, typename TSeq::template push_back<Values...>>();
 }
 
 TEST(constant_sequence, push_back) {
@@ -300,7 +300,7 @@ struct curried_as_array {
 
 template <typename T, T... Values>
 void check_apply() {
-  expect_same<
+  FATAL_EXPECT_SAME<
     typename as_array<T, Values...>::type,
     typename constant_sequence<T, Values...>::template apply<
       curried_as_array<T>::template type
@@ -326,7 +326,7 @@ template <typename T, T... Values>
 void check_typed_apply() {
   typedef constant_sequence<T, Values...> seq;
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     typename as_array<T, Values...>::type,
     typename seq::template typed_apply<as_array>::type
   >();
@@ -351,7 +351,7 @@ void check_array() {
   typedef constant_sequence<T, Values...> seq;
   typedef as_array<T, Values...> as_array_t;
 
-  expect_same<typename as_array_t::type, typename seq::array_type>();
+  FATAL_EXPECT_SAME<typename as_array_t::type, typename seq::array_type>();
 
   EXPECT_EQ(as_array_t::get(), seq::array());
 }
@@ -378,12 +378,12 @@ void check_z_array() {
   typedef as_array<T, Values..., Terminator> as_array_t;
   typedef as_array<T, Values..., terminator> z_as_array_t;
 
-  expect_same<typename as_array_t::type, typename seq::z_array_type>();
+  FATAL_EXPECT_SAME<typename as_array_t::type, typename seq::z_array_type>();
 
   auto const array = seq::template z_array<Terminator>();
   EXPECT_EQ(as_array_t::get(), array);
 
-  expect_same<typename z_as_array_t::type, typename seq::z_array_type>();
+  FATAL_EXPECT_SAME<typename z_as_array_t::type, typename seq::z_array_type>();
 
   auto const zarray = seq::template z_array<terminator>();
   EXPECT_EQ(z_as_array_t::get(), zarray);
@@ -405,7 +405,7 @@ TEST(constant_sequence, z_array) {
 
 template <typename T, T First, T... Mid, T Last>
 void check_constant_range() {
-  expect_same<
+  FATAL_EXPECT_SAME<
     constant_sequence<T, First, Mid..., Last>,
     constant_range<T, First, Last>
   >();

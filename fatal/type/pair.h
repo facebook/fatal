@@ -59,8 +59,8 @@ struct type_pair {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TFirstTransform = transform::identity,
-    template <typename...> class TSecondTransform = transform::identity
+    template <typename...> class TFirstTransform = identity_transform,
+    template <typename...> class TSecondTransform = identity_transform
   >
   using transform = type_pair<TFirstTransform<first>, TSecondTransform<second>>;
 };
@@ -74,8 +74,8 @@ struct type_pair {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TFirstTransform = transform::identity,
-  template <typename...> class TSecondTransform = transform::identity
+  template <typename...> class TFirstTransform = identity_transform,
+  template <typename...> class TSecondTransform = identity_transform
 >
 struct type_pair_from {
   /**

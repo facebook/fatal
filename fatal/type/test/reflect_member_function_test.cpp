@@ -150,10 +150,10 @@ struct gaz {
 #define CHECK_REFLECT(Class, Fn, Result, Qualifier, ...) \
   do { \
     typedef reflect_member_function<decltype(&Class::Fn)> reflected; \
-    expect_same<Class, reflected::owner>(); \
-    expect_same<Result, reflected::result>(); \
+    FATAL_EXPECT_SAME<Class, reflected::owner>(); \
+    FATAL_EXPECT_SAME<Result, reflected::result>(); \
     EXPECT_EQ(cv_qualifier::Qualifier, reflected::cv::value); \
-    expect_same<type_list<__VA_ARGS__>, reflected::args>(); \
+    FATAL_EXPECT_SAME<type_list<__VA_ARGS__>, reflected::args>(); \
   } while (false)
 
 TEST(reflect_member_function, reflect_member_function) {

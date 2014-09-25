@@ -47,16 +47,44 @@ std::string type_str() {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define EXPECT_SAME(Expected, Actual) \
-  do { \
-    if (!std::is_same<Expected, Actual>::value) { \
-      LOG(ERROR) << "expected: '" << type_str<Expected>() << '\''; \
-      LOG(ERROR) << "  actual: '" << type_str<Actual>() << '\''; \
-      EXPECT_TRUE((std::is_same<Expected, Actual>::value)); \
-    } \
-  } while (false)
-
 template <typename TExpected, typename TActual>
-void expect_same() { EXPECT_SAME(TExpected, TActual); }
+void expect_same(
+  char const *file_name = __FILE__,
+  std::size_t line_number = __LINE__
+) {
+  if (!std::is_same<TExpected, TActual>::value) {
+    LOG(ERROR) << "at " << file_name << ':' << line_number << ':'
+      << std::endl << std::endl
+      << "  expected: '" << type_str<TExpected>() << '\''
+      << std::endl << std::endl
+      << "  actual:   '" << type_str<TActual>() << '\''
+      << std::endl << std::endl;
+
+    EXPECT_TRUE((std::is_same<TExpected, TActual>::value));
+  } \
+}
+
+namespace detail {
+
+struct expect_same_impl {
+  expect_same_impl(char const *file_name, std::size_t line_number):
+    file_name_(file_name),
+    line_number_(line_number)
+  {}
+
+  template <typename TExpected, typename TActual>
+  void check() const {
+    expect_same<TExpected, TActual>(file_name_, line_number_);
+  }
+
+private:
+  char const *file_name_;
+  std::size_t line_number_;
+};
+
+} // namespace detail {
+
+#define FATAL_EXPECT_SAME \
+  ::fatal::detail::expect_same_impl{__FILE__, __LINE__}.check
 
 } // namespace fatal {

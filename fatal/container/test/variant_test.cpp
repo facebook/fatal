@@ -565,7 +565,7 @@ private:
 
 template <typename T, typename TVariant, typename... Args>
 void check_visit_if(TVariant &&variant, Args &&...args) {
-  variant.template visit_if<transform::alias<std::is_same, T>::template  type>(
+  variant.template visit_if<transform_alias<std::is_same, T>::template apply>(
     visit_if_visitor<T>(std::forward<Args>(args)...)
   );
 }
