@@ -41,7 +41,39 @@ struct type_pair {
   typedef type_pair<TSecond, TFirst> invert;
 
   /**
-   * Applies an optional transform to the elements of this pair.
+   * TODO: TEST
+   * Applies the types from this `type_pair` to template `T.
+   *
+   * Optional transforms can be provided, which will be applie
+   * to the elements of this pair before applying them to `T`.
+   *
+   * Example:
+   *
+   *  typedef type_pair<int, bool> pair;
+   *
+   *  // yields `std::pair<int, bool>`
+   *  typdef pair::apply<std::pair> result2;
+   *
+   *  // yields `std::pair<Foo<int>, bool>`
+   *  typdef pair::apply<std::pair, Foo> result2;
+   *
+   *  // yields `std::pair<Foo<int>, Bar<bool>>`
+   *  typdef pair::apply<std::pair, Foo, Bar> result1;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <
+    template <typename...> class T,
+    template <typename...> class TFirstTransform = identity_transform,
+    template <typename...> class TSecondTransform = identity_transform
+  >
+  using apply = T<TFirstTransform<first>, TSecondTransform<second>>;
+
+  /**
+   * Applies optional transforms to the elements of this pair.
+   *
+   * If no transforms are provided, this meta-function behaves
+   * as an identity function.
    *
    * Example:
    *

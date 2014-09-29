@@ -24,7 +24,7 @@ struct tuple_tags {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef type_list<TTags...> tags;
+  typedef type_list<TTags...> list;
 
   /**
    * Gets the index associated with a given tag.
@@ -49,7 +49,7 @@ struct tuple_tags {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename TTag>
-  using index_of = typename tags::template index_of<TTag>;
+  using index_of = typename list::template index_of<TTag>;
 
   /**
    * Gets the type of the tuple's element associated with a given tag.
@@ -92,12 +92,12 @@ struct tuple_tags {
    *  //    type_pair<Baz, bool>,
    *  //    type_pair<Gaz, long>
    *  // >`
-   *  typedef tags::tag_map<tuple> result;
+   *  typedef tags::map<tuple> result;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename TTuple>
-  using tag_map = type_map<
+  using map = type_map<
     type_pair<TTags, type_of<TTags, TTuple>>...
   >;
 

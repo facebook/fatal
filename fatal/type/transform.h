@@ -128,6 +128,609 @@ struct constant_transform {
   template <typename...> using apply = std::integral_constant<T, Value>;
 };
 
+//////////////////////////
+// arithmetic_transform //
+//////////////////////////
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+namespace arithmetic_transform {
+  /**
+   * TODO: DOCUMENT
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  struct add:
+    public std::integral_constant<
+      decltype(T::value + add<Args...>::value),
+      (T::value + add<Args...>::value)
+    >
+  {};
+
+  template <typename T>
+  struct add<T>:
+    public std::integral_constant<decltype(T::value), T::value>
+  {};
+
+  /**
+   * TODO: DOCUMENT
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename...> struct subtract;
+
+  template <typename TLHS, typename TRHS, typename... Args>
+  struct subtract<TLHS, TRHS, Args...>:
+    public subtract<subtract<TLHS, TRHS>, Args...>
+  {};
+
+  template <typename TLHS, typename TRHS>
+  struct subtract<TLHS, TRHS>:
+    public std::integral_constant<
+      decltype(TLHS::value - TRHS::value),
+      (TLHS::value - TRHS::value)
+    >
+  {};
+
+  /**
+   * TODO: DOCUMENT
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  struct multiply:
+    public std::integral_constant<
+      decltype(T::value * multiply<Args...>::value),
+      (T::value * multiply<Args...>::value)
+    >
+  {};
+
+  template <typename T>
+  struct multiply<T>:
+    public std::integral_constant<decltype(T::value), T::value>
+  {};
+
+  /**
+   * TODO: DOCUMENT
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename...> struct divide;
+
+  template <typename TLHS, typename TRHS, typename... Args>
+  struct divide<TLHS, TRHS, Args...>:
+    public divide<divide<TLHS, TRHS>, Args...>
+  {};
+
+  template <typename TLHS, typename TRHS>
+  struct divide<TLHS, TRHS>:
+    public std::integral_constant<
+      decltype(TLHS::value / TRHS::value),
+      (TLHS::value / TRHS::value)
+    >
+  {};
+
+  /**
+   * TODO: DOCUMENT
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename...> struct modulo;
+
+  template <typename TLHS, typename TRHS, typename... Args>
+  struct modulo<TLHS, TRHS, Args...>:
+    public modulo<modulo<TLHS, TRHS>, Args...>
+  {};
+
+  template <typename TLHS, typename TRHS>
+  struct modulo<TLHS, TRHS>:
+    public std::integral_constant<
+      decltype(TLHS::value % TRHS::value),
+      (TLHS::value % TRHS::value)
+    >
+  {};
+};
+
+///////////////////////
+// logical_transform //
+///////////////////////
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+namespace logical_transform {
+  /**
+   * Helper class similar to std::integral_constant whose value is the logical
+   * AND of the value of each `Arg`.
+   *
+   * Example:
+   *
+   *  template <typename A, typename B, typename C>
+   *  using all_equal = logical_transform::all<
+   *    std::is_same<A, B>, std::is_same<B, C>
+   *  >;
+   *
+   *  // yields `false`
+   *  all_equal<int, bool, double>::value
+   *
+   *  // yields `false`
+   *  all_equal<int, bool, int>::value
+   *
+   *  // yields `true`
+   *  all_equal<int, int, int>::value
+   *
+   *  template <typename... Args>
+   *  struct Foo {
+   *    static_assert(
+   *      logical_transform::all<std::is_signed<Args>...)::value,
+   *      "Args should be signed arithmetic types"
+   *    );
+   *  }
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  struct all:
+    public std::integral_constant<
+      decltype(T::value && all<Args...>::value),
+      (T::value && all<Args...>::value)
+    >
+  {};
+
+  template <typename T>
+  struct all<T>:
+    public std::integral_constant<decltype(T::value), T::value>
+  {};
+
+  /**
+   * Helper class similar to std::integral_constant whose value is the logical
+   * OR of the value of each `Arg`.
+   *
+   * Example:
+   *
+   *  template <typename A, typename B, typename C>
+   *  using has_duplicate = logical_transform::any<
+   *    std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
+   *  >;
+   *
+   *  // yields `false`
+   *  has_duplicate<int, bool, double>::value
+   *
+   *  // yields `true`
+   *  has_duplicate<int, bool, int>::value
+   *
+   *  // yields `true`
+   *  has_duplicate<int, int, int>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  struct any:
+    public std::integral_constant<
+      decltype(T::value || any<Args...>::value),
+      (T::value || any<Args...>::value)
+    >
+  {};
+
+  template <typename T>
+  struct any<T>:
+    public std::integral_constant<decltype(T::value), T::value>
+  {};
+
+  /**
+   * Helper class similar to std::integral whose value is the logical
+   * negation of T's value.
+   *
+   * Example:
+   *
+   *  template <int X>
+   *  using is_negative = std::integral_constant<bool, (X < 0)>;
+   *
+   *  template <int X>
+   *  using is_non_negative = logical_transform::negate<is_negative<X>>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T>
+  using negate = std::integral_constant<decltype(!T::value), !T::value>;
+};
+
+///////////////////////
+// bitwise_transform //
+///////////////////////
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+namespace bitwise_transform {
+  /**
+   * Helper class similar to std::integral_constant whose value is the bitwise
+   * AND of the value of each `Arg`.
+   *
+   * Example:
+   *
+   *  template <int... Args>
+   *  using all = bitwise_transform::all<
+   *    std::integral_constant<int, Args>...
+   *  >;
+   *
+   *  // yields `0`
+   *  all<1, 2, 4>::value
+   *
+   *  // yields `3`
+   *  all<7, 11>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  struct all:
+    public std::integral_constant<
+      decltype(T::value & all<Args...>::value),
+      (T::value & all<Args...>::value)
+    >
+  {};
+
+  template <typename T>
+  struct all<T>:
+    public std::integral_constant<decltype(T::value), T::value>
+  {};
+
+  /**
+   * Helper class similar to std::integral_constant whose value is the bitwise
+   * OR of the value of each `Arg`.
+   *
+   * Example:
+   *
+   *  template <int... Args>
+   *  using any = bitwise_transform::any<
+   *    std::integral_constant<int, Args>...
+   *  >;
+   *
+   *  // yields `7`
+   *  any<1, 2, 4>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  struct any:
+    public std::integral_constant<
+      decltype(T::value | any<Args...>::value),
+      (T::value | any<Args...>::value)
+    >
+  {};
+
+  template <typename T>
+  struct any<T>:
+    public std::integral_constant<decltype(T::value), T::value>
+  {};
+
+  /**
+   * Helper class similar to std::integral_constant whose value is the bitwise
+   * XOR of the value of each `Arg`.
+   *
+   * Example:
+   *
+   *  template <int... Args>
+   *  using diff = bitwise_transform::diff<
+   *    std::integral_constant<int, Args>...
+   *  >;
+   *
+   *  // yields `3`
+   *  diff<1, 2>::value
+   *
+   *  // yields `12`
+   *  diff<7, 11>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  struct diff:
+    public std::integral_constant<
+      decltype(T::value ^ diff<Args...>::value),
+      (T::value ^ diff<Args...>::value)
+    >
+  {};
+
+  template <typename T>
+  struct diff<T>:
+    public std::integral_constant<decltype(T::value), T::value>
+  {};
+
+  /**
+   * Helper class similar to std::integral_constant whose value is the bitwise
+   * complement of T's value.
+   *
+   * Example:
+   *
+   *  // yields `0xf0`
+   *  bitwise_transform::complement<
+   *    std::integral_constant<std::uint8_t, 0xf>
+   *  >::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T>
+  using complement = std::integral_constant<
+    typename std::conditional<
+      std::is_integral<decltype(T::value)>::value,
+      decltype(T::value),
+      decltype(~T::value)
+    >::type,
+    static_cast<
+      typename std::conditional<
+        std::is_integral<decltype(T::value)>::value,
+        decltype(T::value),
+        decltype(~T::value)
+      >::type
+    >(~T::value)
+  >;
+};
+
+//////////////////////////
+// comparison_transform //
+//////////////////////////
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct comparison_transform {
+  /**
+   * Helper class similar to std::integral_constant for comparing two types
+   * `TLHS` and `TRHS`. Its boolean value is the result of the EQUAL TO
+   * comparison, figuratively `TLHS` == `TRHS`.
+   *
+   * Example:
+   *
+   *  typedef std::integral_constant<int, 10> A;
+   *  typedef std::integral_constant<int, 20> B;
+   *
+   *  // yields `false`
+   *  comparison_transform::equal<A, B>::value
+   *
+   *  // yields `false`
+   *  comparison_transform::equal<B, A>::value
+   *
+   *  // yields `true`
+   *  comparison_transform::equal<A, A>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TLHS, typename TRHS>
+  using equal = std::integral_constant<
+    decltype(TLHS::value == TRHS::value),
+    (TLHS::value == TRHS::value)
+  >;
+
+  /**
+   * Helper class similar to std::integral_constant for comparing two types
+   * `TLHS` and `TRHS`. Its boolean value is the result of the NOT EQUAL TO
+   * comparison, figuratively `TLHS` != `TRHS`.
+   *
+   * Example:
+   *
+   *  typedef std::integral_constant<int, 10> A;
+   *  typedef std::integral_constant<int, 20> B;
+   *
+   *  // yields `true`
+   *  comparison_transform::not_equal<A, B>::value
+   *
+   *  // yields `true`
+   *  comparison_transform::not_equal<B, A>::value
+   *
+   *  // yields `false`
+   *  comparison_transform::not_equal<A, A>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TLHS, typename TRHS>
+  using not_equal = std::integral_constant<
+    decltype(TLHS::value != TRHS::value),
+    (TLHS::value != TRHS::value)
+  >;
+
+  /**
+   * Helper class similar to std::integral_constant for comparing two types
+   * `TLHS` and `TRHS`. Its boolean value is the result of the LESS THAN
+   * comparison, figuratively `TLHS` < `TRHS`.
+   *
+   * Example:
+   *
+   *  typedef std::integral_constant<int, 10> A;
+   *  typedef std::integral_constant<int, 20> B;
+   *
+   *  // yields `true`
+   *  comparison_transform::less_than<A, B>::value
+   *
+   *  // yields `false`
+   *  comparison_transform::less_than<B, A>::value
+   *
+   *  // yields `false`
+   *  comparison_transform::less_than<A, A>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TLHS, typename TRHS>
+  using less_than = std::integral_constant<
+    decltype(TLHS::value < TRHS::value),
+    (TLHS::value < TRHS::value)
+  >;
+
+  /**
+   * Helper class similar to std::integral_constant for comparing two types
+   * `TLHS` and `TRHS`. Its boolean value is the result of the LESS THAN or
+   * EQUAL TO comparison, figuratively `TLHS` <= `TRHS`.
+   *
+   * Example:
+   *
+   *  typedef std::integral_constant<int, 10> A;
+   *  typedef std::integral_constant<int, 20> B;
+   *
+   *  // yields `true`
+   *  comparison_transform::less_than_equal<A, B>::value
+   *
+   *  // yields `false`
+   *  comparison_transform::less_than_equal<B, A>::value
+   *
+   *  // yields `true`
+   *  comparison_transform::less_than_equal<A, A>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TLHS, typename TRHS>
+  using less_than_equal = std::integral_constant<
+    decltype(TLHS::value <= TRHS::value),
+    (TLHS::value <= TRHS::value)
+  >;
+
+  /**
+   * Helper class similar to std::integral_constant for comparing two types
+   * `TLHS` and `TRHS`. Its boolean value is the result of the GREATER THAN
+   * comparison, figuratively `TLHS` > `TRHS`.
+   *
+   * Example:
+   *
+   *  typedef std::integral_constant<int, 10> A;
+   *  typedef std::integral_constant<int, 20> B;
+   *
+   *  // yields `false`
+   *  comparison_transform::greater_than<A, B>::value
+   *
+   *  // yields `true`
+   *  comparison_transform::greater_than<B, A>::value
+   *
+   *  // yields `false`
+   *  comparison_transform::greater_than<A, A>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TLHS, typename TRHS>
+  using greater_than = std::integral_constant<
+    decltype(TLHS::value > TRHS::value),
+    (TLHS::value > TRHS::value)
+  >;
+
+  /**
+   * Helper class similar to std::integral_constant for comparing two types
+   * `TLHS` and `TRHS`. Its boolean value is the result of the GREATER THAN or
+   * EQUAL TO comparison, figuratively `TLHS` >= `TRHS`.
+   *
+   * Example:
+   *
+   *  typedef std::integral_constant<int, 10> A;
+   *  typedef std::integral_constant<int, 20> B;
+   *
+   *  // yields `false`
+   *  comparison_transform::greater_than_equal<A, B>::value
+   *
+   *  // yields `true`
+   *  comparison_transform::greater_than_equal<B, A>::value
+   *
+   *  // yields `true`
+   *  comparison_transform::greater_than_equal<A, A>::value
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TLHS, typename TRHS>
+  using greater_than_equal = std::integral_constant<
+    decltype(TLHS::value >= TRHS::value),
+    (TLHS::value >= TRHS::value)
+  >;
+};
+
+/**
+ * A convenient macro that creates a transform which
+ * evaluates to the given member typedef.
+ *
+ * Provides a template alias named `Name` which extracts
+ * the member typedef with the same name.
+ *
+ * Example:
+ *
+ *  FATAL_GET_MEMBER_TYPEDEF(type);
+ *
+ *  // evaluates to `int const`
+ *  using result = type<std::add_const<int>>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+# define FATAL_GET_MEMBER_TYPEDEF(Name) \
+  template <typename T> using Name = typename T::Name
+
+/**
+ * Provides transforms that evaluate to a member typedef of a given type.
+ *
+ * Example:
+ *
+ *  // yields `int`
+ *  typedef get_member_typedef::type<std::add_const<int>> result1;
+ *
+ *  typedef std::map<double, std::string> map;
+ *
+ *  // yields `std::pair<double, std::string>`
+ *  typedef get_member_typedef::value_type<map> result2;
+ *
+ *  // yields `double`
+ *  typedef get_member_typedef::key_type<map> result3;
+ *
+ *  // yields `std::string`
+ *  typedef get_member_typedef::mapped_type<map> result4;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct get_member_typedef {
+  FATAL_GET_MEMBER_TYPEDEF(type);
+
+  FATAL_GET_MEMBER_TYPEDEF(tag);
+  FATAL_GET_MEMBER_TYPEDEF(types);
+  FATAL_GET_MEMBER_TYPEDEF(values);
+  FATAL_GET_MEMBER_TYPEDEF(args);
+
+  FATAL_GET_MEMBER_TYPEDEF(pair);
+  FATAL_GET_MEMBER_TYPEDEF(tuple);
+  FATAL_GET_MEMBER_TYPEDEF(list);
+  FATAL_GET_MEMBER_TYPEDEF(map);
+  FATAL_GET_MEMBER_TYPEDEF(set);
+  FATAL_GET_MEMBER_TYPEDEF(string);
+  FATAL_GET_MEMBER_TYPEDEF(index);
+  FATAL_GET_MEMBER_TYPEDEF(flag);
+
+  FATAL_GET_MEMBER_TYPEDEF(first_type);
+  FATAL_GET_MEMBER_TYPEDEF(second_type);
+
+  FATAL_GET_MEMBER_TYPEDEF(key_type);
+  FATAL_GET_MEMBER_TYPEDEF(mapped_type);
+  FATAL_GET_MEMBER_TYPEDEF(value_type);
+  FATAL_GET_MEMBER_TYPEDEF(element_type);
+  FATAL_GET_MEMBER_TYPEDEF(char_type);
+
+  FATAL_GET_MEMBER_TYPEDEF(traits_type);
+  FATAL_GET_MEMBER_TYPEDEF(allocator_type);
+
+  FATAL_GET_MEMBER_TYPEDEF(size_type);
+  FATAL_GET_MEMBER_TYPEDEF(difference_type);
+
+  FATAL_GET_MEMBER_TYPEDEF(reference);
+  FATAL_GET_MEMBER_TYPEDEF(const_reference);
+
+  FATAL_GET_MEMBER_TYPEDEF(pointer);
+  FATAL_GET_MEMBER_TYPEDEF(const_pointer);
+
+  FATAL_GET_MEMBER_TYPEDEF(iterator);
+  FATAL_GET_MEMBER_TYPEDEF(const_iterator);
+  FATAL_GET_MEMBER_TYPEDEF(reverse_iterator);
+  FATAL_GET_MEMBER_TYPEDEF(const_reverse_iterator);
+};
+
 ///////////////////////////
 // conditional_transform //
 ///////////////////////////
@@ -640,7 +1243,7 @@ struct member_transformer_stack {
 /////////////////////////
 
 namespace detail {
-namespace transform_recursively_impl {
+namespace recursive_transform_impl {
 
 template <
   bool, std::size_t,
@@ -738,7 +1341,7 @@ struct recurse<true, 0, TPre, TPost, TPredicate, TTransformer, TTransform> {
   >::template apply<T>;
 };
 
-} // namespace transform_recursively_impl {
+} // namespace recursive_transform_impl {
 } // namespace detail {
 
 // TODO: DOCUMENT & PROPERLY TEST
@@ -749,19 +1352,20 @@ struct recurse<true, 0, TPre, TPost, TPredicate, TTransformer, TTransform> {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TPreTransform = identity_transform,
-  template <typename...> class TPostTransform = identity_transform,
-  std::size_t Depth = std::numeric_limits<std::size_t>::max()
+  template <typename...> class TPredicate,
+  template <
+    typename, template <typename...> class, typename...
+  > class TTransformer = member_transformer::transform<>::use,
+  template <typename...> class... TTransforms
 >
 struct recursive_transform {
   template <
-    template <typename...> class TPredicate,
-    template <
-      typename, template <typename...> class, typename...
-    > class TTransformer = member_transformer::transform<>::use,
-    template <typename...> class... TTransforms
+    template <typename...> class TPreTransform = identity_transform,
+    template <typename...> class TPostTransform = identity_transform,
+    std::size_t Depth = std::numeric_limits<std::size_t>::max()
   >
-  using with = detail::transform_recursively_impl::recurse<
+  // TODO: split into pre, post and depth
+  using with = detail::recursive_transform_impl::recurse<
     true,
     Depth,
     TPreTransform,
@@ -770,6 +1374,9 @@ struct recursive_transform {
     TTransformer,
     transform_sequence<TTransforms...>::template apply
   >;
+
+  template <typename T>
+  using apply = typename with<>::template apply<T>;
 };
 
 /////////////////////////

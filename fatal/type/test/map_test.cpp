@@ -448,7 +448,7 @@ TEST(type_map, insert_sorted) {
     build_type_map<
       int_val<3>, double,
       int_val<1>, bool
-    >::insert_sorted<int_val<2>, long, constants_comparison_gt>
+    >::insert_sorted<int_val<2>, long, comparison_transform::greater_than>
   >();
 
   FATAL_EXPECT_SAME<
@@ -460,7 +460,7 @@ TEST(type_map, insert_sorted) {
     build_type_map<
       int_val<3>, double,
       int_val<1>, bool
-    >::insert_sorted<int_val<0>, int, constants_comparison_gt>
+    >::insert_sorted<int_val<0>, int, comparison_transform::greater_than>
   >();
 
   FATAL_EXPECT_SAME<
@@ -472,7 +472,7 @@ TEST(type_map, insert_sorted) {
     build_type_map<
       int_val<3>, double,
       int_val<1>, bool
-    >::insert_sorted<int_val<4>, short, constants_comparison_gt>
+    >::insert_sorted<int_val<4>, short, comparison_transform::greater_than>
   >();
 
   FATAL_EXPECT_SAME<
@@ -484,7 +484,7 @@ TEST(type_map, insert_sorted) {
     build_type_map<
       int_val<3>, double,
       int_val<1>, bool
-    >::insert_sorted<int_val<3>, void, constants_comparison_gt>
+    >::insert_sorted<int_val<3>, void, comparison_transform::greater_than>
   >();
 }
 
@@ -557,7 +557,7 @@ TEST(type_map, insert_pair_sorted) {
       int_val<1>, bool
     >::insert_pair_sorted<
       type_pair<int_val<2>, long>,
-      constants_comparison_gt
+      comparison_transform::greater_than
     >
   >();
 
@@ -572,7 +572,7 @@ TEST(type_map, insert_pair_sorted) {
       int_val<1>, bool
     >::insert_pair_sorted<
       type_pair<int_val<0>, int>,
-      constants_comparison_gt
+      comparison_transform::greater_than
     >
   >();
 
@@ -587,7 +587,7 @@ TEST(type_map, insert_pair_sorted) {
       int_val<1>, bool
     >::insert_pair_sorted<
       type_pair<int_val<4>, short>,
-      constants_comparison_gt
+      comparison_transform::greater_than
     >
   >();
 
@@ -602,7 +602,7 @@ TEST(type_map, insert_pair_sorted) {
       int_val<1>, bool
     >::insert_pair_sorted<
       type_pair<int_val<3>, void>,
-      constants_comparison_gt
+      comparison_transform::greater_than
     >
   >();
 }
@@ -812,7 +812,7 @@ TEST(type_map, sort) {
 
   FATAL_EXPECT_SAME<
     expected_reverse,
-    map::sort<constants_comparison_gt>
+    map::sort<comparison_transform::greater_than>
   >();
 }
 

@@ -132,8 +132,12 @@ template <typename TFirst, typename TSecond>
 void check_type_get() {
   typedef type_pair<TFirst, TSecond> pair_t;
 
-  FATAL_EXPECT_SAME<typename pair_t::first, type_get<0>::template from<pair_t>>();
-  FATAL_EXPECT_SAME<typename pair_t::second, type_get<1>::template from<pair_t>>();
+  FATAL_EXPECT_SAME<
+    typename pair_t::first, type_get<0>::template from<pair_t>
+  >();
+  FATAL_EXPECT_SAME<
+    typename pair_t::second, type_get<1>::template from<pair_t>
+  >();
 
   FATAL_EXPECT_SAME<typename pair_t::first, type_get_first<pair_t>>();
   FATAL_EXPECT_SAME<typename pair_t::second, type_get_second<pair_t>>();
@@ -166,7 +170,7 @@ class Foo {
   > rhs;
 
 public:
-  template <template <typename, typename> class TComparer>
+  template <template <typename...> class TComparer>
   using comparison = std::integral_constant<
     bool, TComparer<lhs, rhs>::value
   >;
@@ -181,13 +185,15 @@ TEST(type_get, first_comparer) {
 
   EXPECT_TRUE((
     Foo<5, 99, 8, 1>::comparison<
-      type_get_first_comparer<constants_comparison_lt>::template compare
+      type_get_first_comparer<comparison_transform::less_than>::template compare
     >::value
   ));
 
   EXPECT_FALSE((
     Foo<5, 99, 8, 1>::comparison<
-      type_get_first_comparer<constants_comparison_gt>::template compare
+      type_get_first_comparer<
+        comparison_transform::greater_than
+      >::template compare
     >::value
   ));
 }
@@ -205,13 +211,17 @@ TEST(type_get, second_comparer) {
 
   EXPECT_TRUE((
     Foo<99, 5, 1, 8>::comparison<
-      type_get_second_comparer<constants_comparison_lt>::template compare
+      type_get_second_comparer<
+        comparison_transform::less_than
+      >::template compare
     >::value
   ));
 
   EXPECT_FALSE((
     Foo<99, 5, 1, 8>::comparison<
-      type_get_second_comparer<constants_comparison_gt>::template compare
+      type_get_second_comparer<
+        comparison_transform::greater_than
+      >::template compare
     >::value
   ));
 }

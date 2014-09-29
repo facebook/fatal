@@ -47,17 +47,23 @@ struct constant_sequence {
    *  //   std::integral_constant<int, 3>
    *  // >`
    *  typedef seq::list result;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   typedef type_list<std::integral_constant<type, Values>...> list;
 
   /**
    * Tells how many values this sequence has.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   static constexpr std::size_t size = sizeof...(Values);
 
   /**
    * Tells whether this sequence is empty or not.
    * This is the same as `size == 0`.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   static constexpr bool empty = size == 0;
 
@@ -70,6 +76,8 @@ struct constant_sequence {
    *
    *  // yields `constant_sequence<int, 9, 1, 2, 3>`
    *  typedef seq::push_front<9> result;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... UValues>
   using push_front = constant_sequence<type, UValues..., Values...>;
@@ -83,6 +91,8 @@ struct constant_sequence {
    *
    *  // yields `constant_sequence<int, 1, 2, 3, 9>`
    *  typedef seq::push_back<9> result;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... UValues>
   using push_back = constant_sequence<type, Values..., UValues...>;
@@ -97,6 +107,8 @@ struct constant_sequence {
    *
    *  // yields `foo<1, 2, 3>`
    *  typedef seq::apply<foo> result;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <template <type...> class U>
   using apply = U<Values...>;
@@ -111,6 +123,8 @@ struct constant_sequence {
    *
    *  // yields `foo<int, 1, 2, 3>`
    *  typedef seq::typed_apply<foo> result;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <template <typename, type...> class U>
   using typed_apply = U<type, Values...>;
@@ -126,6 +140,8 @@ struct constant_sequence {
    *
    *  // yields `std::array<int, 3>` with values `{1, 2, 3}`
    *  auto result = seq::array();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   typedef std::array<type, size> array_type;
 
@@ -149,6 +165,8 @@ struct constant_sequence {
    *
    *  // yields `std::array<int, 3>` with values `"hi"`
    *  auto hi = constant_sequence<char, 'h', 'i'>::z_array();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   typedef std::array<type, size + 1> z_array_type;
 

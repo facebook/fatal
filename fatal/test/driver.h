@@ -20,6 +20,7 @@
 ////////////
 
 int main(int argc, char **argv) {
+  FLAGS_logtostderr = true;
   google::InitGoogleLogging(argc > 0 ? argv[0] : "unknown");
   testing::InitGoogleTest(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);

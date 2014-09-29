@@ -60,462 +60,6 @@ template <typename T>
 struct is_complete: decltype(detail::is_complete_impl::sfinae<T>(nullptr)) {};
 
 /**
- * Provides transforms that evaluate to a member typedef of a given type.
- *
- * Example:
- *
- *  // yields `int`
- *  typedef get_member_typedef::type<std::add_const<int>> result1;
- *
- *  typedef std::map<double, std::string> map;
- *
- *  // yields `std::pair<double, std::string>`
- *  typedef get_member_typedef::value_type<map> result2;
- *
- *  // yields `double`
- *  typedef get_member_typedef::key_type<map> result3;
- *
- *  // yields `std::string`
- *  typedef get_member_typedef::mapped_type<map> result4;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-struct get_member_typedef {
-# define CREATE_GET_MEMBER_TYPEDEF(Name) \
-  template <typename T> using Name = typename T::Name
-
-  CREATE_GET_MEMBER_TYPEDEF(type);
-
-  CREATE_GET_MEMBER_TYPEDEF(tag);
-  CREATE_GET_MEMBER_TYPEDEF(types);
-  CREATE_GET_MEMBER_TYPEDEF(values);
-  CREATE_GET_MEMBER_TYPEDEF(args);
-
-  CREATE_GET_MEMBER_TYPEDEF(pair);
-  CREATE_GET_MEMBER_TYPEDEF(tuple);
-  CREATE_GET_MEMBER_TYPEDEF(list);
-  CREATE_GET_MEMBER_TYPEDEF(map);
-  CREATE_GET_MEMBER_TYPEDEF(set);
-  CREATE_GET_MEMBER_TYPEDEF(string);
-  CREATE_GET_MEMBER_TYPEDEF(index);
-  CREATE_GET_MEMBER_TYPEDEF(flag);
-
-  CREATE_GET_MEMBER_TYPEDEF(first_type);
-  CREATE_GET_MEMBER_TYPEDEF(second_type);
-
-  CREATE_GET_MEMBER_TYPEDEF(key_type);
-  CREATE_GET_MEMBER_TYPEDEF(mapped_type);
-  CREATE_GET_MEMBER_TYPEDEF(value_type);
-  CREATE_GET_MEMBER_TYPEDEF(element_type);
-  CREATE_GET_MEMBER_TYPEDEF(char_type);
-
-  CREATE_GET_MEMBER_TYPEDEF(traits_type);
-  CREATE_GET_MEMBER_TYPEDEF(allocator_type);
-
-  CREATE_GET_MEMBER_TYPEDEF(size_type);
-  CREATE_GET_MEMBER_TYPEDEF(difference_type);
-
-  CREATE_GET_MEMBER_TYPEDEF(reference);
-  CREATE_GET_MEMBER_TYPEDEF(const_reference);
-
-  CREATE_GET_MEMBER_TYPEDEF(pointer);
-  CREATE_GET_MEMBER_TYPEDEF(const_pointer);
-
-  CREATE_GET_MEMBER_TYPEDEF(iterator);
-  CREATE_GET_MEMBER_TYPEDEF(const_iterator);
-  CREATE_GET_MEMBER_TYPEDEF(reverse_iterator);
-  CREATE_GET_MEMBER_TYPEDEF(const_reverse_iterator);
-
-# undef CREATE_GET_MEMBER_TYPEDEF
-};
-
-/**
- * Extracts the relevant type of some noteworthy template `T` like
- * `std::integral_constant`.
- *
- * Resolves to an incomplete type for an unsupported type `T`.
- *
- * Example:
- *
- *  typedef std::integral_constant<int, 5> i5;
- *
- *  // yields `int`
- *  typedef type_of<i5> result1;
- *
- *  // yields `bool`
- *  typedef type_of<std::true_type> result2;
- */
-namespace detail {
-
-template <typename...> struct type_of_impl;
-
-template <template <typename X, X> class U, typename T, T Value>
-struct type_of_impl<U<T, Value>> {
-  typedef T type;
-};
-
-} // namespace detail {
-
-template <typename T>
-using type_of = typename detail::type_of_impl<T>::type;
-
-/**
- * Evaluates to `std::add_const<T>::type` iff `Condition`
- * is true, otherwise evaluates to `T`.
- *
- * Example:
- *
- *  // equivalent to `int const i = 0;`
- *  add_const_if<int, true> i = 0;
- *
- *  // equivalent to `double d = 0;`
- *  add_const_if<double, false> d = 0.0;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T, bool Condition>
-using add_const_if = typename std::conditional<
-  Condition, typename std::add_const<T>::type, T
->::type;
-
-/**
- * Helper class similar to std::integral_constant whose value is the logical
- * negation of T's value.
- *
- * Example:
- *
- *  template <int X>
- *  using is_negative = std::integral_constant<bool, (X < 0)>;
- *
- *  template <int X>
- *  using is_non_negative = negate_constant<is_negative<X>>;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-struct negate_constant: public std::integral_constant<bool, !T::value> {};
-
-/**
- * Helper class similar to std::integral_constant whose value is the logical
- * AND of the value of each `Arg`.
- *
- * Example:
- *
- *  template <typename A, typename B, typename C>
- *  using all_equal = logical_and_constants<
- *    std::is_same<A, B>, std::is_same<B, C>
- *  >;
- *
- *  // yields `false`
- *  all_equal<int, bool, double>::value
- *
- *  // yields `false`
- *  all_equal<int, bool, int>::value
- *
- *  // yields `true`
- *  all_equal<int, int, int>::value
- *
- *  template <typename... Args>
- *  struct Foo {
- *    static_assert(
- *      logical_and_constants<std::is_signed<Args>...)::value,
- *      "Args should be signed arithmetic types"
- *    );
- *  }
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T, typename... Args>
-struct logical_and_constants:
-  public std::integral_constant<
-    bool,
-    T::value && logical_and_constants<Args...>::value
-  >
-{};
-
-template <typename T>
-struct logical_and_constants<T>:
-  public std::integral_constant<bool, T::value>
-{};
-
-/**
- * Helper class similar to std::integral_constant whose value is the logical
- * OR of the value of each `Arg`.
- *
- * Example:
- *
- *  template <typename A, typename B, typename C>
- *  using has_duplicate = logical_or_constants<
- *    std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
- *  >;
- *
- *  // yields `false`
- *  has_duplicate<int, bool, double>::value
- *
- *  // yields `true`
- *  has_duplicate<int, bool, int>::value
- *
- *  // yields `true`
- *  has_duplicate<int, int, int>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T, typename... Args>
-struct logical_or_constants:
-  public std::integral_constant<
-    bool,
-    T::value || logical_or_constants<Args...>::value
-  >
-{};
-
-template <typename T>
-struct logical_or_constants<T>:
-  public std::integral_constant<bool, T::value>
-{};
-
-/**
- * Helper class similar to std::integral_constant whose value is the bitwise
- * complement of T's value.
- *
- * Example:
- *
- *  // yields `0xf0`
- *  complement_constant<std::integral_constant<uint8_t, 0xf>>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-struct complement_constant:
-  public std::integral_constant<
-    decltype(T::value),
-    static_cast<decltype(T::value)>(~T::value)
-  >
-{};
-
-/**
- * Helper class similar to std::integral_constant whose value is the bitwise
- * AND of the value of each `Arg`.
- *
- * Example:
- *
- *  template <int... Args>
- *  using bitwise_and = bitwise_and_constants<
- *    std::integral_constant<int, Args>...
- *  >;
- *
- *  // yields `0`
- *  bitwise_and<1, 2, 4>::value
- *
- *  // yields `3`
- *  bitwise_and<7, 11>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T, typename... Args>
-struct bitwise_and_constants:
-  public std::integral_constant<
-    decltype(T::value & bitwise_and_constants<Args...>::value),
-    T::value & bitwise_and_constants<Args...>::value
-  >
-{};
-
-template <typename T>
-struct bitwise_and_constants<T>:
-  public std::integral_constant<decltype(T::value), T::value>
-{};
-
-/**
- * Helper class similar to std::integral_constant whose value is the bitwise
- * OR of the value of each `Arg`.
- *
- * Example:
- *
- *  template <int... Args>
- *  using bitwise_or = bitwise_or_constants<
- *    std::integral_constant<int, Args>...
- *  >;
- *
- *  // yields `7`
- *  bitwise_or<1, 2, 4>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T, typename... Args>
-struct bitwise_or_constants:
-  public std::integral_constant<
-    decltype(T::value | bitwise_or_constants<Args...>::value),
-    T::value | bitwise_or_constants<Args...>::value
-  >
-{};
-
-template <typename T>
-struct bitwise_or_constants<T>:
-  public std::integral_constant<decltype(T::value), T::value>
-{};
-
-/**
- * Helper class similar to std::integral_constant whose value is the bitwise
- * XOR of the value of each `Arg`.
- *
- * Example:
- *
- *  template <int... Args>
- *  using bitwise_xor = bitwise_xor_constants<
- *    std::integral_constant<int, Args>...
- *  >;
- *
- *  // yields `3`
- *  bitwise_xor<1, 2>::value
- *
- *  // yields `12`
- *  bitwise_xor<7, 11>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T, typename... Args>
-struct bitwise_xor_constants:
-  public std::integral_constant<
-    decltype(T::value ^ bitwise_xor_constants<Args...>::value),
-    T::value ^ bitwise_xor_constants<Args...>::value
-  >
-{};
-
-template <typename T>
-struct bitwise_xor_constants<T>:
-  public std::integral_constant<decltype(T::value), T::value>
-{};
-
-/**
- * Helper class similar to std::integral_constant for comparing two types
- * `TLHS` and `TRHS`. Its boolean value is the result of the LESS THAN
- * comparison, figuratively `TLHS` < `TRHS`.
- *
- * Example:
- *
- *  typedef std::integral_constant<int, 10> A;
- *  typedef std::integral_constant<int, 20> B;
- *
- *  // yields `true`
- *  constants_comparison_lt<A, B>::value
- *
- *  // yields `false`
- *  constants_comparison_lt<B, A>::value
- *
- *  // yields `false`
- *  constants_comparison_lt<A, A>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename TLHS, typename TRHS>
-struct constants_comparison_lt:
-  public std::integral_constant<bool, (TLHS::value < TRHS::value)>
-{};
-
-/**
- * Helper class similar to std::integral_constant for comparing two types
- * `TLHS` and `TRHS`. Its boolean value is the result of the GREATER THAN
- * comparison, figuratively `TLHS` > `TRHS`.
- *
- * Example:
- *
- *  typedef std::integral_constant<int, 10> A;
- *  typedef std::integral_constant<int, 20> B;
- *
- *  // yields `false`
- *  constants_comparison_gt<A, B>::value
- *
- *  // yields `true`
- *  constants_comparison_gt<B, A>::value
- *
- *  // yields `false`
- *  constants_comparison_gt<A, A>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename TLHS, typename TRHS>
-struct constants_comparison_gt:
-  public std::integral_constant<bool, (TLHS::value > TRHS::value)>
-{};
-
-/**
- * Helper class similar to std::integral_constant for comparing two types
- * `TLHS` and `TRHS`. Its boolean value is the result of the EQUAL TO
- * comparison, figuratively `TLHS` == `TRHS`.
- *
- * Example:
- *
- *  typedef std::integral_constant<int, 10> A;
- *  typedef std::integral_constant<int, 20> B;
- *
- *  // yields `false`
- *  constants_comparison_eq<A, B>::value
- *
- *  // yields `false`
- *  constants_comparison_eq<B, A>::value
- *
- *  // yields `true`
- *  constants_comparison_eq<A, A>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename TLHS, typename TRHS>
-struct constants_comparison_eq:
-  public std::integral_constant<bool, TLHS::value == TRHS::value>
-{};
-
-/**
- * Helper class similar to std::integral_constant for comparing two types
- * `TLHS` and `TRHS`. Its boolean value is the result of the LESS THAN or
- * EQUAL TO comparison, figuratively `TLHS` <= `TRHS`.
- *
- * Example:
- *
- *  typedef std::integral_constant<int, 10> A;
- *  typedef std::integral_constant<int, 20> B;
- *
- *  // yields `true`
- *  constants_comparison_lte<A, B>::value
- *
- *  // yields `false`
- *  constants_comparison_lte<B, A>::value
- *
- *  // yields `true`
- *  constants_comparison_lte<A, A>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename TLHS, typename TRHS>
-struct constants_comparison_lte:
-  public std::integral_constant<bool, (TLHS::value <= TRHS::value)>
-{};
-
-/**
- * Helper class similar to std::integral_constant for comparing two types
- * `TLHS` and `TRHS`. Its boolean value is the result of the GREATER THAN or
- * EQUAL TO comparison, figuratively `TLHS` >= `TRHS`.
- *
- * Example:
- *
- *  typedef std::integral_constant<int, 10> A;
- *  typedef std::integral_constant<int, 20> B;
- *
- *  // yields `false`
- *  constants_comparison_gte<A, B>::value
- *
- *  // yields `true`
- *  constants_comparison_gte<B, A>::value
- *
- *  // yields `true`
- *  constants_comparison_gte<A, A>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename TLHS, typename TRHS>
-struct constants_comparison_gte:
-  public std::integral_constant<bool, (TLHS::value >= TRHS::value)>
-{};
-
-/**
  * Checks whether a given type is an instantiation of at least one of a list of
  * class templates.
  *
@@ -557,7 +101,7 @@ class is_template {
 
 public:
   template <typename U>
-  using type = logical_or_constants<impl<TTemplates, U>...>;
+  using type = logical_transform::any<impl<TTemplates, U>...>;
 };
 
 /**
@@ -570,7 +114,7 @@ public:
  *
  *  template <typename LHS, typename RHS>
  *  struct Foo {
- *    template <template <typename, typename> class TComparer>
+ *    template <template <typename...> class TComparer>
  *    using comparison = std::integral_constant<
  *      bool, TComparer<LHS, RHS>::value
  *    >;
@@ -586,7 +130,7 @@ public:
  *
  *  // yields `std::integral_constant<bool, false>`
  *  typedef values_5_8::comparison<
- *    curried_type_comparer<constants_comparison_gt>
+ *    curried_type_comparer<comparison_transform::greater_than>
  *  > result2;
  *
  *  template <int X>
@@ -597,7 +141,7 @@ public:
  *  // yields `std::integral_constant<bool, true>`
  *  typedef values_80_10::comparison<
  *    curried_type_comparer<
- *      constants_comparison_gt,
+ *      comparison_transform::greater_than,
  *      get_member_typedef::template type
  *    >
  *  > result3;
@@ -605,7 +149,7 @@ public:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TComparer = constants_comparison_lt,
+  template <typename...> class TComparer = comparison_transform::less_than,
   template <typename...> class TTransform = identity_transform
 >
 struct curried_type_comparer {
@@ -981,7 +525,7 @@ using type_get_fifth = type_get<4>::template from<T>;
  *    typedef type_pair<std::integral_constant<int, RHS>, double> rhs
  *
  *  public:
- *    template <template <typename, typename> class TComparer>
+ *    template <template <typename...> class TComparer>
  *    using comparison = std::integral_constant<
  *      bool, TComparer<lhs, rhs>::value
  *    >;
@@ -992,13 +536,13 @@ using type_get_fifth = type_get<4>::template from<T>;
  *
  *  // yields `std::integral_constant<bool, false>`
  *  typedef Foo<5, 8>::comparison<
- *    type_get_first_comparer<constants_comparison_gt>
+ *    type_get_first_comparer<comparison_transform::greater_than>
  *  > result2;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TComparer = constants_comparison_lt
+  template <typename...> class TComparer = comparison_transform::less_than
 >
 using type_get_first_comparer = curried_type_comparer<
   TComparer, type_get_first
@@ -1016,7 +560,7 @@ using type_get_first_comparer = curried_type_comparer<
  *    typedef type_pair<double, std::integral_constant<int, RHS>> rhs;
  *
  *  public:
- *    template <template <typename, typename> class TComparer>
+ *    template <template <typename...> class TComparer>
  *    using comparison = std::integral_constant<
  *      bool, TComparer<lhs, rhs>::value
  *    >;
@@ -1027,13 +571,13 @@ using type_get_first_comparer = curried_type_comparer<
  *
  *  // yields `std::integral_constant<bool, false>`
  *  typedef Foo<5, 8>::comparison<
- *    type_get_second_comparer<constants_comparison_gt>
+ *    type_get_second_comparer<comparison_transform::greater_than>
  *  > result2;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TComparer = constants_comparison_lt
+  template <typename...> class TComparer = comparison_transform::less_than
 >
 using type_get_second_comparer = curried_type_comparer<
   TComparer, type_get_second

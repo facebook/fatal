@@ -51,13 +51,15 @@ struct type_prefix_tree {
    * The sequence ending at this prefix tree node, or
    * `non_terminal_tag` if this is not a terminal node.
    */
-  typedef TSequence sequence;
+  using sequence = TSequence;
 
   /**
-   * A boolean std::integral_constant-like typedef
+   * A boolean std::integral_constant-like member
    * telling whether this is a terminal node or not.
    */
-  typedef negate_constant<std::is_same<sequence, non_terminal_tag>> is_terminal;
+  using is_terminal = logical_transform::negate<
+    std::is_same<sequence, non_terminal_tag>
+  >;
 
   /**
    * A `type_map` of all child nodes reachable from this node.
@@ -91,7 +93,7 @@ struct type_prefix_tree {
    * are `chr<'f'>` and `chr<'h'>, corresponding to the first character
    * of all three sequences "fit", "hit" and "hint".
    */
-  typedef type_map<TNodes...> map;
+  using map = type_map<TNodes...>;
 
   /**
    * `match` contains methods for looking up sequences in the prefix-tree
@@ -118,7 +120,7 @@ struct type_prefix_tree {
    *  template <char c> using chr = std::integral_constant<char, c>;
    *  template <char... s> using str = type_list<chr<s>...>;
    *
-   *  typedef type_prefix_tree_builder<>::build<
+   *  using prefix_tree = type_prefix_tree_builder<>::build<
    *    str<'h', 'a', 't'>,
    *    str<'h', 'e', 'a', 'r', 't'>,
    *    str<'h', 'i', 'n', 't'>,
@@ -126,7 +128,7 @@ struct type_prefix_tree {
    *    str<'h', 'o', 't'>,
    *    str<'h', 'u', 't'>,
    *    str<'h', 'u', 'n', 't'>
-   *  > prefix_tree;
+   *  >;
    *
    *  struct cmp {
    *    template <char c, std::size_t Index>
@@ -179,11 +181,11 @@ struct type_prefix_tree {
      *    static std::string string() { return std::string{s...}; };
      *  };
      *
-     *  typedef type_prefix_tree_builder<>::build<
+     *  using prefix_tree = type_prefix_tree_builder<>::build<
      *    str<'h', 'i', 't'>,
      *    str<'h', 'o', 't'>,
      *    str<'h', 'u', 't'>
-     *  > prefix_tree;
+     *  >;
      *
      *  struct visitor {
      *    template <typename TString>
@@ -248,12 +250,12 @@ struct type_prefix_tree {
      *    static std::string string() { return std::string{s...}; };
      *  };
      *
-     *  typedef type_prefix_tree_builder<>::build<
+     *  using prefix_tree = type_prefix_tree_builder<>::build<
      *    str<'i', 't'>,
      *    str<'i', 't', ' ', 'i', 's'>,
      *    str<'i', 't', ' ', 'i', 's', ' ', 'a'>,
      *    str<'i', 't', ' ', 'i', 's', ' ', 'a', ' ', 't', 'e', 's', 't'>
-     *  > prefix_tree;
+     *  >;
      *
      *  struct visitor {
      *    template <typename TString>
@@ -317,7 +319,7 @@ template <typename...> struct builder;
  * depth of the tree is the same as the longest sequence's size.
  *
  * `TLessComparer` must represent a total order relation between the sequence
- * elements. It defaults to `constants_comparison_lt` when omitted.
+ * elements. It defaults to `comparison_transform::less_than` when omitted.
  *
  * See also: `type_string` and `FATAL_STR`
  *
@@ -327,7 +329,7 @@ template <typename...> struct builder;
  *  template <char... s> using str = type_list<chr<s>...>;
  *
  *  // yields an empty `type_prefix_tree<>`
- *  typedef type_prefix_tree_builder<>::build<> empty;
+ *  using empty = type_prefix_tree_builder<>::build<>;
  *
  *  // yields `type_prefix_tree<non_terminal_tag,
  *  //   type_pair<chr<'f'>, type_prefix_tree<non_terminal_tag,
@@ -344,14 +346,14 @@ template <typename...> struct builder;
  *  //     >>
  *  //   >>,
  *  // >
- *  typedef type_prefix_tree_builder<>::build<
+ *  using result = type_prefix_tree_builder<>::build<
  *    str<'f', 'i', 't'>,
  *    str<'h', 'i', 'n', 't'>,
  *    str<'h', 'i', 't'>
- *  > result;
+ *  >;
  */
 template <
-  template <typename, typename> class TLessComparer = constants_comparison_lt
+  template <typename...> class TLessComparer = comparison_transform::less_than
 >
 struct type_prefix_tree_builder {
   template <typename... TSequences>
@@ -375,14 +377,13 @@ template <typename, typename...> struct linear_tree;
 
 template <typename TFullSequence, typename TElement>
 struct linear_tree<TFullSequence, TElement> {
-  typedef type_pair<TElement, type_prefix_tree<TFullSequence>> type;
+  using type = type_pair<TElement, type_prefix_tree<TFullSequence>>;
 };
 
 template <typename TFullSequence, typename TElement, typename... TSuffix>
 struct linear_tree<TFullSequence, TElement, TSuffix...> {
-  typedef typename linear_tree<TFullSequence, TSuffix...>::type child;
-
-  typedef type_pair<TElement, type_prefix_tree<non_terminal_tag, child>> type;
+  using child = typename linear_tree<TFullSequence, TSuffix...>::type;
+  using type = type_pair<TElement, type_prefix_tree<non_terminal_tag, child>>;
 };
 
 ///////////////////
@@ -409,14 +410,14 @@ template <typename, typename, typename...> struct insert_suffix;
 // HINT, in the example tree above)
 template <typename TFullSequence>
 struct insert_suffix<type_not_found_tag, TFullSequence> {
-  template <template <typename, typename> class>
+  template <template <typename...> class>
   using tree = type_prefix_tree<TFullSequence>;
 };
 
 // terminal with siblings (I, from HI, in the example tree above)
 template <typename TTree, typename TFullSequence>
 struct insert_suffix<TTree, TFullSequence> {
-  template <template <typename, typename> class>
+  template <template <typename...> class>
   using tree = typename TTree::map::contents::template apply_front<
     type_prefix_tree,
     TFullSequence
@@ -427,7 +428,7 @@ struct insert_suffix<TTree, TFullSequence> {
 // from all words, in the example tree above)
 template <typename TFullSequence, typename TPrefix, typename... TSuffix>
 struct insert_suffix<type_not_found_tag, TFullSequence, TPrefix, TSuffix...> {
-  template <template <typename, typename> class>
+  template <template <typename...> class>
   using tree = type_prefix_tree<
     non_terminal_tag,
     typename linear_tree<TFullSequence, TPrefix, TSuffix...>::type
@@ -439,9 +440,9 @@ template <
   typename TTree, typename TFullSequence, typename TPrefix, typename... TSuffix
 >
 struct insert_suffix<TTree, TFullSequence, TPrefix, TSuffix...> {
-  typedef typename TTree::map::template find<TPrefix> subtree;
+  using subtree = typename TTree::map::template find<TPrefix>;
 
-  template <template <typename, typename> class TLessComparer>
+  template <template <typename...> class TLessComparer>
   using tree = typename std::conditional<
     std::is_same<subtree, type_not_found_tag>::value,
     typename TTree::map::template insert_pair_sorted<
@@ -471,15 +472,15 @@ namespace type_prefix_tree_impl {
 /////////////
 
 template <> struct builder<> {
-  template <template <typename, typename> class>
+  template <template <typename...> class>
   using tree = type_prefix_tree<non_terminal_tag>;
 };
 
 template <typename TSequence, typename... TSequences>
 struct builder<TSequence, TSequences...> {
-  typedef typename reflect_template<TSequence>::types sequence;
+  using sequence = typename reflect_template<TSequence>::types;
 
-  template <template <typename, typename> class TLessComparer>
+  template <template <typename...> class TLessComparer>
   using tree = typename sequence::template apply_front<
     detail::type_prefix_tree_impl::insert_suffix,
     typename builder<TSequences...>::template tree<TLessComparer>,

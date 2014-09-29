@@ -21,10 +21,10 @@ struct Gaz {};
 TEST(tuple_tags, tags) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
 
-  FATAL_EXPECT_SAME<type_list<Foo, Bar, Baz, Gaz>, tags::tags>();
+  FATAL_EXPECT_SAME<type_list<Foo, Bar, Baz, Gaz>, tags::list>();
 }
 
-TEST(tuple_tags, tag_map) {
+TEST(tuple_tags, map) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   typedef std::tuple<int, double, bool, long> tuple;
 
@@ -35,7 +35,7 @@ TEST(tuple_tags, tag_map) {
       type_pair<Baz, bool>,
       type_pair<Gaz, long>
     >,
-    tags::tag_map<tuple>
+    tags::map<tuple>
   >();
 }
 

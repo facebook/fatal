@@ -39,8 +39,21 @@ class type_string:
 public:
   /**
    * The type of the characters for this `type_string`.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   typedef typename as_sequence::type char_type;
+
+  /**
+   * The `std::basic_string` type returned by the `string()` method.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <
+    typename TTraits = default_char_traits,
+    typename TAllocator = default_allocator
+  >
+  using string_type = std::basic_string<char_type, TTraits, TAllocator>;
 
   /**
    * Constructs a `std::basic_string` corresponding to this
@@ -55,13 +68,9 @@ public:
    *
    *  // yields `std::string("hi")`
    *  auto result = hi::string();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <
-    typename TTraits = default_char_traits,
-    typename TAllocator = default_allocator
-  >
-  using string_type = std::basic_string<char_type, TTraits, TAllocator>;
-
   template <
     typename TTraits = default_char_traits,
     typename TAllocator = default_allocator
@@ -87,6 +96,8 @@ public:
  *  // this is equivalent to
  *  // `typedef type_string<char32_t, U'h', U'e', U'y'> hey;`
  *  FATAL_STR(U"hey") hey;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_STR(Id, String) \
   FATAL_BUILD_STR_IMPL(String, FATAL_CAT(Id, FATAL_UID(build_cstr_impl_))) Id

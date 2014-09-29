@@ -241,8 +241,12 @@ public:
    */
   typedef typename contents::template transform<type_get_second> mapped;
 
+  // TODO: DOCUMENT AND TEST
+  template <template <typename...> class TTransform>
+  using apply = TTransform<Args...>;
+
   template <
-    template <typename...> class TMappedTransform,
+    template <typename...> class TMappedTransform = identity_transform,
     template <typename...> class TKeyTransform = identity_transform
   >
   using transform = type_map<
@@ -251,7 +255,7 @@ public:
 
   template <
     typename TKey,
-    template <typename...> class TMappedTransform,
+    template <typename...> class TMappedTransform = identity_transform,
     template <typename...> class TKeyTransform = identity_transform
   >
   using transform_at = type_map<
@@ -454,7 +458,7 @@ public:
    * position according to the order provided by `TLessComparer` when applied
    * to the keys.
    *
-   * `TLessComparer` defaults to `constants_comparison_lt` when omitted.
+   * `TLessComparer` defaults to `comparison_transform::less_than` when omitted.
    *
    * Example:
    *
@@ -471,11 +475,13 @@ public:
    *  //   type_pair<val<2>, long>,
    *  //   type_pair<val<3>, double>
    *  // >`
-   *  typedef map::insert_sorted<constants_comparison_lt, val<2>, long> result;
+   *  using result = map::insert_sorted<
+   *    comparison_transform::less_than, val<2>, long
+   *  >;
    */
   template <
     typename TKey, typename TValue,
-    template <typename...> class TLessComparer = constants_comparison_lt
+    template <typename...> class TLessComparer = comparison_transform::less_than
   >
   using insert_sorted = typename contents::template insert_sorted<
     type_pair<TKey, TValue>,
@@ -487,7 +493,7 @@ public:
    * according to the order provided by `TLessComparer` when applied to the
    * keys.
    *
-   * `TLessComparer` defaults to `constants_comparison_lt` when omitted.
+   * `TLessComparer` defaults to `comparison_transform::less_than` when omitted.
    *
    * Example:
    *
@@ -505,13 +511,13 @@ public:
    *  //   type_pair<val<3>, double>
    *  // >`
    *  typedef map::insert_pair_sorted<
-   *    constants_comparison_lt,
+   *    comparison_transform::less_than,
    *    type_pair<val<1>, int>
    *  > result;
    */
   template <
     typename TPair,
-    template <typename...> class TLessComparer = constants_comparison_lt
+    template <typename...> class TLessComparer = comparison_transform::less_than
   >
   using insert_pair_sorted = typename contents::template insert_sorted<
     TPair,
@@ -667,7 +673,7 @@ public:
    *
    * `TLessComparer` must represent a total order relation between all types.
    *
-   * The default comparer is `constants_comparison_lt`.
+   * The default comparer is `comparison_transform::less_than`.
    *
    * Example:
    *
@@ -693,7 +699,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TLessComparer = constants_comparison_lt
+    template <typename...> class TLessComparer = comparison_transform::less_than
   >
   using sort = typename contents::template sort<
     type_get_first_comparer<TLessComparer>::template compare

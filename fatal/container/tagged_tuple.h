@@ -25,7 +25,7 @@ namespace fatal {
 
 template <typename... Args>
 struct tagged_tuple {
-  using pairs = type_list<Args...>;
+  using map = type_map<Args...>;
   using tags = tuple_tags<type_get_first<Args>...>;
   using values = type_list<type_get_second<Args>...>;
   using tuple_type = typename values::template apply<std::tuple>;
@@ -52,6 +52,18 @@ struct tagged_tuple {
 
   constexpr fast_pass<tuple_type> tuple() const { return data_; }
   tuple_type &tuple() { return data_; }
+
+  // TODO: TEST
+  template <typename... UArgs>
+  bool operator ==(tagged_tuple<UArgs...> const &rhs) const {
+    return data_ == rhs.tuple();
+  }
+
+  // TODO: TEST
+  template <typename... UArgs>
+  bool operator !=(tagged_tuple<UArgs...> const &rhs) const {
+    return !(*this == rhs);
+  }
 
 private:
   tuple_type data_;

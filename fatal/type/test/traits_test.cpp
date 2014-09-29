@@ -11,22 +11,17 @@
 
 #include <fatal/test/driver.h>
 
-#include <list>
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 namespace fatal {
 
 template <std::size_t> struct T {};
 template <std::size_t> struct S {};
-
-template <typename> struct test_tag {};
-template <typename...> struct test_list {};
-template <typename T, T...> struct test_seq {};
 
 /////////////////
 // is_complete //
@@ -40,292 +35,6 @@ TEST(type_traits, is_complete) {
   EXPECT_TRUE((is_complete<std::string>::value));
   EXPECT_TRUE((is_complete<complete_type>::value));
   EXPECT_FALSE((is_complete<incomplete_type>::value));
-}
-
-////////////////////////
-// get_member_typedef //
-////////////////////////
-
-struct get_member_typedef_test {
-  using tag = test_tag<void>;
-
-  using types = test_list<void, int, bool, long>;
-  using values = test_seq<int, 0, 2, 4, 6>;
-  using args = test_list<std::string, double, std::vector<char>>;
-
-  using pair = std::pair<float, long>;
-  using tuple = std::tuple<int, double, bool>;
-  using list = std::list<short>;
-  using map = std::map<int, bool>;
-  using set = std::set<double>;
-  using string = std::wstring;
-  using index = std::integral_constant<std::size_t, 5>;
-  using flag = std::true_type;
-};
-
-TEST(type_traits, get_member_typedef) {
-# define CREATE_TEST(Member, Type) \
-  do { \
-    FATAL_EXPECT_SAME<Type::Member, get_member_typedef::Member<Type>>(); \
-  } while (false)
-
-  CREATE_TEST(tag, get_member_typedef_test);
-
-  CREATE_TEST(types, get_member_typedef_test);
-  CREATE_TEST(values, get_member_typedef_test);
-  CREATE_TEST(args, get_member_typedef_test);
-
-  CREATE_TEST(pair, get_member_typedef_test);
-  CREATE_TEST(tuple, get_member_typedef_test);
-  CREATE_TEST(list, get_member_typedef_test);
-  CREATE_TEST(map, get_member_typedef_test);
-  CREATE_TEST(set, get_member_typedef_test);
-  CREATE_TEST(string, get_member_typedef_test);
-  CREATE_TEST(index, get_member_typedef_test);
-  CREATE_TEST(flag, get_member_typedef_test);
-
-  typedef std::add_const<int> a_c;
-  CREATE_TEST(type, a_c);
-
-  typedef std::pair<double, long> pair;
-  CREATE_TEST(first_type, pair);
-  CREATE_TEST(second_type, pair);
-
-  typedef std::map<std::string, bool> map;
-  CREATE_TEST(key_type, map);
-  CREATE_TEST(mapped_type, map);
-  CREATE_TEST(value_type, map);
-
-  typedef std::shared_ptr<float> ptr;
-  CREATE_TEST(element_type, ptr);
-
-  typedef std::char_traits<char> ctraits;
-  CREATE_TEST(char_type, ctraits);
-
-  typedef std::string str;
-  CREATE_TEST(traits_type, str);
-  CREATE_TEST(allocator_type, str);
-
-  CREATE_TEST(size_type, str);
-  CREATE_TEST(difference_type, str);
-
-  CREATE_TEST(reference, str);
-  CREATE_TEST(const_reference, str);
-
-  CREATE_TEST(pointer, str);
-  CREATE_TEST(const_pointer, str);
-
-  CREATE_TEST(iterator, str);
-  CREATE_TEST(const_iterator, str);
-  CREATE_TEST(reverse_iterator, str);
-  CREATE_TEST(const_reverse_iterator, str);
-# undef CREATE_TEST
-}
-
-/////////////
-// type_of //
-/////////////
-
-TEST(type_traits, type_of) {
-  typedef std::integral_constant<int, 5> i5;
-  FATAL_EXPECT_SAME<int, type_of<i5>>();
-
-  FATAL_EXPECT_SAME<bool, type_of<std::true_type>>();
-}
-
-//////////////////
-// add_const_if //
-//////////////////
-
-template <typename T, typename TWhenTrue, typename TWhenFalse>
-void check_add_const_if() {
-  FATAL_EXPECT_SAME<TWhenTrue, add_const_if<T, true>>();
-  FATAL_EXPECT_SAME<TWhenFalse, add_const_if<T, false>>();
-}
-
-TEST(type_traits, add_const_if) {
-  check_add_const_if<int, int const, int>();
-  check_add_const_if<int const, int const, int const>();
-  check_add_const_if<int &, int &, int &>();
-  check_add_const_if<int const &, int const &, int const &>();
-}
-
-/////////////////////
-// negate_constant //
-/////////////////////
-
-TEST(type_traits, negate_constant) {
-  EXPECT_TRUE(negate_constant<std::false_type>::value);
-  EXPECT_FALSE(negate_constant<std::true_type>::value);
-}
-
-template <typename A, typename B, typename C>
-using all_equal_test_impl = logical_and_constants<
-  std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
->;
-
-///////////////////////////
-// logical_and_constants //
-///////////////////////////
-
-TEST(type_traits, logical_and_constants) {
-  EXPECT_FALSE((all_equal_test_impl<int, bool, double>::value));
-  EXPECT_FALSE((all_equal_test_impl<int, bool, int>::value));
-  EXPECT_TRUE((all_equal_test_impl<int, int, int>::value));
-}
-
-//////////////////////////
-// logical_or_constants //
-//////////////////////////
-
-template <typename A, typename B, typename C>
-using has_duplicate_test_impl = logical_or_constants<
-  std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
->;
-
-TEST(type_traits, logical_or_constants) {
-  EXPECT_FALSE((has_duplicate_test_impl<int, bool, double>::value));
-  EXPECT_TRUE((has_duplicate_test_impl<int, bool, int>::value));
-  EXPECT_TRUE((has_duplicate_test_impl<int, int, int>::value));
-}
-
-/////////////////////////
-// complement_constant //
-/////////////////////////
-
-TEST(type_traits, complement_constant) {
-# define CHECK_COMPLEMENT_CONSTANT(x) \
-  do { \
-    EXPECT_EQ( \
-      ~static_cast<unsigned>(x), \
-      (complement_constant<std::integral_constant<unsigned, (x)>>::value) \
-    );\
-  } while(false)
-
-  CHECK_COMPLEMENT_CONSTANT(0);
-  CHECK_COMPLEMENT_CONSTANT(2);
-  CHECK_COMPLEMENT_CONSTANT(3);
-  CHECK_COMPLEMENT_CONSTANT(99);
-
-  EXPECT_EQ(
-    static_cast<uint8_t>(0xf0),
-    (complement_constant<std::integral_constant<uint8_t, 0xf>>::value)
-  );
-
-# undef CHECK_COMPLEMENT_CONSTANT
-}
-
-///////////////////////////
-// bitwise_and_constants //
-///////////////////////////
-
-template <int... Args>
-using bitwise_and_test_impl = bitwise_and_constants<
-  std::integral_constant<int, Args>...
->;
-
-TEST(type_traits, bitwise_and_constants) {
-  EXPECT_EQ(99, (bitwise_and_test_impl<99>::value));
-  EXPECT_EQ(0, (bitwise_and_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(3, (bitwise_and_test_impl<7, 11>::value));
-  EXPECT_EQ(8 & 9 & 57, (bitwise_and_test_impl<8, 9, 57>::value));
-}
-
-//////////////////////////
-// bitwise_or_constants //
-//////////////////////////
-
-template <int... Args>
-using bitwise_or_test_impl = bitwise_or_constants<
-  std::integral_constant<int, Args>...
->;
-
-TEST(type_traits, bitwise_or_constants) {
-  EXPECT_EQ(99, (bitwise_or_test_impl<99>::value));
-  EXPECT_EQ(7, (bitwise_or_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(8 | 9 | 57, (bitwise_or_test_impl<8, 9, 57>::value));
-}
-
-///////////////////////////
-// bitwise_xor_constants //
-///////////////////////////
-
-template <int... Args>
-using bitwise_xor_test_impl = bitwise_xor_constants<
-  std::integral_constant<int, Args>...
->;
-
-TEST(type_traits, bitwise_xor_constants) {
-  EXPECT_EQ(99, (bitwise_xor_test_impl<99>::value));
-  EXPECT_EQ(3, (bitwise_xor_test_impl<1, 2>::value));
-  EXPECT_EQ(12, (bitwise_xor_test_impl<7, 11>::value));
-  EXPECT_EQ(1 ^ 2 ^ 4, (bitwise_xor_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(8 ^ 9 ^ 57, (bitwise_xor_test_impl<8, 9, 57>::value));
-}
-
-/////////////////////////////
-// constants_comparison_lt //
-/////////////////////////////
-
-TEST(type_traits, constants_comparison_lt) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_TRUE((constants_comparison_lt<A, B>::value));
-  EXPECT_FALSE((constants_comparison_lt<B, A>::value));
-  EXPECT_FALSE((constants_comparison_lt<A, A>::value));
-}
-
-/////////////////////////////
-// constants_comparison_gt //
-/////////////////////////////
-
-TEST(type_traits, constants_comparison_gt) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_FALSE((constants_comparison_gt<A, B>::value));
-  EXPECT_TRUE((constants_comparison_gt<B, A>::value));
-  EXPECT_FALSE((constants_comparison_gt<A, A>::value));
-}
-
-/////////////////////////////
-// constants_comparison_eq //
-/////////////////////////////
-
-TEST(type_traits, constants_comparison_eq) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_FALSE((constants_comparison_eq<A, B>::value));
-  EXPECT_FALSE((constants_comparison_eq<B, A>::value));
-  EXPECT_TRUE((constants_comparison_eq<A, A>::value));
-}
-
-//////////////////////////////
-// constants_comparison_lte //
-//////////////////////////////
-
-TEST(type_traits, constants_comparison_lte) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_TRUE((constants_comparison_lte<A, B>::value));
-  EXPECT_FALSE((constants_comparison_lte<B, A>::value));
-  EXPECT_TRUE((constants_comparison_lte<A, A>::value));
-}
-
-//////////////////////////////
-// constants_comparison_gte //
-//////////////////////////////
-
-TEST(type_traits, constants_comparison_gte) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_FALSE((constants_comparison_gte<A, B>::value));
-  EXPECT_TRUE((constants_comparison_gte<B, A>::value));
-  EXPECT_TRUE((constants_comparison_gte<A, A>::value));
 }
 
 /////////////////
@@ -401,7 +110,7 @@ TEST(type_traits, is_template) {
 
 template <typename LHS, typename RHS>
 struct curried_type_comparer_foo {
-  template <template <typename, typename> class TComparer>
+  template <template <typename...> class TComparer>
   using comparison = std::integral_constant<
     bool, TComparer<LHS, RHS>::value
   >;
@@ -427,7 +136,7 @@ TEST(type_traits, curried_type_comparer) {
   EXPECT_FALSE((
     values_5_8::comparison<
       curried_type_comparer<
-        constants_comparison_gt
+        comparison_transform::greater_than
       >::template compare
     >::value
   ));
@@ -440,7 +149,7 @@ TEST(type_traits, curried_type_comparer) {
   EXPECT_TRUE((
     values_80_10::comparison<
       curried_type_comparer<
-        constants_comparison_gt,
+        comparison_transform::greater_than,
         get_member_typedef::template type
       >::template compare
     >::value
@@ -561,7 +270,10 @@ TEST(type_traits, fast_pass) {
   FATAL_EXPECT_SAME<std::string *const, fast_pass<std::string * const &>>();
   FATAL_EXPECT_SAME<std::string *const, fast_pass<std::string * const &&>>();
   FATAL_EXPECT_SAME<std::string const *const, fast_pass<std::string const *>>();
-  FATAL_EXPECT_SAME<std::string const *const, fast_pass<std::string const *&>>();
+  FATAL_EXPECT_SAME<
+    std::string const *const,
+    fast_pass<std::string const *&>
+  >();
   FATAL_EXPECT_SAME<
     std::string const *const,
     fast_pass<std::string const *&&>

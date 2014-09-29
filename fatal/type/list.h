@@ -46,7 +46,7 @@ template <typename...> struct type_list;
  */
 template <std::size_t Index, typename... Args>
 struct type_get_traits<type_list<Args...>, Index> {
-  typedef typename type_list<Args...>::template at<Index> type;
+  using type = typename type_list<Args...>::template at<Index>;
 };
 
 
@@ -189,32 +189,29 @@ template <std::size_t, typename...> struct at;
 
 template <std::size_t Distance, typename U, typename... UArgs>
 struct at<Distance, U, UArgs...> {
-  typedef typename at<Distance - 1, UArgs...>::type type;
+  using type = typename at<Distance - 1, UArgs...>::type;
 };
 
 template <typename U, typename... UArgs>
-struct at<0, U, UArgs...> { typedef U type; };
+struct at<0, U, UArgs...> {
+  using type = U;
+};
 
 ////////////
 // try_at //
 ////////////
 
-template <std::size_t, typename...> struct try_at;
+template <bool, std::size_t, typename, typename...> struct try_at;
 
-template <std::size_t Distance>
-struct try_at<Distance> {
-  static_assert(Distance == 0, "index out of bounds");
-  typedef type_list<> type;
+template <std::size_t Index, typename... TDefault, typename... Args>
+struct try_at<false, Index, type_list<TDefault...>, Args...> {
+  using type = type_list<TDefault...>;
 };
 
-template <std::size_t Distance, typename U, typename... UArgs>
-struct try_at<Distance, U, UArgs...>:
-  public std::conditional<
-    Distance == 0,
-    type_list<U>,
-    typename try_at<Distance ? Distance - 1 : 0, UArgs...>::type
-  >
-{};
+template <std::size_t Index, typename... TDefault, typename... Args>
+struct try_at<true, Index, type_list<TDefault...>, Args...> {
+  using type = type_list<typename at<Index, Args...>::type>;
+};
 
 //////////////
 // index_of //
@@ -260,59 +257,17 @@ template <typename U, typename... UArgs> struct type_at<U, UArgs...> {
 
 template <typename, typename...>
 struct contains {
-  typedef std::false_type type;
+  using type = std::false_type;
 };
 
 template <typename T, typename THead, typename... Args>
 struct contains<T, THead, Args...> {
-  typedef typename std::conditional<
+  using type = typename std::conditional<
     std::is_same<T, THead>::value,
     std::true_type,
     typename contains<T, Args...>::type
-  >::type type;
+  >::type;
 };
-
-///////////////////////
-// indexed_transform //
-///////////////////////
-
-template <
-  template <typename, std::size_t, typename...> class,
-  typename TList, std::size_t
->
-struct indexed_transform_helper{
-  static_assert(std::is_same<type_list<>, TList>::value, "unexpected");
-  typedef type_list<> type;
-};
-
-template <
-  template <typename, std::size_t, typename...> class T,
-  typename U, std::size_t Index
->
-struct indexed_transform_helper<T, type_list<U>, Index> {
-  typedef type_list<T<U, Index>> type;
-};
-
-template <
-  template <typename, std::size_t, typename...> class T,
-  typename TList, std::size_t Position = TList::size
->
-class indexed_transform{
-  static_assert(Position > 0, "unexpected");
-  typedef typename indexed_transform<
-    T, TList, Position - 1
-  >::type previous;
-  typedef typename indexed_transform_helper<
-    T, typename TList::template try_at<Position - 1>, Position - 1
-  >::type current;
-public:
-  typedef typename previous::template concat<current> type;
-};
-
-template <
-  template <typename, std::size_t, typename...> class T, typename TList
->
-struct indexed_transform<T, TList, 0> { typedef type_list<> type; };
 
 ////////////////
 // foreach_if //
@@ -397,24 +352,103 @@ struct visit<Index> {
   }
 };
 
+///////////////////////
+// indexed_transform //
+///////////////////////
+
+template <std::size_t, typename...> struct indexed_transform;
+
+template <std::size_t Index, typename T, typename... Args>
+struct indexed_transform<Index, T, Args...> {
+  template <
+    template <typename, std::size_t, typename...> class TTransform,
+    typename... UArgs
+  >
+  using apply = typename indexed_transform<Index + 1, Args...>
+    ::template apply<TTransform, UArgs...>
+    ::template push_front<TTransform<T, Index>>;
+};
+
+template <std::size_t Index>
+struct indexed_transform<Index> {
+  template <template <typename, std::size_t, typename...> class, typename...>
+  using apply = type_list<>;
+};
+
+////////////////
+// accumulate //
+////////////////
+
+template <template <typename...> class, typename TAccumulator, typename...>
+struct accumulate {
+  using type = TAccumulator;
+};
+
+template <
+  template <typename...> class TTransform,
+  typename TAccumulator, typename T, typename... Args
+>
+struct accumulate<TTransform, TAccumulator, T, Args...> {
+  using type = typename accumulate<
+    TTransform, TTransform<TAccumulator, T>, Args...
+  >::type;
+};
+
+////////////
+// choose //
+////////////
+
+template <template <typename...> class, typename...> struct choose;
+
+template <
+  template <typename...> class TPredicate,
+  typename TChosen, typename TCandidate, typename... Args
+>
+struct choose<TPredicate, TChosen, TCandidate, Args...> {
+  using type = typename choose<
+    TPredicate,
+    typename std::conditional<
+      TPredicate<TCandidate, TChosen>::value,
+      TCandidate,
+      TChosen
+    >::type,
+    Args...
+  >::type;
+};
+
+template <template <typename...> class TPredicate, typename TChosen>
+struct choose<TPredicate, TChosen> {
+  using type = TChosen;
+};
+
+///////////////////////
+// replace_transform //
+///////////////////////
+
+template <typename TFrom, typename TTo>
+struct replace_transform {
+  template <typename U>
+  using apply = typename std::conditional<
+    std::is_same<U, TFrom>::value, TTo, U
+  >::type;
+};
+
 //////////
 // left //
 //////////
 
 template <std::size_t, typename...> struct left;
 
-template <typename... UArgs>
-struct left<0, UArgs...> { typedef type_list<> type; };
+template <typename... Args>
+struct left<0, Args...> { using type = type_list<>; };
 
-template <typename U,typename... UArgs>
-struct left<0, U, UArgs...> { typedef type_list<> type; };
+template <typename T,typename... Args>
+struct left<0, T, Args...> { using type = type_list<>; };
 
-template <std::size_t Size, typename U, typename... UArgs>
-struct left<Size, U, UArgs...> {
-  static_assert(Size <= sizeof...(UArgs) + 1, "index out of bounds");
-  typedef typename left<
-    Size - 1, UArgs...
-  >::type::template push_front<U> type;
+template <std::size_t Size, typename T, typename... Args>
+struct left<Size, T, Args...> {
+  static_assert(Size <= sizeof...(Args) + 1, "index out of bounds");
+  using type = typename left<Size - 1, Args...>::type::template push_front<T>;
 };
 
 ///////////
@@ -425,30 +459,18 @@ template <std::size_t, std::size_t, typename...> struct slice;
 
 template <std::size_t End, typename... UArgs>
 struct slice<0, End, UArgs...> {
-  typedef typename left<End, UArgs...>::type type;
+  using type = typename left<End, UArgs...>::type;
 };
 
 template <std::size_t End, typename U, typename... UArgs>
 struct slice<0, End, U, UArgs...> {
-  typedef typename left<End, U, UArgs...>::type type;
+  using type = typename left<End, U, UArgs...>::type;
 };
 
 template <std::size_t Begin, std::size_t End, typename U, typename... UArgs>
 struct slice<Begin, End, U, UArgs...> {
   static_assert(End >= Begin, "invalid range");
-  typedef typename slice<Begin - 1, End - 1, UArgs...>::type type;
-};
-
-///////////
-// right //
-///////////
-
-template <std::size_t Size, typename... UArgs>
-struct right {
-  static_assert(Size <= sizeof...(UArgs), "index out of bounds");
-  typedef typename slice<
-    sizeof...(UArgs) - Size, sizeof...(UArgs), UArgs...
-  >::type type;
+  using type = typename slice<Begin - 1, End - 1, UArgs...>::type;
 };
 
 //////////////
@@ -459,7 +481,7 @@ template <template <typename...> class, typename...> struct separate;
 
 template <template <typename...> class TPredicate>
 struct separate<TPredicate> {
-  typedef type_pair<type_list<>, type_list<>> type;
+  using type = type_pair<type_list<>, type_list<>>;
 };
 
 template <
@@ -467,9 +489,9 @@ template <
   typename U, typename... UArgs
 >
 struct separate<TPredicate, U, UArgs...> {
-  typedef typename separate<TPredicate, UArgs...>::type tail;
+  using tail = typename separate<TPredicate, UArgs...>::type;
 
-  typedef typename std::conditional<
+  using type = typename std::conditional<
     TPredicate<U>::value,
     type_pair<
       typename tail::first::template push_front<U>,
@@ -479,37 +501,39 @@ struct separate<TPredicate, U, UArgs...> {
       typename tail::first,
       typename tail::second::template push_front<U>
     >
-  >::type type;
+  >::type;
 };
 
 /////////
 // zip //
 /////////
 
-template <typename, std::size_t, typename...> struct zip;
+template <typename, typename> struct zip;
 
-template <typename TRightList, std::size_t Index>
-struct zip<TRightList, Index> {
-  typedef typename TRightList::template slice<Index, TRightList::size> type;
+template <>
+struct zip<type_list<>, type_list<>> {
+  using type = type_list<>;
+};
+
+template <typename T, typename... Args>
+struct zip<type_list<T, Args...>, type_list<>> {
+  using type = type_list<T, Args...>;
+};
+
+template <typename T, typename... Args>
+struct zip<type_list<>, type_list<T, Args...>> {
+  using type = type_list<T, Args...>;
 };
 
 template <
-  typename TRightList, std::size_t Index, typename U, typename... ULeftArgs
+  typename TLHS, typename... TLHSArgs,
+  typename TRHS, typename... TRHSArgs
 >
-struct zip<TRightList, Index, U, ULeftArgs...> {
-  typedef typename std::conditional<
-    Index == TRightList::size,
-    type_list<U, ULeftArgs...>,
-    typename TRightList::template try_at<Index>
-      ::template push_front<U>
-      ::template concat<
-        typename zip<
-          TRightList,
-          Index == TRightList::size ? Index : Index + 1,
-          ULeftArgs...
-        >::type
-      >
-  >::type type;
+struct zip<type_list<TLHS, TLHSArgs...>, type_list<TRHS, TRHSArgs...>> {
+  using type = typename zip<
+    type_list<TLHSArgs...>,
+    type_list<TRHSArgs...>
+  >::type::template push_front<TLHS, TRHS>;
 };
 
 //////////
@@ -519,19 +543,19 @@ struct zip<TRightList, Index, U, ULeftArgs...> {
 template <std::size_t, std::size_t, typename...> struct skip;
 
 template <std::size_t Next, std::size_t Step>
-struct skip<Next, Step> { typedef type_list<> type; };
+struct skip<Next, Step> { using type = type_list<>; };
 
 template <std::size_t Next, std::size_t Step, typename U, typename... UArgs>
 struct skip<Next, Step, U, UArgs...> {
-  typedef typename skip<
+  using tail = typename skip<
     Next == 0 ? Step : Next - 1, Step, UArgs...
-  >::type tail;
+  >::type;
 
-  typedef typename std::conditional<
+  using type = typename std::conditional<
     Next == 0,
     typename tail::template push_front<U>,
     tail
-  >::type type;
+  >::type;
 };
 
 template <std::size_t Step>
@@ -548,18 +572,18 @@ template <template <typename...> class, typename, typename...>
 struct search;
 
 template <template <typename...> class TPredicate, typename TDefault>
-struct search<TPredicate, TDefault> { typedef TDefault type; };
+struct search<TPredicate, TDefault> { using type = TDefault; };
 
 template <
   template <typename...> class TPredicate,
   typename TDefault, typename U, typename... UArgs
 >
 struct search<TPredicate, TDefault, U, UArgs...> {
-  typedef typename std::conditional<
+  using type = typename std::conditional<
     TPredicate<U>::value,
     U,
     typename search<TPredicate, TDefault, UArgs...>::type
-  >::type type;
+  >::type;
 };
 
 /////////////
@@ -608,7 +632,7 @@ template <template <typename...> class, typename, typename...>
 struct insert_sorted;
 
 template <template <typename...> class TLessComparer, typename T>
-struct insert_sorted<TLessComparer, T> { typedef type_list<T> type; };
+struct insert_sorted<TLessComparer, T> { using type = type_list<T>; };
 
 template <
   template <typename...> class TLessComparer,
@@ -617,24 +641,12 @@ template <
   typename... TTail
 >
 struct insert_sorted<TLessComparer, T, THead, TTail...> {
-  typedef typename std::conditional<
+  using type = typename std::conditional<
     TLessComparer<T, THead>::value,
     type_list<T, THead, TTail...>,
     typename insert_sorted<
       TLessComparer, T, TTail...
     >::type::template push_front<THead>
-  >::type type;
-};
-
-///////////////////////
-// replace_transform //
-///////////////////////
-
-template <typename TFrom, typename TTo>
-struct replace_transform {
-  template <typename U>
-  using apply = typename std::conditional<
-    std::is_same<U, TFrom>::value, TTo, U
   >::type;
 };
 
@@ -644,15 +656,18 @@ struct replace_transform {
 
 template <std::size_t, typename...> struct tail;
 
-template <> struct tail<0> { typedef type_list<> type; };
+template <std::size_t Index> struct tail<Index> {
+  static_assert(Index == 0, "index out of bounds");
+  using type = type_list<>;
+};
 
 template <typename T, typename... Args>
-struct tail<0, T, Args...> { typedef type_list<T, Args...> type; };
+struct tail<0, T, Args...> { using type = type_list<T, Args...>; };
 
 template <std::size_t Index, typename T, typename... Args>
 struct tail<Index, T, Args...> {
   static_assert(Index <= sizeof...(Args) + 1, "index out of bounds");
-  typedef typename tail<Index - 1, Args...>::type type;
+  using type = typename tail<Index - 1, Args...>::type;
 };
 
 ///////////
@@ -662,22 +677,23 @@ struct tail<Index, T, Args...> {
 template <std::size_t, typename...> struct split;
 
 template <>
-struct split<0> { typedef type_pair<type_list<>, type_list<>> type; };
+struct split<0> {
+  using type = type_pair<type_list<>, type_list<>>;
+};
 
 template <typename T, typename... Args>
 struct split<0, T, Args...> {
-  typedef type_pair<type_list<>, type_list<T, Args...>> type;
+  using type = type_pair<type_list<>, type_list<T, Args...>>;
 };
 
 template <std::size_t Index, typename T, typename... Args>
 struct split<Index, T, Args...> {
-  typedef split<Index - 1, Args...> tail;
+  using tail = split<Index - 1, Args...>;
 
-public:
-  typedef type_pair<
+  using type = type_pair<
     typename tail::type::first::template push_front<T>,
     typename tail::type::second
-  > type;
+  >;
 };
 
 ///////////////
@@ -692,8 +708,8 @@ template <
   typename TLHS, typename TRHS, typename... Args
 >
 struct is_sorted<TLessComparer, TLHS, TRHS, Args...>:
-  public logical_and_constants<
-    negate_constant<TLessComparer<TRHS, TLHS>>,
+  public logical_transform::all<
+    logical_transform::negate<TLessComparer<TRHS, TLHS>>,
     is_sorted<TLessComparer, TRHS, Args...>
   >
 {};
@@ -734,7 +750,6 @@ struct merge<TLessComparer, TRHSList, TLHS, TLHSArgs...> {
     merge<TLessComparer, TRHSList, TLHSArgs...>
   >::type::type tail;
 
-public:
   typedef typename tail::template push_front<head> type;
 };
 
@@ -1116,13 +1131,18 @@ struct type_list {
   >::type;
 
   /**
-   * Returns a unitary list with the type at the given index, or an empty
-   * list if not found.
+   * Returns a unitary list with the type at the given index.
+   *
+   * If there is no element at that index, returns a list with `TDefault`.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
+   *
+   * TODO: TEST TDefault
    */
-  template <std::size_t Index>
-  using try_at = typename detail::type_list_impl::try_at<Index, Args...>::type;
+  template <std::size_t Index, typename... TDefault>
+  using try_at = typename detail::type_list_impl::try_at<
+    (Index < size), Index, type_list<TDefault...>, Args...
+  >::type;
 
   /**
    * Returns a std::integral_const with the 0-based index of the given type
@@ -1209,6 +1229,7 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
+  // TODO: accept a variadic number of lists to concat
   template <typename TList>
   using concat = typename TList::template push_front<Args...>;
 
@@ -1216,7 +1237,7 @@ struct type_list {
    * Inserts the type `T` in its sorted position from the beginning of
    * the list, according to the order relation defined by `TLessComparer`.
    *
-   * `TLessComparer` defaults to `constants_comparison_lt` when omitted.
+   * `TLessComparer` defaults to `comparison_transform::less_than` when omitted.
    *
    * Example:
    *
@@ -1240,7 +1261,7 @@ struct type_list {
    */
   template <
     typename T,
-    template <typename...> class TLessComparer = constants_comparison_lt
+    template <typename...> class TLessComparer = comparison_transform::less_than
   >
   using insert_sorted = typename detail::type_list_impl::insert_sorted<
     TLessComparer, T, Args...
@@ -1538,20 +1559,27 @@ struct type_list {
   }
 
   /**
-   * Applies `TTransform` to each element of this list.
+   * Sequentially applies each transform `TTransforms`
+   * to every element of this list.
    *
    * Example:
    *
    *  template <typename> struct T {};
+   *  template <typename> struct U {};
    *  typedef type_list<A, B, C> types;
    *
    *  // yields `type_list<T<A>, T<B>, T<C>>`
    *  types::transform<T>
    *
+   *  // yields `type_list<U<T<A>>, U<T<B>>, U<T<C>>>`
+   *  types::transform<T, U>
+   *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform>
-  using transform = type_list<TTransform<Args>...>;
+  template <template <typename...> class... TTransforms>
+  using transform = type_list<
+    typename transform_sequence<TTransforms...>::template apply<Args>...
+  >;
 
   /**
    * TODO: TEST
@@ -1570,11 +1598,13 @@ struct type_list {
    */
   template <
     template <typename...> class TPredicate,
-    template <typename...> class TTransform
+    template <typename...> class... TTransforms
   >
   using transform_if = type_list<
-    typename conditional_transform<TPredicate, TTransform>
-      ::template apply<Args>...
+    typename conditional_transform<
+      TPredicate,
+      transform_sequence<TTransforms...>::template apply
+    >::template apply<Args>...
   >;
 
   /**
@@ -1589,10 +1619,35 @@ struct type_list {
    *  types::transform<T>
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
+   *
+   * TODO: Test additional args
    */
-  template <template <typename, std::size_t, typename...> class T>
+  template <
+    template <typename, std::size_t, typename...> class TTransform,
+    typename... UArgs
+  >
   using indexed_transform = typename detail::type_list_impl::indexed_transform<
-    T, type_list
+    0, Args...
+  >::template apply<TTransform, UArgs...>;
+
+  /**
+   * TODO: DOCUMENT AND TEST
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class TTransform, typename... TSeed>
+  using accumulate = typename detail::type_list_impl::accumulate<
+    TTransform, TSeed..., Args...
+  >::type;
+
+  /**
+   * TODO: DOCUMENT AND TEST
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class TPredicate>
+  using choose = typename detail::type_list_impl::choose<
+    TPredicate, Args...
   >::type;
 
   /**
@@ -1724,7 +1779,7 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <std::size_t Size>
-  using right = typename detail::type_list_impl::right<Size, Args...>::type;
+  using right = tail<size - Size>;
 
   /**
    * Returns a pair with two `type_list`s. One (first) with the types that
@@ -1811,20 +1866,21 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<E, D, G> l1;
-   *  typedef type_list<B, A> l2;
+   *  using l1 = type_list<E, D, G>;
    *
    *  // yields type_list<E, B, D, A, G>
-   *  typedef l2::apply<l1::zip> result1;
+   *  using result1 = l1::zip<B, A>;
+   *
+   *  using l2 = type_list<B, A>;
    *
    *  // yields type_list<B, E, A, D, G>
-   *  typedef l1::apply<l2::zip> result2;
+   *  using result2 = l2::zip<E, D, G>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename... UArgs>
+  template <typename... URHS>
   using zip = typename detail::type_list_impl::zip<
-    type_list<UArgs...>, 0, Args...
+    type_list<Args...>, type_list<URHS...>
   >::type;
 
   /**
@@ -1844,7 +1900,10 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <std::size_t Step, std::size_t Offset = 0>
-  using unzip = typename tail<(Offset < size) ? Offset : size>::template apply<
+  using unzip = typename tail<
+    // TODO: REMOVE: (Offset < size) ? Offset : size
+    (Offset < size) ? Offset : size
+  >::template apply<
     detail::type_list_impl::curried_skip<Step>::template apply
   >::type;
 
@@ -1992,7 +2051,7 @@ struct type_list {
    *
    * `TLessComparer` must represent a total order relation between all types.
    *
-   * The default comparer is `constants_comparison_lt`.
+   * The default comparer is `comparison_transform::less_than`.
    *
    * Example:
    *
@@ -2012,7 +2071,7 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TLessComparer = constants_comparison_lt
+    template <typename...> class TLessComparer = comparison_transform::less_than
   >
   using is_sorted = typename detail::type_list_impl::is_sorted<
     TLessComparer, Args...
@@ -2025,7 +2084,7 @@ struct type_list {
    *
    * `TLessComparer` must represent a total order relation between all types.
    *
-   * The default comparer is `constants_comparison_lt`.
+   * The default comparer is `comparison_transform::less_than`.
    *
    * Example:
    *
@@ -2033,12 +2092,12 @@ struct type_list {
    *  typedef type_list<T<3>, T<4>, T<5>> rhs;
    *
    *  // yields `type_list<T<0>, T<1>, T<2>, T<3>, T<4>, T<5>>`
-   *  typedef lhs::merge<rhs, constants_comparison_lt> result;
+   *  typedef lhs::merge<rhs, comparison_transform::less_than> result;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TLessComparer = constants_comparison_lt
+    template <typename...> class TLessComparer = comparison_transform::less_than
   >
   struct merge {
     template <typename TList>
@@ -2056,7 +2115,7 @@ struct type_list {
    *
    * `TLessComparer` must represent a total order relation between all types.
    *
-   * The default comparer is `constants_comparison_lt`.
+   * The default comparer is `comparison_transform::less_than`.
    *
    * Example:
    *
@@ -2068,7 +2127,7 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TLessComparer = constants_comparison_lt
+    template <typename...> class TLessComparer = comparison_transform::less_than
   >
   using sort = typename detail::type_list_impl::sort<
     TLessComparer, type_list
