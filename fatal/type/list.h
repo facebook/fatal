@@ -624,6 +624,19 @@ struct flatten<Depth, MaxDepth, type_list<Args...>, UArgs...> {
   >::type;
 };
 
+////////////
+// concat //
+////////////
+
+template <typename...> struct concat;
+
+template <> struct concat<> { using type = type_list<>; };
+
+template <typename... Args, typename... TLists>
+struct concat<type_list<Args...>, TLists...> {
+  using type = typename concat<TLists...>::type::template push_front<Args...>;
+};
+
 ///////////////////
 // insert_sorted //
 ///////////////////
@@ -1230,8 +1243,9 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   // TODO: accept a variadic number of lists to concat
-  template <typename TList>
-  using concat = typename TList::template push_front<Args...>;
+  template <typename... TLists>
+  using concat = typename detail::type_list_impl::concat<TLists...>::type
+    ::template push_front<Args...>;
 
   /**
    * Inserts the type `T` in its sorted position from the beginning of
@@ -1799,11 +1813,13 @@ struct type_list {
    *  // >`
    *  using result = types::separate<std::is_integral>;
    *
+   * TODO: update docs and tests for multiple predicates
+   *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TPredicate>
+  template <template <typename...> class... TPredicates>
   using separate = typename detail::type_list_impl::separate<
-    TPredicate, Args...
+    fatal::transform_sequence<TPredicates...>::template apply, Args...
   >::type;
 
   /**
@@ -1820,10 +1836,12 @@ struct type_list {
    *  // yields `type_list<int, long>`
    *  using result = types::filter<std::is_integral>;
    *
+   * TODO: update docs and tests for multiple predicates
+   *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TPredicate>
-  using filter = typename separate<TPredicate>::first;
+  template <template <typename...> class... TPredicates>
+  using filter = typename separate<TPredicates...>::first;
 
   /**
    * Returns a `type_list` containing only the types that did not get
@@ -1839,10 +1857,12 @@ struct type_list {
    *  // yields `type_list<std::string, double>`
    *  using result = types::reject<std::is_integral>;
    *
+   * TODO: update docs and tests for multiple predicates
+   *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TPredicate>
-  using reject = typename separate<TPredicate>::second;
+  template <template <typename...> class... TPredicates>
+  using reject = typename separate<TPredicates...>::second;
 
   /**
    * Removes all occurences of given types from the type list.

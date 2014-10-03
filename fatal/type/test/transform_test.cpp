@@ -148,6 +148,41 @@ TEST(constant_transform, constant_transform) {
   EXPECT_EQ(bc, (b::apply<identity_transform<double>>::value));
 }
 
+////////////////////////
+// transform_sequence //
+////////////////////////
+
+template <typename TNested, typename TExpected, typename T>
+void check_transform_sequence() {
+  FATAL_EXPECT_SAME<TExpected, typename TNested::template apply<T>>();
+}
+
+TEST(transform_sequence, transform_sequence) {
+  typedef transform_sequence<T1, T2, T3> ttt;
+
+  check_transform_sequence<ttt, T3<T2<T1<int>>>, int>();
+  check_transform_sequence<ttt, T3<T2<T1<int &&>>>, int &&>();
+  check_transform_sequence<ttt, T3<T2<T1<int const &>>>, int const &>();
+  check_transform_sequence<ttt, T3<T2<T1<std::string>>>, std::string>();
+  check_transform_sequence<ttt, T3<T2<T1<std::string &&>>>, std::string &&>();
+  check_transform_sequence<
+    ttt, T3<T2<T1<std::string const &>>>, std::string const &
+  >();
+
+  using dttt = transform_sequence<
+    type_member_transform<std::decay>::template apply, ttt::template apply
+  >;
+
+  check_transform_sequence<dttt, T3<T2<T1<int>>>, int>();
+  check_transform_sequence<dttt, T3<T2<T1<int>>>, int &&>();
+  check_transform_sequence<dttt, T3<T2<T1<int>>>, int const &>();
+  check_transform_sequence<dttt, T3<T2<T1<std::string>>>, std::string>();
+  check_transform_sequence<dttt, T3<T2<T1<std::string>>>, std::string &&>();
+  check_transform_sequence<
+    dttt, T3<T2<T1<std::string>>>, std::string const &
+  >();
+}
+
 //////////////////////////
 // arithmetic_transform //
 //////////////////////////
@@ -547,41 +582,6 @@ TEST(type_member_transform, type_member_transform) {
   check_type_member_transform<std::add_rvalue_reference, bool>();
   check_type_member_transform<std::add_rvalue_reference, double>();
   check_type_member_transform<std::add_rvalue_reference, std::string>();
-}
-
-////////////////////////
-// transform_sequence //
-////////////////////////
-
-template <typename TNested, typename TExpected, typename T>
-void check_transform_sequence() {
-  FATAL_EXPECT_SAME<TExpected, typename TNested::template apply<T>>();
-}
-
-TEST(transform_sequence, transform_sequence) {
-  typedef transform_sequence<T1, T2, T3> ttt;
-
-  check_transform_sequence<ttt, T3<T2<T1<int>>>, int>();
-  check_transform_sequence<ttt, T3<T2<T1<int &&>>>, int &&>();
-  check_transform_sequence<ttt, T3<T2<T1<int const &>>>, int const &>();
-  check_transform_sequence<ttt, T3<T2<T1<std::string>>>, std::string>();
-  check_transform_sequence<ttt, T3<T2<T1<std::string &&>>>, std::string &&>();
-  check_transform_sequence<
-    ttt, T3<T2<T1<std::string const &>>>, std::string const &
-  >();
-
-  using dttt = transform_sequence<
-    type_member_transform<std::decay>::template apply, ttt::template apply
-  >;
-
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int>();
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int &&>();
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int const &>();
-  check_transform_sequence<dttt, T3<T2<T1<std::string>>>, std::string>();
-  check_transform_sequence<dttt, T3<T2<T1<std::string>>>, std::string &&>();
-  check_transform_sequence<
-    dttt, T3<T2<T1<std::string>>>, std::string const &
-  >();
 }
 
 ////////////////////////////

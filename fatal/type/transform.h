@@ -80,22 +80,6 @@ struct fixed_transform {
   template <typename...> using apply = T;
 };
 
-/**
- * A convenience specialization of `fixed_transform`
- * that always yields std::true_type.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename...> using true_predicate = std::true_type;
-
-/**
- * A convenience specialization of `fixed_transform`
- * that always yields std::false_type.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename...> using false_predicate = std::false_type;
-
 ////////////////////////
 // constant_transform //
 ////////////////////////
@@ -126,6 +110,137 @@ template <typename...> using false_predicate = std::false_type;
 template <typename T, T Value>
 struct constant_transform {
   template <typename...> using apply = std::integral_constant<T, Value>;
+};
+
+/**
+ * A convenience specialization of `constant_transform`
+ * that always yields std::true_type.
+ *
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename...> using true_predicate = std::true_type;
+
+/**
+ * A convenience specialization of `constant_transform`
+ * that always yields std::false_type.
+ *
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename...> using false_predicate = std::false_type;
+
+/**
+ * A transform which casts the given type's `value` member to type `TTo`.
+ * Returns a `std::integral_constant` of type `TTo`.
+ *
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename TTo>
+struct cast_transform {
+  template <typename T>
+  using apply = std::integral_constant<TTo, static_cast<TTo>(T::value)>;
+};
+
+/**
+ * A convenience specialization of `cast_transform` for `bool`.
+ *
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using is_true_transform = typename cast_transform<bool>::template apply<T>;
+
+/**
+ * A convenience transform which returns the logical
+ * negation of `is_true_predicate`.
+ *
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using is_false_transform = std::integral_constant<
+  bool,
+  !is_true_transform<T>::value
+>;
+
+/**
+ * Tells whether the given type's `value` member equals `0`.
+ *
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using is_zero_transform = std::integral_constant<bool, T::value == 0>;
+
+/**
+ * Tells whether the given type's `value` member doesn't equal `0`.
+ *
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using not_zero_transform = std::integral_constant<bool, T::value != 0>;
+
+////////////////////////
+// transform_sequence //
+////////////////////////
+
+/**
+ * A convenience adapter that allows nesting multiple transforms into one.
+ *
+ * The transforms are applied in the order specified.
+ *
+ * If no transforms are given, it acts like `identity_transform`.
+ *
+ * Example:
+ *
+ *  template <typename> struct T1 {};
+ *  template <typename> struct T2 {};
+ *  template <typename> struct T3 {};
+ *
+ *  typedef transform_sequence<T1, T2, T3> tr;
+ *
+ *  // yields `T3<T2<T1<int>>>`
+ *  typedef tr::apply<int> result;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+namespace detail {
+
+template <template <typename...> class TTransform, typename... Args>
+struct transform_sequence_impl { using type = TTransform<Args...>; };
+
+template <template <typename> class TTransform, typename T>
+struct transform_sequence_impl<TTransform, T> { using type = TTransform<T>; };
+
+} // namespace detail {
+
+template <template <typename...> class...> struct transform_sequence;
+
+template <
+  template <typename...> class TTransform,
+  template <typename...> class... TTransforms
+>
+struct transform_sequence<TTransform, TTransforms...> {
+  template <typename... Args>
+  using apply = typename transform_sequence<TTransforms...>::template apply<
+    typename detail::transform_sequence_impl<TTransform, Args...>::type
+  >;
+};
+
+template <>
+struct transform_sequence<> {
+  template <typename T, typename...>
+  using apply = T;
 };
 
 //////////////////////////
@@ -840,59 +955,6 @@ template <template <typename...> class TTransform>
 struct type_member_transform {
   template <typename... Args>
   using apply = typename TTransform<Args...>::type;
-};
-
-////////////////////////
-// transform_sequence //
-////////////////////////
-
-/**
- * A convenience adapter that allows nesting multiple transforms into one.
- *
- * The transforms are applied in the order specified.
- *
- * If no transforms are given, it acts like `identity_transform`.
- *
- * Example:
- *
- *  template <typename> struct T1 {};
- *  template <typename> struct T2 {};
- *  template <typename> struct T3 {};
- *
- *  typedef transform_sequence<T1, T2, T3> tr;
- *
- *  // yields `T3<T2<T1<int>>>`
- *  typedef tr::apply<int> result;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-namespace detail {
-
-template <template <typename...> class TTransform, typename... Args>
-struct transform_sequence_impl { using type = TTransform<Args...>; };
-
-template <template <typename> class TTransform, typename T>
-struct transform_sequence_impl<TTransform, T> { using type = TTransform<T>; };
-
-} // namespace detail {
-
-template <template <typename...> class...> struct transform_sequence;
-
-template <
-  template <typename...> class TTransform,
-  template <typename...> class... TTransforms
->
-struct transform_sequence<TTransform, TTransforms...> {
-  template <typename... Args>
-  using apply = typename transform_sequence<TTransforms...>::template apply<
-    typename detail::transform_sequence_impl<TTransform, Args...>::type
-  >;
-};
-
-template <>
-struct transform_sequence<> {
-  template <typename T, typename...>
-  using apply = T;
 };
 
 /////////////////////
