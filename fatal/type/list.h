@@ -561,7 +561,7 @@ struct skip<Next, Step, U, UArgs...> {
 template <std::size_t Step>
 struct curried_skip{
   template <typename... UArgs>
-  using apply = skip<0, Step, UArgs...>;
+  using apply = skip<0, Step ? Step - 1 : 0, UArgs...>;
 };
 
 ////////////
@@ -1733,24 +1733,6 @@ struct type_list {
   using split = typename detail::type_list_impl::split<Index, Args...>::type;
 
   /**
-   * Returns a list with the `Size` leftmost types of this list.
-   *
-   * Example:
-   *
-   *  typedef type_list<A, B, C, D> types;
-   *
-   *  // yields `type_list<A, B>`
-   *  typedef types::left<2> result1;
-   *
-   *  // yields `type_list<>`
-   *  typedef types::left<0> result2;
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  template <std::size_t Size>
-  using left = typename detail::type_list_impl::left<Size, Args...>::type;
-
-  /**
    * Returns a sublist with the types whose positional
    * index is in the range [Begin, End).
    *
@@ -1776,6 +1758,24 @@ struct type_list {
   using slice = typename detail::type_list_impl::slice<
     Begin, End, Args...
   >::type;
+
+  /**
+   * Returns a list with the `Size` leftmost types of this list.
+   *
+   * Example:
+   *
+   *  typedef type_list<A, B, C, D> types;
+   *
+   *  // yields `type_list<A, B>`
+   *  typedef types::left<2> result1;
+   *
+   *  // yields `type_list<>`
+   *  typedef types::left<0> result2;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <std::size_t Size>
+  using left = typename detail::type_list_impl::left<Size, Args...>::type;
 
   /**
    * Returns a list with the `Size` rightmost types of this list.
@@ -1905,17 +1905,17 @@ struct type_list {
 
   /**
    * Returns a type_list with a pattern of types based on their position.
-   * Picks types starting at `Offset` and skipping `Step` positions.
+   * Picks types starting at `Offset` and picking every `Step` elements.
    *
    * Example:
    *
    *  typedef type_list<A, B, C, D, E, F, G, H, I> list;
    *
    *  // yields type_list<A, D, G>
-   *  typedef list::unzip<2> result;
+   *  typedef list::unzip<3> result;
    *
    *  // yields type_list<C, E, G, I>
-   *  typedef list::unzip<1, 2> result;
+   *  typedef list::unzip<2, 2> result;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1956,10 +1956,12 @@ struct type_list {
     TPredicate, TDefault, Args...
   >::type;
 
-  // TODO: UPDATE DOCS
+  // TODO: UPDATE DOCS AND SUPPORT MORE THAN TWO LISTS
   /**
    * Combines two type lists of equal size into a single type list using the
    * `TCombiner` template.
+   *
+   * `TCombiner` defaults to `type_pair`.
    *
    * Example:
    *
@@ -1972,7 +1974,7 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TCombiner>
+  template <template <typename...> class TCombiner = type_pair>
   struct combine {
     template <typename... UArgs>
     using args = type_list<TCombiner<Args, UArgs>...>;

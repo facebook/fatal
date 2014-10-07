@@ -80,8 +80,8 @@ template <typename... Args>
 class builder {
   typedef type_list<Args...> args;
 
-  typedef typename args::template unzip<1, 0> tags;
-  typedef typename args::template unzip<1, 1> types;
+  typedef typename args::template unzip<2, 0> tags;
+  typedef typename args::template unzip<2, 1> types;
 
   static_assert(tags::size == types::size, "not all tags map to a type");
 

@@ -994,8 +994,8 @@ template <typename... Args>
 class builder {
   typedef type_list<Args...> args;
 
-  typedef typename args::template unzip<1, 0> keys;
-  typedef typename args::template unzip<1, 1> mapped;
+  typedef typename args::template unzip<2, 0> keys;
+  typedef typename args::template unzip<2, 1> mapped;
 
   static_assert(keys::size == mapped::size, "not all keys map to a type");
 

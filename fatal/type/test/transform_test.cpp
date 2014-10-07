@@ -472,6 +472,7 @@ struct get_member_typedef_test {
   using tuple = std::tuple<int, double, bool>;
   using list = std::list<short>;
   using map = std::map<int, bool>;
+  using array = std::array<int, 100>;
   using set = std::set<double>;
   using string = std::wstring;
   using index = std::integral_constant<std::size_t, 5>;
@@ -494,6 +495,7 @@ TEST(type_traits, get_member_typedef) {
   CREATE_TEST(tuple, get_member_typedef_test);
   CREATE_TEST(list, get_member_typedef_test);
   CREATE_TEST(map, get_member_typedef_test);
+  CREATE_TEST(array, get_member_typedef_test);
   CREATE_TEST(set, get_member_typedef_test);
   CREATE_TEST(string, get_member_typedef_test);
   CREATE_TEST(index, get_member_typedef_test);
