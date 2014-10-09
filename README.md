@@ -69,6 +69,7 @@ Extensive documentation with examples can be found inline in the source header f
 ## Join the Fatal community
 - Website: https://github.com/facebook/fatal/
 - Facebook Page: https://www.facebook.com/libfatal
+- Talk at CppCon 2014: https://www.youtube.com/watch?v=0A9pYr8wevk
 See the CONTRIBUTING file for how to help out.
 
 ## License
