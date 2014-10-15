@@ -63,25 +63,38 @@ typename instance<
   TFactory::template create<Args>()...
 }};
 
-} // namespace static_array_impl {
-} // namespace detail {
+struct type_value_factory {
+  template <typename T>
+  static constexpr decltype(T::value) create() { return T::type::value; }
+};
 
-/**
- * TODO: DOCUMENT AND TEST
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
 template <typename TFactory, typename... T>
-struct static_array_from {
+struct array {
   template <typename TList>
-  using list = detail::static_array_impl::instance<
+  using from_list = detail::static_array_impl::instance<
     typename TList::template indexed_transform<indexed_type_tag>,
     TFactory,
     T...
   >;
 
   template <typename... Args>
-  using args = list<type_list<Args...>>;
+  using from_args = from_list<type_list<Args...>>;
+};
+
+} // namespace static_array_impl {
+} // namespace detail {
+
+/**
+ * TODO: DOCUMENT AND TEST - T is the optional explicit type of the array values
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename TFactory = detail::static_array_impl::type_value_factory>
+struct static_array:
+  public detail::static_array_impl::array<TFactory>
+{
+  template <typename T>
+  using type = typename detail::static_array_impl::array<TFactory, T>;
 };
 
 } // namespace fatal {

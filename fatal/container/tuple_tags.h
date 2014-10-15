@@ -24,7 +24,7 @@ struct tuple_tags {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef type_list<TTags...> list;
+  using list = type_list<TTags...>;
 
   /**
    * Gets the index associated with a given tag.

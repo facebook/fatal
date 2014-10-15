@@ -353,7 +353,7 @@ void check_array() {
 
   FATAL_EXPECT_SAME<typename as_array_t::type, typename seq::array_type>();
 
-  EXPECT_EQ(as_array_t::get(), seq::array());
+  EXPECT_EQ(as_array_t::get(), seq::array);
 }
 
 TEST(constant_sequence, array) {
@@ -370,57 +370,113 @@ TEST(constant_sequence, array) {
 // constant_sequence::z_array //
 ////////////////////////////////
 
-template <typename T, T Terminator, T... Values>
+template <typename T, T... Values>
 void check_z_array() {
   typedef constant_sequence<T, Values...> seq;
 
-  constexpr T terminator = 0;
-  typedef as_array<T, Values..., Terminator> as_array_t;
-  typedef as_array<T, Values..., terminator> z_as_array_t;
+  typedef as_array<T, Values..., 0> as_array_t;
 
   FATAL_EXPECT_SAME<typename as_array_t::type, typename seq::z_array_type>();
-
-  auto const array = seq::template z_array<Terminator>();
-  EXPECT_EQ(as_array_t::get(), array);
-
-  FATAL_EXPECT_SAME<typename z_as_array_t::type, typename seq::z_array_type>();
-
-  auto const zarray = seq::template z_array<terminator>();
-  EXPECT_EQ(z_as_array_t::get(), zarray);
+  EXPECT_EQ(as_array_t::get(), seq::z_array);
 }
 
 TEST(constant_sequence, z_array) {
-  check_z_array<int, 99>();
-  check_z_array<int, 99, 1>();
-  check_z_array<int, 99, 1, 2, 3, 4, 5>();
+  check_z_array<int>();
+  check_z_array<int, 1>();
+  check_z_array<int, 1, 2, 3, 4, 5>();
+  check_z_array<int, 99, 43, 57, 0, 100>();
 
-  check_z_array<char, 'x'>();
-  check_z_array<char, 'x', '1'>();
-  check_z_array<char, 'x', '1', '2', '3', '4', '5'>();
+  check_z_array<char>();
+  check_z_array<char, '1'>();
+  check_z_array<char, '1', '2', '3', '4', '5'>();
+  check_z_array<char, 'z', '_', 'a', 'r', 'r', 'a', 'y'>();
 }
 
 ////////////////////
 // constant_range //
 ////////////////////
 
-template <typename T, T First, T... Mid, T Last>
+template <typename T, T... Values>
 void check_constant_range() {
+  using closed_sequence = constant_sequence<T, Values...>;
+  using closed_list = typename closed_sequence::list;
+  using open_list = typename closed_list::template slice<
+    0, closed_list::size - 1
+  >;
+  using open_sequence = typename open_list::template apply_typed_values<
+    T, constant_sequence
+  >;
+  using first = typename closed_list::template at<0>;
+  using last = typename closed_list::template at<closed_list::size - 1>;
+
   FATAL_EXPECT_SAME<
-    constant_sequence<T, First, Mid..., Last>,
-    constant_range<T, First, Last>
+    open_sequence,
+    constant_range<T, first::value, last::value>
+  >();
+
+  FATAL_EXPECT_SAME<
+    open_sequence,
+    constant_range<T, first::value, last::value, true>
+  >();
+
+  FATAL_EXPECT_SAME<
+    closed_sequence,
+    constant_range<T, first::value, last::value, false>
   >();
 }
 
-TEST(constant_range, constant_range) {
-  check_array<int, 1, 2>();
-  check_array<int, 1, 2, 3>();
-  check_array<int, 1, 2, 3, 4>();
-  check_array<int, 1, 2, 3, 4, 5>();
+TEST(constant_range, empty) {
+  FATAL_EXPECT_SAME<constant_sequence<int>, constant_range<int, 0, 0>>();
+  FATAL_EXPECT_SAME<constant_sequence<int>, constant_range<int, 0, 0, true>>();
 
-  check_array<char, '1', '2'>();
-  check_array<char, '1', '2', '3'>();
-  check_array<char, '1', '2', '3', '4'>();
-  check_array<char, '1', '2', '3', '4', '5'>();
+  FATAL_EXPECT_SAME<constant_sequence<char>, constant_range<char, 'a', 'a'>>();
+  FATAL_EXPECT_SAME<
+    constant_sequence<char>,
+    constant_range<char, 'a', 'a', true>
+  >();
+}
+
+TEST(constant_range, unitary) {
+  FATAL_EXPECT_SAME<constant_sequence<int, 0>, constant_range<int, 0, 1>>();
+  FATAL_EXPECT_SAME<
+    constant_sequence<int, 0>,
+    constant_range<int, 0, 1, true>
+  >();
+
+  FATAL_EXPECT_SAME<
+    constant_sequence<int, 0>,
+    constant_range<int, 0, 0, false>
+  >();
+
+  FATAL_EXPECT_SAME<
+    constant_sequence<char, 'a'>,
+    constant_range<char, 'a', 'b'>
+  >();
+  FATAL_EXPECT_SAME<
+    constant_sequence<char, 'a'>,
+    constant_range<char, 'a', 'b', true>
+  >();
+
+  FATAL_EXPECT_SAME<
+    constant_sequence<char, 'a'>,
+    constant_range<char, 'a', 'a', false>
+  >();
+}
+
+TEST(constant_range, int) {
+  //check_constant_range<int, 1>();
+  check_constant_range<int, 1, 2>();
+  check_constant_range<int, 1, 2, 3>();
+  check_constant_range<int, 1, 2, 3, 4>();
+  check_constant_range<int, 1, 2, 3, 4, 5>();
+}
+
+TEST(constant_range, char) {
+  //check_constant_range<char, '1'>();
+  check_constant_range<char, '1', '2'>();
+  check_constant_range<char, '1', '2', '3'>();
+  check_constant_range<char, '1', '2', '3', '4'>();
+  check_constant_range<char, '1', '2', '3', '4', '5'>();
 }
 
 } // namespace fatal {

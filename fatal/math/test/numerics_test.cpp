@@ -252,7 +252,7 @@ TEST(numerics, smallest_least_unsigned_integral) {
 #undef SEL_TEST
 
 #define SMALLEST_FOR_VALUE_TEST(n, expected) \
-  LOG(INFO) << "expected = " << #expected << ", actual = " \
+  VLOG(1) << "expected = " << #expected << ", actual = " \
     << folly::demangle( \
       typeid(smallest_uint_for_value<n>).name() \
     ).toStdString(); \
@@ -534,7 +534,7 @@ void check_largest_mersenne_prime_under() {
   typedef mersenne_prime<nth_mersenne> expected;
   typedef largest_mersenne_prime_under<bits_size> actual;
 
-  LOG(INFO) << "bits_size = " << bits_size
+  VLOG(1) << "bits_size = " << bits_size
     << ", nth_mersenne = " << nth_mersenne;
 
   EXPECT_EQ(
@@ -614,7 +614,7 @@ void check_largest_mersenne_prime_for_type() {
   typedef mersenne_prime<nth_mersenne> expected;
   typedef largest_mersenne_prime_for_type<T, diff> actual;
 
-  LOG(INFO) << "T = " << folly::demangle(typeid(T).name())
+  VLOG(1) << "T = " << folly::demangle(typeid(T).name())
     << ", unsigned_bits_size = "
     << (data_bits<T>::value - std::is_signed<T>::value)
     << ", diff = " << diff << ", nth_mersenne = " << nth_mersenne;

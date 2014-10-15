@@ -268,8 +268,7 @@ private:
       supported::foreach([](auto data_type_tag) { // indexed_type_tag<data_type>
         using data_type = decltype(data_type_tag);
         if (data_type::value) { std::cout << std::endl; }
-        auto const name = data_type::type::name::z_array();
-        std::cout << name.data() << '(';
+        std::cout << data_type::type::name::z_array.data() << '(';
         data_type::type::constructor::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
           using arg = decltype(arg_tag);
           if (arg::value) { std::cout << ", "; }
@@ -279,8 +278,7 @@ private:
 
         data_type::type::operations::foreach([](auto op_tag) { // indexed_type_tag<operation>
           using op = typename decltype(op_tag)::type;
-          auto const verb = op::verb::z_array();
-          std::cout << "- " << verb.data() << '(';
+          std::cout << "- " << op::verb::z_array.data() << '(';
           op::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
             using arg = decltype(arg_tag);
             if (arg::value) { std::cout << ", "; }
@@ -297,8 +295,7 @@ private:
       std::cout << '{' << std::endl;
       supported::foreach([](auto data_type_tag) { // indexed_type_tag<data_type>
         using data_type = typename decltype(data_type_tag)::type;
-        auto const name = data_type::name::z_array();
-        std::cout << "  \"" << name.data() << "\": {" << std::endl;
+        std::cout << "  \"" << data_type::name::z_array.data() << "\": {" << std::endl;
         std::cout << "    \"type\": \"" << folly::demangle(typeid(typename data_type::type)) << "\"," << std::endl;
         std::cout << "    \"constructor\": {" << std::endl;
         std::cout << "      \"args\": {" << std::endl;
@@ -313,8 +310,7 @@ private:
         std::cout << "    \"operations\": {" << std::endl;
         data_type::operations::foreach([](auto op_tag) { // indexed_type_tag<operation>
           using op = typename decltype(op_tag)::type;
-          auto const verb = op::verb::z_array();
-          std::cout << "      \"" << verb.data() << "\": {" << std::endl;
+          std::cout << "      \"" << op::verb::z_array.data() << "\": {" << std::endl;
           std::cout << "        \"result\": \"" << folly::demangle(typeid(typename op::result)) << "\"," << std::endl;
           std::cout << "        \"args\": {" << std::endl;
           op::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>

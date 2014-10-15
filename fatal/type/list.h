@@ -1367,18 +1367,20 @@ struct type_list {
    *  struct double_getter: public std::integral_constant<int, T::value * 2> {};
    *
    *  // yields `sequence<0, 1, 2>`
-   *  typedef list::apply_type_values<int, sequence> result1;
+   *  typedef list::apply_typed_values<int, sequence> result1;
    *
    *  // yields `sequence<0, 2, 4>`
-   *  typedef list::apply_type_values<int, sequence, double_getter> result2;
+   *  typedef list::apply_typed_values<int, sequence, double_getter> result2;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
+   *
+   * TODO: TEST
    */
   template <
     typename T, template <typename, T...> class TTo,
     template <typename...> class TGetter = identity_transform
   >
-  using apply_type_values = TTo<T, TGetter<Args>::value...>;
+  using apply_typed_values = TTo<T, TGetter<Args>::value...>;
 
   /**
    * A shorter and cheaper version of
@@ -1921,7 +1923,6 @@ struct type_list {
    */
   template <std::size_t Step, std::size_t Offset = 0>
   using unzip = typename tail<
-    // TODO: REMOVE: (Offset < size) ? Offset : size
     (Offset < size) ? Offset : size
   >::template apply<
     detail::type_list_impl::curried_skip<Step>::template apply

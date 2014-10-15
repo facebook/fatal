@@ -38,8 +38,7 @@ template <typename TString, typename... TStrings>
 struct sequential_ifs_impl<TString, TStrings...> {
   template <typename TInput>
   static void match(TInput &&input, unsigned &count) {
-    static auto const array = TString::z_array();
-    if (input == array.data()) {
+    if (input == TString::z_array.data()) {
       count += input.size();
     } else {
       sequential_ifs_impl<TStrings...>::match(

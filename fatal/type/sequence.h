@@ -130,48 +130,40 @@ struct constant_sequence {
   using typed_apply = U<type, Values...>;
 
   /**
-   * Gets an array with the values from this sequence.
-   *
-   * Note: this is a runtime facility.
+   * Gets a constexpr array with the values from this sequence.
    *
    * Example:
    *
    *  typedef constant_sequence<int, 1, 2, 3> seq;
    *
    *  // yields `std::array<int, 3>` with values `{1, 2, 3}`
-   *  auto result = seq::array();
+   *  auto result = seq::array;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   typedef std::array<type, size> array_type;
 
-  static constexpr array_type array() { return {{Values...}}; }
+  static constexpr array_type array{{Values...}};
 
   /**
-   * Gets an array with the values from this sequence, followed by
-   * the given terminator value (defaults to 0).
-   *
-   * Note: this is a runtime facility.
+   * Gets a constexpr array with the values from this sequence,
+   * followed by a 0 terminator.
    *
    * Example:
    *
    *  typedef constant_sequence<int, 1, 2, 3> seq;
    *
    *  // yields `std::array<int, 4>` with values `{1, 2, 3, 0}`
-   *  auto result1 = seq::z_array();
-   *
-   *  // yields `std::array<int, 4>` with values `{1, 2, 3, 99}`
-   *  auto result2 = seq::z_array<99>();
+   *  auto result1 = seq::z_array;
    *
    *  // yields `std::array<int, 3>` with values `"hi"`
-   *  auto hi = constant_sequence<char, 'h', 'i'>::z_array();
+   *  auto hi = constant_sequence<char, 'h', 'i'>::z_array;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   typedef std::array<type, size + 1> z_array_type;
 
-  template <type Terminator = 0>
-  static constexpr z_array_type z_array() { return {{Values..., Terminator}}; }
+  static constexpr z_array_type z_array{{Values..., static_cast<type>(0)}};
 
   // TODO: DOCUMENT AND TEST (std::vector)
   template <typename U, typename... UArgs>
@@ -180,14 +172,26 @@ struct constant_sequence {
   }
 };
 
+///////////////////////////////
+// STATIC MEMBERS DEFINITION //
+///////////////////////////////
+
+template <typename T, T... Values>
+constexpr typename constant_sequence<T, Values...>::array_type
+constant_sequence<T, Values...>::array;
+
+template <typename T, T... Values>
+constexpr typename constant_sequence<T, Values...>::z_array_type
+constant_sequence<T, Values...>::z_array;
+
 ////////////////////////////////////////
 // IMPLEMENTATION DETAILS DECLARATION //
 ////////////////////////////////////////
 
 namespace detail {
-namespace constant_sequence_impl {
+namespace range_builder_impl {
 
-template <typename T, T...> struct range_builder;
+template <bool, bool, typename T, T, T> struct build;
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
@@ -197,21 +201,23 @@ template <typename T, T...> struct range_builder;
 /////////////////////
 
 /**
- * Builds a constant_sequence with elements in the range `[Begin, End]`.
+ * TODO: DOCUMENT AND TEST OpenEnd
+ *
+ * Builds a constant_sequence with elements in the range `[Begin, End)`.
  *
  * Example:
  *
  * // yields `constant_sequence<int, 1, 2, 3, 4>`
- * typedef constant_range<int, 1, 4> result1;
+ * typedef constant_range<int, 1, 5> result1;
  *
  * // yields `constant_sequence<int, 1, 2>`
- * typedef constant_range<int, 1, 2> result2;
+ * typedef constant_range<int, 1, 3> result2;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename T, T Begin, T End>
-using constant_range = typename detail::constant_sequence_impl::range_builder<
-  T, Begin, End
+template <typename T, T Begin, T End, bool OpenEnd = true>
+using constant_range = typename detail::range_builder_impl::build<
+  false, OpenEnd, T, Begin, End
 >::type;
 
 ///////////////////////////////
@@ -229,26 +235,24 @@ constexpr bool constant_sequence<T, Values...>::empty;
 ///////////////////////////////////////
 
 namespace detail {
-namespace constant_sequence_impl {
-
-template <typename T>
-struct range_builder<T> { typedef constant_sequence<T> type; };
+namespace range_builder_impl {
 
 template <typename T, T End>
-struct range_builder<T, End, End> { typedef constant_sequence<T> type; };
+struct build<false, true, T, End, End> {
+  using type = constant_sequence<T>;
+};
 
-template <typename T, T Begin, T End>
-struct range_builder<T, Begin, End> {
-  typedef typename range_builder<
-    T, Begin == End ? End : Begin + 1, End
-  >::type tail;
+template <typename T, T End>
+struct build<false, false, T, End, End> {
+  using type = constant_sequence<T, End>;
+};
 
-  static_assert(Begin <= End, "begin must not be past end");
-  typedef typename std::conditional<
-    Begin == End,
-    constant_sequence<T>,
-    typename tail::template push_front<Begin>
-  >::type type;
+template <bool OpenEnd, typename T, T Current, T End>
+struct build<false, OpenEnd, T, Current, End> {
+  static_assert(Current < End, "begin must not be past end");
+
+  using type = typename build<false, OpenEnd, T, Current + 1, End>::type
+    ::template push_front<Current>;
 };
 
 } // namespace constant_sequence_impl {

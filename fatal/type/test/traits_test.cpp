@@ -447,7 +447,7 @@ struct overloading_test {
   overloading_test(overloading_test &&) noexcept: type(ctor::move) {}
   template <
     typename T,
-    typename X = typename std::enable_if<
+    typename = typename std::enable_if<
       safe_ctor_overload<overloading_test, T>::value, void
     >::type
   >
@@ -479,7 +479,7 @@ struct variadic_overloading_test {
   {}
   template <
     typename... Args,
-    typename X = typename std::enable_if<
+    typename = typename std::enable_if<
       safe_ctor_overload<variadic_overloading_test, Args...>::value, void
     >::type
   >
@@ -509,7 +509,7 @@ struct overloading_test_t {
   overloading_test_t(overloading_test_t &&) noexcept: type(ctor::move) {}
   template <
     typename T,
-    typename X = safe_ctor_overload_t<overloading_test_t, T>
+    typename = safe_ctor_overload_t<overloading_test_t, T>
   >
   explicit overloading_test_t(T &&): type(ctor::universal) {}
   ctor type;
@@ -538,7 +538,7 @@ struct variadic_overloading_test_t {
   {}
   template <
     typename... Args,
-    typename X = safe_ctor_overload_t<variadic_overloading_test_t, Args...>
+    typename = safe_ctor_overload_t<variadic_overloading_test_t, Args...>
   >
   explicit variadic_overloading_test_t(Args &&...): type(ctor::universal) {}
   ctor type;

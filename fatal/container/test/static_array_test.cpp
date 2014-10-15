@@ -9,6 +9,8 @@
 
 #include <fatal/container/static_array.h>
 
+#include <fatal/type/list.h>
+
 #include <fatal/test/driver.h>
 
 #include <type_traits>
@@ -17,138 +19,121 @@ namespace fatal {
 
 struct xyz { int x; int y; int z; };
 
-template <typename... TValue>
-struct check_static_array {
-  template <
-    typename TFactory, template <typename...> class TVisitor, typename TList
-  >
-  static void test() {
-    using array = typename static_array_from<TFactory, TValue...>
-      ::template list<TList>;
+template <typename T>
+void check_empty() {
+  using factory = typename static_array<>::type<T>;
 
-    static_assert(TList::size == array::get.size(), "size mismatch");
-    TList::foreach(TVisitor<array>());
-  }
+  using empty_list_array = typename factory::template from_list<type_list<>>;
+  FATAL_EXPECT_SAME<T, typename decltype(empty_list_array::get)::value_type>();
+  EXPECT_EQ(0, empty_list_array::get.size());
 
-private:
-  struct int_factory {
-    template <typename T>
-    static constexpr int create() {
-      return static_cast<int>(T::type::value);
-    }
-  };
+  using empty_args_array = typename factory::template from_args<>;
+  FATAL_EXPECT_SAME<T, typename decltype(empty_args_array::get)::value_type>();
+  EXPECT_EQ(0, empty_args_array::get.size());
+}
 
-  template <typename TArray>
-  struct check_int_array_visitor {
-    template <typename T, std::size_t Index>
-    void operator ()(indexed_type_tag<T, Index>) const {
-      ASSERT_LT(Index, TArray::get.size());
-      EXPECT_EQ(T::value, TArray::get[Index]);
-    }
-  };
+TEST(static_array, empty) {
+  check_empty<int>();
+  check_empty<xyz>();
+}
 
-public:
-  template <int... Values>
-  static void test_int() {
-    test<
-      int_factory,
-      check_int_array_visitor,
-      type_list<std::integral_constant<int, Values>...>
-    >();
-  }
-
-private:
-  struct xyz_factory {
-    template <typename T>
-    static constexpr xyz create() {
-      return xyz{
-        T::type::first::first::value,
-        T::type::first::second::value,
-        T::type::second::value
-      };
-    }
-  };
-
-  template <typename TArray>
-  struct check_xyz_array_visitor {
-    template <typename T, std::size_t Index>
-    void operator ()(indexed_type_tag<T, Index>) const {
-      ASSERT_LT(Index, TArray::get.size());
-      EXPECT_EQ(T::first::first::value, TArray::get[Index].x);
-      EXPECT_EQ(T::first::second::value, TArray::get[Index].y);
-      EXPECT_EQ(T::second::value, TArray::get[Index].z);
-    }
-  };
-
-public:
-  template <int... Values>
-  static void test_xyz() {
-    using values = type_list<std::integral_constant<int, Values>...>;
-    using x = typename values::template unzip<3, 0>;
-    using y = typename values::template unzip<3, 1>;
-    using z = typename values::template unzip<3, 2>;
-
-    test<
-      xyz_factory,
-      check_xyz_array_visitor,
-      typename x::template combine<>::template list<y>
-        ::template combine<>::template list<z>
-    >();
+struct check_array_visitor {
+  template <typename TTag, typename U>
+  void operator ()(TTag, U const &array) {
+    ASSERT_LT(TTag::index, array.size());
+    EXPECT_EQ(TTag::type::value, array[TTag::index]);
   }
 };
 
-TEST(static_array, int) {
-  check_static_array<int>::test_int<>();
-
-  check_static_array<int>::test_int<0>();
-  check_static_array<int>::test_int<1>();
-  check_static_array<int>::test_int<2>();
-  check_static_array<int>::test_int<100>();
-  check_static_array<int>::test_int<0, 1, 2>();
-  check_static_array<int>::test_int<1, 2, 3>();
-  check_static_array<int>::test_int<2, 3, 4>();
-  check_static_array<int>::test_int<25, 26, 27>();
-  check_static_array<int>::test_int<178, 849, 9, 11, 0>();
-
-  check_static_array<>::test_int<0>();
-  check_static_array<>::test_int<1>();
-  check_static_array<>::test_int<2>();
-  check_static_array<>::test_int<100>();
-  check_static_array<>::test_int<0, 1, 2>();
-  check_static_array<>::test_int<1, 2, 3>();
-  check_static_array<>::test_int<2, 3, 4>();
-  check_static_array<>::test_int<25, 26, 27>();
-  check_static_array<>::test_int<178, 849, 9, 11, 0>();
+template <typename TExpectedList, typename TArray>
+void check_array() {
+  EXPECT_EQ(TExpectedList::size, TArray::get.size());
+  TExpectedList::foreach(check_array_visitor(), TArray::get);
 }
 
-TEST(static_array, xyz) {
-  check_static_array<xyz>::test_xyz<>();
+template <int... Values>
+void check_int() {
+  using list = type_list<std::integral_constant<int, Values>...>;
 
-  check_static_array<xyz>::test_xyz<0, 0, 0>();
-  check_static_array<xyz>::test_xyz<0, 1, 2>();
-  check_static_array<xyz>::test_xyz<99, 56, 43>();
+  check_array<list, static_array<>::from_list<list>>();
+  check_array<list, static_array<>::type<int>::from_list<list>>();
 
-  check_static_array<xyz>::test_xyz<0, 0, 0, 0, 1, 2>();
+  check_array<
+    list,
+    static_array<>::from_args<std::integral_constant<int, Values>...>
+  >();
+  check_array<
+    list,
+    static_array<>::type<int>::from_args<std::integral_constant<int, Values>...>
+  >();
+}
 
-  check_static_array<xyz>::test_xyz<0, 0, 0, 0, 1, 2, 99, 56, 43>();
-  check_static_array<xyz>::test_xyz<0, 1, 2, 3, 4, 5, 6, 7, 8>();
+TEST(static_array, int) {
+  check_int<0>();
+  check_int<1>();
+  check_int<2>();
+  check_int<100>();
+  check_int<0, 1, 2>();
+  check_int<1, 2, 3>();
+  check_int<2, 3, 4>();
+  check_int<25, 26, 27>();
+  check_int<178, 849, 9, 11, 0>();
+}
 
-  check_static_array<xyz>::test_xyz<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11>();
-  check_static_array<xyz>::test_xyz<99, 15, 62, 3, 8, 12, 0, 46, 85, 5, 1, 7>();
+struct check_xyz_visitor {
+  template <typename T, std::size_t Index, typename U>
+  void operator ()(indexed_type_tag<T, Index>, U const &array) const {
+    ASSERT_LT(Index, array.size());
+    EXPECT_EQ(T::first::first::value, array[Index].x);
+    EXPECT_EQ(T::first::second::value, array[Index].y);
+    EXPECT_EQ(T::second::value, array[Index].z);
+  }
+};
 
+template <typename TList, typename TArrayFactory>
+void check_xyz_array() {
+  using array = typename TArrayFactory::template from_list<TList>;
+  static_assert(TList::size == array::get.size(), "size mismatch");
+  TList::foreach(check_xyz_visitor(), array::get);
+}
 
+struct xyz_factory {
+  template <typename T>
+  static constexpr xyz create() {
+    return xyz{
+      T::type::first::first::value,
+      T::type::first::second::value,
+      T::type::second::value
+    };
+  }
+};
 
-  check_static_array<>::test_xyz<0, 0, 0>();
-  check_static_array<>::test_xyz<0, 1, 2>();
-  check_static_array<>::test_xyz<99, 56, 43>();
+template <int... Values>
+void check_xyz() {
+  using values = type_list<std::integral_constant<int, Values>...>;
+  using x = typename values::template unzip<3, 0>;
+  using y = typename values::template unzip<3, 1>;
+  using z = typename values::template unzip<3, 2>;
+  using list = typename x::template combine<>::template list<y>
+    ::template combine<>::template list<z>;
+  using factory = static_array<xyz_factory>;
 
-  check_static_array<>::test_xyz<0, 0, 0, 0, 1, 2>();
+  check_xyz_array<list, factory>();
+  check_xyz_array<list, typename factory::template type<xyz>>();
+}
 
-  check_static_array<>::test_xyz<0, 0, 0, 0, 1, 2, 99, 56, 43>();
-  check_static_array<>::test_xyz<0, 1, 2, 3, 4, 5, 6, 7, 8>();
+TEST(static_array, struct) {
+  check_xyz<0, 0, 0>();
+  check_xyz<0, 1, 2>();
+  check_xyz<99, 56, 43>();
 
-  check_static_array<>::test_xyz<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11>();
-  check_static_array<>::test_xyz<99, 15, 62, 3, 8, 12, 0, 46, 85, 5, 1, 7>();
+  check_xyz<0, 0, 0, 0, 1, 2>();
+
+  check_xyz<0, 0, 0, 0, 1, 2, 99, 56, 43>();
+  check_xyz<0, 1, 2, 3, 4, 5, 6, 7, 8>();
+
+  check_xyz<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11>();
+  check_xyz<99, 15, 62, 3, 8, 12, 0, 46, 85, 5, 1, 7>();
 }
 
 } // namespace fatal {

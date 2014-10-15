@@ -126,7 +126,7 @@ public:
    */
   template <
     typename... UFlags,
-    typename X = safe_ctor_overload_t<flag_set, UFlags...>
+    typename = safe_ctor_overload_t<flag_set, UFlags...>
   >
   explicit flag_set(UFlags &&...):
     flags_(mask_for<false, typename std::decay<UFlags>::type...>::value)

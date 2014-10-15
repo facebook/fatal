@@ -10,6 +10,7 @@
 #include <fatal/type/transform.h>
 
 #include <fatal/test/driver.h>
+#include <fatal/preprocessor.h>
 
 #include <list>
 #include <map>
@@ -21,6 +22,10 @@
 
 namespace fatal {
 
+struct X0 {};
+struct X1 {};
+struct X2 {};
+struct X3 {};
 template <typename T> struct T0 { using t0 = T; };
 template <typename T> struct T1 { using t1 = T; };
 template <typename T> struct T2 { using t2 = T; };
@@ -29,6 +34,13 @@ template <typename...> struct V0 {};
 template <typename...> struct V1 {};
 template <typename...> struct V2 {};
 template <typename...> struct V3 {};
+
+template <int Value> using int_val = std::integral_constant<int, Value>;
+template <int Value>
+struct op {
+  template <typename T>
+  using mul = std::integral_constant<int, T::value * Value>;
+};
 
 template <typename> struct test_tag {};
 
@@ -72,6 +84,7 @@ template <typename T> using get_t0 = typename T::t0;
 template <typename T> using get_t1 = typename T::t1;
 template <typename T> using get_t2 = typename T::t2;
 template <typename T> using get_t3 = typename T::t3;
+template <typename T> using get_type = typename T::type;
 template <typename T> using get_value_type = typename T::value_type;
 
 template <typename T> using as_bool = std::integral_constant<bool, T::value>;
@@ -479,7 +492,7 @@ struct get_member_typedef_test {
   using flag = std::true_type;
 };
 
-TEST(type_traits, get_member_typedef) {
+TEST(get_member_typedef, get_member_typedef) {
 # define CREATE_TEST(Member, Type) \
   do { \
     FATAL_EXPECT_SAME<Type::Member, get_member_typedef::Member<Type>>(); \
@@ -553,6 +566,180 @@ TEST(conditional_transform, ternary) {
   using transform = conditional_transform<std::is_integral, T1, T2>;
   FATAL_EXPECT_SAME<T1<long>, transform::apply<long>>();
   FATAL_EXPECT_SAME<T2<std::string>, transform::apply<std::string>>();
+}
+
+//////////////////////
+// transform_traits //
+//////////////////////
+
+TEST(transform_traits, supports) {
+# define CHECK_SUPPORTS(Expected, T, ...) \
+  do { \
+    using expected = std::FATAL_CAT(Expected, _type); \
+    using actual = transform_traits<__VA_ARGS__>::supports<T>; \
+    FATAL_EXPECT_SAME<expected, actual>(); \
+  } while (false)
+
+  CHECK_SUPPORTS(true, int, T0);
+  CHECK_SUPPORTS(true, std::decay<int>, T0);
+  CHECK_SUPPORTS(false, int, get_type);
+  CHECK_SUPPORTS(true, std::decay<int>, get_type);
+
+# undef CHECK_SUPPORTS
+}
+
+///////////////////
+// try_transform //
+///////////////////
+
+TEST(try_transform, try_transform) {
+# define CHECK_TRY_TRANSFORM(T, TTransform, TFallback, ...) \
+  do { \
+    using expected = __VA_ARGS__; \
+    using actual = try_transform<TTransform, TFallback>::apply<T>; \
+    FATAL_EXPECT_SAME<expected, actual>(); \
+  } while (false)
+
+  CHECK_TRY_TRANSFORM(int, T0, T1, T0<int>);
+  CHECK_TRY_TRANSFORM(std::decay<int>, T0, T1, T0<std::decay<int>>);
+  CHECK_TRY_TRANSFORM(int, get_type, T2, T2<int>);
+  CHECK_TRY_TRANSFORM(std::decay<int>, get_type, T2, int);
+
+# undef CHECK_TRY_TRANSFORM
+}
+
+//////////////////////////
+// transform_aggregator //
+//////////////////////////
+
+TEST(transform_aggregator, transform_aggregator) {
+  EXPECT_TRUE(!"TODO: IMPLEMENT");
+}
+
+////////////////////////
+// variadic_transform //
+////////////////////////
+
+template <
+  template <typename...> class TCombiner,
+  template <typename...> class... TTransforms
+>
+struct check_variadic_transform {
+  using transform = variadic_transform<TCombiner, TTransforms...>;
+
+  template <typename... Args>
+  using actual = typename transform::template apply<Args...>;
+
+  template <typename TExpected, typename... Args>
+  static void check_value() {
+    EXPECT_EQ(TExpected::value, actual<Args...>::value);
+  }
+
+  template <typename... TExpected>
+  struct expect {
+    using expected = TCombiner<TExpected...>;
+
+    template <typename... Args>
+    static void check_type() {
+      FATAL_EXPECT_SAME<expected, actual<Args...>>();
+    }
+
+    template <typename... Args>
+    static void check_value() {
+      EXPECT_EQ(expected::value, actual<Args...>::value);
+    }
+  };
+};
+
+TEST(variadic_transform, types) {
+  check_variadic_transform<test_list>::expect<>::check_type<>();
+
+  check_variadic_transform<test_list, T0>::expect<T0<X0>>::check_type<X0>();
+
+  check_variadic_transform<
+    test_list, T0, T1
+  >::expect<
+    T0<X0>, T1<X1>
+  >::check_type<
+    X0, X1
+  >();
+
+  check_variadic_transform<
+    test_list, T0, T1, T2
+  >::expect<
+    T0<X0>, T1<X1>, T2<X2>
+  >::check_type<
+    X0, X1, X2
+  >();
+
+  check_variadic_transform<
+    test_list, T0, T1, T2, T3
+  >::expect<
+    T0<X0>, T1<X1>, T2<X2>, T3<X3>
+  >::check_type<
+    X0, X1, X2, X3
+  >();
+}
+
+TEST(variadic_transform, arithmetic_transform) {
+  check_variadic_transform<
+    arithmetic_transform::add,
+    op<5>::mul, op<3>::mul, op<1>::mul, op<0>::mul, op<2>::mul
+  >::expect<
+    int_val<5 * 1 + 3 * 2 + 1 * 3 + 0 * 4 + 2 * 5>
+  >::check_value<
+    int_val<1>, int_val<2>, int_val<3>, int_val<4>, int_val<5>
+  >();
+}
+
+TEST(variadic_transform, comparison_transform) {
+  check_variadic_transform<
+    comparison_transform::less_than,
+    identity_transform, identity_transform
+  >::check_value<
+    std::true_type,
+    int_val<1>, int_val<2>
+  >();
+
+  check_variadic_transform<
+    comparison_transform::less_than,
+    identity_transform, op<9>::mul
+  >::check_value<
+    std::true_type,
+    int_val<1>, int_val<2>
+  >();
+
+  check_variadic_transform<
+    comparison_transform::less_than,
+    op<5>::mul, identity_transform
+  >::check_value<
+    std::false_type,
+    int_val<1>, int_val<2>
+  >();
+
+  check_variadic_transform<
+    comparison_transform::less_than,
+    op<3>::mul, op<3>::mul
+  >::check_value<
+    std::true_type,
+    int_val<1>, int_val<2>
+  >();
+
+  check_variadic_transform<
+    comparison_transform::less_than,
+    op<5>::mul, op<2>::mul
+  >::check_value<
+    std::false_type,
+    int_val<1>, int_val<2>
+  >();
+
+  check_variadic_transform<
+    comparison_transform::less_than,
+    op<5>::mul, op<9>::mul
+  >::check_value<
+    std::true_type,
+    int_val<1>, int_val<2>
+  >();
 }
 
 ///////////////////////////

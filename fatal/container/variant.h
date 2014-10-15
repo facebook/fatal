@@ -1303,7 +1303,7 @@ public:
     return set<U>(value);
   }
 
-  template <typename U, typename X = safe_ctor_overload_t<variant, U>>
+  template <typename U, typename = safe_ctor_overload_t<variant, U>>
   U &operator =(U &&value) {
     return set<U>(std::forward<U>(value));
   }

@@ -281,8 +281,7 @@ struct safe_ctor_overload<Class, T>:
  */
 template <typename Class, typename... Args>
 using safe_ctor_overload_t = typename std::enable_if<
-  safe_ctor_overload<Class, Args...>::value,
-  void
+  safe_ctor_overload<Class, Args...>::value
 >::type;
 
 /**

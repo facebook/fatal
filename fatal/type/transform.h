@@ -190,6 +190,14 @@ using is_zero_transform = std::integral_constant<bool, T::value == 0>;
 template <typename T>
 using not_zero_transform = std::integral_constant<bool, T::value != 0>;
 
+//////////////////////
+// sizeof_transform //
+//////////////////////
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using sizeof_transform = std::integral_constant<std::size_t, sizeof(T)>;
+
 ////////////////////////
 // transform_sequence //
 ////////////////////////
@@ -814,6 +822,7 @@ struct get_member_typedef {
   FATAL_IMPL_GET_MEMBER_TYPEDEF(allocator);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(args);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(array);
+  FATAL_IMPL_GET_MEMBER_TYPEDEF(config);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(const_iterator);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(const_pointer);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(const_reference);
@@ -822,7 +831,9 @@ struct get_member_typedef {
   FATAL_IMPL_GET_MEMBER_TYPEDEF(element);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(first);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(flag);
+  FATAL_IMPL_GET_MEMBER_TYPEDEF(id);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(index);
+  FATAL_IMPL_GET_MEMBER_TYPEDEF(item);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(iterator);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(key);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(list);
@@ -841,6 +852,7 @@ struct get_member_typedef {
   FATAL_IMPL_GET_MEMBER_TYPEDEF(tuple);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(value);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(values);
+  FATAL_IMPL_GET_MEMBER_TYPEDEF(version);
 
 # undef FATAL_IMPL_GET_MEMBER_TYPEDEF
 };
@@ -919,6 +931,93 @@ struct conditional_transform {
     TPredicate<T>::value, TWhenTrueTransform, TWhenFalseTransform, T
   >::type;
 };
+
+//////////////////////
+// transform_traits //
+//////////////////////
+
+// TODO: DOCUMENT
+template <template <typename...> class TTransform>
+struct transform_traits {
+  template <typename> struct dummy;
+
+  template <typename T>
+  static std::true_type sfinae(dummy<TTransform<T>> *);
+  template <typename> static std::false_type sfinae(...);
+
+  // TODO: DOCUMENT
+  template <typename T>
+  using supports = decltype(sfinae<T>(nullptr));
+};
+
+///////////////////
+// try_transform //
+///////////////////
+
+// TODO: DOCUMENT AND TEST
+template <
+  template <typename...> class TTransform,
+  template <typename...> class TFallback = identity_transform
+>
+struct try_transform {
+  template <typename T>
+  using apply = typename conditional_transform<
+    transform_traits<TTransform>::template supports,
+    TTransform,
+    TFallback
+  >::template apply<T>;
+};
+
+//////////////////////////
+// transform_aggregator //
+//////////////////////////
+
+/**
+ * TODO: DOCUMENT AND TEST
+ * TODO: review member_transform_stack now that we have this
+ * TODO: review recursive_transform now that we have this
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  template <typename...> class TAggregator,
+  template <typename...> class... TTransforms
+>
+struct transform_aggregator {
+  template <typename T>
+  using apply = TAggregator<TTransforms<T>...>;
+};
+
+////////////////////////
+// variadic_transform //
+////////////////////////
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  template <typename...> class TCombiner,
+  template <typename...> class... TTransforms
+>
+//* TODO: CHOOSE AN IMPLEMENTATION
+class variadic_transform {
+  template <typename... Args>
+  struct impl {
+    using type = TCombiner<TTransforms<Args>...>;
+  };
+
+public:
+  template <typename... Args>
+  using apply = typename impl<Args...>::type;
+};
+/*/
+class variadic_transform {
+  template <typename... Args>
+  using apply = TCombiner<TTransforms<Args>...>;
+};
+//*/
 
 ///////////////////////////
 // type_member_transform //
@@ -1148,21 +1247,9 @@ using transform_switch = detail::transform_switch_impl::select<
   TFallback, Args...
 >;
 
-/**
- * TODO: DOCUMENT AND TEST
- * TODO: review member_transform_stack now that we have this
- * TODO: review recursive_transform now that we have this
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <
-  template <typename...> class TAggregator,
-  template <typename...> class... TTransforms
->
-struct transform_aggregator {
-  template <typename T>
-  using apply = TAggregator<TTransforms<T>...>;
-};
+///////////////////////////////
+// identity_transform_switch //
+///////////////////////////////
 
 /**
  * A convenience version of `transform_switch` that uses `identity_transform`
@@ -1172,6 +1259,49 @@ struct transform_aggregator {
  */
 template <template <typename...> class... Args>
 using identity_transform_switch = transform_switch<identity_transform, Args...>;
+
+//////////////////////
+// member_transform //
+//////////////////////
+
+// TODO: DOCUMENT AND TEST
+/**
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_MEMBER_TRANSFORM(Name, Member) \
+  template < \
+    template <typename...> class TPreTransform = identity_transform, \
+    template <typename...> class TPostTransform = identity_transform \
+  > \
+  struct Name { \
+    template <typename... Args> \
+    struct bind { \
+      template <typename T, typename... UArgs> \
+      using use = TPostTransform< \
+        typename TPreTransform<T>::template Member<Args..., UArgs...> \
+      >; \
+    }; \
+    \
+    template <typename T, typename... Args> \
+    using use = typename bind<>::template use<T, Args...>; \
+  }
+
+// TODO: DOCUMENT AND TEST
+/**
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct member_transform {
+# define FATAL_IMPL_BIND_MEMBER_TRANSFORM(Name) \
+    FATAL_MEMBER_TRANSFORM(Name, Name)
+
+  // TODO: POPULATE WITH WELL KNOWN MEMBER TRANSFORMS
+  FATAL_IMPL_BIND_MEMBER_TRANSFORM(push_front);
+  FATAL_IMPL_BIND_MEMBER_TRANSFORM(push_back);
+
+# undef FATAL_IMPL_BIND_MEMBER_TRANSFORM
+};
 
 ////////////////////////
 // member_transformer //
@@ -1188,15 +1318,9 @@ using identity_transform_switch = transform_switch<identity_transform, Args...>;
     template <typename...> class TPostTransform = identity_transform \
   > \
   struct Name { \
-    template < \
-      template <typename...> class TTransform, \
-      typename... Args \
-    > \
+    template <template <typename...> class TTransform, typename... Args> \
     struct bind { \
-      template < \
-        typename T, \
-        typename... UArgs \
-      > \
+      template <typename T, typename... UArgs> \
       using use = TPostTransform< \
         typename TPreTransform<T>::template Member< \
           TTransform, Args..., UArgs... \
@@ -1233,7 +1357,7 @@ struct member_transformer {
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(sort);
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(unique);
 
-#undef FATAL_IMPL_BIND_MEMBER_TRANSFORMER
+# undef FATAL_IMPL_BIND_MEMBER_TRANSFORMER
 };
 
 //////////////////////////////
