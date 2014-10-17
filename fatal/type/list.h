@@ -1711,23 +1711,29 @@ struct type_list {
    * Returns a type pair with two sublists resulting from splitting this
    * list at `Index`.
    *
-   * `Index` defaults to `size / 2` which is equivalent to splitting the
-   * list in half.
+   * By default, when `Index` is not specified, the list is split in half.
    *
    * This is the same as `type_pair<left<Index>, tail<Index>>`.
    *
    * Example:
    *
-   *  typedef type_list<A, B, C, D> types;
+   *  // yields `type_pair<type_list<A, B>, type_list<C, D>>`
+   *  using result1 = type_list<A, B, C, D>::split<>;
+   *
+   *  // yields `type_pair<type_list<A, B>, type_list<C, D, E>>`
+   *  using result2 = type_list<A, B, C, D, E>::split<>;
    *
    *  // yields `type_pair<type_list<A, B>, type_list<C, D>>`
-   *  typedef types::split<2> result1;
+   *  using result3 = type_list<A, B, C, D>::split<>;
+   *
+   *  // yields `type_pair<type_list<A, B>, type_list<C, D>>`
+   *  using result4 = type_list<A, B, C, D>::split<2>;
    *
    *  // yields `type_pair<type_list<>, type_list<A, B, C, D>>`
-   *  typedef types::split<0> result1;
+   *  using result5 = type_list<A, B, C, D>::split<0>;
    *
    *  // yields `type_pair<type_list<A, B, C, D>, type_list<>>`
-   *  typedef types::split<types::size> result1;
+   *  using result6 = type_list<A, B, C, D>::split<types::size>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
