@@ -114,6 +114,21 @@ TEST(variadic_union, list) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_LIST);
 }
 
+///////////////////////////////
+// variadic_union::tidy_list //
+///////////////////////////////
+
+#define FATAL_IMPL_CHECK_TIDY_LIST(...) \
+  do { \
+    using type = variadic_union<__VA_ARGS__>; \
+    using expected = type_list<__VA_ARGS__>::unique<>; \
+    FATAL_EXPECT_SAME<expected, typename type::tidy_list>(); \
+  } while (false)
+
+TEST(variadic_union, tidy_list) {
+  FATAL_IMPL_CALL(FATAL_IMPL_CHECK_TIDY_LIST);
+}
+
 //////////////////////////////
 // variadic_union::supports //
 //////////////////////////////
