@@ -58,6 +58,9 @@ struct test_list {
   using transform = test_list<TTransform<Args>...>;
 };
 
+template <bool... Values>
+using bool_seq = test_list<std::integral_constant<bool, Values>...>;
+
 template <typename T, T...> struct test_seq {};
 
 template <typename> struct is_list: std::false_type {};
@@ -321,27 +324,88 @@ TEST(arithmetic_transform, modulo) {
 // logical_transform //
 ///////////////////////
 
-template <typename A, typename B, typename C>
-using all_equal_test_impl = logical_transform::all<
-  std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
->;
+#define FATAL_TEST_IMPL(TTransform, Expected, ...) \
+  do { \
+    bool actual = bool_seq<__VA_ARGS__>::apply< \
+      logical_transform::TTransform \
+    >::value; \
+    bool expected = Expected; \
+    EXPECT_EQ(expected, actual); \
+  } while (false)
 
 TEST(logical_transform, all) {
-  EXPECT_FALSE((all_equal_test_impl<int, bool, double>::value));
-  EXPECT_FALSE((all_equal_test_impl<int, bool, int>::value));
-  EXPECT_TRUE((all_equal_test_impl<int, int, int>::value));
-}
+  FATAL_TEST_IMPL(all, true, true);
+  FATAL_TEST_IMPL(all, false, false);
 
-template <typename A, typename B, typename C>
-using has_duplicate_test_impl = logical_transform::any<
-  std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
->;
+  FATAL_TEST_IMPL(all, true, true, true);
+  FATAL_TEST_IMPL(all, false, true, false);
+  FATAL_TEST_IMPL(all, false, false, true);
+  FATAL_TEST_IMPL(all, false, false, false);
+
+  FATAL_TEST_IMPL(all, true, true, true, true);
+  FATAL_TEST_IMPL(all, false, true, true, false);
+  FATAL_TEST_IMPL(all, false, true, false, true);
+  FATAL_TEST_IMPL(all, false, true, false, false);
+  FATAL_TEST_IMPL(all, false, false, true, true);
+  FATAL_TEST_IMPL(all, false, false, true, false);
+  FATAL_TEST_IMPL(all, false, false, false, true);
+  FATAL_TEST_IMPL(all, false, false, false, false);
+
+  FATAL_TEST_IMPL(all, true, true, true, true, true);
+  FATAL_TEST_IMPL(all, false, true, true, true, false);
+  FATAL_TEST_IMPL(all, false, true, true, false, true);
+  FATAL_TEST_IMPL(all, false, true, true, false, false);
+  FATAL_TEST_IMPL(all, false, true, false, true, true);
+  FATAL_TEST_IMPL(all, false, true, false, true, false);
+  FATAL_TEST_IMPL(all, false, true, false, false, true);
+  FATAL_TEST_IMPL(all, false, true, false, false, false);
+  FATAL_TEST_IMPL(all, false, false, true, true, true);
+  FATAL_TEST_IMPL(all, false, false, true, true, false);
+  FATAL_TEST_IMPL(all, false, false, true, false, true);
+  FATAL_TEST_IMPL(all, false, false, true, false, false);
+  FATAL_TEST_IMPL(all, false, false, false, true, true);
+  FATAL_TEST_IMPL(all, false, false, false, true, false);
+  FATAL_TEST_IMPL(all, false, false, false, false, true);
+  FATAL_TEST_IMPL(all, false, false, false, false, false);
+}
 
 TEST(logical_transform, any) {
-  EXPECT_FALSE((has_duplicate_test_impl<int, bool, double>::value));
-  EXPECT_TRUE((has_duplicate_test_impl<int, bool, int>::value));
-  EXPECT_TRUE((has_duplicate_test_impl<int, int, int>::value));
+  FATAL_TEST_IMPL(any, true, true);
+  FATAL_TEST_IMPL(any, false, false);
+
+  FATAL_TEST_IMPL(any, true, true, true);
+  FATAL_TEST_IMPL(any, true, true, false);
+  FATAL_TEST_IMPL(any, true, false, true);
+  FATAL_TEST_IMPL(any, false, false, false);
+
+  FATAL_TEST_IMPL(any, true, true, true, true);
+  FATAL_TEST_IMPL(any, true, true, true, false);
+  FATAL_TEST_IMPL(any, true, true, false, true);
+  FATAL_TEST_IMPL(any, true, true, false, false);
+  FATAL_TEST_IMPL(any, true, false, true, true);
+  FATAL_TEST_IMPL(any, true, false, true, false);
+  FATAL_TEST_IMPL(any, true, false, false, true);
+  FATAL_TEST_IMPL(any, false, false, false, false);
+
+  FATAL_TEST_IMPL(any, true, true, true, true, true);
+  FATAL_TEST_IMPL(any, true, true, true, true, false);
+  FATAL_TEST_IMPL(any, true, true, true, false, true);
+  FATAL_TEST_IMPL(any, true, true, true, false, false);
+  FATAL_TEST_IMPL(any, true, true, false, true, true);
+  FATAL_TEST_IMPL(any, true, true, false, true, false);
+  FATAL_TEST_IMPL(any, true, true, false, false, true);
+  FATAL_TEST_IMPL(any, true, true, false, false, false);
+  FATAL_TEST_IMPL(any, true, false, true, true, true);
+  FATAL_TEST_IMPL(any, true, false, true, true, false);
+  FATAL_TEST_IMPL(any, true, false, true, false, true);
+  FATAL_TEST_IMPL(any, true, false, true, false, false);
+  FATAL_TEST_IMPL(any, true, false, false, true, true);
+  FATAL_TEST_IMPL(any, true, false, false, true, false);
+  FATAL_TEST_IMPL(any, true, false, false, false, true);
+  FATAL_TEST_IMPL(any, false, false, false, false, false);
 }
+
+#undef FATAL_TEST_IMPL
 
 TEST(logical_transform, negate) {
   EXPECT_TRUE(logical_transform::negate<std::false_type>::value);
