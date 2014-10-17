@@ -234,11 +234,11 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename T, typename... UArgs>
-  T &construct(UArgs &&...args)
-    noexcept(noexcept(T(std::forward<UArgs>(args)...)))
+  template <typename T, typename... TArgs>
+  T &construct(TArgs &&...args)
+    noexcept(noexcept(T(std::forward<TArgs>(args)...)))
   {
-    return *new (pointer<T>()) T(std::forward<UArgs>(args)...);
+    return *new (pointer<T>()) T(std::forward<TArgs>(args)...);
   }
 
   /**

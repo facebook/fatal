@@ -136,6 +136,9 @@ template <typename...> using false_predicate = std::false_type;
  * A transform which casts the given type's `value` member to type `TTo`.
  * Returns a `std::integral_constant` of type `TTo`.
  *
+ * There's a specialization for when `TTo` is `bool` that either returns
+ * `std::true_type` or `std::false_type`.
+ *
  * TODO: DOCUMENT AND TEST
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
@@ -144,6 +147,16 @@ template <typename TTo>
 struct cast_transform {
   template <typename T>
   using apply = std::integral_constant<TTo, static_cast<TTo>(T::value)>;
+};
+
+template <>
+struct cast_transform<bool> {
+  template <typename T>
+  using apply = typename std::conditional<
+    static_cast<bool>(T::value),
+    std::true_type,
+    std::false_type
+  >;
 };
 
 /**
