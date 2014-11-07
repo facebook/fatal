@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_tuple_tags_h
+#define FATAL_INCLUDE_fatal_type_tuple_tags_h
 
 #include <fatal/type/list.h>
 #include <fatal/type/map.h>
@@ -26,6 +27,14 @@ struct tuple_tags {
    */
   using list = type_list<TTags...>;
 
+private:
+  template <typename TTag>
+  struct index_of_impl {
+    using type = typename list::template index_of<TTag>;
+    static_assert(type::value < list::size, "unsupported tag");
+  };
+
+public:
   /**
    * Gets the index associated with a given tag.
    *
@@ -49,7 +58,7 @@ struct tuple_tags {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename TTag>
-  using index_of = typename list::template index_of<TTag>;
+  using index_of = typename index_of_impl<TTag>::type;
 
   /**
    * Gets the type of the tuple's element associated with a given tag.
@@ -132,3 +141,5 @@ struct tuple_tags {
 };
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_tuple_tags_h
