@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_list_h
+#define FATAL_INCLUDE_fatal_type_list_h
 
 #include <fatal/type/pair.h>
 #include <fatal/type/tag.h>
@@ -289,7 +290,7 @@ struct conditional_visit<true> {
 };
 
 template <
-  template <typename...> class TCondition, std::size_t Index, typename...
+  template <typename...> class TPredicate, std::size_t Index, typename...
 >
 struct foreach_if {
   template <typename V, typename... VArgs>
@@ -297,17 +298,17 @@ struct foreach_if {
 };
 
 template <
-  template <typename...> class TCondition,
+  template <typename...> class TPredicate,
   std::size_t Index, typename U, typename... UArgs
 >
-struct foreach_if<TCondition, Index, U, UArgs...> {
+struct foreach_if<TPredicate, Index, U, UArgs...> {
   template <typename V, typename... VArgs>
   static constexpr std::size_t visit(V &&visitor, VArgs &&...args) {
-    return conditional_visit<TCondition<U>::value>::visit(
+    return conditional_visit<TPredicate<U>::value>::visit(
       std::forward<V>(visitor),
       indexed_type_tag<U, Index>(),
       std::forward<VArgs>(args)...
-    ) + foreach_if<TCondition, Index + 1, UArgs...>::visit(
+    ) + foreach_if<TPredicate, Index + 1, UArgs...>::visit(
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
     );
@@ -1282,13 +1283,15 @@ struct type_list {
   >::type;
 
   /**
-   * Applies the elements of this list to the variadic template `T`. There's
-   * an optional transform `TTransform` that can be applied to each element
-   * of this list beforehand.
+   * Applies the elements of this list to the variadic template `T`.
    *
-   * When `TTransform` is specified, this is the same as
+   * Since it's common to transform the list before applying it to a template,
+   * there's an optional sequence of transforms `TTransforms` that can be
+   * applied, in order, to each element of this list beforehand.
    *
-   *  type_list::transform<TTransform>::apply<T>
+   * When `TTransforms` is specified, this is the same as
+   *
+   *  type_list::transform<TTransforms...>::apply<T>
    *
    * Example:
    *
@@ -1306,10 +1309,10 @@ struct type_list {
    */
   template <
     template <typename...> class T,
-    template <typename...> class... TTransforms
+    template <typename...> class... TPreTransforms
   >
-  using apply = T<
-    typename transform_sequence<TTransforms...>::template apply<Args>...
+  using apply = fatal::apply<
+    T, typename transform_sequence<TPreTransforms...>::template apply<Args>...
   >;
 
   /**
@@ -1404,7 +1407,7 @@ struct type_list {
 
   /**
    * Calls the given visitor for each type in the list that yields true when
-   * fed to the given condition `TCondition`.
+   * fed to the given condition `TPredicate`.
    *
    * No code for calling the visitor will be generated when the condition is
    * `false`.
@@ -1447,10 +1450,10 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TCondition, typename V, typename... VArgs
+    template <typename...> class TPredicate, typename V, typename... VArgs
   >
   static constexpr std::size_t foreach_if(V &&visitor, VArgs &&...args) {
-    return detail::type_list_impl::foreach_if<TCondition, 0, Args...>::visit(
+    return detail::type_list_impl::foreach_if<TPredicate, 0, Args...>::visit(
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
     );
@@ -1575,20 +1578,20 @@ struct type_list {
   }
 
   /**
-   * Sequentially applies each transform `TTransforms`
+   * Applies each transform `TTransforms`, in the order they are given,
    * to every element of this list.
    *
    * Example:
    *
    *  template <typename> struct T {};
    *  template <typename> struct U {};
-   *  typedef type_list<A, B, C> types;
+   *  using types = type_list<A, B, C>;
    *
    *  // yields `type_list<T<A>, T<B>, T<C>>`
-   *  types::transform<T>
+   *  using result1 = types::transform<T>;
    *
    *  // yields `type_list<U<T<A>>, U<T<B>>, U<T<C>>>`
-   *  types::transform<T, U>
+   *  using result2 = types::transform<T, U>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -2308,7 +2311,7 @@ struct type_list {
     static constexpr bool exact(
       TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
     ) {
-      return type_list::template apply<
+      return apply<
         detail::type_list_impl::binary_search_exact
       >::template search<TComparer, 0>(
         std::forward<TNeedle>(needle),
@@ -2357,7 +2360,7 @@ struct type_list {
     static constexpr bool lower_bound(
       TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
     ) {
-      return type_list::template apply<
+      return apply<
         detail::type_list_impl::binary_search_lower_bound
       >::template search<TComparer>(
         std::forward<TNeedle>(needle),
@@ -2403,7 +2406,7 @@ struct type_list {
     static constexpr bool upper_bound(
       TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
     ) {
-      return type_list::template apply<
+      return apply<
         detail::type_list_impl::binary_search_upper_bound
       >::template search<TComparer, 0>(
         std::forward<TNeedle>(needle),
@@ -2422,3 +2425,5 @@ template <typename... Args> constexpr std::size_t type_list<Args...>::size;
 template <typename... Args> constexpr bool type_list<Args...>::empty;
 
 } // namespace fatal
+
+#endif // FATAL_INCLUDE_fatal_type_list_h

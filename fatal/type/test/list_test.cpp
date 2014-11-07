@@ -1102,31 +1102,27 @@ TEST(flatten, flatten) {
 // type_list::is_sorted //
 //////////////////////////
 
-template <bool IsSorted, int... Values>
-void check_is_sorted() {
-  typedef int_seq<Values...> list;
-
-  if (list::template is_sorted<>::value != IsSorted) {
-    LOG(ERROR) << "list: '" << folly::demangle(typeid(list).name()) << '\'';
-    bool b = IsSorted;
-    EXPECT_EQ(
-      b,
-      (list::template is_sorted<>::value)
-    );
-  }
-}
+#define CHECK_IS_SORTED(Expected, ...) \
+  do { \
+    FATAL_EXPECT_SAME< \
+      std::integral_constant<bool, Expected>, \
+      int_seq<__VA_ARGS__>::is_sorted<> \
+    >(); \
+  } while (false)
 
 TEST(is_sorted, is_sorted) {
-  check_is_sorted<true>();
-  check_is_sorted<true, 0>();
-  check_is_sorted<true, 0, 1>();
-  check_is_sorted<true, 1, 1>();
-  check_is_sorted<true, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>();
-  check_is_sorted<true, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1>();
+  CHECK_IS_SORTED(true);
+  CHECK_IS_SORTED(true, 0);
+  CHECK_IS_SORTED(true, 0, 1);
+  CHECK_IS_SORTED(true, 1, 1);
+  CHECK_IS_SORTED(true, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+  CHECK_IS_SORTED(true, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 
-  check_is_sorted<false, 1, 0>();
-  check_is_sorted<false, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0>();
+  CHECK_IS_SORTED(false, 1, 0);
+  CHECK_IS_SORTED(false, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
+
+#undef CHECK_IS_SORTED
 
 //////////////////////
 // type_list::merge //
@@ -1137,8 +1133,8 @@ void check_merge_impl() {
   using expected = int_seq<Expected...> ;
 
   if (!std::is_same<expected, TActual>::value) {
-    LOG(INFO) << "lhs: '" << type_str<TLHS>() << '\'';
-    LOG(INFO) << "rhs: '" << type_str<TRHS>() << '\'';
+    VLOG(1) << "lhs: '" << type_str<TLHS>() << '\'';
+    VLOG(1) << "rhs: '" << type_str<TRHS>() << '\'';
   }
 
   FATAL_EXPECT_SAME<expected, TActual>();
@@ -1206,8 +1202,8 @@ void check_sort() {
   typedef typename sorted::template apply_values<int, int_seq> actual;
 
   if (!is_sorted || !std::is_same<expected, actual>::value) {
-    LOG(INFO) << "input: '" << folly::demangle(typeid(input).name()) << '\'';
-    LOG(INFO) << "result: '" << folly::demangle(typeid(actual).name()) << '\'';
+    VLOG(1) << "input: '" << folly::demangle(typeid(input).name()) << '\'';
+    VLOG(1) << "result: '" << folly::demangle(typeid(actual).name()) << '\'';
   }
 
   EXPECT_TRUE(is_sorted);
@@ -1317,26 +1313,26 @@ void check_bs_exact() {
 TEST(binary_search, exact) {
   typedef chr_seq<> empty;
 
-  LOG(INFO) << "empty";
+  VLOG(1) << "empty";
   check_bs_exact<char, false, '-', empty::size, empty, '\0'>();
   check_bs_exact<int,  false, 3,   empty::size, empty, -1>();
 
   typedef chr_seq<'x'> one;
 
-  LOG(INFO) << "one";
+  VLOG(1) << "one";
   check_bs_exact<char, false, '-', one::size, one, '\0'>();
   check_bs_exact<char, true,  'x', 0, one, '\0'>();
 
   typedef chr_seq<'x', 'y'> two;
 
-  LOG(INFO) << "two";
+  VLOG(1) << "two";
   check_bs_exact<char, false, '-', two::size, two, '\0'>();
   check_bs_exact<char, true,  'x', 0, two, '\0'>();
   check_bs_exact<char, true,  'y', 1, two, '\0'>();
 
   typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
 
-  LOG(INFO) << "aeiou";
+  VLOG(1) << "aeiou";
   check_bs_exact<char, false, 'x', aeiou::size, aeiou, '\0'>();
 
   check_bs_exact<char, true, 'a', 0, aeiou, '\0'>();
@@ -1347,7 +1343,7 @@ TEST(binary_search, exact) {
 
   typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287, 2147483647> mp;
 
-  LOG(INFO) << "mp";
+  VLOG(1) << "mp";
   check_bs_exact<int, false, -1,         mp::size, mp, -1>();
   check_bs_exact<int, false, 0,          mp::size, mp, -1>();
   check_bs_exact<int, false, 63,         mp::size, mp, -1>();
@@ -1390,20 +1386,20 @@ void check_bs_lower_bound() {
 TEST(binary_search, lower_bound) {
   typedef chr_seq<> empty;
 
-  LOG(INFO) << "empty";
+  VLOG(1) << "empty";
   check_bs_lower_bound<char, false, '-', '\0', empty::size, empty, '\0'>();
   check_bs_lower_bound<int,  false, 3,   -1,   empty::size, empty, -1>();
 
   typedef chr_seq<'x'> one;
 
-  LOG(INFO) << "one";
+  VLOG(1) << "one";
   check_bs_lower_bound<char, false, 'w', '\0', one::size, one, '\0'>();
   check_bs_lower_bound<char, true,  'x', 'x',  0, one, '\0'>();
   check_bs_lower_bound<char, true,  'y', 'x',  0, one, '\0'>();
 
   typedef chr_seq<'x', 'y'> two;
 
-  LOG(INFO) << "two";
+  VLOG(1) << "two";
   check_bs_lower_bound<char, false, 'w', '\0', two::size, two, '\0'>();
   check_bs_lower_bound<char, true,  'x', 'x',  0, two, '\0'>();
   check_bs_lower_bound<char, true,  'y', 'y',  1, two, '\0'>();
@@ -1411,7 +1407,7 @@ TEST(binary_search, lower_bound) {
 
   typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
 
-  LOG(INFO) << "aeiou";
+  VLOG(1) << "aeiou";
   check_bs_lower_bound<char, false, 'a' - 1, '\0', aeiou::size, aeiou, '\0'>();
   check_bs_lower_bound<char, true,  'a',     'a',  0, aeiou, '\0'>();
   check_bs_lower_bound<char, true,  'e',     'e',  1, aeiou, '\0'>();
@@ -1422,7 +1418,7 @@ TEST(binary_search, lower_bound) {
 
   typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287> mp;
 
-  LOG(INFO) << "mp";
+  VLOG(1) << "mp";
   check_bs_lower_bound<int, false, -1,        -1,     mp::size, mp, -1>();
   check_bs_lower_bound<int, false, 0,         -1,     mp::size, mp, -1>();
   check_bs_lower_bound<int, false, 2,         -1,     mp::size, mp, -1>();
@@ -1476,20 +1472,20 @@ void check_bs_upper_bound() {
 TEST(binary_search, upper_bound) {
   typedef chr_seq<> empty;
 
-  LOG(INFO) << "empty";
+  VLOG(1) << "empty";
   check_bs_upper_bound<char, false, '-', '\0', empty::size, empty, '\0'>();
   check_bs_upper_bound<int,  false, 3,   -1,   empty::size, empty, -1>();
 
   typedef chr_seq<'x'> one;
 
-  LOG(INFO) << "one";
+  VLOG(1) << "one";
   check_bs_upper_bound<char, true,  'w', 'x',  0, one, '\0'>();
   check_bs_upper_bound<char, false, 'x', '\0', one::size, one, '\0'>();
   check_bs_upper_bound<char, false, 'y', '\0', one::size, one, '\0'>();
 
   typedef chr_seq<'x', 'y'> two;
 
-  LOG(INFO) << "two";
+  VLOG(1) << "two";
   check_bs_upper_bound<char, true,  'w', 'x',  0, two, '\0'>();
   check_bs_upper_bound<char, true,  'x', 'y',  1, two, '\0'>();
   check_bs_upper_bound<char, false, 'y', '\0', two::size, two, '\0'>();
@@ -1497,7 +1493,7 @@ TEST(binary_search, upper_bound) {
 
   typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
 
-  LOG(INFO) << "aeiou";
+  VLOG(1) << "aeiou";
   check_bs_upper_bound<char, true, 'a' - 1, 'a',  0, aeiou, '\0'>();
   check_bs_upper_bound<char, true, 'a',     'e',  1, aeiou, '\0'>();
   check_bs_upper_bound<char, true, 'e',     'i',  2, aeiou, '\0'>();
@@ -1507,7 +1503,7 @@ TEST(binary_search, upper_bound) {
 
   typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287> mp;
 
-  LOG(INFO) << "mp";
+  VLOG(1) << "mp";
   check_bs_upper_bound<int, true,  -1,         3,      0, mp, -1>();
   check_bs_upper_bound<int, true,  0,          3,      0, mp, -1>();
   check_bs_upper_bound<int, true,  2,          3,      0, mp, -1>();
