@@ -7,7 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_debug_h
+#define FATAL_INCLUDE_fatal_type_debug_h
+
+#include <fatal/preprocessor.h>
 
 namespace fatal {
 
@@ -16,4 +19,16 @@ template <typename...> struct debug_type;
 // TODO: DOCUMENT
 #define FATAL_DEBUG_TYPE(...) decltype(::fatal::debug_type<__VA_ARGS__>())
 
+#define FATAL_DEBUG_TYPE_OF(...) FATAL_DEBUG_TYPE(decltype(__VA_ARGS__))
+
+// TODO: DOCUMENT
+#define FATAL_DEBUG_STMT_TYPE(...) \
+  do { \
+    ::fatal::debug_type<__VA_ARGS__> FATAL_UID(debug_type); \
+  } while (false)
+
+#define FATAL_DEBUG_STMT_TYPE_OF(...) FATAL_DO_DEBUG_TYPE(decltype(__VA_ARGS__))
+
 } // namespace fatal
+
+#endif // FATAL_INCLUDE_fatal_type_debug_h
