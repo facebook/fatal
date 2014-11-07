@@ -35,6 +35,13 @@ template <typename...> struct V1 {};
 template <typename...> struct V2 {};
 template <typename...> struct V3 {};
 
+template <typename TFirst, typename TSecond, typename TThird>
+struct test_triplet {
+  using first = TFirst;
+  using second = TSecond;
+  using third = TThird;
+};
+
 template <int Value> using int_val = std::integral_constant<int, Value>;
 template <int Value>
 struct op {
@@ -649,6 +656,15 @@ TEST(transform_traits, supports) {
   CHECK_SUPPORTS(false, int, get_type);
   CHECK_SUPPORTS(true, std::decay<int>, get_type);
 
+  using pair = std::pair<short, double>;
+  CHECK_SUPPORTS(true, pair, type_get_first);
+  CHECK_SUPPORTS(true, pair, type_get_second);
+/* TODO: Fix this
+  CHECK_SUPPORTS(false, pair, type_get_third);
+  CHECK_SUPPORTS(false, pair, type_get_fourth);
+  CHECK_SUPPORTS(false, pair, type_get_fifth);
+*/
+
 # undef CHECK_SUPPORTS
 }
 
@@ -676,8 +692,76 @@ TEST(try_transform, try_transform) {
 // transform_aggregator //
 //////////////////////////
 
-TEST(transform_aggregator, transform_aggregator) {
-  EXPECT_TRUE(!"TODO: IMPLEMENT");
+TEST(transform_aggregator, decay) {
+  FATAL_EXPECT_SAME<
+    std::decay<T0<int>>,
+    transform_aggregator<std::decay, T0>::apply<int>
+  >();
+}
+
+TEST(transform_aggregator, is_same) {
+  FATAL_EXPECT_SAME<
+    std::is_same<T0<int>, T1<int>>,
+    transform_aggregator<std::is_same, T0, T1>::apply<int>
+  >();
+}
+
+TEST(transform_aggregator, pair) {
+  FATAL_EXPECT_SAME<
+    std::pair<T0<int>, T1<int>>,
+    transform_aggregator<std::pair, T0, T1>::apply<int>
+  >();
+}
+
+TEST(transform_aggregator, triplet) {
+  FATAL_EXPECT_SAME<
+    test_triplet<T0<int>, T1<int>, T2<int>>,
+    transform_aggregator<test_triplet, T0, T1, T2>::apply<int>
+  >();
+}
+
+TEST(transform_aggregator, tuple) {
+  FATAL_EXPECT_SAME<
+    std::tuple<>,
+    transform_aggregator<std::tuple>::apply<int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::tuple<T0<int>>,
+    transform_aggregator<std::tuple, T0>::apply<int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::tuple<T0<int>, T1<int>>,
+    transform_aggregator<std::tuple, T0, T1>::apply<int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::tuple<T0<int>, T1<int>, T2<int>>,
+    transform_aggregator<std::tuple, T0, T1, T2>::apply<int>
+  >();
+}
+
+TEST(transform_aggregator, type_list) {
+  FATAL_EXPECT_SAME<
+    test_list<>,
+    transform_aggregator<test_list>::apply<int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    test_list<T0<int>>,
+    transform_aggregator<test_list, T0>::apply<int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    test_list<T0<int>, T1<int>>,
+    transform_aggregator<test_list, T0, T1>::apply<int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    test_list<T0<int>, T1<int>, T2<int>>,
+    transform_aggregator<test_list, T0, T1, T2>::apply<int>
+  >();
 }
 
 ////////////////////////
@@ -2414,6 +2498,110 @@ TEST(recursive_transform, pre_post_foo_3) {
     T0<test_list<void, T0<test_list<double, bool, T0<test_list<float>>>>, int>>,
     is_T0_list, T1, 3, get_t0, V1
   >();
+}
+
+//////////////
+// type_get //
+//////////////
+
+template <typename, std::size_t, typename...> struct check_type_get_impl;
+
+template <typename T, std::size_t Index, typename TExpected, typename... Args>
+struct check_type_get_impl<T, Index, TExpected, Args...> {
+  static void check() {
+    typedef typename type_get<Index>::template from<T> TActual;
+    FATAL_EXPECT_SAME<TExpected, TActual>();
+    check_type_get_impl<T, Index + 1, Args...>::check();
+  }
+};
+
+template <typename T, std::size_t Index>
+struct check_type_get_impl<T, Index> {
+  static void check() {}
+};
+
+template <typename... Args>
+void check_type_get_std_pair() {
+  check_type_get_impl<std::pair<Args...>, 0, Args...>::check();
+}
+
+TEST(type_get, std_pair) {
+  check_type_get_std_pair<bool, bool>();
+  check_type_get_std_pair<bool, int>();
+  check_type_get_std_pair<int, double>();
+  check_type_get_std_pair<int, std::string>();
+  check_type_get_std_pair<bool, int>();
+  check_type_get_std_pair<std::string, std::string>();
+  check_type_get_std_pair<std::string, float>();
+}
+
+template <typename... Args>
+void check_type_get_std_tuple() {
+  check_type_get_impl<std::tuple<Args...>, 0, Args...>::check();
+}
+
+TEST(type_get, std_tuple) {
+  check_type_get_std_tuple<>();
+  check_type_get_std_tuple<bool>();
+  check_type_get_std_tuple<int, double>();
+  check_type_get_std_tuple<int, int, float>();
+  check_type_get_std_tuple<
+    std::tuple<bool, int>,
+    std::tuple<std::string, std::string>,
+    std::tuple<std::string, std::string, bool>
+  >();
+}
+
+template <int LHS, int RHS>
+class type_get_first_comparer_test {
+  using lhs = std::pair<std::integral_constant<int, LHS>, void>;
+  using rhs = std::pair<std::integral_constant<int, RHS>, double>;
+
+public:
+  template <template <typename...> class TComparer>
+  using comparison = std::integral_constant<
+    bool, TComparer<lhs, rhs>::value
+  >;
+};
+
+TEST(type_get, first_comparer) {
+  EXPECT_TRUE((
+    type_get_first_comparer_test<5, 8>
+      ::comparison<type_get_first_comparer<>::compare>
+      ::value
+  ));
+
+  EXPECT_FALSE((
+    type_get_first_comparer_test<5, 8>::comparison<
+      type_get_first_comparer<comparison_transform::greater_than>::compare
+    >::value
+  ));
+}
+
+template <int LHS, int RHS>
+class type_get_second_comparer_test {
+  using lhs = std::pair<void, std::integral_constant<int, LHS>>;
+  using rhs = std::pair<double, std::integral_constant<int, RHS>>;
+
+public:
+  template <template <typename...> class TComparer>
+  using comparison = std::integral_constant<
+    bool, TComparer<lhs, rhs>::value
+  >;
+};
+
+TEST(type_get, second_comparer) {
+  EXPECT_TRUE((
+    type_get_second_comparer_test<5, 8>
+      ::comparison<type_get_second_comparer<>::compare>
+      ::value
+  ));
+
+  EXPECT_FALSE((
+    type_get_second_comparer_test<5, 8>::comparison<
+      type_get_second_comparer<comparison_transform::greater_than>::compare
+    >::value
+  ));
 }
 
 } // namespace fatal {

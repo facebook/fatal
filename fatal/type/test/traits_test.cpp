@@ -104,58 +104,6 @@ TEST(type_traits, is_template) {
   >();
 }
 
-///////////////////////////
-// curried_type_comparer //
-///////////////////////////
-
-template <typename LHS, typename RHS>
-struct curried_type_comparer_foo {
-  template <template <typename...> class TComparer>
-  using comparison = std::integral_constant<
-    bool, TComparer<LHS, RHS>::value
-  >;
-};
-
-template <int X>
-struct curried_type_comparer_bar {
-  typedef std::integral_constant<int, X> type;
-};
-
-TEST(type_traits, curried_type_comparer) {
-  typedef curried_type_comparer_foo<
-    std::integral_constant<int, 5>,
-    std::integral_constant<int, 8>
-  > values_5_8;
-
-  EXPECT_TRUE((
-    values_5_8::comparison<
-      curried_type_comparer<>::template compare
-    >::value
-  ));
-
-  EXPECT_FALSE((
-    values_5_8::comparison<
-      curried_type_comparer<
-        comparison_transform::greater_than
-      >::template compare
-    >::value
-  ));
-
-  typedef curried_type_comparer_foo<
-    curried_type_comparer_bar<80>,
-    curried_type_comparer_bar<10>
-  > values_80_10;
-
-  EXPECT_TRUE((
-    values_80_10::comparison<
-      curried_type_comparer<
-        comparison_transform::greater_than,
-        get_member_typedef::template type
-      >::template compare
-    >::value
-  ));
-}
-
 ////////////////////////
 // fast_pass_by_value //
 ////////////////////////
@@ -557,54 +505,6 @@ TEST(type_traits, safe_ctor_overload_variadic_t) {
   EXPECT_EQ(ctor::universal, foo.type);
   variadic_overloading_test_t universal(copy, move);
   EXPECT_EQ(ctor::universal, universal.type);
-}
-
-template <typename, std::size_t, typename...> struct check_type_get_impl;
-
-template <typename T, std::size_t Index, typename TExpected, typename... Args>
-struct check_type_get_impl<T, Index, TExpected, Args...> {
-  static void check() {
-    typedef typename type_get<Index>::template from<T> TActual;
-    FATAL_EXPECT_SAME<TExpected, TActual>();
-    check_type_get_impl<T, Index + 1, Args...>::check();
-  }
-};
-
-template <typename T, std::size_t Index>
-struct check_type_get_impl<T, Index> {
-  static void check() {}
-};
-
-template <typename... Args>
-void check_type_get_std_pair() {
-  check_type_get_impl<std::pair<Args...>, 0, Args...>::check();
-}
-
-TEST(type_get, std_pair) {
-  check_type_get_std_pair<bool, bool>();
-  check_type_get_std_pair<bool, int>();
-  check_type_get_std_pair<int, double>();
-  check_type_get_std_pair<int, std::string>();
-  check_type_get_std_pair<bool, int>();
-  check_type_get_std_pair<std::string, std::string>();
-  check_type_get_std_pair<std::string, float>();
-}
-
-template <typename... Args>
-void check_type_get_std_tuple() {
-  check_type_get_impl<std::tuple<Args...>, 0, Args...>::check();
-}
-
-TEST(type_get, std_tuple) {
-  check_type_get_std_tuple<>();
-  check_type_get_std_tuple<bool>();
-  check_type_get_std_tuple<int, double>();
-  check_type_get_std_tuple<int, int, float>();
-  check_type_get_std_tuple<
-    std::tuple<bool, int>,
-    std::tuple<std::string, std::string>,
-    std::tuple<std::string, std::string, bool>
-  >();
 }
 
 } // namespace fatal {

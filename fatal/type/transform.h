@@ -7,15 +7,36 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_transform_h
+#define FATAL_INCLUDE_fatal_type_transform_h
 
 #include <fatal/type/tag.h>
 
 #include <limits>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
 namespace fatal {
+
+///////////
+// apply //
+///////////
+
+namespace detail {
+
+template <template <typename...> class T, typename... Args>
+struct apply_impl { using type = T<Args...>; };
+
+} // namespace detail {
+
+/**
+ * Applies arguments to a transform.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <template <typename...> class TTransform, typename... Args>
+using apply = typename detail::apply_impl<TTransform, Args...>::type;
 
 ////////////////////////
 // identity_transform //
@@ -156,7 +177,7 @@ struct cast_transform<bool> {
     static_cast<bool>(T::value),
     std::true_type,
     std::false_type
-  >;
+  >::type;
 };
 
 /**
@@ -235,16 +256,6 @@ using sizeof_transform = std::integral_constant<std::size_t, sizeof(T)>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace detail {
-
-template <template <typename...> class TTransform, typename... Args>
-struct transform_sequence_impl { using type = TTransform<Args...>; };
-
-template <template <typename> class TTransform, typename T>
-struct transform_sequence_impl<TTransform, T> { using type = TTransform<T>; };
-
-} // namespace detail {
-
 template <template <typename...> class...> struct transform_sequence;
 
 template <
@@ -254,7 +265,7 @@ template <
 struct transform_sequence<TTransform, TTransforms...> {
   template <typename... Args>
   using apply = typename transform_sequence<TTransforms...>::template apply<
-    typename detail::transform_sequence_impl<TTransform, Args...>::type
+    typename fatal::apply<TTransform, Args...>
   >;
 };
 
@@ -844,6 +855,7 @@ struct get_member_typedef {
   FATAL_IMPL_GET_MEMBER_TYPEDEF(element);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(first);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(flag);
+  FATAL_IMPL_GET_MEMBER_TYPEDEF(hash);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(id);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(index);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(item);
@@ -855,6 +867,8 @@ struct get_member_typedef {
   FATAL_IMPL_GET_MEMBER_TYPEDEF(pair);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(pointer);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(reference);
+  FATAL_IMPL_GET_MEMBER_TYPEDEF(result);
+  FATAL_IMPL_GET_MEMBER_TYPEDEF(reverse);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(reverse_iterator);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(second);
   FATAL_IMPL_GET_MEMBER_TYPEDEF(set);
@@ -952,15 +966,17 @@ struct conditional_transform {
 // TODO: DOCUMENT
 template <template <typename...> class TTransform>
 struct transform_traits {
-  template <typename> struct dummy;
+  template <std::size_t> struct dummy;
 
-  template <typename T>
-  static std::true_type sfinae(dummy<TTransform<T>> *);
-  template <typename> static std::false_type sfinae(...);
+  template <typename T, template <typename...> class UTransform>
+  static std::true_type sfinae(dummy<sizeof(UTransform<T>)> *);
+
+  template <typename, template <typename...> class>
+  static std::false_type sfinae(...);
 
   // TODO: DOCUMENT
   template <typename T>
-  using supports = decltype(sfinae<T>(nullptr));
+  using supports = decltype(sfinae<T, TTransform>(nullptr));
 };
 
 ///////////////////
@@ -985,6 +1001,25 @@ struct try_transform {
 // transform_aggregator //
 //////////////////////////
 
+namespace detail {
+
+template <
+  template <typename...> class TAggregator,
+  template <typename...> class... TTransforms
+>
+struct transform_aggregator_impl {
+  template <typename... Args>
+  class apply {
+    template <template <typename...> class TTransform>
+    using impl = fatal::apply<TTransform, Args...>;
+
+  public:
+    using type = fatal::apply<TAggregator, impl<TTransforms>...>;
+  };
+};
+
+} // namespace detail {
+
 /**
  * TODO: DOCUMENT AND TEST
  * TODO: review member_transform_stack now that we have this
@@ -997,8 +1032,10 @@ template <
   template <typename...> class... TTransforms
 >
 struct transform_aggregator {
-  template <typename T>
-  using apply = TAggregator<TTransforms<T>...>;
+  template <typename... Args>
+  using apply = typename detail::transform_aggregator_impl<
+    TAggregator, TTransforms...
+  >::template apply<Args...>::type;
 };
 
 ////////////////////////
@@ -1097,7 +1134,7 @@ struct transform_alias {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... UArgs>
-  using apply = TTemplate<Args..., UArgs...>;
+  using apply = fatal::apply<TTemplate, Args..., UArgs...>;
 
   /**
    * Partially applies arguments `UArgs...` in addition
@@ -1159,7 +1196,7 @@ struct transform_alias {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... UArgs>
-  using uncurry = TTemplate<UArgs...>;
+  using uncurry = fatal::apply<TTemplate, UArgs...>;
 
   /**
    * Re-applies arguments `UArgs...`, in addition to all
@@ -1199,7 +1236,9 @@ struct transform_alias {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <template <typename...> class UTemplate, typename... UArgs>
-  using apply_args = UTemplate<Args..., UArgs...>;
+  using apply_args = fatal::apply<
+    UTemplate, Args..., UArgs...
+  >;
 };
 
 //////////////////////
@@ -1218,7 +1257,10 @@ template <
   template <typename...> class TTransform,
   template <typename...> class...
 >
-struct branch { template <typename U> using apply = TTransform<U>; };
+struct branch {
+  template <typename... UArgs>
+  using apply = fatal::apply<TTransform, UArgs...>;
+};
 
 template <
   template <typename...> class TFallback,
@@ -1226,8 +1268,8 @@ template <
   template <typename...> class... Args
 >
 struct branch<false, TFallback, TTransform, Args...> {
-  template <typename U>
-  using apply = typename select<TFallback, Args...>::template apply<U>;
+  template <typename... UArgs>
+  using apply = typename select<TFallback, Args...>::template apply<UArgs...>;
 };
 
 template <
@@ -1237,15 +1279,34 @@ template <
   template <typename...> class... Args
 >
 struct select<TFallback, TPredicate, TTransform, Args...> {
-  template <typename U>
+  template <typename... UArgs>
   using apply = typename branch<
-    TPredicate<U>::value, TFallback, TTransform, Args...
-  >::template apply<U>;
+    TPredicate<UArgs...>::value, TFallback, TTransform, Args...
+  >::template apply<UArgs...>;
 };
 
 template <template <typename...> class TFallback>
 struct select<TFallback> {
-  template <typename U> using apply = TFallback<U>;
+  template <typename... UArgs>
+  using apply = fatal::apply<TFallback, UArgs...>;
+};
+
+template <typename, typename...> struct extend;
+
+template <typename TSwitch>
+struct extend<TSwitch> {
+  using type = TSwitch;
+};
+
+template <typename TSwitch, typename TEntry, typename... Args>
+struct extend<TSwitch, TEntry, Args...> {
+  using type = typename extend<
+    typename TSwitch::template push_back<
+      TEntry::template predicate,
+      TEntry::template transform
+    >,
+    Args...
+  >::type;
 };
 
 } // namespace transform_switch_impl {
@@ -1253,12 +1314,37 @@ struct select<TFallback> {
 
 // TODO: DOCUMENT AND TEST
 template <
+  template <typename...> class TPredicate,
+  template <typename...> class TTransform
+>
+struct transform_switch_entry {
+  template <typename... Args>
+  using predicate = fatal::apply<TPredicate, Args...>;
+
+  template <typename... Args>
+  using transform = fatal::apply<TTransform, Args...>;
+};
+
+// TODO: DOCUMENT AND TEST
+template <
   template <typename...> class TFallback,
   template <typename...> class... Args
 >
-using transform_switch = detail::transform_switch_impl::select<
-  TFallback, Args...
->;
+struct transform_switch {
+  template <typename... UArgs>
+  using apply = typename detail::transform_switch_impl::select<
+    TFallback, Args...
+  >::template apply<UArgs...>;
+
+  template <template <typename...> class... UArgs>
+  using push_back = transform_switch<TFallback, Args..., UArgs...>;
+
+  // accepts `transform_switch_entry`
+  template <typename... UArgs>
+  using extend = typename detail::transform_switch_impl::extend<
+    transform_switch, UArgs...
+  >::type;
+};
 
 ///////////////////////////////
 // identity_transform_switch //
@@ -1284,8 +1370,8 @@ using identity_transform_switch = transform_switch<identity_transform, Args...>;
  */
 #define FATAL_MEMBER_TRANSFORM(Name, Member) \
   template < \
-    template <typename...> class TPreTransform = identity_transform, \
-    template <typename...> class TPostTransform = identity_transform \
+    template <typename...> class TPreTransform = ::fatal::identity_transform, \
+    template <typename...> class TPostTransform = ::fatal::identity_transform \
   > \
   struct Name { \
     template <typename... Args> \
@@ -1310,8 +1396,9 @@ struct member_transform {
     FATAL_MEMBER_TRANSFORM(Name, Name)
 
   // TODO: POPULATE WITH WELL KNOWN MEMBER TRANSFORMS
-  FATAL_IMPL_BIND_MEMBER_TRANSFORM(push_front);
+  FATAL_IMPL_BIND_MEMBER_TRANSFORM(apply);
   FATAL_IMPL_BIND_MEMBER_TRANSFORM(push_back);
+  FATAL_IMPL_BIND_MEMBER_TRANSFORM(push_front);
 
 # undef FATAL_IMPL_BIND_MEMBER_TRANSFORM
 };
@@ -1327,11 +1414,14 @@ struct member_transform {
  */
 #define FATAL_MEMBER_TRANSFORMER(Name, Member) \
   template < \
-    template <typename...> class TPreTransform = identity_transform, \
-    template <typename...> class TPostTransform = identity_transform \
+    template <typename...> class TPreTransform = ::fatal::identity_transform, \
+    template <typename...> class TPostTransform = ::fatal::identity_transform \
   > \
   struct Name { \
-    template <template <typename...> class TTransform, typename... Args> \
+    template < \
+      template <typename...> class TTransform = ::fatal::identity_transform, \
+      typename... Args \
+    > \
     struct bind { \
       template <typename T, typename... UArgs> \
       using use = TPostTransform< \
@@ -1358,16 +1448,16 @@ struct member_transformer {
 # define FATAL_IMPL_BIND_MEMBER_TRANSFORMER(Name) \
     FATAL_MEMBER_TRANSFORMER(Name, Name)
 
-  FATAL_IMPL_BIND_MEMBER_TRANSFORMER(transform);
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(apply);
+  FATAL_IMPL_BIND_MEMBER_TRANSFORMER(combine);
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(conditional);
-  FATAL_IMPL_BIND_MEMBER_TRANSFORMER(separate);
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(filter);
+  FATAL_IMPL_BIND_MEMBER_TRANSFORMER(merge);
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(reject);
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(search);
-  FATAL_IMPL_BIND_MEMBER_TRANSFORMER(combine);
-  FATAL_IMPL_BIND_MEMBER_TRANSFORMER(merge);
+  FATAL_IMPL_BIND_MEMBER_TRANSFORMER(separate);
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(sort);
+  FATAL_IMPL_BIND_MEMBER_TRANSFORMER(transform);
   FATAL_IMPL_BIND_MEMBER_TRANSFORMER(unique);
 
 # undef FATAL_IMPL_BIND_MEMBER_TRANSFORMER
@@ -1596,4 +1686,315 @@ template <typename T>
 using full_recursive_type_sort = typename recursive_type_sort<>
   ::template apply<T>;
 
+/////////////////////
+// type_get_traits //
+/////////////////////
+
+/**
+ * Declaration of traits class used by `type_get`.
+ *
+ * This class should be specialized for new data structures so they are
+ * supported by `type_get`. It must provide a member typedef `type` with
+ * the `Index`-th type of the `TDataStructure` data structure.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename TDataStructure, std::size_t Index> struct type_get_traits;
+
+//////////////
+// type_get //
+//////////////
+
+/**
+ * `type_get` is for positional type data structures what std::get is for
+ * positional value data structures.
+ *
+ * It allows you to find out what's the i-th type stored in a type data
+ * structure.
+ *
+ * `type_get_first` and `type_get_second` are provided for convenience.
+ *
+ * Example:
+ *
+ *  type_list<int, void, bool> list;
+ *
+ *  // yields `bool`
+ *  typedef third = type_get<2>::from<list>
+ *
+ *  // yields `int`
+ *  typedef third = type_get<0>::from<list>
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <std::size_t Index>
+struct type_get {
+  template <typename TDataStructure>
+  using from = typename type_get_traits<TDataStructure, Index>::type;
+};
+
+/**
+ * A convenience shortcut for type_get<0>.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using type_get_first = type_get<0>::template from<T>;
+
+/**
+ * A convenience shortcut for type_get<1>.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using type_get_second = type_get<1>::template from<T>;
+
+/**
+ * A convenience shortcut for type_get<2>.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using type_get_third = type_get<2>::template from<T>;
+
+/**
+ * A convenience shortcut for type_get<3>.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using type_get_fourth = type_get<3>::template from<T>;
+
+/**
+ * A convenience shortcut for type_get<4>.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using type_get_fifth = type_get<4>::template from<T>;
+
+/**
+ * A convenience template that binds to a type comparer.
+ * It compares the result of `type_get_first` when applied to the operands.
+ *
+ * Example:
+ *
+ *  template <int LHS, int RHS>
+ *  class Foo {
+ *    using lhs = std::pair<std::integral_constant<int, LHS>, void>;
+ *    using rhs = std::pair<std::integral_constant<int, RHS>, double>;
+ *
+ *  public:
+ *    template <template <typename...> class TComparer>
+ *    using comparison = std::integral_constant<
+ *      bool, TComparer<lhs, rhs>::value
+ *    >;
+ *  };
+ *
+ *  // yields `std::integral_constant<bool, true>`
+ *  using result1 = Foo<5, 8>::comparison<type_get_first_comparer<>>;
+ *
+ *  // yields `std::integral_constant<bool, false>`
+ *  using result2 = Foo<5, 8>::comparison<
+ *    type_get_first_comparer<comparison_transform::greater_than>
+ *  >;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  template <typename...> class TComparer = comparison_transform::less_than
+>
+struct type_get_first_comparer {
+  template <typename TLHS, typename TRHS>
+  using compare = is_true_transform<
+    TComparer<type_get_first<TLHS>, type_get_first<TRHS>>
+  >;
+};
+
+/**
+ * A convenience template that binds to a type comparer.
+ * It compares the result of `type_get_second` when applied to the operands.
+ *
+ * Example:
+ *
+ *  template <int LHS, int RHS>
+ *  class Foo {
+ *    using lhs = std::pair<void, std::integral_constant<int, LHS>>;
+ *    using rhs = std::pair<double, std::integral_constant<int, RHS>>;
+ *
+ *  public:
+ *    template <template <typename...> class TComparer>
+ *    using comparison = std::integral_constant<
+ *      bool, TComparer<lhs, rhs>::value
+ *    >;
+ *  };
+ *
+ *  // yields `std::integral_constant<bool, true>`
+ *  using result1 = Foo<5, 8>::comparison<type_get_second_comparer<>>;
+ *
+ *  // yields `std::integral_constant<bool, false>`
+ *  using result2 = Foo<5, 8>::comparison<
+ *    type_get_second_comparer<comparison_transform::greater_than>
+ *  >;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  template <typename...> class TComparer = comparison_transform::less_than
+>
+struct type_get_second_comparer {
+  template <typename TLHS, typename TRHS>
+  using compare = is_true_transform<
+    TComparer<type_get_second<TLHS>, type_get_second<TRHS>>
+  >;
+};
+
+////////////////////////////
+// IMPLEMENTATION DETAILS //
+////////////////////////////
+
+///////////
+// apply //
+///////////
+
+namespace detail {
+
+template <template <typename> class T, typename U>
+struct apply_impl<T, U> { using type = T<U>; };
+
+template <template <typename, typename> class T, typename U0, typename U1>
+struct apply_impl<T, U0, U1> { using type = T<U0, U1>; };
+
+template <
+  template <typename, typename, typename> class T,
+  typename U0, typename U1, typename U2
+>
+struct apply_impl<T, U0, U1, U2> { using type = T<U0, U1, U2>; };
+
+template <
+  template <typename, typename, typename, typename> class T,
+  typename U0, typename U1, typename U2, typename U3
+>
+struct apply_impl<T, U0, U1, U2, U3> { using type = T<U0, U1, U2, U3>; };
+
+template <
+  template <typename, typename, typename, typename, typename> class T,
+  typename U0, typename U1, typename U2, typename U3, typename U4
+>
+struct apply_impl<T, U0, U1, U2, U3, U4> {
+  using type = T<U0, U1, U2, U3, U4>;
+};
+
+template <
+  template <typename, typename, typename, typename, typename, typename> class T,
+  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5
+>
+struct apply_impl<T, U0, U1, U2, U3, U4, U5> {
+  using type = T<U0, U1, U2, U3, U4, U5>;
+};
+
+template <
+  template <
+    typename, typename, typename, typename, typename, typename, typename
+  > class T,
+  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
+  typename V0
+>
+struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0> {
+  using type = T<U0, U1, U2, U3, U4, U5, V0>;
+};
+
+template <
+  template <
+    typename, typename, typename, typename, typename, typename,
+    typename, typename
+  > class T,
+  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
+  typename V0, typename V1
+>
+struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1> {
+  using type = T<U0, U1, U2, U3, U4, U5, V0, V1>;
+};
+
+template <
+  template <
+    typename, typename, typename, typename, typename, typename,
+    typename, typename, typename
+  > class T,
+  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
+  typename V0, typename V1, typename V2
+>
+struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2> {
+  using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2>;
+};
+
+template <
+  template <
+    typename, typename, typename, typename, typename, typename,
+    typename, typename, typename, typename
+  > class T,
+  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
+  typename V0, typename V1, typename V2, typename V3
+>
+struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3> {
+  using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3>;
+};
+
+template <
+  template <
+    typename, typename, typename, typename, typename, typename,
+    typename, typename, typename, typename, typename
+  > class T,
+  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
+  typename V0, typename V1, typename V2, typename V3, typename V4
+>
+struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4> {
+  using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4>;
+};
+
+template <
+  template <
+    typename, typename, typename, typename, typename, typename,
+    typename, typename, typename, typename, typename, typename
+  > class T,
+  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
+  typename V0, typename V1, typename V2, typename V3, typename V4, typename V5
+>
+struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
+  using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5>;
+};
+
+} // namespace detail {
+
+/////////////////////
+// type_get_traits //
+/////////////////////
+
+/**
+ * Specialization of `type_get_traits` so that `type_get` supports `std::pair`.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <std::size_t Index, typename TFirst, typename TSecond>
+struct type_get_traits<std::pair<TFirst, TSecond>, Index> {
+  typedef typename std::tuple_element<
+    Index,
+    std::pair<TFirst, TSecond>
+  >::type type;
+};
+
+/**
+ * Specialization of `type_get_traits` so that `type_get` supports `std::tuple`.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <std::size_t Index, typename... Args>
+struct type_get_traits<std::tuple<Args...>, Index> {
+  typedef typename std::tuple_element<
+    Index,
+    std::tuple<Args...>
+  >::type type;
+};
+
 } // namespace fatal
+
+#endif // FATAL_INCLUDE_fatal_type_transform_h

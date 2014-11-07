@@ -7,11 +7,11 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_traits_h
+#define FATAL_INCLUDE_fatal_type_traits_h
 
 #include <fatal/type/transform.h>
 
-#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -49,7 +49,7 @@ namespace fatal {
 namespace detail {
 
 struct is_complete_impl {
-  template <unsigned long long> struct dummy {};
+  template <std::size_t> struct dummy {};
   template <typename U> static std::true_type sfinae(dummy<sizeof(U)> *);
   template <typename> static std::false_type sfinae(...);
 };
@@ -102,59 +102,6 @@ class is_template {
 public:
   template <typename U>
   using type = logical_transform::any<impl<TTemplates, U>...>;
-};
-
-/**
- * A convenience template that binds to a type comparer
- * and to an optional transform that is applied to the
- * operands before the comparison takes place.
- *
- * Example:
- *
- *
- *  template <typename LHS, typename RHS>
- *  struct Foo {
- *    template <template <typename...> class TComparer>
- *    using comparison = std::integral_constant<
- *      bool, TComparer<LHS, RHS>::value
- *    >;
- *  };
- *
- *  typedef Foo<
- *    std::integral_constant<int, 5>,
- *    std::integral_constant<int, 8>
- *  > values_5_8;
- *
- *  // yields `std::integral_constant<bool, true>`
- *  typedef values_5_8::comparison<curried_type_comparer<>> result1;
- *
- *  // yields `std::integral_constant<bool, false>`
- *  typedef values_5_8::comparison<
- *    curried_type_comparer<comparison_transform::greater_than>
- *  > result2;
- *
- *  template <int X>
- *  struct Bar { typedef std::integral_constant<int, X> type; };
- *
- *  typedef Foo<Bar<80>, Bar<10>> values_80_10;
- *
- *  // yields `std::integral_constant<bool, true>`
- *  typedef values_80_10::comparison<
- *    curried_type_comparer<
- *      comparison_transform::greater_than,
- *      get_member_typedef::template type
- *    >
- *  > result3;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <
-  template <typename...> class TComparer = comparison_transform::less_than,
-  template <typename...> class TTransform = identity_transform
->
-struct curried_type_comparer {
-  template <typename TLHS, typename TRHS>
-  using compare = TComparer<TTransform<TLHS>, TTransform<TRHS>>;
 };
 
 /**
@@ -430,186 +377,6 @@ constexpr bool is_callable<T, Args...>::value;
     using rebind = Class<UTheClass_, UTheArgs_...>; \
   }
 
-/////////////////////////////////////////////////
-// CORE FUNCTIONALITY FOR TYPE DATA STRUCTURES //
-/////////////////////////////////////////////////
-
-/**
- * Declaration of traits class used by `type_get`.
- *
- * This class should be specialized for new data structures so they are
- * supported by `type_get`. It must provide a member typedef `type` with
- * the `Index`-th type of the `TDataStructure` data structure.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename TDataStructure, std::size_t Index> struct type_get_traits;
-
-/**
- * `type_get` is for positional type data structures what std::get is for
- * positional value data structures.
- *
- * It allows you to find out what's the i-th type stored in a type data
- * structure.
- *
- * `type_get_first` and `type_get_second` are provided for convenience.
- *
- * Example:
- *
- *  type_list<int, void, bool> list;
- *
- *  // yields `bool`
- *  typedef third = type_get<2>::from<list>
- *
- *  // yields `int`
- *  typedef third = type_get<0>::from<list>
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <std::size_t Index>
-struct type_get {
-  template <typename TDataStructure>
-  using from = typename type_get_traits<TDataStructure, Index>::type;
-};
-
-/**
- * A convenience shortcut for type_get<0>.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-using type_get_first = type_get<0>::template from<T>;
-
-/**
- * A convenience shortcut for type_get<1>.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-using type_get_second = type_get<1>::template from<T>;
-
-/**
- * A convenience shortcut for type_get<2>.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-using type_get_third = type_get<2>::template from<T>;
-
-/**
- * A convenience shortcut for type_get<3>.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-using type_get_fourth = type_get<3>::template from<T>;
-
-/**
- * A convenience shortcut for type_get<4>.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-using type_get_fifth = type_get<4>::template from<T>;
-
-/**
- * A convenience template that binds to a type comparer.
- * It compares the result of `type_get_first` when applied to the operands.
- *
- * Example:
- *
- *  template <int LHS, int RHS>
- *  class Foo {
- *    typedef type_pair<std::integral_constant<int, LHS>, void> lhs
- *    typedef type_pair<std::integral_constant<int, RHS>, double> rhs
- *
- *  public:
- *    template <template <typename...> class TComparer>
- *    using comparison = std::integral_constant<
- *      bool, TComparer<lhs, rhs>::value
- *    >;
- *  };
- *
- *  // yields `std::integral_constant<bool, true>`
- *  typedef Foo<5, 8>::comparison<type_get_first_comparer<>> result1;
- *
- *  // yields `std::integral_constant<bool, false>`
- *  typedef Foo<5, 8>::comparison<
- *    type_get_first_comparer<comparison_transform::greater_than>
- *  > result2;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <
-  template <typename...> class TComparer = comparison_transform::less_than
->
-using type_get_first_comparer = curried_type_comparer<
-  TComparer, type_get_first
->;
-
-/**
- * A convenience template that binds to a type comparer.
- * It compares the result of `type_get_second` when applied to the operands.
- *
- * Example:
- *
- *  template <int LHS, int RHS>
- *  class Foo {
- *    typedef type_pair<void, std::integral_constant<int, LHS>> lhs;
- *    typedef type_pair<double, std::integral_constant<int, RHS>> rhs;
- *
- *  public:
- *    template <template <typename...> class TComparer>
- *    using comparison = std::integral_constant<
- *      bool, TComparer<lhs, rhs>::value
- *    >;
- *  };
- *
- *  // yields `std::integral_constant<bool, true>`
- *  typedef Foo<5, 8>::comparison<type_get_second_comparer<>> result1;
- *
- *  // yields `std::integral_constant<bool, false>`
- *  typedef Foo<5, 8>::comparison<
- *    type_get_second_comparer<comparison_transform::greater_than>
- *  > result2;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <
-  template <typename...> class TComparer = comparison_transform::less_than
->
-using type_get_second_comparer = curried_type_comparer<
-  TComparer, type_get_second
->;
-
-////////////////////////////
-// IMPLEMENTATION DETAILS //
-////////////////////////////
-
-/**
- * Specialization of `type_get_traits` so that `type_get` supports `std::pair`.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <std::size_t Index, typename TFirst, typename TSecond>
-struct type_get_traits<std::pair<TFirst, TSecond>, Index> {
-  typedef typename std::tuple_element<
-    Index,
-    std::pair<TFirst, TSecond>
-  >::type type;
-};
-
-/**
- * Specialization of `type_get_traits` so that `type_get` supports `std::tuple`.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <std::size_t Index, typename... Args>
-struct type_get_traits<std::tuple<Args...>, Index> {
-  typedef typename std::tuple_element<
-    Index,
-    std::tuple<Args...>
-  >::type type;
-};
-
 } // namespace fatal
+
+#endif // FATAL_INCLUDE_fatal_type_traits_h
