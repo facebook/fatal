@@ -62,13 +62,13 @@ struct visitor {
 
 template <typename... TStrings>
 struct benchmark_impl {
-  typedef type_list<TStrings...> list;
+  using list = type_list<TStrings...>;
 
   static std::array<std::string, sizeof...(TStrings)> const str;
 
-  typedef typename list::template apply<
-    type_prefix_tree_builder<>::template build
-  > prefix_tree;
+  using prefix_tree = typename list::template apply<
+    build_type_prefix_tree<>::template from
+  >;
 
   static void prefix_tree_benchmark() {
     unsigned count = 0;

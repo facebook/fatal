@@ -28,9 +28,9 @@ FATAL_STR(abcx, "abcx");
 FATAL_STR(abcxy, "abcxy");
 FATAL_STR(abcxyz, "abcxyz");
 
-typedef type_prefix_tree_builder<>::build<
+using abc_tree = build_type_prefix_tree<>::from<
   a, ab, abc, abcd, abcde, abcdef, abcx, abcxy, abcxyz
-> abc_tree;
+>;
 
 FATAL_STR(h, "h");
 FATAL_STR(ha, "ha");
@@ -41,9 +41,9 @@ FATAL_STR(hint, "hint");
 FATAL_STR(ho, "ho");
 FATAL_STR(hot, "hot");
 
-typedef type_prefix_tree_builder<>::build<
+using hs_tree = build_type_prefix_tree<>::from<
   h, ha, hat, hi, hint, hit, ho, hot
-> hs_tree;
+>;
 
 template <char C> using chr = std::integral_constant<char, C>;
 
@@ -54,14 +54,14 @@ template <char C> using chr = std::integral_constant<char, C>;
 TEST(type_prefix_tree, build_type_prefix_tree) {
   FATAL_EXPECT_SAME<
     type_prefix_tree<non_terminal_tag>,
-    type_prefix_tree_builder<>::build<>
+    build_type_prefix_tree<>::from<>
   >();
 
   FATAL_EXPECT_SAME<
     type_prefix_tree<non_terminal_tag,
       type_pair<chr<'a'>, type_prefix_tree<a>>
     >,
-    type_prefix_tree_builder<>::build<a>
+    build_type_prefix_tree<>::from<a>
   >();
 
   FATAL_EXPECT_SAME<
@@ -70,7 +70,7 @@ TEST(type_prefix_tree, build_type_prefix_tree) {
         type_pair<chr<'b'>, type_prefix_tree<ab>>
       >>
     >,
-    type_prefix_tree_builder<>::build<ab>
+    build_type_prefix_tree<>::from<ab>
   >();
 
   FATAL_EXPECT_SAME<
@@ -81,7 +81,7 @@ TEST(type_prefix_tree, build_type_prefix_tree) {
         >>
       >>
     >,
-    type_prefix_tree_builder<>::build<hat>
+    build_type_prefix_tree<>::from<hat>
   >();
 
   FATAL_EXPECT_SAME<
@@ -92,7 +92,7 @@ TEST(type_prefix_tree, build_type_prefix_tree) {
         >>
       >>
     >,
-    type_prefix_tree_builder<>::build<hit>
+    build_type_prefix_tree<>::from<hit>
   >();
 
   FATAL_EXPECT_SAME<
@@ -105,7 +105,7 @@ TEST(type_prefix_tree, build_type_prefix_tree) {
         >>
       >>
     >,
-    type_prefix_tree_builder<>::build<hint>
+    build_type_prefix_tree<>::from<hint>
   >();
 
   FATAL_EXPECT_SAME<
@@ -116,31 +116,17 @@ TEST(type_prefix_tree, build_type_prefix_tree) {
         >>
       >>
     >,
-    type_prefix_tree_builder<>::build<hot>
+    build_type_prefix_tree<>::from<hot>
   >();
 
   FATAL_EXPECT_SAME<
-    type_prefix_tree_builder<>::build<hit>,
-    type_prefix_tree_builder<>::build<hit, hit>
+    build_type_prefix_tree<>::from<hit>,
+    build_type_prefix_tree<>::from<hit, hit>
   >();
 
   FATAL_EXPECT_SAME<
-    type_prefix_tree_builder<>::build<hit>,
-    type_prefix_tree_builder<>::build<hit, hit, hit>
-  >();
-
-  FATAL_EXPECT_SAME<
-    type_prefix_tree<non_terminal_tag,
-      type_pair<chr<'h'>, type_prefix_tree<non_terminal_tag,
-        type_pair<chr<'a'>, type_prefix_tree<non_terminal_tag,
-          type_pair<chr<'t'>, type_prefix_tree<hat>>
-        >>,
-        type_pair<chr<'i'>, type_prefix_tree<non_terminal_tag,
-          type_pair<chr<'t'>, type_prefix_tree<hit>>
-        >>
-      >>
-    >,
-    type_prefix_tree_builder<>::build<hat, hit>
+    build_type_prefix_tree<>::from<hit>,
+    build_type_prefix_tree<>::from<hit, hit, hit>
   >();
 
   FATAL_EXPECT_SAME<
@@ -154,45 +140,7 @@ TEST(type_prefix_tree, build_type_prefix_tree) {
         >>
       >>
     >,
-    type_prefix_tree_builder<>::build<hit, hat>
-  >();
-
-  FATAL_EXPECT_SAME<
-    type_prefix_tree_builder<>::build<hat, hit>,
-    type_prefix_tree_builder<>::build<hit, hat>
-  >();
-
-  FATAL_EXPECT_SAME<
-    type_prefix_tree<non_terminal_tag,
-      type_pair<chr<'h'>, type_prefix_tree<non_terminal_tag,
-        type_pair<chr<'i'>, type_prefix_tree<non_terminal_tag,
-          type_pair<chr<'n'>, type_prefix_tree<non_terminal_tag,
-            type_pair<chr<'t'>, type_prefix_tree<hint>>
-          >>,
-          type_pair<chr<'t'>, type_prefix_tree<hit>>
-        >>
-      >>
-    >,
-    type_prefix_tree_builder<>::build<hint, hit>
-  >();
-
-  FATAL_EXPECT_SAME<
-    type_prefix_tree<non_terminal_tag,
-      type_pair<chr<'h'>, type_prefix_tree<non_terminal_tag,
-        type_pair<chr<'i'>, type_prefix_tree<non_terminal_tag,
-          type_pair<chr<'n'>, type_prefix_tree<non_terminal_tag,
-            type_pair<chr<'t'>, type_prefix_tree<hint>>
-          >>,
-          type_pair<chr<'t'>, type_prefix_tree<hit>>
-        >>
-      >>
-    >,
-    type_prefix_tree_builder<>::build<hit, hint>
-  >();
-
-  FATAL_EXPECT_SAME<
-    type_prefix_tree_builder<>::build<hint, hit>,
-    type_prefix_tree_builder<>::build<hit, hint>
+    build_type_prefix_tree<>::from<hat, hit>
   >();
 
   FATAL_EXPECT_SAME<
@@ -202,17 +150,49 @@ TEST(type_prefix_tree, build_type_prefix_tree) {
           type_pair<chr<'t'>, type_prefix_tree<hat>>
         >>,
         type_pair<chr<'i'>, type_prefix_tree<non_terminal_tag,
+          type_pair<chr<'t'>, type_prefix_tree<hit>>
+        >>
+      >>
+    >,
+    build_type_prefix_tree<>::from<hit, hat>
+  >();
+
+  FATAL_EXPECT_SAME<
+    build_type_prefix_tree<>::from<hat, hit>,
+    build_type_prefix_tree<>::from<hit, hat>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_prefix_tree<non_terminal_tag,
+      type_pair<chr<'h'>, type_prefix_tree<non_terminal_tag,
+        type_pair<chr<'i'>, type_prefix_tree<non_terminal_tag,
           type_pair<chr<'n'>, type_prefix_tree<non_terminal_tag,
             type_pair<chr<'t'>, type_prefix_tree<hint>>
           >>,
           type_pair<chr<'t'>, type_prefix_tree<hit>>
-        >>,
-        type_pair<chr<'o'>, type_prefix_tree<non_terminal_tag,
-          type_pair<chr<'t'>, type_prefix_tree<hot>>
         >>
       >>
     >,
-    type_prefix_tree_builder<>::build<hat, hint, hit, hot>
+    build_type_prefix_tree<>::from<hint, hit>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_prefix_tree<non_terminal_tag,
+      type_pair<chr<'h'>, type_prefix_tree<non_terminal_tag,
+        type_pair<chr<'i'>, type_prefix_tree<non_terminal_tag,
+          type_pair<chr<'n'>, type_prefix_tree<non_terminal_tag,
+            type_pair<chr<'t'>, type_prefix_tree<hint>>
+          >>,
+          type_pair<chr<'t'>, type_prefix_tree<hit>>
+        >>
+      >>
+    >,
+    build_type_prefix_tree<>::from<hit, hint>
+  >();
+
+  FATAL_EXPECT_SAME<
+    build_type_prefix_tree<>::from<hint, hit>,
+    build_type_prefix_tree<>::from<hit, hint>
   >();
 
   FATAL_EXPECT_SAME<
@@ -232,22 +212,42 @@ TEST(type_prefix_tree, build_type_prefix_tree) {
         >>
       >>
     >,
-    type_prefix_tree_builder<>::build<hot, hit, hint, hat>
+    build_type_prefix_tree<>::from<hat, hint, hit, hot>
   >();
 
   FATAL_EXPECT_SAME<
-    type_prefix_tree_builder<>::build<hat, hint, hit, hot>,
-    type_prefix_tree_builder<>::build<hot, hit, hint, hat>
+    type_prefix_tree<non_terminal_tag,
+      type_pair<chr<'h'>, type_prefix_tree<non_terminal_tag,
+        type_pair<chr<'a'>, type_prefix_tree<non_terminal_tag,
+          type_pair<chr<'t'>, type_prefix_tree<hat>>
+        >>,
+        type_pair<chr<'i'>, type_prefix_tree<non_terminal_tag,
+          type_pair<chr<'n'>, type_prefix_tree<non_terminal_tag,
+            type_pair<chr<'t'>, type_prefix_tree<hint>>
+          >>,
+          type_pair<chr<'t'>, type_prefix_tree<hit>>
+        >>,
+        type_pair<chr<'o'>, type_prefix_tree<non_terminal_tag,
+          type_pair<chr<'t'>, type_prefix_tree<hot>>
+        >>
+      >>
+    >,
+    build_type_prefix_tree<>::from<hot, hit, hint, hat>
   >();
 
   FATAL_EXPECT_SAME<
-    type_prefix_tree_builder<>::build<hat, hint, hit, hot>,
-    type_prefix_tree_builder<>::build<hot, hit, hint, hot, hat>
+    build_type_prefix_tree<>::from<hat, hint, hit, hot>,
+    build_type_prefix_tree<>::from<hot, hit, hint, hat>
   >();
 
   FATAL_EXPECT_SAME<
-    type_prefix_tree_builder<>::build<hat, hint, hit, hot>,
-    type_prefix_tree_builder<>::build<hot, hit, hint, hat, hot, hat, hint, hat>
+    build_type_prefix_tree<>::from<hat, hint, hit, hot>,
+    build_type_prefix_tree<>::from<hot, hit, hint, hot, hat>
+  >();
+
+  FATAL_EXPECT_SAME<
+    build_type_prefix_tree<>::from<hat, hint, hit, hot>,
+    build_type_prefix_tree<>::from<hot, hit, hint, hat, hot, hat, hint, hat>
   >();
 }
 

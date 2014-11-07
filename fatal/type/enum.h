@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_enum_h
+#define FATAL_INCLUDE_fatal_type_enum_h
 
 #include <fatal/preprocessor.h>
 #include <fatal/type/string.h>
@@ -224,20 +225,20 @@ namespace fatal {
  *      FATAL_STR(field3, "field3");
  *    };
  *
- *    typedef type_list<
+ *    using strings = type_list<
  *      cstr::field0, cstr::field1, cstr::field2, cstr::field3
- *    > strings;
+ *    >;
  *
- *    typedef build_type_map<
+ *    using str_to_value = build_type_map<
  *      cstr::field0, std::integral_constant<Enum, Enum::field0>,
  *      cstr::field1, std::integral_constant<Enum, Enum::field1>,
  *      cstr::field2, std::integral_constant<Enum, Enum::field2>,
  *      cstr::field3, std::integral_constant<Enum, Enum::field3>
- *    > str_to_value;
+ *    >;
  *
- *    typedef type_prefix_tree_builder<>::build<
+ *    using prefix_tree = build_type_prefix_tree<>::from<
  *      cstr::field0, cstr::field1, cstr::field2, cstr::field3
- *    > prefix_tree;
+ *    >;
  *
  *    // returns the string representation of `e`, or
  *    // `nullptr` if `e` is not a valid enum value
@@ -285,14 +286,14 @@ namespace fatal {
         FATAL_ENUM_TO_CSTR_IMPL \
       ) \
     }; \
-    typedef ::fatal::type_list< \
+    using strings = ::fatal::type_list< \
       ENUMIFY_FN( \
         FATAL_ENUM_CSTR_TO_LIST_IMPL, \
         FATAL_ENUM_CSTR_TO_LIST_IMPL, \
         FATAL_ENUM_CSTR_TO_LIST_LAST_IMPL \
       ) \
-    > strings; \
-    typedef constant_sequence< \
+    >; \
+    using values = constant_sequence< \
       Enum, \
       ENUMIFY_FN( \
         FATAL_ENUM_VALUE_TO_LIST_IMPL, \
@@ -302,17 +303,21 @@ namespace fatal {
         FATAL_ENUMIFY_GET_2ND_ARG, \
         FATAL_ENUMIFY_GET_1ST_ARG \
       ) \
-    > values; \
-    typedef values::list::apply<strings::zip>::apply<build_type_map> str_to_value; \
-    typedef strings::apply<values::list::zip>::apply<build_type_map> value_to_str; \
-    typedef strings::apply< \
-      ::fatal::type_prefix_tree_builder<>::build \
-    > prefix_tree; \
+    >; \
+    using str_to_value = values::list::apply< \
+      strings::zip>::apply<build_type_map \
+    >; \
+    using value_to_str = strings::apply< \
+      values::list::zip>::apply<build_type_map \
+    >; \
+    using prefix_tree = strings::apply< \
+      ::fatal::build_type_prefix_tree<>::from \
+    >; \
   private: \
     struct parse_visitor_impl { \
       template <typename TString> \
       void operator ()(type_tag<TString>, Enum &out) { \
-        typedef typename str_to_value::template find<TString> value; \
+        using value = typename str_to_value::template find<TString>; \
         static_assert( \
           !::std::is_same<value, ::fatal::type_not_found_tag>::value, \
           "missing enum mapping" \
@@ -372,4 +377,6 @@ namespace fatal {
   FATAL_DECLARE_ENUM(Enum, ENUMIFY_FN); \
   FATAL_DEFINE_ENUM_STR_CLASS(Enum, ClassName, ENUMIFY_FN) \
 
-} // namespace fatal
+} // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_enum_h

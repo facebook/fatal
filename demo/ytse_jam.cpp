@@ -175,15 +175,15 @@ struct ytse_jam {
   result_t handle(std::string const &command, request_args &args);
 
 private:
-  using data_type_trie = supported::transform<get_member::name>::apply<fatal::type_prefix_tree_builder<>::build>;
+  using data_type_trie = supported::transform<get_member::name>::apply<fatal::build_type_prefix_tree<>::from>;
   // data_type_name -> ctor
   using ctor_index = fatal::type_map_from<get_member::name>::list<
     supported::transform<metadata::to_constructor_command>
   >;
   using built_ins = fatal::type_list<metadata::str::create, metadata::str::json, metadata::str::help>;
   using command_trie = op_list::transform<get_member::verb>::concat<built_ins>
-    ::apply<fatal::type_prefix_tree_builder<>::build>;
-  using op_trie = op_list::transform<get_member::verb>::apply<fatal::type_prefix_tree_builder<>::build>;
+    ::apply<fatal::build_type_prefix_tree<>::from>;
+  using op_trie = op_list::transform<get_member::verb>::apply<fatal::build_type_prefix_tree<>::from>;
   // data_type -> verb -> op
   using op_index = fatal::clustered_index<op_list, fatal::get_member_typedef::type, get_member::verb>;
   using instances_map = std::unordered_map<std::string, instance_t>;

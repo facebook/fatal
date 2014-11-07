@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_prefix_tree_h
+#define FATAL_INCLUDE_fatal_type_prefix_tree_h
 
 #include <fatal/type/map.h>
 #include <fatal/type/reflection.h>
@@ -34,7 +35,7 @@ struct non_terminal_tag {};
  * This is a recursive structure so the same type used to define a tree
  * is used to define a child node (root of a subtree).
  *
- * NOTE: use the `type_prefix_tree_builder` below to build a prefix tree
+ * NOTE: use the `build_type_prefix_tree` below to build a prefix tree
  * instead of doing it manually.
  *
  * Most operations, unless noted otherwise, are compile-time evaluated.
@@ -120,7 +121,7 @@ struct type_prefix_tree {
    *  template <char c> using chr = std::integral_constant<char, c>;
    *  template <char... s> using str = type_list<chr<s>...>;
    *
-   *  using prefix_tree = type_prefix_tree_builder<>::build<
+   *  using prefix_tree = build_type_prefix_tree<>::from<
    *    str<'h', 'a', 't'>,
    *    str<'h', 'e', 'a', 'r', 't'>,
    *    str<'h', 'i', 'n', 't'>,
@@ -181,7 +182,7 @@ struct type_prefix_tree {
      *    static std::string string() { return std::string{s...}; };
      *  };
      *
-     *  using prefix_tree = type_prefix_tree_builder<>::build<
+     *  using prefix_tree = build_type_prefix_tree<>::from<
      *    str<'h', 'i', 't'>,
      *    str<'h', 'o', 't'>,
      *    str<'h', 'u', 't'>
@@ -250,7 +251,7 @@ struct type_prefix_tree {
      *    static std::string string() { return std::string{s...}; };
      *  };
      *
-     *  using prefix_tree = type_prefix_tree_builder<>::build<
+     *  using prefix_tree = build_type_prefix_tree<>::from<
      *    str<'i', 't'>,
      *    str<'i', 't', ' ', 'i', 's'>,
      *    str<'i', 't', ' ', 'i', 's', ' ', 'a'>,
@@ -298,9 +299,9 @@ struct type_prefix_tree {
   };
 };
 
-//////////////////////////////
-// type_prefix_tree_builder //
-//////////////////////////////
+////////////////////////////
+// build_type_prefix_tree //
+////////////////////////////
 
 namespace detail {
 namespace type_prefix_tree_impl {
@@ -329,7 +330,7 @@ template <typename...> struct builder;
  *  template <char... s> using str = type_list<chr<s>...>;
  *
  *  // yields an empty `type_prefix_tree<>`
- *  using empty = type_prefix_tree_builder<>::build<>;
+ *  using empty = build_type_prefix_tree<>::from<>;
  *
  *  // yields `type_prefix_tree<non_terminal_tag,
  *  //   type_pair<chr<'f'>, type_prefix_tree<non_terminal_tag,
@@ -346,7 +347,7 @@ template <typename...> struct builder;
  *  //     >>
  *  //   >>,
  *  // >
- *  using result = type_prefix_tree_builder<>::build<
+ *  using result = build_type_prefix_tree<>::from<
  *    str<'f', 'i', 't'>,
  *    str<'h', 'i', 'n', 't'>,
  *    str<'h', 'i', 't'>
@@ -355,9 +356,9 @@ template <typename...> struct builder;
 template <
   template <typename...> class TLessComparer = comparison_transform::less_than
 >
-struct type_prefix_tree_builder {
+struct build_type_prefix_tree {
   template <typename... TSequences>
-  using build = typename detail::type_prefix_tree_impl::builder<
+  using from = typename detail::type_prefix_tree_impl::builder<
     TSequences...
   >::template tree<TLessComparer>;
 };
@@ -632,3 +633,5 @@ std::size_t type_prefix_tree<TSequence, TNodes...>::match<TComparer>::prefixes(
 }
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_prefix_tree_h
