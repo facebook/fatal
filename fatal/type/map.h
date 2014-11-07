@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_map_h
+#define FATAL_INCLUDE_fatal_type_map_h
 
 #include <fatal/type/list.h>
 #include <fatal/type/pair.h>
@@ -47,17 +48,6 @@ struct pair_resolver<TKey, TMapped> {
 template <typename TKey, typename TMapped>
 struct pair_resolver<type_pair<TKey, TMapped>> {
   typedef type_pair<TKey, TMapped> type;
-};
-
-// TODO: REMOVE
-///////////////////////////
-// curried_key_predicate //
-///////////////////////////
-
-template <template <typename...> class TPredicate, typename... Args>
-struct curried_key_predicate {
-  template <typename T>
-  using apply = TPredicate<type_get_first<T>, Args...>;
 };
 
 ///////////////
@@ -109,7 +99,7 @@ using invert_transform = typename TPair::template transform<
 template <template <typename...> class TPredicate, typename TList>
 struct separate {
   using separated = typename TList::template separate<
-    curried_key_predicate<TPredicate>::template apply
+    transform_sequence<type_get_first, TPredicate>::template apply
   >;
 
   typedef type_pair<
@@ -242,9 +232,6 @@ public:
   typedef typename contents::template transform<type_get_second> mapped;
 
   // TODO: DOCUMENT AND TEST
-  template <template <typename...> class TTransform>
-  using apply = TTransform<Args...>;
-
   template <
     template <typename...> class TMappedTransform = identity_transform,
     template <typename...> class TKeyTransform = identity_transform
@@ -253,6 +240,7 @@ public:
     detail::type_map_impl::transform<Args, TKeyTransform, TMappedTransform>...
   >;
 
+  // TODO: DOCUMENT AND TEST
   template <
     typename TKey,
     template <typename...> class TMappedTransform = identity_transform,
@@ -263,6 +251,15 @@ public:
       TKey, Args, TKeyTransform, TMappedTransform
     >...
   >;
+
+  // TODO: DOCUMENT AND TEST
+  template <
+    template <typename...> class TTransform,
+    template <typename...> class TMappedTransform = identity_transform,
+    template <typename...> class TKeyTransform = identity_transform
+  >
+  using apply = typename transform<TMappedTransform, TKeyTransform>
+    ::contents::template apply<TTransform>;
 
   /**
    * Inverts the key and mapped types of this `type_map`.
@@ -311,25 +308,63 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<type_pair<int, double>, type_pair<bool, long>> map;
+   *  using map = type_map<type_pair<int, double>, type_pair<bool, long>>;
    *
    *  // yields `double`
-   *  typedef map::find<int> result1;
+   *  using result1 = map::find<int>;
    *
    *  // yields `type_not_found_tag`
-   *  typedef map::find<float> result2;
+   *  using result2 = map::find<float>;
    *
    *  // yields `void`
-   *  typedef map::find<float, void> result2;
+   *  using result3 = map::find<float, void>;
    */
   template <typename TKey, typename TDefault = type_not_found_tag>
   using find = type_get_second<
     typename contents::template search<
-      detail::type_map_impl::curried_key_predicate<
-        std::is_same, TKey
+      transform_aggregator<
+        std::is_same,
+        type_get_first,
+        fixed_transform<TKey>::template apply
       >::template apply,
       type_pair<void, TDefault>
     >
+  >;
+
+  /**
+   * Finds the first pair whose key is accepted by the predicate `TPredicate`,
+   * and returns the pair as a `type_pair<Key, Mapped>`.
+   *
+   * If there's no pair in this map whose key is accepted by the predicate
+   * then `TDefault` is returned (defaults to `type_not_found_tag` when
+   * omitted).
+   *
+   * Example:
+   *
+   *  using map = type_map<type_pair<int, double>, type_pair<bool, long>>;
+   *
+   *  template <typename TLHS>
+   *  struct predicate {
+   *    template <typename TRHS>
+   *    using apply = std::is_same<TLHS, TRHS>;
+   *  };
+   *
+   *  // yields `double`
+   *  using result1 = map::search<predicate<int>::apply>;
+   *
+   *  // yields `type_not_found_tag`
+   *  using result2 = map::search<predicate<float>::apply>;
+   *
+   *  // yields `void`
+   *  using result3 = map::search<predicate<float>::apply, void>;
+   */
+  template <
+    template <typename...> class TPredicate,
+    typename TDefault = type_not_found_tag
+  >
+  using search = typename contents::template search<
+    transform_sequence<type_get_first, TPredicate>::template apply,
+    TDefault
   >;
 
   /**
@@ -567,7 +602,8 @@ public:
    */
   template <typename... UArgs>
   using remove = typename contents::template reject<
-    detail::type_map_impl::curried_key_predicate<
+    transform_sequence<
+      type_get_first,
       type_list<UArgs...>::template contains
     >::template apply
   >::template apply<fatal::type_map>;
@@ -1157,3 +1193,5 @@ struct recursive_type_sort_impl<type_map<T...>, Depth> {
 };
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_map_h

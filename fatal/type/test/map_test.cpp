@@ -275,6 +275,43 @@ TEST(type_map, find) {
   FATAL_EXPECT_SAME<ibdlsv_map::find<bool, not_found_type>, not_found_type>();
 }
 
+////////////
+// search //
+////////////
+
+template <typename T>
+struct search_predicate {
+  template <typename U>
+  using apply = std::is_same<T, U>;
+};
+
+TEST(type_map, search) {
+  FATAL_EXPECT_SAME<
+    type_map<>::search<search_predicate<int>::apply, not_found_type>,
+    not_found_type
+  >();
+
+  FATAL_EXPECT_SAME<
+    ibdlsv_map::search<search_predicate<int>::apply, not_found_type>,
+    fatal::type_pair<int, bool>
+  >();
+
+  FATAL_EXPECT_SAME<
+    ibdlsv_map::search<search_predicate<double>::apply, not_found_type>,
+    fatal::type_pair<double, long>
+  >();
+
+  FATAL_EXPECT_SAME<
+    ibdlsv_map::search<search_predicate<short>::apply, not_found_type>,
+    fatal::type_pair<short, void>
+  >();
+
+  FATAL_EXPECT_SAME<
+    ibdlsv_map::search<search_predicate<bool>::apply, not_found_type>,
+    not_found_type
+  >();
+}
+
 //////////////
 // contains //
 //////////////
@@ -876,8 +913,22 @@ TEST(type_map, cluster) {
 // visit //
 ///////////
 
-template <typename TExpectedKey, typename TExpectedMapped>
+template <typename TExpectedKey, typename...>
 struct visit_test_visitor {
+  using key = TExpectedKey;
+  using match = std::false_type;
+
+  template <typename T>
+  void operator ()(T &&...) const {
+    EXPECT_TRUE(!"unexpected match");
+  }
+};
+
+template <typename TExpectedKey, typename TExpectedMapped>
+struct visit_test_visitor<TExpectedKey, TExpectedMapped> {
+  using key = TExpectedKey;
+  using match = std::true_type;
+
   template <typename TActualKey, typename TActualMapped>
   void operator ()(type_pair<TActualKey, TActualMapped>) const {
     FATAL_EXPECT_SAME<TExpectedKey, TActualKey>();
@@ -885,31 +936,32 @@ struct visit_test_visitor {
   }
 };
 
+#define CHECK_VISIT(Map, ...) \
+  do { \
+    using map = Map; \
+    using visitor = visit_test_visitor<__VA_ARGS__>; \
+    using key = visitor::key; \
+    auto const actual = map::template visit<key>(visitor()); \
+    auto const expected = visitor::match::value; \
+    EXPECT_EQ(expected, actual); \
+  } while (false)
 
-template <typename TMap, typename TKey, typename TMapped = void>
-void check_visit(bool expected = true) {
-  auto const actual = TMap::template visit<TKey>(
-    visit_test_visitor<TKey, TMapped>()
-  );
-
-  EXPECT_EQ(expected, actual);
-}
 
 TEST(type_map, visit) {
-  typedef build_type_map<
+  using map0 = build_type_map<
     int, bool,
     double, float,
     std::string, std::vector<int>
-  > map0;
+  >;
 
-  check_visit<map0, int, bool>();
-  check_visit<map0, double, float>();
-  check_visit<map0, std::string, std::vector<int>>();
+  CHECK_VISIT(map0, int, bool);
+  CHECK_VISIT(map0, double, float);
+  CHECK_VISIT(map0, std::string, std::vector<int>);
 
-  check_visit<map0, long>(false);
-  check_visit<map0, int &>(false);
-  check_visit<map0, double const &>(false);
-  check_visit<map0, std::string &&>(false);
+  CHECK_VISIT(map0, bool);
+  CHECK_VISIT(map0, float);
+  CHECK_VISIT(map0, std::vector<int>);
+  CHECK_VISIT(map0, long);
 }
 
 //////////////////////////
@@ -965,26 +1017,26 @@ void check_bs_exact() {
 TEST(type_map, binary_search_exact) {
   typedef chr_map<> empty;
 
-  LOG(INFO) << "empty";
+  VLOG(1) << "empty";
   check_bs_exact<char, false, '-', '\0', empty::size, empty, '\0'>();
   check_bs_exact<int, false, 3, -1, empty::size, empty, -1>();
 
   typedef chr_map<'x', 'X'> one;
 
-  LOG(INFO) << "one";
+  VLOG(1) << "one";
   check_bs_exact<char, false, '-', '\0', one::size, one, '\0'>();
   check_bs_exact<char, true, 'x', 'X', 0, one, '\0'>();
 
   typedef chr_map<'x', 'X', 'y', 'Y'> two;
 
-  LOG(INFO) << "two";
+  VLOG(1) << "two";
   check_bs_exact<char, false, '-', '\0', two::size, two, '\0'>();
   check_bs_exact<char, true, 'x', 'X', 0, two, '\0'>();
   check_bs_exact<char, true, 'y', 'Y', 1, two, '\0'>();
 
   typedef chr_map<'a', 'A', 'e', 'E', 'i', 'I', 'o', 'O', 'u', 'U'> aeiou;
 
-  LOG(INFO) << "aeiou";
+  VLOG(1) << "aeiou";
   check_bs_exact<char, false, 'x', '\0', aeiou::size, aeiou, '\0'>();
 
   check_bs_exact<char, true, 'a', 'A', 0, aeiou, '\0'>();
@@ -997,7 +1049,7 @@ TEST(type_map, binary_search_exact) {
     3, 2, 7, 3, 31, 5, 127, 7, 8191, 13, 131071, 17, 524287, 19, 2147483647, 31
   > mp;
 
-  LOG(INFO) << "mp";
+  VLOG(1) << "mp";
   check_bs_exact<int, false, -1, -1, mp::size, mp, -1>();
   check_bs_exact<int, false, 0, -1, mp::size, mp, -1>();
   check_bs_exact<int, false, 63, -1, mp::size, mp, -1>();
@@ -1044,7 +1096,7 @@ void check_bs_lower_bound() {
 TEST(type_map, binary_search_lower_bound) {
   typedef chr_map<> empty;
 
-  LOG(INFO) << "empty";
+  VLOG(1) << "empty";
   check_bs_lower_bound<char, false, '-', '\0', '\0', empty::size,
     empty, '\0'
   >();
@@ -1052,14 +1104,14 @@ TEST(type_map, binary_search_lower_bound) {
 
   typedef chr_map<'x', 'X'> one;
 
-  LOG(INFO) << "one";
+  VLOG(1) << "one";
   check_bs_lower_bound<char, false, 'w', '\0', '\0', one::size, one, '\0'>();
   check_bs_lower_bound<char, true,  'x', 'x',  'X',  0, one, '\0'>();
   check_bs_lower_bound<char, true,  'y', 'x',  'X',  0, one, '\0'>();
 
   typedef chr_map<'x', 'X', 'y', 'Y'> two;
 
-  LOG(INFO) << "two";
+  VLOG(1) << "two";
   check_bs_lower_bound<char, false, 'w', '\0', '\0', two::size, two, '\0'>();
   check_bs_lower_bound<char, true,  'x', 'x',  'X',  0, two, '\0'>();
   check_bs_lower_bound<char, true,  'y', 'y',  'Y',  1, two, '\0'>();
@@ -1067,7 +1119,7 @@ TEST(type_map, binary_search_lower_bound) {
 
   typedef chr_map<'a', 'A', 'e', 'E', 'i', 'I', 'o', 'O', 'u', 'U'> aeiou;
 
-  LOG(INFO) << "aeiou";
+  VLOG(1) << "aeiou";
   check_bs_lower_bound<char, false, 'a' - 1, '\0', '\0', aeiou::size,
     aeiou, '\0'
   >();
@@ -1082,7 +1134,7 @@ TEST(type_map, binary_search_lower_bound) {
     3, 2, 7, 3, 31, 5, 127, 7, 8191, 13, 131071, 17, 524287, 19
   > mp;
 
-  LOG(INFO) << "mp";
+  VLOG(1) << "mp";
   check_bs_lower_bound<int, false, -1,        -1,     -1, mp::size, mp, -1>();
   check_bs_lower_bound<int, false, 0,         -1,     -1, mp::size, mp, -1>();
   check_bs_lower_bound<int, false, 2,         -1,     -1, mp::size, mp, -1>();
@@ -1139,7 +1191,7 @@ void check_bs_upper_bound() {
 TEST(type_map, binary_search_upper_bound) {
   typedef chr_map<> empty;
 
-  LOG(INFO) << "empty";
+  VLOG(1) << "empty";
   check_bs_upper_bound<char, false, '-', '\0', '\0', empty::size,
     empty, '\0'
   >();
@@ -1147,14 +1199,14 @@ TEST(type_map, binary_search_upper_bound) {
 
   typedef chr_map<'x', 'X'> one;
 
-  LOG(INFO) << "one";
+  VLOG(1) << "one";
   check_bs_upper_bound<char, true,  'w', 'x',  'X',  0, one, '\0'>();
   check_bs_upper_bound<char, false, 'x', '\0', '\0', one::size, one, '\0'>();
   check_bs_upper_bound<char, false, 'y', '\0', '\0', one::size, one, '\0'>();
 
   typedef chr_map<'x', 'X', 'y', 'Y'> two;
 
-  LOG(INFO) << "two";
+  VLOG(1) << "two";
   check_bs_upper_bound<char, true,  'w', 'x',  'X',  0, two, '\0'>();
   check_bs_upper_bound<char, true,  'x', 'y',  'Y',  1, two, '\0'>();
   check_bs_upper_bound<char, false, 'y', '\0', '\0', two::size, two, '\0'>();
@@ -1162,7 +1214,7 @@ TEST(type_map, binary_search_upper_bound) {
 
   typedef chr_map<'a', 'A', 'e', 'E', 'i', 'I', 'o', 'O', 'u', 'U'> aeiou;
 
-  LOG(INFO) << "aeiou";
+  VLOG(1) << "aeiou";
   check_bs_upper_bound<char, true, 'a' - 1, 'a',  'A',  0, aeiou, '\0'>();
   check_bs_upper_bound<char, true, 'a',     'e',  'E',  1, aeiou, '\0'>();
   check_bs_upper_bound<char, true, 'e',     'i',  'I',  2, aeiou, '\0'>();
@@ -1176,7 +1228,7 @@ TEST(type_map, binary_search_upper_bound) {
     3, 2, 7, 3, 31, 5, 127, 7, 8191, 13, 131071, 17, 524287, 19
   > mp;
 
-  LOG(INFO) << "mp";
+  VLOG(1) << "mp";
   check_bs_upper_bound<int, true,  -1,         3,      2,  0, mp, -1>();
   check_bs_upper_bound<int, true,  0,          3,      2,  0, mp, -1>();
   check_bs_upper_bound<int, true,  2,          3,      2,  0, mp, -1>();
