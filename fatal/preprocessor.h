@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_preprocessor_h
+#define FATAL_INCLUDE_fatal_preprocessor_h
 
 namespace fatal {
 
@@ -20,3 +21,5 @@ namespace fatal {
 #define FATAL_UID(Prefix) FATAL_CAT(Prefix, FATAL_CAT(_, __LINE__))
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_preprocessor_h

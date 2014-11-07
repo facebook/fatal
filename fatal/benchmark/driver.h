@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_benchmark_driver_h
+#define FATAL_INCLUDE_fatal_benchmark_driver_h
 
 #include <folly/Benchmark.h>
 
@@ -26,3 +27,5 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
+#endif // FATAL_INCLUDE_fatal_benchmark_driver_h

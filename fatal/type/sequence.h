@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_sequence_h
+#define FATAL_INCLUDE_fatal_type_sequence_h
 
 #include <fatal/type/list.h>
 
@@ -258,3 +259,5 @@ struct build<false, OpenEnd, T, Current, End> {
 } // namespace constant_sequence_impl {
 } // namespace detail {
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_sequence_h

@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_test_driver_h
+#define FATAL_INCLUDE_fatal_test_driver_h
 
 #include <fatal/test/lib.h>
 
@@ -27,3 +28,5 @@ int main(int argc, char **argv) {
 
   return RUN_ALL_TESTS();
 }
+
+#endif // FATAL_INCLUDE_fatal_test_driver_h

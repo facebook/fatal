@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_call_traits_h
+#define FATAL_INCLUDE_fatal_type_call_traits_h
 
 #include <utility>
 
@@ -141,3 +142,5 @@ struct functor_call_traits {
 };
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_call_traits_h

@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_reflect_member_function_h
+#define FATAL_INCLUDE_fatal_type_reflect_member_function_h
 
 #include <fatal/type/list.h>
 
@@ -284,4 +285,6 @@ using reflect_member_function = decltype(
   detail::reflect_member_function_impl(static_cast<T>(nullptr))
 );
 
-} // namespace fatal
+} // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_reflect_member_function_h

@@ -7,7 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_reflection_h
+#define FATAL_INCLUDE_fatal_type_reflection_h
 
 #include <fatal/type/reflect_template.h>
 #include <fatal/type/reflect_member_function.h>
+
+#endif // FATAL_INCLUDE_fatal_type_reflection_h

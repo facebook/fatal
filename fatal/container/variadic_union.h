@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_container_variadic_union_h
+#define FATAL_INCLUDE_fatal_container_variadic_union_h
 
 #include <fatal/math/numerics.h>
 #include <fatal/type/list.h>
@@ -469,3 +470,5 @@ struct variadic_union_impl<T0, T1, T2, T3, T4> {
 
 } // namespace detail {
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_container_variadic_union_h

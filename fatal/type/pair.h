@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_pair_h
+#define FATAL_INCLUDE_fatal_type_pair_h
 
 #include <fatal/type/traits.h>
 
@@ -143,4 +144,6 @@ struct type_get_traits<type_pair<TFirst, TSecond>, Index> {
   typedef typename std::conditional<Index == 0, TFirst, TSecond>::type type;
 };
 
-} // namespace fatal
+} // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_pair_h

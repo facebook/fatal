@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_math_numerics_h
+#define FATAL_INCLUDE_fatal_math_numerics_h
 
 #include <fatal/type/list.h>
 #include <fatal/type/traits.h>
@@ -729,3 +730,5 @@ private:
 };
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_math_numerics_h

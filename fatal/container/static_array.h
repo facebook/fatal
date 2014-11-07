@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_container_static_array_h
+#define FATAL_INCLUDE_fatal_container_static_array_h
 
 #include <fatal/type/list.h>
 
@@ -98,3 +99,5 @@ struct static_array:
 };
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_container_static_array_h

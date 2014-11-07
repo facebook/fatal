@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_reflect_template_h
+#define FATAL_INCLUDE_fatal_type_reflect_template_h
 
 #include <fatal/type/list.h>
 #include <fatal/type/sequence.h>
@@ -283,4 +284,6 @@ using reflect_values = typename reflect_template<T>::values;
 template <typename T>
 using reflect_types = typename reflect_template<T>::types;
 
-} // namespace fatal
+} // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_reflect_template_h

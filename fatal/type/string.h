@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_string_h
+#define FATAL_INCLUDE_fatal_type_string_h
 
 #include <fatal/preprocessor.h>
 #include <fatal/type/sequence.h>
@@ -143,3 +144,5 @@ constexpr std::size_t size(T const (&)[Size]) {
 } // namespace type_string_impl {
 } // namespace detail {
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_string_h

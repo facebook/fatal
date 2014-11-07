@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_test_lib_h
+#define FATAL_INCLUDE_fatal_test_lib_h
 
 #include <folly/Demangle.h>
 
@@ -88,3 +89,5 @@ private:
   ::fatal::detail::expect_same_impl{__FILE__, __LINE__}.check
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_test_lib_h

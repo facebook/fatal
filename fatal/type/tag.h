@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_tag_h
+#define FATAL_INCLUDE_fatal_type_tag_h
 
 #include <fatal/type/debug.h>
 
@@ -31,4 +32,8 @@ constexpr std::size_t indexed_type_tag<T, Index>::index;
 
 struct type_not_found_tag {};
 
-} // namespace fatal
+struct no_metadata_tag {};
+
+} // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_tag_h
