@@ -48,12 +48,12 @@ Provided that the dependencies are properly installed:
 
 ```sh
 $ clang++ -Wall -std=c++1y -I path/to/fatal/basedir \
-  -o path/to/output/binary path/to/demo.cpp
+  -o path/to/output/binary path/to/demo.cpp -lfolly
 ```
 or
 ```sh
 $ g++ -Wall -std=c++1y -I path/to/fatal/basedir \
-  -o path/to/output/binary path/to/demo.cpp
+  -o path/to/output/binary path/to/demo.cpp -lfolly
 ```
 
 ## Installing Fatal
