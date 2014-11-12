@@ -16,21 +16,7 @@ namespace fatal {
 
 #define FATAL_CALL_TRAITS(Name, ...) \
   struct Name { \
-    struct member_function { \
-      constexpr member_function() {} \
-      \
-      template <typename U, typename... UArgs> \
-      constexpr static auto call(U &&subject, UArgs &&...args) \
-        -> decltype(subject.__VA_ARGS__(std::forward<UArgs>(args)...)) \
-      { return subject.__VA_ARGS__(std::forward<UArgs>(args)...); } \
-      \
-      template <typename U, typename... UArgs> \
-      constexpr auto operator ()(U &&subject, UArgs &&...args) const \
-        -> decltype( \
-          call(std::forward<U>(subject), std::forward<UArgs>(args)...) \
-        ) \
-      { return call(std::forward<U>(subject), std::forward<UArgs>(args)...); } \
-      \
+    class member_function { \
       template <typename U, typename... UArgs> \
       struct supported_impl { \
         template <typename> struct dummy {}; \
@@ -44,6 +30,21 @@ namespace fatal {
         ); \
         template <typename> static std::false_type sfinae(...); \
       }; \
+      \
+    public: \
+      constexpr member_function() {} \
+      \
+      template <typename U, typename... UArgs> \
+      constexpr static auto call(U &&subject, UArgs &&...args) \
+        -> decltype(subject.__VA_ARGS__(std::forward<UArgs>(args)...)) \
+      { return subject.__VA_ARGS__(std::forward<UArgs>(args)...); } \
+      \
+      template <typename U, typename... UArgs> \
+      constexpr auto operator ()(U &&subject, UArgs &&...args) const \
+        -> decltype( \
+          call(std::forward<U>(subject), std::forward<UArgs>(args)...) \
+        ) \
+      { return call(std::forward<U>(subject), std::forward<UArgs>(args)...); } \
       \
       template <typename U, typename... UArgs> \
       using supported = decltype(supported_impl<U, UArgs...> \
