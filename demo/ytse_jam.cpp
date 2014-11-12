@@ -168,7 +168,7 @@ using known = fatal::type_list<
 struct ytse_jam {
   using supported = metadata::known;
   using op_list = supported::transform<metadata::to_operation_command_list>::flatten<1>;
-  using instance_t = supported::transform<fatal::get_member_typedef::type>::apply<fatal::auto_variant>;
+  using instance_t = supported::transform<fatal::get_member_type::type>::apply<fatal::auto_variant>;
   using result_t = op_list::transform<get_member::result>::reject<fatal::transform_alias<std::is_same, void>::apply>
     ::unique<>::apply<fatal::auto_variant>;
 
@@ -185,7 +185,7 @@ private:
     ::apply<fatal::build_type_prefix_tree<>::from>;
   using op_trie = op_list::transform<get_member::verb>::apply<fatal::build_type_prefix_tree<>::from>;
   // data_type -> verb -> op
-  using op_index = fatal::clustered_index<op_list, fatal::get_member_typedef::type, get_member::verb>;
+  using op_index = fatal::clustered_index<op_list, fatal::get_member_type::type, get_member::verb>;
   using instances_map = std::unordered_map<std::string, instance_t>;
 
   template <typename T, typename TArgsList, std::size_t... Indexes>

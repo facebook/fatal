@@ -803,14 +803,14 @@ struct comparison_transform {
  *
  * Example:
  *
- *  FATAL_GET_MEMBER_TYPEDEF(type);
+ *  FATAL_GET_MEMBER_TYPE(type);
  *
  *  // evaluates to `int const`
  *  using result = type<std::add_const<int>>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-# define FATAL_GET_MEMBER_TYPEDEF(Name) \
+# define FATAL_GET_MEMBER_TYPE(Name) \
   template <typename T> using Name = typename T::Name
 
 /**
@@ -819,69 +819,69 @@ struct comparison_transform {
  * Example:
  *
  *  // yields `int`
- *  typedef get_member_typedef::type<std::add_const<int>> result1;
+ *  typedef get_member_type::type<std::add_const<int>> result1;
  *
  *  typedef std::map<double, std::string> map;
  *
  *  // yields `std::pair<double, std::string>`
- *  typedef get_member_typedef::value_type<map> result2;
+ *  typedef get_member_type::value_type<map> result2;
  *
  *  // yields `double`
- *  typedef get_member_typedef::key_type<map> result3;
+ *  typedef get_member_type::key_type<map> result3;
  *
  *  // yields `std::string`
- *  typedef get_member_typedef::mapped_type<map> result4;
+ *  typedef get_member_type::mapped_type<map> result4;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-struct get_member_typedef {
-  FATAL_GET_MEMBER_TYPEDEF(char_type);
-  FATAL_GET_MEMBER_TYPEDEF(type);
-  FATAL_GET_MEMBER_TYPEDEF(types);
+struct get_member_type {
+  FATAL_GET_MEMBER_TYPE(char_type);
+  FATAL_GET_MEMBER_TYPE(type);
+  FATAL_GET_MEMBER_TYPE(types);
 
-# define FATAL_IMPL_GET_MEMBER_TYPEDEF(Name) \
-  FATAL_GET_MEMBER_TYPEDEF(Name); \
-  FATAL_GET_MEMBER_TYPEDEF(Name##_type)
+# define FATAL_IMPL_GET_MEMBER_TYPE(Name) \
+  FATAL_GET_MEMBER_TYPE(Name); \
+  FATAL_GET_MEMBER_TYPE(Name##_type)
 
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(allocator);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(args);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(array);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(config);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(const_iterator);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(const_pointer);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(const_reference);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(const_reverse_iterator);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(difference);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(element);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(first);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(flag);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(hash);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(id);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(index);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(item);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(iterator);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(key);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(list);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(map);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(mapped);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(pair);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(pointer);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(reference);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(result);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(reverse);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(reverse_iterator);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(second);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(set);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(size);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(string);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(tag);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(traits);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(tuple);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(value);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(values);
-  FATAL_IMPL_GET_MEMBER_TYPEDEF(version);
+  FATAL_IMPL_GET_MEMBER_TYPE(allocator);
+  FATAL_IMPL_GET_MEMBER_TYPE(args);
+  FATAL_IMPL_GET_MEMBER_TYPE(array);
+  FATAL_IMPL_GET_MEMBER_TYPE(config);
+  FATAL_IMPL_GET_MEMBER_TYPE(const_iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE(const_pointer);
+  FATAL_IMPL_GET_MEMBER_TYPE(const_reference);
+  FATAL_IMPL_GET_MEMBER_TYPE(const_reverse_iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE(difference);
+  FATAL_IMPL_GET_MEMBER_TYPE(element);
+  FATAL_IMPL_GET_MEMBER_TYPE(first);
+  FATAL_IMPL_GET_MEMBER_TYPE(flag);
+  FATAL_IMPL_GET_MEMBER_TYPE(hash);
+  FATAL_IMPL_GET_MEMBER_TYPE(id);
+  FATAL_IMPL_GET_MEMBER_TYPE(index);
+  FATAL_IMPL_GET_MEMBER_TYPE(item);
+  FATAL_IMPL_GET_MEMBER_TYPE(iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE(key);
+  FATAL_IMPL_GET_MEMBER_TYPE(list);
+  FATAL_IMPL_GET_MEMBER_TYPE(map);
+  FATAL_IMPL_GET_MEMBER_TYPE(mapped);
+  FATAL_IMPL_GET_MEMBER_TYPE(pair);
+  FATAL_IMPL_GET_MEMBER_TYPE(pointer);
+  FATAL_IMPL_GET_MEMBER_TYPE(reference);
+  FATAL_IMPL_GET_MEMBER_TYPE(result);
+  FATAL_IMPL_GET_MEMBER_TYPE(reverse);
+  FATAL_IMPL_GET_MEMBER_TYPE(reverse_iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE(second);
+  FATAL_IMPL_GET_MEMBER_TYPE(set);
+  FATAL_IMPL_GET_MEMBER_TYPE(size);
+  FATAL_IMPL_GET_MEMBER_TYPE(string);
+  FATAL_IMPL_GET_MEMBER_TYPE(tag);
+  FATAL_IMPL_GET_MEMBER_TYPE(traits);
+  FATAL_IMPL_GET_MEMBER_TYPE(tuple);
+  FATAL_IMPL_GET_MEMBER_TYPE(value);
+  FATAL_IMPL_GET_MEMBER_TYPE(values);
+  FATAL_IMPL_GET_MEMBER_TYPE(version);
 
-# undef FATAL_IMPL_GET_MEMBER_TYPEDEF
+# undef FATAL_IMPL_GET_MEMBER_TYPE
 };
 
 ///////////////////////////

@@ -205,14 +205,14 @@ class tagged_tuple_from {
 public:
   template <
     template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = get_member_typedef::tag
+    template <typename...> class TTagTransform = get_member_type::tag
   >
   using args = typename impl<TTagTransform, TTypeTransform>
     ::template args<Args...>;
 
   template <
     template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = get_member_typedef::tag
+    template <typename...> class TTagTransform = get_member_type::tag
   >
   using list = fatal::apply<
     impl<TTagTransform, TTypeTransform>::template list,

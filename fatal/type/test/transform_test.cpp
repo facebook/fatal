@@ -541,11 +541,11 @@ TEST(comparison_transform, greater_than_equal) {
   EXPECT_TRUE((comparison_transform::greater_than_equal<A, A>::value));
 }
 
-////////////////////////
-// get_member_typedef //
-////////////////////////
+/////////////////////
+// get_member_type //
+/////////////////////
 
-struct get_member_typedef_test {
+struct get_member_type_test {
   using tag = test_tag<void>;
 
   using types = test_list<void, int, bool, long>;
@@ -563,27 +563,27 @@ struct get_member_typedef_test {
   using flag = std::true_type;
 };
 
-TEST(get_member_typedef, get_member_typedef) {
+TEST(get_member_type, get_member_type) {
 # define CREATE_TEST(Member, Type) \
   do { \
-    FATAL_EXPECT_SAME<Type::Member, get_member_typedef::Member<Type>>(); \
+    FATAL_EXPECT_SAME<Type::Member, get_member_type::Member<Type>>(); \
   } while (false)
 
-  CREATE_TEST(tag, get_member_typedef_test);
+  CREATE_TEST(tag, get_member_type_test);
 
-  CREATE_TEST(types, get_member_typedef_test);
-  CREATE_TEST(values, get_member_typedef_test);
-  CREATE_TEST(args, get_member_typedef_test);
+  CREATE_TEST(types, get_member_type_test);
+  CREATE_TEST(values, get_member_type_test);
+  CREATE_TEST(args, get_member_type_test);
 
-  CREATE_TEST(pair, get_member_typedef_test);
-  CREATE_TEST(tuple, get_member_typedef_test);
-  CREATE_TEST(list, get_member_typedef_test);
-  CREATE_TEST(map, get_member_typedef_test);
-  CREATE_TEST(array, get_member_typedef_test);
-  CREATE_TEST(set, get_member_typedef_test);
-  CREATE_TEST(string, get_member_typedef_test);
-  CREATE_TEST(index, get_member_typedef_test);
-  CREATE_TEST(flag, get_member_typedef_test);
+  CREATE_TEST(pair, get_member_type_test);
+  CREATE_TEST(tuple, get_member_type_test);
+  CREATE_TEST(list, get_member_type_test);
+  CREATE_TEST(map, get_member_type_test);
+  CREATE_TEST(array, get_member_type_test);
+  CREATE_TEST(set, get_member_type_test);
+  CREATE_TEST(string, get_member_type_test);
+  CREATE_TEST(index, get_member_type_test);
+  CREATE_TEST(flag, get_member_type_test);
 
   typedef std::add_const<int> a_c;
   CREATE_TEST(type, a_c);
