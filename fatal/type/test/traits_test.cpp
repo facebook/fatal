@@ -30,7 +30,7 @@ template <std::size_t> struct S {};
 struct complete_type {};
 struct incomplete_type;
 
-TEST(type_traits, is_complete) {
+TEST(traits, is_complete) {
   EXPECT_TRUE((is_complete<int>::value));
   EXPECT_TRUE((is_complete<std::string>::value));
   EXPECT_TRUE((is_complete<complete_type>::value));
@@ -53,7 +53,7 @@ void check_is_template() {
   }
 }
 
-TEST(type_traits, is_template) {
+TEST(traits, is_template) {
   check_is_template<std::string, false, std::tuple>();
   check_is_template<std::wstring, false, std::tuple>();
   check_is_template<std::basic_string<int>, false, std::tuple>();
@@ -108,7 +108,7 @@ TEST(type_traits, is_template) {
 // fast_pass_by_value //
 ////////////////////////
 
-TEST(type_traits, fast_pass_by_value) {
+TEST(traits, fast_pass_by_value) {
   EXPECT_TRUE(fast_pass_by_value<bool>::value);
   EXPECT_TRUE(fast_pass_by_value<bool &>::value);
   EXPECT_TRUE(fast_pass_by_value<bool &&>::value);
@@ -168,7 +168,7 @@ TEST(type_traits, fast_pass_by_value) {
 // fast_pass //
 ///////////////
 
-TEST(type_traits, fast_pass) {
+TEST(traits, fast_pass) {
   FATAL_EXPECT_SAME<bool const, fast_pass<bool>>();
   FATAL_EXPECT_SAME<bool const, fast_pass<bool &>>();
   FATAL_EXPECT_SAME<bool const, fast_pass<bool &&>>();
@@ -236,6 +236,149 @@ TEST(type_traits, fast_pass) {
   >();
 }
 
+////////////////////////
+// safe_ctor_overload //
+////////////////////////
+
+struct Base {};
+struct Derived: public Base {};
+struct Foo {};
+enum class ctor { def, copy, move, universal };
+
+TEST(traits, safe_ctor_overload) {
+  EXPECT_FALSE((safe_ctor_overload<Base, Base>::value));
+  EXPECT_FALSE((safe_ctor_overload<Base, Derived>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, int>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, void>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, Foo>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, int, int>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, void, void>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, Foo, Foo>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, int, int, int>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, void, void, void>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, Foo, Foo, Foo>::value));
+  EXPECT_TRUE((safe_ctor_overload<Base, int, void, Foo, bool>::value));
+}
+
+struct overloading_test {
+  overloading_test(): type(ctor::def) {}
+  overloading_test(overloading_test const &) noexcept: type(ctor::copy) {}
+  overloading_test(overloading_test &&) noexcept: type(ctor::move) {}
+  template <
+    typename T,
+    typename = typename std::enable_if<
+      safe_ctor_overload<overloading_test, T>::value, void
+    >::type
+  >
+  explicit overloading_test(T &&): type(ctor::universal) {}
+
+  ctor type;
+};
+
+TEST(traits, safe_ctor_overload_nonvariadic) {
+  overloading_test def;
+  EXPECT_EQ(ctor::def, def.type);
+  overloading_test copy(def);
+  EXPECT_EQ(ctor::copy, copy.type);
+  overloading_test move(std::move(def));
+  EXPECT_EQ(ctor::move, move.type);
+  overloading_test universal(0);
+  EXPECT_EQ(ctor::universal, universal.type);
+  overloading_test foo{Foo()};
+  EXPECT_EQ(ctor::universal, foo.type);
+}
+
+struct variadic_overloading_test {
+  variadic_overloading_test(): type(ctor::def) {}
+  variadic_overloading_test(variadic_overloading_test const &) noexcept:
+    type(ctor::copy)
+  {}
+  variadic_overloading_test(variadic_overloading_test &&) noexcept:
+    type(ctor::move)
+  {}
+  template <
+    typename... Args,
+    typename = typename std::enable_if<
+      safe_ctor_overload<variadic_overloading_test, Args...>::value, void
+    >::type
+  >
+  explicit variadic_overloading_test(Args &&...): type(ctor::universal) {}
+
+  ctor type;
+};
+
+TEST(traits, safe_ctor_overload_variadic) {
+  variadic_overloading_test def;
+  EXPECT_EQ(ctor::def, def.type);
+  variadic_overloading_test copy(def);
+  EXPECT_EQ(ctor::copy, copy.type);
+  variadic_overloading_test move(std::move(def));
+  EXPECT_EQ(ctor::move, move.type);
+  variadic_overloading_test i(0);
+  EXPECT_EQ(ctor::universal, i.type);
+  variadic_overloading_test foo{Foo()};
+  EXPECT_EQ(ctor::universal, foo.type);
+  variadic_overloading_test universal(copy, move);
+  EXPECT_EQ(ctor::universal, universal.type);
+}
+
+struct overloading_test_t {
+  overloading_test_t(): type(ctor::def) {}
+  overloading_test_t(overloading_test_t const &) noexcept: type(ctor::copy) {}
+  overloading_test_t(overloading_test_t &&) noexcept: type(ctor::move) {}
+  template <
+    typename T,
+    typename = safe_ctor_overload_t<overloading_test_t, T>
+  >
+  explicit overloading_test_t(T &&): type(ctor::universal) {}
+  ctor type;
+};
+
+TEST(traits, safe_ctor_overload_nonvariadic_t) {
+  overloading_test_t def;
+  EXPECT_EQ(ctor::def, def.type);
+  overloading_test_t copy(def);
+  EXPECT_EQ(ctor::copy, copy.type);
+  overloading_test_t move(std::move(def));
+  EXPECT_EQ(ctor::move, move.type);
+  overloading_test_t universal(0);
+  EXPECT_EQ(ctor::universal, universal.type);
+  overloading_test_t foo{Foo()};
+  EXPECT_EQ(ctor::universal, foo.type);
+}
+
+struct variadic_overloading_test_t {
+  variadic_overloading_test_t(): type(ctor::def) {}
+  variadic_overloading_test_t(variadic_overloading_test_t const &) noexcept:
+    type(ctor::copy)
+  {}
+  variadic_overloading_test_t(variadic_overloading_test_t &&) noexcept:
+    type(ctor::move)
+  {}
+  template <
+    typename... Args,
+    typename = safe_ctor_overload_t<variadic_overloading_test_t, Args...>
+  >
+  explicit variadic_overloading_test_t(Args &&...): type(ctor::universal) {}
+  ctor type;
+};
+
+TEST(traits, safe_ctor_overload_variadic_t) {
+  variadic_overloading_test_t def;
+  EXPECT_EQ(ctor::def, def.type);
+  variadic_overloading_test_t copy(def);
+  EXPECT_EQ(ctor::copy, copy.type);
+  variadic_overloading_test_t move(std::move(def));
+  EXPECT_EQ(ctor::move, move.type);
+  variadic_overloading_test_t i(0);
+  EXPECT_EQ(ctor::universal, i.type);
+  variadic_overloading_test_t foo{Foo()};
+  EXPECT_EQ(ctor::universal, foo.type);
+  variadic_overloading_test_t universal(copy, move);
+  EXPECT_EQ(ctor::universal, universal.type);
+}
+
 ////////////////
 // is_functor //
 ////////////////
@@ -248,7 +391,7 @@ struct foonctor {
 typedef void(*foonction)();
 typedef void(*foonction_is)(int, std::string);
 
-TEST(type_traits, is_functor) {
+TEST(traits, is_functor) {
   auto const lambda = []() {};
   auto const lambda_is = [](int, std::string) {};
 
@@ -282,7 +425,7 @@ TEST(type_traits, is_functor) {
 // is_callable //
 /////////////////
 
-TEST(type_traits, is_callable) {
+TEST(traits, is_callable) {
   auto const lambda = []() {};
   auto const lambda_is = [](int, std::string) {};
 
@@ -312,199 +455,33 @@ TEST(type_traits, is_callable) {
   EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
 }
 
-/////////////////////////////////////////////
-// FATAL_CREATE_HAS_MEMBER_FUNCTION_TRAITS //
-/////////////////////////////////////////////
+//////////////////////////////
+// FATAL_HAS_MEMBER_TYPEDEF //
+//////////////////////////////
 
-namespace fbhmft {
-  FATAL_CREATE_HAS_MEMBER_FUNCTION_TRAITS(traits, fn);
+namespace has_member_type_test {
+  struct foo { using xyz = int; };
+  struct bar { typedef int xyz; };
+  struct baz {};
 
-  struct A {};
-  struct B {};
-  struct F {
-    int fn() { return 0; }
-    float fn(char) { return 0; }
-    short fn(double, A &) { return 0; }
-    double fn(A &&) { return 0; }
-    double fn(B const &&) { return 0; }
-    bool doit(std::string) { return false; }
-  };
-};
+  FATAL_HAS_MEMBER_TYPE(has_xyz, xyz);
+} // namespace has_member_type_test {
 
-TEST(type_traits, create_has_member_function_traits) {
-  using namespace fbhmft;
+TEST(traits, has_member_type) {
+  FATAL_EXPECT_SAME<
+    std::true_type,
+    has_member_type_test::has_xyz::check<has_member_type_test::foo>
+  >();
 
-  EXPECT_TRUE((traits<F>::has_member::value));
+  FATAL_EXPECT_SAME<
+    std::true_type,
+    has_member_type_test::has_xyz::check<has_member_type_test::bar>
+  >();
 
-  EXPECT_TRUE((traits<F, int>::has_member::value));
-
-  EXPECT_TRUE((traits<F, char>::has_member::value));
-
-  EXPECT_TRUE((traits<F, double>::has_member::value));
-
-  EXPECT_FALSE((traits<F, double, A>::has_member::value));
-  EXPECT_TRUE((traits<F, double, A &>::has_member::value));
-
-  EXPECT_TRUE((traits<F, A>::has_member::value));
-  EXPECT_FALSE((traits<F, A &>::has_member::value));
-  EXPECT_FALSE((traits<F, A const &>::has_member::value));
-  EXPECT_TRUE((traits<F, A &&>::has_member::value));
-  EXPECT_FALSE((traits<F, A const &&>::has_member::value));
-
-  EXPECT_TRUE((traits<F, B>::has_member::value));
-  EXPECT_FALSE((traits<F, B &>::has_member::value));
-  EXPECT_FALSE((traits<F, B const &>::has_member::value));
-  EXPECT_TRUE((traits<F, B &&>::has_member::value));
-  EXPECT_TRUE((traits<F, B const &&>::has_member::value));
-
-  EXPECT_FALSE((traits<F, std::string>::has_member::value));
-  EXPECT_FALSE((traits<F, std::string &>::has_member::value));
-  EXPECT_FALSE((traits<F, std::string const &>::has_member::value));
-  EXPECT_FALSE((traits<F, std::string &&>::has_member::value));
-  EXPECT_FALSE((traits<F, std::string const &&>::has_member::value));
-}
-
-////////////////////////
-// safe_ctor_overload //
-////////////////////////
-
-struct Base {};
-struct Derived: public Base {};
-struct Foo {};
-enum class ctor { def, copy, move, universal };
-
-TEST(type_traits, safe_ctor_overload) {
-  EXPECT_FALSE((safe_ctor_overload<Base, Base>::value));
-  EXPECT_FALSE((safe_ctor_overload<Base, Derived>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, int, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void, void, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo, Foo, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, void, Foo, bool>::value));
-}
-
-struct overloading_test {
-  overloading_test(): type(ctor::def) {}
-  overloading_test(overloading_test const &) noexcept: type(ctor::copy) {}
-  overloading_test(overloading_test &&) noexcept: type(ctor::move) {}
-  template <
-    typename T,
-    typename = typename std::enable_if<
-      safe_ctor_overload<overloading_test, T>::value, void
-    >::type
-  >
-  explicit overloading_test(T &&): type(ctor::universal) {}
-
-  ctor type;
-};
-
-TEST(type_traits, safe_ctor_overload_nonvariadic) {
-  overloading_test def;
-  EXPECT_EQ(ctor::def, def.type);
-  overloading_test copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
-  overloading_test move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
-  overloading_test universal(0);
-  EXPECT_EQ(ctor::universal, universal.type);
-  overloading_test foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
-}
-
-struct variadic_overloading_test {
-  variadic_overloading_test(): type(ctor::def) {}
-  variadic_overloading_test(variadic_overloading_test const &) noexcept:
-    type(ctor::copy)
-  {}
-  variadic_overloading_test(variadic_overloading_test &&) noexcept:
-    type(ctor::move)
-  {}
-  template <
-    typename... Args,
-    typename = typename std::enable_if<
-      safe_ctor_overload<variadic_overloading_test, Args...>::value, void
-    >::type
-  >
-  explicit variadic_overloading_test(Args &&...): type(ctor::universal) {}
-
-  ctor type;
-};
-
-TEST(type_traits, safe_ctor_overload_variadic) {
-  variadic_overloading_test def;
-  EXPECT_EQ(ctor::def, def.type);
-  variadic_overloading_test copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
-  variadic_overloading_test move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
-  variadic_overloading_test i(0);
-  EXPECT_EQ(ctor::universal, i.type);
-  variadic_overloading_test foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
-  variadic_overloading_test universal(copy, move);
-  EXPECT_EQ(ctor::universal, universal.type);
-}
-
-struct overloading_test_t {
-  overloading_test_t(): type(ctor::def) {}
-  overloading_test_t(overloading_test_t const &) noexcept: type(ctor::copy) {}
-  overloading_test_t(overloading_test_t &&) noexcept: type(ctor::move) {}
-  template <
-    typename T,
-    typename = safe_ctor_overload_t<overloading_test_t, T>
-  >
-  explicit overloading_test_t(T &&): type(ctor::universal) {}
-  ctor type;
-};
-
-TEST(type_traits, safe_ctor_overload_nonvariadic_t) {
-  overloading_test_t def;
-  EXPECT_EQ(ctor::def, def.type);
-  overloading_test_t copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
-  overloading_test_t move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
-  overloading_test_t universal(0);
-  EXPECT_EQ(ctor::universal, universal.type);
-  overloading_test_t foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
-}
-
-struct variadic_overloading_test_t {
-  variadic_overloading_test_t(): type(ctor::def) {}
-  variadic_overloading_test_t(variadic_overloading_test_t const &) noexcept:
-    type(ctor::copy)
-  {}
-  variadic_overloading_test_t(variadic_overloading_test_t &&) noexcept:
-    type(ctor::move)
-  {}
-  template <
-    typename... Args,
-    typename = safe_ctor_overload_t<variadic_overloading_test_t, Args...>
-  >
-  explicit variadic_overloading_test_t(Args &&...): type(ctor::universal) {}
-  ctor type;
-};
-
-TEST(type_traits, safe_ctor_overload_variadic_t) {
-  variadic_overloading_test_t def;
-  EXPECT_EQ(ctor::def, def.type);
-  variadic_overloading_test_t copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
-  variadic_overloading_test_t move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
-  variadic_overloading_test_t i(0);
-  EXPECT_EQ(ctor::universal, i.type);
-  variadic_overloading_test_t foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
-  variadic_overloading_test_t universal(copy, move);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_SAME<
+    std::false_type,
+    has_member_type_test::has_xyz::check<has_member_type_test::baz>
+  >();
 }
 
 } // namespace fatal {

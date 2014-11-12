@@ -300,81 +300,45 @@ template <typename T, typename... Args>
 constexpr bool is_callable<T, Args...>::value;
 
 /**
- * This macro creates a traits class that can check whether some type `T`
- * has a public instance member function with a given name, which can be
- * called by passing in the given parameters.
+ * This macro creates a class named `Class` that can check whether some
+ * type has a nested member type with name `Member`.
  *
- * The macro receives two parameters, `Class` and `Member`.  The traits
- * class created by this macro will be named whatever `Class` is, and it
- * will check for members named whatever `Member` is.
+ * The class created by this macro looks like this:
  *
- * This is the interface of the created traits class:
- *
- *  template <typename T, typename... Args>
  *  struct Class {
- *    // a bool std::integral_constant-like that tells whether `T` has a public
- *    // instance member function named `Member` accepting `Args...` parameters
- *    using has_member = *IMPLEMENTATION-DEFINED*;
- *
- *    template <typename U, typename... UArgs>
- *    using rebind = Class<U, UArgs...>;
+ *    template <typename T>
+ *    using check = <either std::true_type or std::false_type>;
  *  };
  *
  * Example:
  *
- *  // checks for a member named `fn`
- *  FATAL_CREATE_HAS_MEMBER_TRAITS(traits, fn);
- *  // now we have a class names `traits`
+ *  FATAL_HAS_MEMBER_TYPE(has_xyz, xyz);
  *
- *  struct A {};
- *  struct F {
- *    int fn() { return 0; }
- *    float fn(char) { return 0; }
- *    short fn(double, A &) { return 0; }
- *    double doit(std:string) { return 0; }
- *  };
+ *  struct foo { using xyz = int; };
+ *  struct bar { typedef int xyz; };
+ *  struct baz {};
  *
- *  // yields `true`
- *  traits<F>::value
+ *  // yields `std::true_type`
+ *  using result1 = has_xyz::check<foo>;
  *
- *  // yields `true`
- *  traits<F, char>::value
+ *  // yields `std::true_type`
+ *  using result2 = has_xyz::check<bar>;
  *
- *  // yields `false`
- *  traits<F, double>::value
- *
- *  // yields `false`
- *  traits<F, double, A>::value
- *
- *  // yields `true`
- *  traits<F, double, A &>::value
- *
- *  // yields `false`
- *  traits<F, std::string>::value
+ *  // yields `std::false_type`
+ *  using result3 = has_xyz::check<baz>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FATAL_CREATE_HAS_MEMBER_FUNCTION_TRAITS(Class, Member) \
-  template <typename TTheClass_, typename... TTheArgs_> \
-  class Class { \
-    template <typename> struct dummy; \
-    template <typename UTheClass_> \
-    static std::true_type sfinae(dummy<decltype( \
-      std::declval<UTheClass_>().Member( \
-        std::forward<TTheArgs_>(std::declval<TTheArgs_>())... \
-      ) \
-    )> *); \
-    template <typename UTheClass_> \
-    static std::true_type sfinae(dummy<decltype( \
-      std::declval<typename std::add_const<UTheClass_>::type>().Member( \
-        std::forward<TTheArgs_>(std::declval<TTheArgs_>())... \
-      ) \
-    )> *); \
-    template <typename> static std::false_type sfinae(...); \
-  public: \
-    using has_member = decltype(sfinae<TTheClass_>(nullptr)); \
-    template <typename UTheClass_, typename... UTheArgs_> \
-    using rebind = Class<UTheClass_, UTheArgs_...>; \
+#define FATAL_HAS_MEMBER_TYPE(Class, ...) \
+  struct Class { \
+    template <typename T> \
+    static std::true_type sfinae(typename T::__VA_ARGS__ *); \
+    \
+    template <typename> \
+    static std::false_type sfinae(...); \
+    \
+    template <typename T> \
+    using check = decltype(sfinae<T>(nullptr)); \
   }
 
 } // namespace fatal
