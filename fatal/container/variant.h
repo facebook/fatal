@@ -924,7 +924,7 @@ public:
   typedef detail::variant_impl::variadic_union_traits<
     storage_policy,
     type_tag, std::numeric_limits<type_tag>::min(),
-    typename std::remove_reference<Args>::type...
+    typename std::decay<Args>::type...
   > traits;
   typedef typename traits::union_type union_type;
 
@@ -974,11 +974,7 @@ public:
   explicit variant(allocator_type *allocator, U &&value):
     control_(allocator, no_tag())
   {
-    set<
-      typename std::remove_const<
-        typename std::remove_reference<U>::type
-      >::type
-    >(std::forward<U>(value));
+    set<typename std::decay<U>::type>(std::forward<U>(value));
   }
 
   template <typename U>
@@ -1187,16 +1183,16 @@ public:
 
   template <typename U>
   U &set(U const &value) {
-    return set_impl<typename std::remove_reference<U>::type>(value);
+    return set_impl<typename std::decay<U>::type>(value);
   }
   template <typename U>
   U &set(U &&value) {
-    return set_impl<typename std::remove_reference<U>::type>(std::move(value));
+    return set_impl<typename std::decay<U>::type>(std::move(value));
   }
 
   template <typename U, typename... UArgs>
   U &emplace(UArgs &&...args) {
-    return set_impl<typename std::remove_reference<U>::type>(
+    return set_impl<typename std::decay<U>::type>(
       std::forward<UArgs>(args)...
     );
   }
@@ -1399,7 +1395,7 @@ private:
     auto const storedType = control_.storedType();
     auto allocator = control_.allocator();
 
-    static_assert((tag<U>() != no_tag()), "can't set an unsupported type");
+    static_assert((is_supported<U>()), "can't set an unsupported type");
 
     if (storedType == tag<U>()) {
       assert(storedType != no_tag());
@@ -1796,7 +1792,7 @@ private:
 
     template <typename U>
     void operator ()(U const &value) {
-      result ^= std::hash<typename std::remove_reference<U>::type>()(value);
+      result ^= std::hash<typename std::decay<U>::type>()(value);
     }
 
     result_type result;
