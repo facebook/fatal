@@ -22,12 +22,13 @@ template <typename...> struct debug_type;
 #define FATAL_DEBUG_TYPE_OF(...) FATAL_DEBUG_TYPE(decltype(__VA_ARGS__))
 
 // TODO: DOCUMENT
-#define FATAL_DEBUG_STMT_TYPE(...) \
+#define FATAL_DEBUG_TYPE_STMT(...) \
   do { \
     ::fatal::debug_type<__VA_ARGS__> FATAL_UID(debug_type); \
   } while (false)
 
-#define FATAL_DEBUG_STMT_TYPE_OF(...) FATAL_DO_DEBUG_TYPE(decltype(__VA_ARGS__))
+#define FATAL_DEBUG_TYPE_OF_STMT(...) \
+  FATAL_DEBUG_TYPE_STMT(decltype(__VA_ARGS__))
 
 } // namespace fatal
 
