@@ -53,6 +53,8 @@ namespace fatal {
     \
     template <typename TSubject> \
     struct static_member { \
+      using type = TSubject; \
+      \
       constexpr static_member() {} \
       \
       template <typename... UArgs> \
@@ -84,6 +86,8 @@ namespace fatal {
 struct ctor_call_traits {
   template <typename T>
   struct automatic {
+    using type = T;
+
     constexpr automatic() {}
 
     template <typename... UArgs>
@@ -99,6 +103,8 @@ struct ctor_call_traits {
 
   template <typename T>
   struct dynamic {
+    using type = T;
+
     constexpr dynamic() {}
 
     template <typename... UArgs>
@@ -114,6 +120,8 @@ struct ctor_call_traits {
 
   template <typename T>
   struct placement {
+    using type = T;
+
     constexpr placement() {}
 
     template <typename... UArgs>
