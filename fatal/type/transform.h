@@ -858,12 +858,15 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE(hash);
   FATAL_IMPL_GET_MEMBER_TYPE(id);
   FATAL_IMPL_GET_MEMBER_TYPE(index);
+  FATAL_IMPL_GET_MEMBER_TYPE(instance);
   FATAL_IMPL_GET_MEMBER_TYPE(item);
   FATAL_IMPL_GET_MEMBER_TYPE(iterator);
   FATAL_IMPL_GET_MEMBER_TYPE(key);
   FATAL_IMPL_GET_MEMBER_TYPE(list);
   FATAL_IMPL_GET_MEMBER_TYPE(map);
   FATAL_IMPL_GET_MEMBER_TYPE(mapped);
+  FATAL_IMPL_GET_MEMBER_TYPE(mapping);
+  FATAL_IMPL_GET_MEMBER_TYPE(mappings);
   FATAL_IMPL_GET_MEMBER_TYPE(pair);
   FATAL_IMPL_GET_MEMBER_TYPE(pointer);
   FATAL_IMPL_GET_MEMBER_TYPE(reference);
@@ -1245,6 +1248,9 @@ struct transform_alias {
 // transform_switch //
 //////////////////////
 
+template <template <typename...> class, template <typename...> class...>
+struct transform_switch;
+
 namespace detail {
 namespace transform_switch_impl {
 
@@ -1309,6 +1315,28 @@ struct extend<TSwitch, TEntry, Args...> {
   >::type;
 };
 
+template <typename...> struct concat;
+template <typename T> struct concat<T> { using type = T; };
+
+template <
+  template <typename...> class TLHSFallback,
+  template <typename...> class... TLHSEntries,
+  template <typename...> class TRHSFallback,
+  template <typename...> class... TRHSEntries,
+  typename... Args
+>
+struct concat<
+  transform_switch<TLHSFallback, TLHSEntries...>,
+  transform_switch<TRHSFallback, TRHSEntries...>,
+  Args...
+> {
+  // TODO: uniquify?
+  using type = concat<
+    transform_switch<TLHSFallback, TLHSEntries..., TRHSEntries...>,
+    Args...
+  >;
+};
+
 } // namespace transform_switch_impl {
 } // namespace detail {
 
@@ -1344,6 +1372,11 @@ struct transform_switch {
   using extend = typename detail::transform_switch_impl::extend<
     transform_switch, UArgs...
   >::type;
+
+  template <typename... TTransformSwitches>
+  using concat = typename detail::transform_switch_impl::concat<
+    transform_switch, TTransformSwitches...
+  >;
 };
 
 ///////////////////////////////
