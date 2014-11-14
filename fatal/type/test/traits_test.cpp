@@ -236,29 +236,29 @@ TEST(traits, fast_pass) {
   >();
 }
 
-////////////////////////
-// safe_ctor_overload //
-////////////////////////
+///////////////////
+// safe_overload //
+///////////////////
 
 struct Base {};
 struct Derived: public Base {};
 struct Foo {};
 enum class ctor { def, copy, move, universal };
 
-TEST(traits, safe_ctor_overload) {
-  EXPECT_FALSE((safe_ctor_overload<Base, Base>::value));
-  EXPECT_FALSE((safe_ctor_overload<Base, Derived>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, int, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void, void, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo, Foo, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, void, Foo, bool>::value));
+TEST(traits, safe_overload) {
+  EXPECT_FALSE((safe_overload<Base, Base>::value));
+  EXPECT_FALSE((safe_overload<Base, Derived>::value));
+  EXPECT_TRUE((safe_overload<Base>::value));
+  EXPECT_TRUE((safe_overload<Base, int>::value));
+  EXPECT_TRUE((safe_overload<Base, void>::value));
+  EXPECT_TRUE((safe_overload<Base, Foo>::value));
+  EXPECT_TRUE((safe_overload<Base, int, int>::value));
+  EXPECT_TRUE((safe_overload<Base, void, void>::value));
+  EXPECT_TRUE((safe_overload<Base, Foo, Foo>::value));
+  EXPECT_TRUE((safe_overload<Base, int, int, int>::value));
+  EXPECT_TRUE((safe_overload<Base, void, void, void>::value));
+  EXPECT_TRUE((safe_overload<Base, Foo, Foo, Foo>::value));
+  EXPECT_TRUE((safe_overload<Base, int, void, Foo, bool>::value));
 }
 
 struct overloading_test {
@@ -268,7 +268,7 @@ struct overloading_test {
   template <
     typename T,
     typename = typename std::enable_if<
-      safe_ctor_overload<overloading_test, T>::value, void
+      safe_overload<overloading_test, T>::value, void
     >::type
   >
   explicit overloading_test(T &&): type(ctor::universal) {}
@@ -276,7 +276,7 @@ struct overloading_test {
   ctor type;
 };
 
-TEST(traits, safe_ctor_overload_nonvariadic) {
+TEST(traits, safe_overload_nonvariadic) {
   overloading_test def;
   EXPECT_EQ(ctor::def, def.type);
   overloading_test copy(def);
@@ -300,7 +300,7 @@ struct variadic_overloading_test {
   template <
     typename... Args,
     typename = typename std::enable_if<
-      safe_ctor_overload<variadic_overloading_test, Args...>::value, void
+      safe_overload<variadic_overloading_test, Args...>::value, void
     >::type
   >
   explicit variadic_overloading_test(Args &&...): type(ctor::universal) {}
@@ -308,7 +308,7 @@ struct variadic_overloading_test {
   ctor type;
 };
 
-TEST(traits, safe_ctor_overload_variadic) {
+TEST(traits, safe_overload_variadic) {
   variadic_overloading_test def;
   EXPECT_EQ(ctor::def, def.type);
   variadic_overloading_test copy(def);
@@ -329,13 +329,13 @@ struct overloading_test_t {
   overloading_test_t(overloading_test_t &&) noexcept: type(ctor::move) {}
   template <
     typename T,
-    typename = safe_ctor_overload_t<overloading_test_t, T>
+    typename = safe_overload_t<overloading_test_t, T>
   >
   explicit overloading_test_t(T &&): type(ctor::universal) {}
   ctor type;
 };
 
-TEST(traits, safe_ctor_overload_nonvariadic_t) {
+TEST(traits, safe_overload_nonvariadic_t) {
   overloading_test_t def;
   EXPECT_EQ(ctor::def, def.type);
   overloading_test_t copy(def);
@@ -358,13 +358,13 @@ struct variadic_overloading_test_t {
   {}
   template <
     typename... Args,
-    typename = safe_ctor_overload_t<variadic_overloading_test_t, Args...>
+    typename = safe_overload_t<variadic_overloading_test_t, Args...>
   >
   explicit variadic_overloading_test_t(Args &&...): type(ctor::universal) {}
   ctor type;
 };
 
-TEST(traits, safe_ctor_overload_variadic_t) {
+TEST(traits, safe_overload_variadic_t) {
   variadic_overloading_test_t def;
   EXPECT_EQ(ctor::def, def.type);
   variadic_overloading_test_t copy(def);

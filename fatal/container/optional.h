@@ -46,10 +46,7 @@ struct optional:
     DCHECK(!empty_);
   }
 
-  template <
-    typename... Args,
-    typename = safe_ctor_overload_t<optional, Args...>
-  >
+  template <typename... Args, typename = safe_overload_t<optional, Args...>>
   optional(Args &&...args)
     noexcept(noexcept(construct(std::forward<Args>(args)...))),
     empty_(false)
@@ -119,10 +116,7 @@ struct optional:
     return *this;
   }
 
-  template <
-    typename... Args,
-    typename = safe_ctor_overload_t<optional, Args...>
-  >
+  template <typename... Args, typename = safe_overload_t<optional, Args...>>
   optional &operator =(Args &&...args)
     noexcept(noexcept(construct(std::forward<Args>(args)...)))
   {

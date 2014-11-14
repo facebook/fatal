@@ -161,7 +161,7 @@ using fast_pass = typename std::conditional<
  *   template <
  *     typename T,
  *     typename X = typename std::enable_if<
- *       safe_ctor_overload<Foo, T>::value, void
+ *       safe_overload<Foo, T>::value, void
  *     >::type
  *   >
  *   Foo(T &&value) { ... }
@@ -180,7 +180,7 @@ using fast_pass = typename std::conditional<
  *   template <
  *     typename... Args,
  *     typename X = typename std::enable_if<
- *       safe_ctor_overload<Foo, Args...>::value, void
+ *       safe_overload<Foo, Args...>::value, void
  *     >::type
  *   >
  *   Foo(Args &&...args) { ... }
@@ -189,10 +189,10 @@ using fast_pass = typename std::conditional<
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename, typename...>
-struct safe_ctor_overload: public std::true_type {};
+struct safe_overload: public std::true_type {};
 
 template <typename Class, typename T>
-struct safe_ctor_overload<Class, T>:
+struct safe_overload<Class, T>:
   public std::integral_constant<
     bool,
     !std::is_base_of<
@@ -205,12 +205,12 @@ struct safe_ctor_overload<Class, T>:
 {};
 
 /**
- * Template alias for safe_ctor_overload above.
+ * Template alias for safe_overload above.
  *
  * Usage:
  *
  * struct Foo {
- *   template <typename T, typename X = safe_ctor_overload_t<Foo, T>>
+ *   template <typename T, typename X = safe_overload_t<Foo, T>>
  *   Foo(T &&value) { ... }
  * };
  *
@@ -219,7 +219,7 @@ struct safe_ctor_overload<Class, T>:
  * struct Foo {
  *   template <
  *     typename... UArgs,
- *     typename X = safe_ctor_overload_t<Foo, UArgs...>
+ *     typename X = safe_overload_t<Foo, UArgs...>
  *   >
  *   Foo(UArgs &&...args) { ... }
  * };
@@ -227,8 +227,8 @@ struct safe_ctor_overload<Class, T>:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename Class, typename... Args>
-using safe_ctor_overload_t = typename std::enable_if<
-  safe_ctor_overload<Class, Args...>::value
+using safe_overload_t = typename std::enable_if<
+  safe_overload<Class, Args...>::value
 >::type;
 
 /**

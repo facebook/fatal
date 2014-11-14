@@ -57,7 +57,7 @@ struct tagged_tuple {
 
   template <
     typename... UArgs,
-    typename = safe_ctor_overload_t<tagged_tuple, UArgs...>
+    typename = safe_overload_t<tagged_tuple, UArgs...>
   >
   explicit constexpr tagged_tuple(UArgs &&...args):
     data_(std::forward<UArgs>(args)...)

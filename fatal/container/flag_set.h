@@ -125,10 +125,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <
-    typename... UFlags,
-    typename = safe_ctor_overload_t<flag_set, UFlags...>
-  >
+  template <typename... UFlags, typename = safe_overload_t<flag_set, UFlags...>>
   explicit flag_set(UFlags &&...):
     flags_(mask_for<false, typename std::decay<UFlags>::type...>::value)
   {}
