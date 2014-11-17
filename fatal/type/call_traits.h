@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_call_traits_h
 #define FATAL_INCLUDE_fatal_type_call_traits_h
 
+#include <fatal/type/tag.h>
+
 #include <utility>
 
 namespace fatal {
@@ -136,8 +138,20 @@ struct ctor_call_traits {
   };
 };
 
-struct functor_call_traits {
-  constexpr functor_call_traits() {}
+class call_operator_traits {
+  template <typename... Args>
+  struct is_impl {
+    template <typename T>
+    static std::true_type sfinae(
+      type_tag<decltype(std::declval<T>().operator()(
+        std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
+      ))> *
+    );
+    template <typename> static std::false_type sfinae(...);
+  };
+
+public:
+  constexpr call_operator_traits() {}
 
   template <typename T, typename... UArgs>
   constexpr static auto call(T &&subject, UArgs &&...args)
@@ -148,6 +162,46 @@ struct functor_call_traits {
   constexpr auto operator ()(T &&subject, UArgs &&...args) const
     -> decltype(call(std::forward<T>(subject), std::forward<UArgs>(args)...))
   { return call(std::forward<T>(subject), std::forward<UArgs>(args)...); }
+
+  /**
+   * TODO: DOCUMENT
+   *
+   * Example:
+   *
+   *  struct Foo {
+   *    void operator ()() {}
+   *    void operator ()(int i, std::string s) {}
+   *  };
+   *
+   *  auto const lambda_is = [](int, std::string) {};
+   *  using lambda = decltype(lambda_is);
+   *
+   *  cout << std::boolalpha
+   *    << call_operator_traits::supported<Foo>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supported<Foo, int>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supported<Foo, int, double>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supported<Foo, int, std::string>::value
+   *    << std::endl
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supported<lambda>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supported<lambda, int>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supported<lambda, int, double>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supported<lambda, int, std::string>::value;
+   *
+   * Outputs:
+   *  true false false true
+   *  false false false true
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  using supported = decltype(is_impl<Args...>::template sfinae<T>(nullptr));
 };
 
 } // namespace fatal {

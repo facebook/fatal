@@ -232,72 +232,24 @@ using safe_overload_t = typename std::enable_if<
 >::type;
 
 /**
- * Traits class to tell if some type is a functor class for a given signature.
- * is_functor<T, A, B, C>::value will evaluate to true iff T is a class and T
- * has an overload of operator () accepting three parameters whose types are
- * respectively equal or implicitly constructible from A, B and C.
- *
- * Example:
- *
- *  struct Foo {
- *    void operator ()() {}
- *    void operator ()(int i, std::string s) {}
- *  };
- *
- *  auto const lambda_is = [](int, std::string) {};
- *  typedef decltype(lambda_is) lambda;
- *
- *  cout << std::boolalpha << is_functor<Foo>::value
- *    << ' ' << std::boolalpha << is_functor<Foo, int>::value
- *    << ' ' << std::boolalpha << is_functor<Foo, int, double>::value
- *    << ' ' << std::boolalpha << is_functor<Foo, int, std::string>::value
- *    << std::endl
- *    << ' ' << std::boolalpha << is_functor<lambda>::value
- *    << ' ' << std::boolalpha << is_functor<lambda, int>::value
- *    << ' ' << std::boolalpha << is_functor<lambda, int, double>::value
- *    << ' ' << std::boolalpha << is_functor<lambda, int, std::string>::value;
- *
- * Outputs:
- *  true false false true
- *  false false false true
+ * TODO: DOCUMENT
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, typename... Args>
-class is_functor {
-  template <typename> struct sfinae {};
-  template <typename U>
-  static constexpr bool test(
-    sfinae<decltype(std::declval<U>().operator()(
-      std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
-    ))> *
-  ) { return true; }
-  template <typename> static constexpr bool test(...) { return false; }
-
-public:
-  static constexpr bool value = test<T>(nullptr);
-};
-
-template <typename T, typename... Args>
-constexpr bool is_functor<T, Args...>::value;
-
-template <typename T, typename... Args>
 class is_callable {
-  template <typename> struct sfinae {};
+  template <typename> struct dummy {};
   template <typename U>
-  static constexpr bool test(
-    sfinae<decltype(std::declval<U>()(
+  static std::true_type sfinae(
+    type_tag<decltype(std::declval<U>()(
       std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
     ))> *
-  ) { return true; }
-  template <typename> static constexpr bool test(...) { return false; }
+  );
+  template <typename> static std::false_type sfinae(...);
 
 public:
-  static constexpr bool value = test<T>(nullptr);
+  using check = decltype(sfinae<T>(nullptr));
 };
-
-template <typename T, typename... Args>
-constexpr bool is_callable<T, Args...>::value;
 
 /**
  * This macro creates a class named `Class` that can check whether some

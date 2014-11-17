@@ -419,7 +419,7 @@ TEST(call_traits_free_function, functor_free_function) {
 }
 
 /////////////////////////
-// functor_call_traits //
+// call_operator_traits //
 /////////////////////////
 
 struct member_op {
@@ -457,12 +457,12 @@ private:
   double d_;
 };
 
-TEST(functor_call_traits, const_this_ref) {
+TEST(call_operator_traits, const_this_ref) {
   member_op const f;
 
-  EXPECT_THROW(functor_call_traits::call(f, 0l, 0.0, 0, ""), std::exception);
+  EXPECT_THROW(call_operator_traits::call(f, 0l, 0.0, 0, ""), std::exception);
 
-  EXPECT_EQ(3.1415926, functor_call_traits::call(f));
+  EXPECT_EQ(3.1415926, call_operator_traits::call(f));
 
   std::string s1("hello");
   char const *s2 = ", ";
@@ -470,30 +470,30 @@ TEST(functor_call_traits, const_this_ref) {
   std::string s4("!");
   std::string out("some test string");
 
-  EXPECT_EQ(17, functor_call_traits::call(f, 17));
+  EXPECT_EQ(17, call_operator_traits::call(f, 17));
 
   EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    functor_call_traits::call(f, s1, s2, s3, s4, out)
+    call_operator_traits::call(f, s1, s2, s3, s4, out)
   );
   EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, functor_call_traits::call(f, 2, 3, 5)> c;
+  typedef std::integral_constant<int, call_operator_traits::call(f, 2, 3, 5)> c;
 
   EXPECT_EQ(2 + 3 + 5, c::value);
 
-  EXPECT_EQ(57, functor_call_traits::call(f, 57, true));
-  EXPECT_EQ(-57, functor_call_traits::call(f, 57, false));
+  EXPECT_EQ(57, call_operator_traits::call(f, 57, true));
+  EXPECT_EQ(-57, call_operator_traits::call(f, 57, false));
 }
 
-TEST(functor_call_traits, const_this_ref_functor) {
+TEST(call_operator_traits, const_this_ref_functor) {
   member_op const f;
 
-  functor_call_traits functor;
+  call_operator_traits functor;
 
   EXPECT_THROW(functor(f, 0l, 0.0, 0, ""), std::exception);
 
-  EXPECT_EQ(3.1415926, functor_call_traits::call(f));
+  EXPECT_EQ(3.1415926, call_operator_traits::call(f));
 
   std::string s1("hello");
   char const *s2 = ", ";
@@ -517,15 +517,15 @@ TEST(functor_call_traits, const_this_ref_functor) {
   EXPECT_EQ(-57, functor(f, 57, false));
 }
 
-TEST(functor_call_traits, non_const_this_ref) {
+TEST(call_operator_traits, non_const_this_ref) {
   member_op f;
   member_op const &cf = f;
 
-  EXPECT_THROW(functor_call_traits::call(f, 0l, 0.0, 0, ""), std::exception);
+  EXPECT_THROW(call_operator_traits::call(f, 0l, 0.0, 0, ""), std::exception);
 
-  EXPECT_EQ(3.1415926, functor_call_traits::call(cf));
-  functor_call_traits::call(f);
-  EXPECT_EQ(5.6, functor_call_traits::call(cf));
+  EXPECT_EQ(3.1415926, call_operator_traits::call(cf));
+  call_operator_traits::call(f);
+  EXPECT_EQ(5.6, call_operator_traits::call(cf));
 
   std::string s1("hello");
   char const *s2 = ", ";
@@ -533,33 +533,33 @@ TEST(functor_call_traits, non_const_this_ref) {
   std::string s4("!");
   std::string out("some test string");
 
-  EXPECT_EQ(17, functor_call_traits::call(f, 17));
+  EXPECT_EQ(17, call_operator_traits::call(f, 17));
 
   EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    functor_call_traits::call(f, s1, s2, s3, s4, out)
+    call_operator_traits::call(f, s1, s2, s3, s4, out)
   );
   EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, functor_call_traits::call(f, 2, 3, 5)> c;
+  typedef std::integral_constant<int, call_operator_traits::call(f, 2, 3, 5)> c;
 
   EXPECT_EQ(2 + 3 + 5, c::value);
 
-  EXPECT_EQ(57, functor_call_traits::call(f, 57, true));
-  EXPECT_EQ(-57, functor_call_traits::call(f, 57, false));
+  EXPECT_EQ(57, call_operator_traits::call(f, 57, true));
+  EXPECT_EQ(-57, call_operator_traits::call(f, 57, false));
 }
 
-TEST(functor_call_traits, non_const_this_ref_functor) {
+TEST(call_operator_traits, non_const_this_ref_functor) {
   member_op f;
   member_op const &cf = f;
 
-  functor_call_traits functor;
+  call_operator_traits functor;
 
   EXPECT_THROW(functor(f, 0l, 0.0, 0, ""), std::exception);
 
-  EXPECT_EQ(3.1415926, functor_call_traits::call(cf));
-  functor_call_traits::call(f);
-  EXPECT_EQ(5.6, functor_call_traits::call(cf));
+  EXPECT_EQ(3.1415926, call_operator_traits::call(cf));
+  call_operator_traits::call(f);
+  EXPECT_EQ(5.6, call_operator_traits::call(cf));
 
   std::string s1("hello");
   char const *s2 = ", ";
@@ -581,6 +581,66 @@ TEST(functor_call_traits, non_const_this_ref_functor) {
 
   EXPECT_EQ(57, functor(f, 57, true));
   EXPECT_EQ(-57, functor(f, 57, false));
+}
+
+struct foonctor {
+  void operator ()() {}
+  void operator ()(int, std::string) {}
+};
+
+typedef void(*foonction)();
+typedef void(*foonction_is)(int, std::string);
+
+TEST(call_operator_traits, supported) {
+  auto const lambda = []() {};
+  auto const lambda_is = [](int, std::string) {};
+
+  EXPECT_TRUE((call_operator_traits::supported<foonctor>::value));
+  EXPECT_FALSE((call_operator_traits::supported<foonctor, int>::value));
+  EXPECT_FALSE((call_operator_traits::supported<foonctor, int, double>::value));
+  EXPECT_TRUE((
+    call_operator_traits::supported<foonctor, int, std::string>::value
+  ));
+
+  EXPECT_TRUE((call_operator_traits::supported<decltype(lambda)>::value));
+  EXPECT_FALSE((call_operator_traits::supported<decltype(lambda), int>::value));
+  EXPECT_FALSE((
+    call_operator_traits::supported<decltype(lambda), int, double>::value
+  ));
+  EXPECT_FALSE((
+    call_operator_traits::supported<decltype(lambda), int, std::string>::value
+  ));
+
+  EXPECT_FALSE((call_operator_traits::supported<decltype(lambda_is)>::value));
+  EXPECT_FALSE((
+    call_operator_traits::supported<decltype(lambda_is), int>::value
+  ));
+  EXPECT_FALSE((
+    call_operator_traits::supported<decltype(lambda_is), int, double>::value
+  ));
+  EXPECT_TRUE((
+    call_operator_traits::supported<
+      decltype(lambda_is), int, std::string
+    >::value
+  ));
+
+  EXPECT_FALSE((call_operator_traits::supported<foonction>::value));
+  EXPECT_FALSE((call_operator_traits::supported<foonction, int>::value));
+  EXPECT_FALSE((
+    call_operator_traits::supported<foonction, int, double>::value
+  ));
+  EXPECT_FALSE((
+    call_operator_traits::supported<foonction, int, std::string>::value
+  ));
+
+  EXPECT_FALSE((call_operator_traits::supported<foonction_is>::value));
+  EXPECT_FALSE((call_operator_traits::supported<foonction_is, int>::value));
+  EXPECT_FALSE((
+    call_operator_traits::supported<foonction_is, int, double>::value
+  ));
+  EXPECT_FALSE((
+    call_operator_traits::supported<foonction_is, int, std::string>::value
+  ));
 }
 
 } // namespace fatal {
