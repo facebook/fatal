@@ -36,6 +36,14 @@ private:
 
 public:
   /**
+   *  TODO: DOCUMENT AND TEST
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TTag>
+  using supports = typename list::template contains<TTag>;
+
+  /**
    * Gets the index associated with a given tag.
    *
    * Example:
