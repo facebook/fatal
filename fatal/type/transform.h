@@ -958,7 +958,10 @@ template <
 struct conditional_transform {
   template <typename T>
   using apply = typename detail::conditional_transform_impl<
-    TPredicate<T>::value, TWhenTrueTransform, TWhenFalseTransform, T
+    fatal::apply<TPredicate, T>::value,
+    TWhenTrueTransform,
+    TWhenFalseTransform,
+    T
   >::type;
 };
 
@@ -1287,7 +1290,7 @@ template <
 struct select<TFallback, TPredicate, TTransform, Args...> {
   template <typename... UArgs>
   using apply = typename branch<
-    TPredicate<UArgs...>::value, TFallback, TTransform, Args...
+    fatal::apply<TPredicate, UArgs...>::value, TFallback, TTransform, Args...
   >::template apply<UArgs...>;
 };
 
@@ -1639,7 +1642,7 @@ struct recurse<true, Depth, TPre, TPost, TPredicate, TTransformer, TTransform> {
 
   template <typename T>
   using apply = typename branch<
-    TPredicate<T>::value, Depth - 1, T,
+    fatal::apply<TPredicate, T>::value, Depth - 1, T,
     TPre, TPost, TPredicate, TTransformer, TTransform
   >::type;
 };

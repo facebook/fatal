@@ -304,7 +304,7 @@ template <
 struct foreach_if<TPredicate, Index, U, UArgs...> {
   template <typename V, typename... VArgs>
   static constexpr std::size_t visit(V &&visitor, VArgs &&...args) {
-    return conditional_visit<TPredicate<U>::value>::visit(
+    return conditional_visit<fatal::apply<TPredicate, U>::value>::visit(
       std::forward<V>(visitor),
       indexed_type_tag<U, Index>(),
       std::forward<VArgs>(args)...
@@ -409,7 +409,7 @@ struct choose<TPredicate, TChosen, TCandidate, Args...> {
   using type = typename choose<
     TPredicate,
     typename std::conditional<
-      TPredicate<TCandidate, TChosen>::value,
+      fatal::apply<TPredicate, TCandidate, TChosen>::value,
       TCandidate,
       TChosen
     >::type,
@@ -493,7 +493,7 @@ struct separate<TPredicate, U, UArgs...> {
   using tail = typename separate<TPredicate, UArgs...>::type;
 
   using type = typename std::conditional<
-    TPredicate<U>::value,
+    fatal::apply<TPredicate, U>::value,
     type_pair<
       typename tail::first::template push_front<U>,
       typename tail::second
@@ -581,7 +581,7 @@ template <
 >
 struct search<TPredicate, TDefault, U, UArgs...> {
   using type = typename std::conditional<
-    TPredicate<U>::value,
+    fatal::apply<TPredicate, U>::value,
     U,
     typename search<TPredicate, TDefault, UArgs...>::type
   >::type;
