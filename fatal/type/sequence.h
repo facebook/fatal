@@ -10,9 +10,9 @@
 #ifndef FATAL_INCLUDE_fatal_type_sequence_h
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
+#include <fatal/container/constant_array.h>
 #include <fatal/type/list.h>
 
-#include <array>
 #include <type_traits>
 
 namespace fatal {
@@ -33,25 +33,25 @@ struct constant_sequence {
   /**
    * The type of this sequence's values.
    */
-  typedef T type;
+  using type = T;
 
   /**
    * This sequence as a type_list of std::integral_constant.
    *
    * Example:
    *
-   *  typedef constant_sequence<int, 1, 2, 3> seq;
+   *  using seq = constant_sequence<int, 1, 2, 3>;
    *
    *  // yields `type_list<
    *  //   std::integral_constant<int, 1>,
    *  //   std::integral_constant<int, 2>,
    *  //   std::integral_constant<int, 3>
    *  // >`
-   *  typedef seq::list result;
+   *  using result = seq::list;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef type_list<std::integral_constant<type, Values>...> list;
+  using list = type_list<std::integral_constant<type, Values>...>;
 
   /**
    * Tells how many values this sequence has.
@@ -73,10 +73,10 @@ struct constant_sequence {
    *
    * Example:
    *
-   *  typedef constant_sequence<int, 1, 2, 3> seq;
+   *  using seq = constant_sequence<int, 1, 2, 3>;
    *
    *  // yields `constant_sequence<int, 9, 1, 2, 3>`
-   *  typedef seq::push_front<9> result;
+   *  using result = seq::push_front<9>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -88,10 +88,10 @@ struct constant_sequence {
    *
    * Example:
    *
-   *  typedef constant_sequence<int, 1, 2, 3> seq;
+   *  using seq = constant_sequence<int, 1, 2, 3>;
    *
    *  // yields `constant_sequence<int, 1, 2, 3, 9>`
-   *  typedef seq::push_back<9> result;
+   *  using result = seq::push_back<9>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -104,10 +104,10 @@ struct constant_sequence {
    * Example:
    *
    *  template <int... V> struct foo {};
-   *  typedef constant_sequence<int, 1, 2, 3> seq;
+   *  using seq = constant_sequence<int, 1, 2, 3>;
    *
    *  // yields `foo<1, 2, 3>`
-   *  typedef seq::apply<foo> result;
+   *  using result = seq::apply<foo>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -120,10 +120,10 @@ struct constant_sequence {
    * Example:
    *
    *  template <typename T, int... V> struct foo {};
-   *  typedef constant_sequence<int, 1, 2, 3> seq;
+   *  using seq = constant_sequence<int, 1, 2, 3>;
    *
    *  // yields `foo<int, 1, 2, 3>`
-   *  typedef seq::typed_apply<foo> result;
+   *  using result = seq::typed_apply<foo>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -135,16 +135,19 @@ struct constant_sequence {
    *
    * Example:
    *
-   *  typedef constant_sequence<int, 1, 2, 3> seq;
+   *  using seq = constant_sequence<int, 1, 2, 3>;
    *
    *  // yields `std::array<int, 3>` with values `{1, 2, 3}`
    *  auto result = seq::array;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef std::array<type, size> array_type;
+  template <type... Suffix>
+  using array = constant_array<type, Values..., Suffix...>;
 
-  static constexpr array_type array{{Values...}};
+  // TODO: DOCUMENT AND TEST
+  template <type... Suffix>
+  static constexpr type const *data() { return array<>::data(); }
 
   /**
    * Gets a constexpr array with the values from this sequence,
@@ -152,7 +155,7 @@ struct constant_sequence {
    *
    * Example:
    *
-   *  typedef constant_sequence<int, 1, 2, 3> seq;
+   *  using seq = constant_sequence<int, 1, 2, 3>;
    *
    *  // yields `std::array<int, 4>` with values `{1, 2, 3, 0}`
    *  auto result1 = seq::z_array;
@@ -162,9 +165,14 @@ struct constant_sequence {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef std::array<type, size + 1> z_array_type;
+  template <type... Suffix>
+  using z_array = constant_array<
+    type, Values..., Suffix..., static_cast<type>(0)
+  >;
 
-  static constexpr z_array_type z_array{{Values..., static_cast<type>(0)}};
+  // TODO: DOCUMENT AND TEST
+  template <type... Suffix>
+  static constexpr type const *z_data() { return z_array<>::data(); }
 
   // TODO: DOCUMENT AND TEST (std::vector)
   template <typename U, typename... UArgs>
@@ -172,19 +180,6 @@ struct constant_sequence {
     return U{Values..., std::forward<UArgs>(args)...};
   }
 };
-
-///////////////////////////////
-// STATIC MEMBERS DEFINITION //
-///////////////////////////////
-
-template <typename T, T... Values>
-constexpr typename constant_sequence<T, Values...>::array_type
-constant_sequence<T, Values...>::array;
-
-template <typename T, T... Values>
-constexpr typename constant_sequence<T, Values...>::z_array_type
-constant_sequence<T, Values...>::z_array;
-
 ////////////////////////////////////////
 // IMPLEMENTATION DETAILS DECLARATION //
 ////////////////////////////////////////

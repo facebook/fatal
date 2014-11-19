@@ -11,6 +11,8 @@
 
 #include <fatal/test/driver.h>
 
+#include <iterator>
+
 namespace fatal {
 
 /////////////////////////////
@@ -284,7 +286,7 @@ TEST(constant_sequence, push_back) {
 
 template <typename T, T... Values>
 struct as_array {
-  typedef std::array<T, sizeof...(Values)> type;
+  using type = std::array<T, sizeof...(Values)>;
 
   static type get() { return {{Values...}}; }
 };
@@ -342,54 +344,57 @@ TEST(constant_sequence, typed_apply) {
   check_typed_apply<char, '1', '2', '3', '4', '5'>();
 }
 
-//////////////////////////////
-// constant_sequence::array //
-//////////////////////////////
+////////////////////////////////////////////////////
+// constant_sequence::{array|data|z_array|z_data} //
+////////////////////////////////////////////////////
+
+template <typename TArray, typename TAsArray, typename TData>
+void check_array_data(TData data) {
+  using array = TArray;
+  using as_array_t = TAsArray;
+
+  FATAL_EXPECT_SAME<
+    typename as_array_t::type::value_type,
+    typename array::value_type
+  >();
+
+  FATAL_EXPECT_SAME<typename as_array_t::type, typename array::type>();
+
+  EXPECT_EQ(as_array_t::get().empty(), array::empty);
+  EXPECT_EQ(as_array_t::get().size(), array::size);
+
+  EXPECT_EQ(as_array_t::get(), array::get);
+
+  for (std::size_t i = 0; i < as_array_t::get().size(); ++i) {
+    EXPECT_LT(i, array::size);
+    EXPECT_EQ(as_array_t::get().data()[i], array::data()[i]);
+  }
+}
 
 template <typename T, T... Values>
-void check_array() {
-  typedef constant_sequence<T, Values...> seq;
-  typedef as_array<T, Values...> as_array_t;
+void check_array_data() {
+  using seq = constant_sequence<T, Values...>;
 
-  FATAL_EXPECT_SAME<typename as_array_t::type, typename seq::array_type>();
+  check_array_data<typename seq::template array<>, as_array<T, Values...>>(
+    seq::data()
+  );
 
-  EXPECT_EQ(as_array_t::get(), seq::array);
+  check_array_data<typename seq::template z_array<>, as_array<T, Values..., 0>>(
+    seq::z_data()
+  );
 }
 
-TEST(constant_sequence, array) {
-  check_array<int>();
-  check_array<int, 1>();
-  check_array<int, 1, 2, 3, 4, 5>();
+TEST(constant_sequence, array_data) {
+  check_array_data<int>();
+  check_array_data<int, 1>();
+  check_array_data<int, 1, 2, 3, 4, 5>();
+  check_array_data<int, 99, 43, 57, 0, 100>();
 
-  check_array<char>();
-  check_array<char, '1'>();
-  check_array<char, '1', '2', '3', '4', '5'>();
-}
-
-////////////////////////////////
-// constant_sequence::z_array //
-////////////////////////////////
-
-template <typename T, T... Values>
-void check_z_array() {
-  typedef constant_sequence<T, Values...> seq;
-
-  typedef as_array<T, Values..., 0> as_array_t;
-
-  FATAL_EXPECT_SAME<typename as_array_t::type, typename seq::z_array_type>();
-  EXPECT_EQ(as_array_t::get(), seq::z_array);
-}
-
-TEST(constant_sequence, z_array) {
-  check_z_array<int>();
-  check_z_array<int, 1>();
-  check_z_array<int, 1, 2, 3, 4, 5>();
-  check_z_array<int, 99, 43, 57, 0, 100>();
-
-  check_z_array<char>();
-  check_z_array<char, '1'>();
-  check_z_array<char, '1', '2', '3', '4', '5'>();
-  check_z_array<char, 'z', '_', 'a', 'r', 'r', 'a', 'y'>();
+  check_array_data<char>();
+  check_array_data<char, '1'>();
+  check_array_data<char, '1', '2', '3', '4', '5'>();
+  check_array_data<char, 'a', 'r', 'r', 'a', 'y'>();
+  check_array_data<char, 'z', '_', 'a', 'r', 'r', 'a', 'y'>();
 }
 
 ////////////////////

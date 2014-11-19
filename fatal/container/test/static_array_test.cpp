@@ -17,7 +17,7 @@
 
 namespace fatal {
 
-struct xyz { int x; int y; int z; };
+struct abc { int x; int y; int z; };
 
 template <typename T>
 void check_empty() {
@@ -34,7 +34,7 @@ void check_empty() {
 
 TEST(static_array, empty) {
   check_empty<int>();
-  check_empty<xyz>();
+  check_empty<abc>();
 }
 
 struct check_array_visitor {
@@ -80,7 +80,7 @@ TEST(static_array, int) {
   check_int<178, 849, 9, 11, 0>();
 }
 
-struct check_xyz_visitor {
+struct check_abc_visitor {
   template <typename T, std::size_t Index, typename U>
   void operator ()(indexed_type_tag<T, Index>, U const &array) const {
     ASSERT_LT(Index, array.size());
@@ -91,16 +91,16 @@ struct check_xyz_visitor {
 };
 
 template <typename TList, typename TArrayFactory>
-void check_xyz_array() {
+void check_abc_array() {
   using array = typename TArrayFactory::template from_list<TList>;
   static_assert(TList::size == array::get.size(), "size mismatch");
-  TList::foreach(check_xyz_visitor(), array::get);
+  TList::foreach(check_abc_visitor(), array::get);
 }
 
-struct xyz_factory {
+struct abc_factory {
   template <typename T>
-  static constexpr xyz create() {
-    return xyz{
+  static constexpr abc create() {
+    return abc{
       T::type::first::first::value,
       T::type::first::second::value,
       T::type::second::value
@@ -109,31 +109,31 @@ struct xyz_factory {
 };
 
 template <int... Values>
-void check_xyz() {
+void check_abc() {
   using values = type_list<std::integral_constant<int, Values>...>;
   using x = typename values::template unzip<3, 0>;
   using y = typename values::template unzip<3, 1>;
   using z = typename values::template unzip<3, 2>;
   using list = typename x::template combine<>::template list<y>
     ::template combine<>::template list<z>;
-  using factory = static_array<xyz_factory>;
+  using factory = static_array<abc_factory>;
 
-  check_xyz_array<list, factory>();
-  check_xyz_array<list, typename factory::template type<xyz>>();
+  check_abc_array<list, factory>();
+  check_abc_array<list, typename factory::template type<abc>>();
 }
 
 TEST(static_array, struct) {
-  check_xyz<0, 0, 0>();
-  check_xyz<0, 1, 2>();
-  check_xyz<99, 56, 43>();
+  check_abc<0, 0, 0>();
+  check_abc<0, 1, 2>();
+  check_abc<99, 56, 43>();
 
-  check_xyz<0, 0, 0, 0, 1, 2>();
+  check_abc<0, 0, 0, 0, 1, 2>();
 
-  check_xyz<0, 0, 0, 0, 1, 2, 99, 56, 43>();
-  check_xyz<0, 1, 2, 3, 4, 5, 6, 7, 8>();
+  check_abc<0, 0, 0, 0, 1, 2, 99, 56, 43>();
+  check_abc<0, 1, 2, 3, 4, 5, 6, 7, 8>();
 
-  check_xyz<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11>();
-  check_xyz<99, 15, 62, 3, 8, 12, 0, 46, 85, 5, 1, 7>();
+  check_abc<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11>();
+  check_abc<99, 15, 62, 3, 8, 12, 0, 46, 85, 5, 1, 7>();
 }
 
 } // namespace fatal {
