@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_container_uninitialized_h
 #define FATAL_INCLUDE_fatal_container_uninitialized_h
 
+#include <fatal/container/unitary_union.h>
+
 #include <memory>
 #include <utility>
 
@@ -20,7 +22,7 @@ namespace fatal {
 ///////////////////
 
 // TODO: DOCUMENT AND TEST
-template <typename T, bool Destroy = true>
+template <typename T, bool AutomaticallyDestroy = true>
 struct uninitialized {
   using type = T;
 
@@ -58,21 +60,11 @@ struct uninitialized {
 
 
 private:
-  union union_type {
-    union_type() noexcept {} \
-    union_type(union_type const &) noexcept {} \
-    union_type(union_type &&) noexcept {} \
-    ~union_type() noexcept {
-      if (Destroy) {
-        value.~type();
-      }
-    }
-    type value;
-  };
+  using union_type = unitary_union<type, AutomaticallyDestroy>;
 
   union_type container_;
 };
 
 } // namespace fatal {
 
-#undef // FATAL_INCLUDE_fatal_container_uninitialized_h
+#endif // FATAL_INCLUDE_fatal_container_uninitialized_h
