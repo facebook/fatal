@@ -59,7 +59,7 @@ private:
 
 FATAL_CALL_TRAITS(mf_traits, test_fn);
 
-TEST(call_traits_member_function, call_const_this_ref) {
+TEST(member_function, call_const_this_ref) {
   member_fn const f;
 
   EXPECT_THROW(
@@ -93,7 +93,7 @@ TEST(call_traits_member_function, call_const_this_ref) {
   EXPECT_EQ(-57, mf_traits::member_function::call(f, 57, false));
 }
 
-TEST(call_traits_member_function, call_non_const_this_ref) {
+TEST(member_function, call_non_const_this_ref) {
   member_fn f;
   member_fn const &cf = f;
 
@@ -130,16 +130,16 @@ TEST(call_traits_member_function, call_non_const_this_ref) {
   EXPECT_EQ(-57, mf_traits::member_function::call(f, 57, false));
 }
 
-///////////////////////////////////////////
-// call_traits::member_function::functor //
-///////////////////////////////////////////
+///////////////////////////////////////////////////
+// call_traits::member_function::function_object //
+///////////////////////////////////////////////////
 
-TEST(call_traits_member_function, functor_const_this_ref) {
+TEST(member_function, function_object_const_this_ref) {
   member_fn const f;
 
-  mf_traits::member_function functor;
+  mf_traits::member_function function_object;
 
-  EXPECT_THROW(functor(f, 0l, 0.0, 0, ""), std::exception);
+  EXPECT_THROW(function_object(f, 0l, 0.0, 0, ""), std::exception);
 
   EXPECT_EQ(3.1415926, mf_traits::member_function::call(f));
 
@@ -149,29 +149,29 @@ TEST(call_traits_member_function, functor_const_this_ref) {
   std::string s4("!");
   std::string out("some test string");
 
-  EXPECT_EQ(17, functor(f, 17));
+  EXPECT_EQ(17, function_object(f, 17));
 
   EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    functor(f, s1, s2, s3, s4, out)
+    function_object(f, s1, s2, s3, s4, out)
   );
   EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, functor(f, 2, 3, 5)> c;
+  typedef std::integral_constant<int, function_object(f, 2, 3, 5)> c;
 
   EXPECT_EQ(2 + 3 + 5, c::value);
 
-  EXPECT_EQ(57, functor(f, 57, true));
-  EXPECT_EQ(-57, functor(f, 57, false));
+  EXPECT_EQ(57, function_object(f, 57, true));
+  EXPECT_EQ(-57, function_object(f, 57, false));
 }
 
-TEST(call_traits_member_function, functor_non_const_this_ref) {
+TEST(member_function, function_object_non_const_this_ref) {
   member_fn f;
   member_fn const &cf = f;
 
-  mf_traits::member_function functor;
+  mf_traits::member_function function_object;
 
-  EXPECT_THROW(functor(f, 0l, 0.0, 0, ""), std::exception);
+  EXPECT_THROW(function_object(f, 0l, 0.0, 0, ""), std::exception);
 
   EXPECT_EQ(3.1415926, mf_traits::member_function::call(cf));
   mf_traits::member_function::call(f);
@@ -183,20 +183,20 @@ TEST(call_traits_member_function, functor_non_const_this_ref) {
   std::string s4("!");
   std::string out("some test string");
 
-  EXPECT_EQ(17, functor(f, 17));
+  EXPECT_EQ(17, function_object(f, 17));
 
   EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    functor(f, s1, s2, s3, s4, out)
+    function_object(f, s1, s2, s3, s4, out)
   );
   EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, functor(f, 2, 3, 5)> c;
+  typedef std::integral_constant<int, function_object(f, 2, 3, 5)> c;
 
   EXPECT_EQ(2 + 3 + 5, c::value);
 
-  EXPECT_EQ(57, functor(f, 57, true));
-  EXPECT_EQ(-57, functor(f, 57, false));
+  EXPECT_EQ(57, function_object(f, 57, true));
+  EXPECT_EQ(-57, function_object(f, 57, false));
 }
 
 /////////////////////////////////////////////
@@ -216,7 +216,7 @@ struct CTMFS {
     ); \
   } while (false)
 
-TEST(call_traits_member_function, supported) {
+TEST(member_function, supported) {
   CHECK_MEMBER_FUNCTION_SUPPORTED(true, CTMFS);
   CHECK_MEMBER_FUNCTION_SUPPORTED(true, CTMFS, int);
   CHECK_MEMBER_FUNCTION_SUPPORTED(false, CTMFS, int const);
@@ -271,7 +271,7 @@ struct static_fn {
 
 FATAL_CALL_TRAITS(sm_traits, test_fn);
 
-TEST(call_traits_static_member, call_static_member) {
+TEST(static_member, call_static_member) {
   EXPECT_THROW(
     sm_traits::static_member<static_fn>::call(0l, 0.0, 0, ""),
     std::exception
@@ -301,14 +301,14 @@ TEST(call_traits_static_member, call_static_member) {
   EXPECT_EQ(-57, sm_traits::static_member<static_fn>::call(57, false));
 }
 
-/////////////////////////////////////////
-// call_traits::static_member::functor //
-/////////////////////////////////////////
+/////////////////////////////////////////////////
+// call_traits::static_member::function_object //
+/////////////////////////////////////////////////
 
-TEST(call_traits_static_member, functor_static_member) {
-  sm_traits::static_member<static_fn> functor;
+TEST(static_member, function_object_static_member) {
+  sm_traits::static_member<static_fn> function_object;
 
-  EXPECT_THROW(functor(0l, 0.0, 0, ""), std::exception);
+  EXPECT_THROW(function_object(0l, 0.0, 0, ""), std::exception);
 
   std::string s1("hello");
   char const *s2 = ", ";
@@ -316,20 +316,20 @@ TEST(call_traits_static_member, functor_static_member) {
   std::string s4("!");
   std::string out("some test string");
 
-  EXPECT_EQ(17, functor(17));
+  EXPECT_EQ(17, function_object(17));
 
   EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    functor(s1, s2, s3, s4, out)
+    function_object(s1, s2, s3, s4, out)
   );
   EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, functor(2, 3, 5)> c;
+  typedef std::integral_constant<int, function_object(2, 3, 5)> c;
 
   EXPECT_EQ(2 + 3 + 5, c::value);
 
-  EXPECT_EQ(57, functor(57, true));
-  EXPECT_EQ(-57, functor(57, false));
+  EXPECT_EQ(57, function_object(57, true));
+  EXPECT_EQ(-57, function_object(57, false));
 }
 
 //////////////////////////////////////
@@ -360,7 +360,7 @@ constexpr int test_fn(int a, int b, int c) { return a + b + c; }
 
 FATAL_CALL_TRAITS(ff_traits, test_fn);
 
-TEST(call_traits_free_function, call_free_function) {
+TEST(free_function, call_free_function) {
   EXPECT_THROW(ff_traits::free_function::call(0l, 0.0, 0, ""), std::exception);
 
   std::string s1("hello");
@@ -387,14 +387,14 @@ TEST(call_traits_free_function, call_free_function) {
   EXPECT_EQ(-57, ff_traits::free_function::call(57, false));
 }
 
-/////////////////////////////////////////
-// call_traits::free_function::functor //
-/////////////////////////////////////////
+/////////////////////////////////////////////////
+// call_traits::free_function::function_object //
+/////////////////////////////////////////////////
 
-TEST(call_traits_free_function, functor_free_function) {
-  ff_traits::free_function functor;
+TEST(free_function, function_object_free_function) {
+  ff_traits::free_function function_object;
 
-  EXPECT_THROW(functor(0l, 0.0, 0, ""), std::exception);
+  EXPECT_THROW(function_object(0l, 0.0, 0, ""), std::exception);
 
   std::string s1("hello");
   char const *s2 = ", ";
@@ -402,20 +402,20 @@ TEST(call_traits_free_function, functor_free_function) {
   std::string s4("!");
   std::string out("some test string");
 
-  EXPECT_EQ(17, functor(17));
+  EXPECT_EQ(17, function_object(17));
 
   EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    functor(s1, s2, s3, s4, out)
+    function_object(s1, s2, s3, s4, out)
   );
   EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, functor(2, 3, 5)> c;
+  typedef std::integral_constant<int, function_object(2, 3, 5)> c;
 
   EXPECT_EQ(2 + 3 + 5, c::value);
 
-  EXPECT_EQ(57, functor(57, true));
-  EXPECT_EQ(-57, functor(57, false));
+  EXPECT_EQ(57, function_object(57, true));
+  EXPECT_EQ(-57, function_object(57, false));
 }
 
 /////////////////////////
@@ -486,12 +486,12 @@ TEST(call_operator_traits, const_this_ref) {
   EXPECT_EQ(-57, call_operator_traits::call(f, 57, false));
 }
 
-TEST(call_operator_traits, const_this_ref_functor) {
+TEST(call_operator_traits, const_this_ref_function_object) {
   member_op const f;
 
-  call_operator_traits functor;
+  call_operator_traits function_object;
 
-  EXPECT_THROW(functor(f, 0l, 0.0, 0, ""), std::exception);
+  EXPECT_THROW(function_object(f, 0l, 0.0, 0, ""), std::exception);
 
   EXPECT_EQ(3.1415926, call_operator_traits::call(f));
 
@@ -501,20 +501,20 @@ TEST(call_operator_traits, const_this_ref_functor) {
   std::string s4("!");
   std::string out("some test string");
 
-  EXPECT_EQ(17, functor(f, 17));
+  EXPECT_EQ(17, function_object(f, 17));
 
   EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    (functor(f, s1, s2, s3, s4, out))
+    (function_object(f, s1, s2, s3, s4, out))
   );
   EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, functor(f, 2, 3, 5)> c;
+  typedef std::integral_constant<int, function_object(f, 2, 3, 5)> c;
 
   EXPECT_EQ(2 + 3 + 5, c::value);
 
-  EXPECT_EQ(57, functor(f, 57, true));
-  EXPECT_EQ(-57, functor(f, 57, false));
+  EXPECT_EQ(57, function_object(f, 57, true));
+  EXPECT_EQ(-57, function_object(f, 57, false));
 }
 
 TEST(call_operator_traits, non_const_this_ref) {
@@ -549,13 +549,13 @@ TEST(call_operator_traits, non_const_this_ref) {
   EXPECT_EQ(-57, call_operator_traits::call(f, 57, false));
 }
 
-TEST(call_operator_traits, non_const_this_ref_functor) {
+TEST(call_operator_traits, non_const_this_ref_function_object) {
   member_op f;
   member_op const &cf = f;
 
-  call_operator_traits functor;
+  call_operator_traits function_object;
 
-  EXPECT_THROW(functor(f, 0l, 0.0, 0, ""), std::exception);
+  EXPECT_THROW(function_object(f, 0l, 0.0, 0, ""), std::exception);
 
   EXPECT_EQ(3.1415926, call_operator_traits::call(cf));
   call_operator_traits::call(f);
@@ -567,20 +567,20 @@ TEST(call_operator_traits, non_const_this_ref_functor) {
   std::string s4("!");
   std::string out("some test string");
 
-  EXPECT_EQ(17, functor(f, 17));
+  EXPECT_EQ(17, function_object(f, 17));
 
   EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    (functor(f, s1, s2, s3, s4, out))
+    (function_object(f, s1, s2, s3, s4, out))
   );
   EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, functor(f, 2, 3, 5)> c;
+  typedef std::integral_constant<int, function_object(f, 2, 3, 5)> c;
 
   EXPECT_EQ(2 + 3 + 5, c::value);
 
-  EXPECT_EQ(57, functor(f, 57, true));
-  EXPECT_EQ(-57, functor(f, 57, false));
+  EXPECT_EQ(57, function_object(f, 57, true));
+  EXPECT_EQ(-57, function_object(f, 57, false));
 }
 
 struct foonctor {
