@@ -3,8 +3,7 @@ Fatal is a library for fast prototyping of software in C++11 and up.
 
 It provides a broad range of template meta-programming tools for reflection and metadata manipulation.
 
-The goal is to abstract the complexity of template meta-programming and make its benefits available to a wider audience
-other than hard-core library writers.
+The goal is to speed up prototyping of complex software, while abstracting the complexity of template meta-programming and making its benefits available to a wider audience other than hard-core library writers.
 
 ## Examples
 Demonstration applications can be found under the `demo/` directory.
@@ -12,58 +11,67 @@ Demonstration applications can be found under the `demo/` directory.
 ## Philosophy
 Fatal moves fast, therefore it uses the latest and greatest in C++ standards. It aims to adopt new standard features as soon as they're officially out, as long as they provide benefits like performance, productivity and usability improvements.
 
+The `master` branch is considered the stable version of the library and should not change often.
+
+The `dev` branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
+
+
 ## Requirements
 There are no external dependencies in order to use Fatal as a library.
 
-In order to build and run Fatal's benchmarks, unit tests and demos, you'll need:
+In order to build and run Fatal's benchmarks and unit tests, you'll need:
 
 - Folly: Facebook Open-source LibrarY (https://github.com/facebook/folly/)
 - GTest: Google C++ Testing Framework (https://code.google.com/p/googletest/)
 - GLog: Google Logging Library for C++ (https://code.google.com/p/google-glog/)
-- GFlags: Google Commandline Flags Module for C++ (https://code.google.com/p/gflags/)
 - a compliant C++11 compiler. Currently tested under GCC 4.8, GCC 4.9 and Clang 3.4.
 
 In order to build and run Fatal's demos, you'll need:
+
 - Folly: Facebook Open-source LibrarY (https://github.com/facebook/folly/)
 - a compliant C++14 compiler. Currently tested under GCC 4.9 and Clang 3.4.
 
 ## Building Fatal
 Fatal is a header only library, therefore no building is required.
 
-## Building Fatal Benchmarks and Unit Tests
+## Building Benchmarks and Unit Tests
 Provided that the dependencies are properly installed:
 
 ```sh
-$ clang++ -Wall -std=c++11 -I path/to/fatal/basedir \
-  -o path/to/output/binary path/to/test/or/benchmark.cpp
+$ clang++ -Wall -std=c++11 -I path/to/fatal \
+  -o path/to/output/binary path/to/test/or/benchmark.cpp \
+  -lfolly -lfollybenchmark -ldouble-conversion -lglog
 ```
 or
 ```sh
-$ g++ -Wall -std=c++11 -I path/to/fatal/basedir \
-  -o path/to/output/binary path/to/test/or/benchmark.cpp
+$ g++ -Wall -std=c++11 -I path/to/fatal \
+  -o path/to/output/binary path/to/test/or/benchmark.cpp \
+  -lfolly -lfollybenchmark -ldouble-conversion -lglog
 ```
 
-## Building Fatal Demos
+## Building Demos
 Provided that the dependencies are properly installed:
 
 ```sh
-$ clang++ -Wall -std=c++1y -I path/to/fatal/basedir \
-  -o path/to/output/binary path/to/demo.cpp -lfolly
+$ clang++ -Wall -std=c++1y -I path/to/fatal \
+  -o path/to/output/binary path/to/demo.cpp \
+  -lfolly -ldouble-conversion
 ```
 or
 ```sh
-$ g++ -Wall -std=c++1y -I path/to/fatal/basedir \
-  -o path/to/output/binary path/to/demo.cpp -lfolly
+$ g++ -Wall -std=c++1y -I path/to/fatal \
+  -o path/to/output/binary path/to/demo.cpp \
+  -lfolly -ldouble-conversion
 ```
 
-## Installing Fatal
+## Installation
 There's no need to install Fatal, as long as you add its base directory to the include directories list.
 
 For GCC and Clang, it suffices to either:
-- use the `-I path/to/fatal/basedir` flag
-- set the environment variable `CPLUS_INCLUDE_PATH=path/to/fatal/basedir`
+- use the `-I path/to/fatal` flag
+- set the environment variable `CPLUS_INCLUDE_PATH=path/to/fatal`
 
-## Full documentation
+## Documentation
 Extensive documentation with examples can be found inline in the source header files.
 
 ## Join the Fatal community

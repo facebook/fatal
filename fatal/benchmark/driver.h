@@ -11,7 +11,6 @@
 
 #include <folly/Benchmark.h>
 
-#include <gflags/gflags.h>
 #include <glog/logging.h>
 
 ////////////
