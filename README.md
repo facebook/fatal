@@ -24,7 +24,6 @@ In order to build and run Fatal's benchmarks and unit tests, you'll need:
 - Folly: Facebook Open-source LibrarY (https://github.com/facebook/folly/)
 - GTest: Google C++ Testing Framework (https://code.google.com/p/googletest/)
 - GLog: Google Logging Library for C++ (https://code.google.com/p/google-glog/)
-- GFlags: Google Commandline Flags Module for C++ (https://code.google.com/p/gflags/)
 - a compliant C++11 compiler. Currently tested under GCC 4.8, GCC 4.9 and Clang 3.4.
 
 In order to build and run Fatal's demos, you'll need:
@@ -41,13 +40,13 @@ Provided that the dependencies are properly installed:
 ```sh
 $ clang++ -Wall -std=c++11 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
-  -lfolly -lfollybenchmark -ldouble-conversion -lgflags -lglog
+  -lfolly -lfollybenchmark -ldouble-conversion -lglog
 ```
 or
 ```sh
 $ g++ -Wall -std=c++11 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
-  -lfolly -lfollybenchmark -ldouble-conversion -lgflags -lglog
+  -lfolly -lfollybenchmark -ldouble-conversion -lglog
 ```
 
 ## Building Demos
