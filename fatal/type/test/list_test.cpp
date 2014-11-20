@@ -175,6 +175,40 @@ TEST(index_of, index_of) {
   EXPECT_EQ(8, tpls::index_of<S2>::value);
 }
 
+/////////////////////////////////
+// type_list::checked_index_of //
+/////////////////////////////////
+
+TEST(checked_index_of, checked_index_of) {
+  EXPECT_EQ(0, tl::checked_index_of<T0>::value);
+  EXPECT_EQ(1, tl::checked_index_of<T1>::value);
+  EXPECT_EQ(2, tl::checked_index_of<T2>::value);
+
+  EXPECT_EQ(0, tpl::checked_index_of<P0>::value);
+  EXPECT_EQ(1, tpl::checked_index_of<P1>::value);
+  EXPECT_EQ(2, tpl::checked_index_of<P2>::value);
+  EXPECT_EQ(3, tpl::checked_index_of<T0>::value);
+  EXPECT_EQ(4, tpl::checked_index_of<T1>::value);
+  EXPECT_EQ(5, tpl::checked_index_of<T2>::value);
+
+  EXPECT_EQ(0, tls::checked_index_of<T0>::value);
+  EXPECT_EQ(1, tls::checked_index_of<T1>::value);
+  EXPECT_EQ(2, tls::checked_index_of<T2>::value);
+  EXPECT_EQ(3, tls::checked_index_of<S0>::value);
+  EXPECT_EQ(4, tls::checked_index_of<S1>::value);
+  EXPECT_EQ(5, tls::checked_index_of<S2>::value);
+
+  EXPECT_EQ(0, tpls::checked_index_of<P0>::value);
+  EXPECT_EQ(1, tpls::checked_index_of<P1>::value);
+  EXPECT_EQ(2, tpls::checked_index_of<P2>::value);
+  EXPECT_EQ(3, tpls::checked_index_of<T0>::value);
+  EXPECT_EQ(4, tpls::checked_index_of<T1>::value);
+  EXPECT_EQ(5, tpls::checked_index_of<T2>::value);
+  EXPECT_EQ(6, tpls::checked_index_of<S0>::value);
+  EXPECT_EQ(7, tpls::checked_index_of<S1>::value);
+  EXPECT_EQ(8, tpls::checked_index_of<S2>::value);
+}
+
 ////////////////////////
 // type_list::type_at //
 ////////////////////////
