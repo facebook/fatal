@@ -27,14 +27,6 @@ struct tuple_tags {
    */
   using list = type_list<TTags...>;
 
-private:
-  template <typename TTag>
-  struct index_of_impl {
-    using type = typename list::template index_of<TTag>;
-    static_assert(type::value < list::size, "unsupported tag");
-  };
-
-public:
   /**
    *  TODO: DOCUMENT AND TEST
    *
@@ -66,7 +58,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename TTag>
-  using index_of = typename index_of_impl<TTag>::type;
+  using index_of = typename list::template checked_index_of<TTag>;
 
   /**
    * Gets the type of the tuple's element associated with a given tag.
