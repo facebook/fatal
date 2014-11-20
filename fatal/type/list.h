@@ -220,19 +220,36 @@ struct try_at<true, Index, type_list<TDefault...>, Args...> {
 
 template <std::size_t, typename, typename...> struct index_of;
 
-template <std::size_t Index, typename T>
-struct index_of<Index, T>:
-  public std::integral_constant<std::size_t, Index>
-{};
+template <std::size_t Size, typename T>
+struct index_of<Size, T> {
+  using type = std::integral_constant<std::size_t, Size>;
+};
 
-template <std::size_t Index, typename T, typename U, typename... UArgs>
-struct index_of<Index, T, U, UArgs...>:
-  public std::conditional<
-    std::is_same<T, U>::value,
-    std::integral_constant<std::size_t, Index>,
-    index_of<Index + 1, T, UArgs...>
-  >::type
-{};
+template <std::size_t Index, typename T, typename... Args>
+struct index_of<Index, T, T, Args...> {
+  using type = std::integral_constant<std::size_t, Index>;
+};
+
+template <std::size_t Index, typename T, typename U, typename... Args>
+struct index_of<Index, T, U, Args...> {
+  using type = typename index_of<Index + 1, T, Args...>::type;
+};
+
+//////////////////////
+// checked_index_of //
+//////////////////////
+
+template <std::size_t, typename, typename...> struct checked_index_of;
+
+template <std::size_t Index, typename T, typename... Args>
+struct checked_index_of<Index, T, T, Args...> {
+  using type = std::integral_constant<std::size_t, Index>;
+};
+
+template <std::size_t Index, typename T, typename U, typename... Args>
+struct checked_index_of<Index, T, U, Args...> {
+  using type = typename checked_index_of<Index + 1, T, Args...>::type;
+};
 
 /////////////
 // type_at //
@@ -261,13 +278,14 @@ struct contains {
   using type = std::false_type;
 };
 
+template <typename T, typename... Args>
+struct contains<T, T, Args...> {
+  using type = std::true_type;
+};
+
 template <typename T, typename THead, typename... Args>
 struct contains<T, THead, Args...> {
-  using type = typename std::conditional<
-    std::is_same<T, THead>::value,
-    std::true_type,
-    typename contains<T, Args...>::type
-  >::type;
+  using type = typename contains<T, Args...>::type;
 };
 
 ////////////////
@@ -546,17 +564,15 @@ template <std::size_t, std::size_t, typename...> struct skip;
 template <std::size_t Next, std::size_t Step>
 struct skip<Next, Step> { using type = type_list<>; };
 
+template <std::size_t Step, typename U, typename... UArgs>
+struct skip<0, Step, U, UArgs...> {
+  using type = typename skip<Step, Step, UArgs...>::type
+    ::template push_front<U>;
+};
+
 template <std::size_t Next, std::size_t Step, typename U, typename... UArgs>
 struct skip<Next, Step, U, UArgs...> {
-  using tail = typename skip<
-    Next == 0 ? Step : Next - 1, Step, UArgs...
-  >::type;
-
-  using type = typename std::conditional<
-    Next == 0,
-    typename tail::template push_front<U>,
-    tail
-  >::type;
+  using type = typename skip<Next - 1, Step, UArgs...>::type;
 };
 
 template <std::size_t Step>
@@ -594,15 +610,15 @@ struct search<TPredicate, TDefault, U, UArgs...> {
 template <std::size_t Depth, std::size_t MaxDepth, typename... Args>
 struct flatten;
 
+template <std::size_t MaxDepth, typename T, typename... Args>
+struct flatten<MaxDepth, MaxDepth, T, Args...> {
+  using type = type_list<T, Args...>;
+};
+
 template <std::size_t Depth, std::size_t MaxDepth, typename T, typename... Args>
 struct flatten<Depth, MaxDepth, T, Args...> {
-  using type = typename std::conditional<
-    Depth == MaxDepth,
-    type_list<T, Args...>,
-    typename flatten<
-      Depth, MaxDepth, Args...
-    >::type::template push_front<T>
-  >::type;
+  using type = typename flatten<Depth, MaxDepth, Args...>::type
+    ::template push_front<T>;
 };
 
 template <std::size_t Depth, std::size_t MaxDepth>
@@ -610,19 +626,17 @@ struct flatten<Depth, MaxDepth> {
   using type = type_list<>;
 };
 
+template <std::size_t MaxDepth, typename... Args, typename... UArgs>
+struct flatten<MaxDepth, MaxDepth, type_list<Args...>, UArgs...> {
+  using type = type_list<type_list<Args...>, UArgs...>;
+};
+
 template <
   std::size_t Depth, std::size_t MaxDepth, typename... Args, typename... UArgs
 >
 struct flatten<Depth, MaxDepth, type_list<Args...>, UArgs...> {
-  using type = typename std::conditional<
-    Depth == MaxDepth,
-    type_list<type_list<Args...>, UArgs...>,
-    typename flatten<
-      Depth + 1, MaxDepth, Args...
-    >::type::template concat<
-      typename flatten<Depth, MaxDepth, UArgs...>::type
-    >
-  >::type;
+  using type = typename flatten<Depth + 1, MaxDepth, Args...>::type
+    ::template concat<typename flatten<Depth, MaxDepth, UArgs...>::type>;
 };
 
 ////////////
@@ -1165,7 +1179,22 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename T>
-  using index_of = detail::type_list_impl::index_of<0, T, Args...>;
+  using index_of = typename detail::type_list_impl::index_of<
+    0, T, Args...
+  >::type;
+
+  /**
+   * Returns a std::integral_const with the 0-based index of the given type
+   * in this list.
+   *
+   * A type not found is considered an error and will fail to compile.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T>
+  using checked_index_of = typename detail::type_list_impl::checked_index_of<
+    0, T, Args...
+  >::type;
 
   /**
    * RTTI for the type at the given index.
