@@ -59,9 +59,7 @@ template <typename...> struct variadic_union_impl;
 template <typename... Args>
 struct variadic_union {
   /**
-   * A `type_list` of all supported types.
-   *
-   * Its elements are the exact types given to the `variadic_union`.
+   * A `type_list` of all supported types. Duplicates are removed.
    *
    * Example:
    *
@@ -70,43 +68,19 @@ struct variadic_union {
    *  // yields `type_list<>`
    *  using result1 = v1::list;
    *
-   *  using v2 = variadic_union<std::string>;
+   *  using v2 = variadic_union<std::string, int, std::string>;
    *
-   *  // yields `type_list<std::string>`
+   *  // yields `type_list<std::string, int>`
    *  using result2 = v2::list;
    *
-   *  using v3 = variadic_union<int, double, bool>;
+   *  using v3 = variadic_union<int, double, bool, int, double, bool, int>;
    *
    *  // yields `type_list<int, double, bool>`
    *  using result3 = v3::list;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using list = type_list<Args...>;
-
-  /**
-   * A `type_list` of all supported types, with duplicates removed.
-   *
-   * Example:
-   *
-   *  using v1 = variadic_union<>;
-   *
-   *  // yields `type_list<>`
-   *  using result1 = v1::tidy_list;
-   *
-   *  using v2 = variadic_union<std::string, int, std::string>;
-   *
-   *  // yields `type_list<std::string, int>`
-   *  using result2 = v2::tidy_list;
-   *
-   *  using v3 = variadic_union<int, double, bool, int, double, bool, int>;
-   *
-   *  // yields `type_list<int, double, bool>`
-   *  using result3 = v3::tidy_list;
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  using tidy_list = typename list::template unique<>;
+  using list = typename type_list<Args...>::template unique<>;
 
 private:
   // since we filter out duplicates from Args, we need
@@ -114,17 +88,17 @@ private:
   static_assert(
     logical_transform::all<
       std::true_type,
-      typename tidy_list::template contains<Args>...
+      typename list::template contains<Args>...
     >::value,
-    "tidy_list doesn't support all requested types"
+    "list doesn't support all requested types"
   );
 
-  using impl = typename tidy_list::template apply<detail::variadic_union_impl>;
+  using impl = typename list::template apply<detail::variadic_union_impl>;
 
   using union_type = typename impl::union_type;
 
   static_assert(
-    std::is_same<tidy_list, typename impl::list>::value,
+    std::is_same<list, typename impl::list>::value,
     "implementation doesn't support all requested types"
   );
 
