@@ -269,10 +269,24 @@ TEST(type_map, invert) {
 
 TEST(type_map, find) {
   FATAL_EXPECT_SAME<type_map<>::find<int, not_found_type>, not_found_type>();
+  FATAL_EXPECT_SAME<type_map<>::find<int, float>, float>();
+
   FATAL_EXPECT_SAME<ibdlsv_map::find<int, not_found_type>, bool>();
   FATAL_EXPECT_SAME<ibdlsv_map::find<double, not_found_type>, long>();
   FATAL_EXPECT_SAME<ibdlsv_map::find<short, not_found_type>, void>();
+
   FATAL_EXPECT_SAME<ibdlsv_map::find<bool, not_found_type>, not_found_type>();
+  FATAL_EXPECT_SAME<ibdlsv_map::find<bool, float>, float>();
+}
+
+/////////
+// get //
+/////////
+
+TEST(type_map, get) {
+  FATAL_EXPECT_SAME<ibdlsv_map::get<int>, bool>();
+  FATAL_EXPECT_SAME<ibdlsv_map::get<double>, long>();
+  FATAL_EXPECT_SAME<ibdlsv_map::get<short>, void>();
 }
 
 ////////////

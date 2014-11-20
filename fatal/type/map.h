@@ -92,6 +92,43 @@ using invert_transform = typename TPair::template transform<
   TKeyTransform, TMappedTransform
 >::invert;
 
+//////////
+// find //
+//////////
+
+template <typename, typename, typename...> struct find;
+
+template <typename TDefault, typename TKey>
+struct find<TDefault, TKey> {
+  using type = TDefault;
+};
+
+template <typename TDefault, typename TKey, typename TValue, typename... Args>
+struct find<TDefault, TKey, type_pair<TKey, TValue>, Args...> {
+  using type = TValue;
+};
+
+template <typename TDefault, typename TKey, typename T, typename... Args>
+struct find<TDefault, TKey, T, Args...> {
+  using type = typename find<TDefault, TKey, Args...>::type;;
+};
+
+/////////
+// get //
+/////////
+
+template <typename, typename...> struct get;
+
+template <typename TKey, typename TValue, typename... Args>
+struct get<TKey, type_pair<TKey, TValue>, Args...> {
+  using type = TValue;
+};
+
+template <typename TKey, typename T, typename... Args>
+struct get<TKey, T, Args...> {
+  using type = typename get<TKey, Args...>::type;;
+};
+
 //////////////
 // separate //
 //////////////
@@ -320,16 +357,27 @@ public:
    *  using result3 = map::find<float, void>;
    */
   template <typename TKey, typename TDefault = type_not_found_tag>
-  using find = type_get_second<
-    typename contents::template search<
-      transform_aggregator<
-        std::is_same,
-        type_get_first,
-        fixed_transform<TKey>::template apply
-      >::template apply,
-      type_pair<void, TDefault>
-    >
-  >;
+  using find = typename detail::type_map_impl::find<
+    TDefault, TKey, Args...
+  >::type;
+
+  /**
+   * Finds the first pair with key `TKey` and returns the mapped type.
+   *
+   * If there's no pair in this map with key `TKey` then it fails to compile.
+   *
+   * Example:
+   *
+   *  using map = type_map<type_pair<int, double>, type_pair<bool, long>>;
+   *
+   *  // yields `double`
+   *  using result1 = map::find<int>;
+   *
+   *  // fails to compile
+   *  using result2 = map::get<float>;
+   */
+  template <typename TKey>
+  using get = typename detail::type_map_impl::get<TKey, Args...>::type;
 
   /**
    * Finds the first pair whose key is accepted by the predicate `TPredicate`,
