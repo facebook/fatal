@@ -11,6 +11,7 @@
 
 #include <fatal/test/driver.h>
 
+#include <memory>
 #include <string>
 #include <type_traits>
 
@@ -84,7 +85,7 @@ template <typename... Args>
 void check_default_ctor(...) {
   auto fn = []() {
     variadic_union<Args...> v;
-    return v;
+    return std::addressof(v) != nullptr;
   };
 
   EXPECT_NO_THROW(fn());
