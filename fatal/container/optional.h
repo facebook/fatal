@@ -10,15 +10,22 @@
 #ifndef FATAL_INCLUDE_fatal_container_optional_h
 #define FATAL_INCLUDE_fatal_container_optional_h
 
+#include <fatal/container/uninitialized.h>
+
 #include <utility>
 
 namespace fatal {
 
 template <typename T>
-struct optional:
+class optional:
   private uninitialized<T>
 {
-  using uninitialized<T>::type;
+  using uninitialized<T>::construct;
+  using uninitialized<T>::destroy;
+
+public:
+  using type = typename uninitialized<T>::type;
+
   using uninitialized<T>::reference;
   using uninitialized<T>::pointer;
   using uninitialized<T>::operator *;
@@ -27,19 +34,19 @@ struct optional:
   optional() noexcept: empty_(true) {}
 
   optional(optional const &rhs)
-    noexcept(noexcept(construct(rhs.reference()))),
+    noexcept(noexcept(construct(rhs.reference()))):
     empty_(false)
   {
-    construct(rhs.reference();
+    construct(rhs.reference());
 
     DCHECK(!empty_);
   }
 
   optional(optional &&rhs)
-    noexcept(noexcept(construct(std::move(rhs.reference())))),
+    noexcept(noexcept(construct(std::move(rhs.reference())))):
     empty_(false)
   {
-    construct(std::move(rhs.reference());
+    construct(std::move(rhs.reference()));
 
     rhs.clear();
 
@@ -48,7 +55,7 @@ struct optional:
 
   template <typename... Args, typename = safe_overload_t<optional, Args...>>
   optional(Args &&...args)
-    noexcept(noexcept(construct(std::forward<Args>(args)...))),
+    noexcept(noexcept(construct(std::forward<Args>(args)...))):
     empty_(false)
   {
     construct(std::forward<Args>(args)...);
@@ -76,7 +83,7 @@ struct optional:
       empty_ = true;
     }
 
-    DCHECK(!empty_);
+    DCHECK(empty_);
   }
 
   bool empty() const noexcept { return empty_; }
@@ -88,7 +95,7 @@ struct optional:
     )
   {
     if (empty_) {
-      construct(rhs.reference();
+      construct(rhs.reference());
       empty_ = false;
     } else {
       reference() = rhs.reference();
@@ -105,7 +112,7 @@ struct optional:
     )
   {
     if (empty_) {
-      construct(std::move(rhs.reference());
+      construct(std::move(rhs.reference()));
       empty_ = false;
     } else {
       reference() = std::move(rhs.reference());
