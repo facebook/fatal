@@ -2228,8 +2228,54 @@ struct type_list {
    */
   template <template <typename...> class TTransform = identity_transform>
   using unique = typename detail::type_list_impl::unique<
-    type_list<>, TTransform<Args>...
+    type_list<>, fatal::apply<TTransform, Args>...
   >::type;
+
+  /**
+   * TODO: TEST
+   *
+   * Tells whether there are duplicated elements in this list or not.
+   *
+   * An optional transform `TTransform` can be applied to each element of this
+   * list before processing the duplicates.
+   *
+   * Example:
+   *
+   *  // yields `std::false_type`
+   *  using result1 = type_list<int, double, double, int, float>::is_unique<>;
+   *
+   *  // yields `std::true_type`
+   *  using result2 = type_list<int, double, float, bool>::is_unique<>;
+   *
+   *  template <int... Values> using int_seq = type_list<
+   *    std::integral_constant<int, Values>...
+   *  >;
+   *
+   *  // yields `std::false_type`
+   *  using result3 = int_seq<0, 1, 4, 3, 2, 6, 1, 2, 4, 3, 1, 2>::is_unique<>;
+   *
+   *  // yields `std::true_type`
+   *  using result4 = int_seq<0, 1, 2, 3, 4, 5, 6>::is_unique<>;
+   *
+   *  template <typename T>
+   *  using halve_val = std::integral_constant<int, T::value / 2>;
+   *
+   *  // yields `std::true_type`
+   *  using result5 = int_seq<0, 2, 8, 6, 4, 12>::is_unique<halve_val>;
+   *
+   *  // yields `std::false_type`
+   *  using result6 = int_seq<0, 1, 2, 3, 4, 5, 6>::is_unique<halve_val>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class TTransform = identity_transform>
+  // TODO: OPTIMIZE
+  using is_unique = typename cast_transform<bool>::apply<
+    std::is_same<
+      typename type_list::template transform<TTransform>,
+      unique<TTransform>
+    >
+  >;
 
   /**
    * Performs a binary search on this list's types (assumes the list is sorted),

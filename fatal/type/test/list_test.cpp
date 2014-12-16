@@ -59,6 +59,9 @@ struct multiply_transform {
   >;
 };
 
+template <typename T>
+using halve_val = std::integral_constant<int, T::value / 2>;
+
 struct xyz { int x; int y; int z; };
 
 /////////////////////
@@ -1302,6 +1305,42 @@ TEST(unique, unique) {
     int_seq<0, 1, 4, 3, 2, 6, 1, 2, 4, 3, 1, 2, 3, 0, 1, 2>::unique<
       multiply_transform<int, 2>::type
     >
+  >();
+}
+
+//////////////////////////
+// type_list::is_unique //
+//////////////////////////
+
+TEST(is_unique, is_unique) {
+  FATAL_EXPECT_SAME<
+    std::false_type,
+    type_list<int, double, double, int, float>::is_unique<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::true_type,
+    type_list<int, double, float, bool>::is_unique<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::false_type,
+    int_seq<0, 1, 4, 3, 2, 6, 1, 2, 4, 3, 1, 2>::is_unique<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::true_type,
+    int_seq<0, 1, 2, 3, 4, 5, 6>::is_unique<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::true_type,
+    int_seq<0, 2, 8, 6, 4, 12>::is_unique<halve_val>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::false_type,
+    int_seq<0, 1, 2, 3, 4, 5, 6>::is_unique<halve_val>
   >();
 }
 
