@@ -128,12 +128,10 @@ namespace fatal {
  * only and you should be fine. Otherwise, abandon all hope ye who enter here.
  */
 
-#define FATAL_ENUMIFY_GET_1ST_ARG(Arg0, ...) Arg0
-#define FATAL_ENUMIFY_GET_2ND_ARG(Arg0, Arg1, ...) Arg1
-#define FATAL_ENUMIFY_IGNORE_ARGS_IMPL(...)
 #define FATAL_ENUMIFY_DECLARE_LAST_IMPL(Field, Value, Handler, ...) \
   Field Handler(= Value, __VA_ARGS__)
-#define FATAL_ENUMIFY_DECLARE_IMPL(...) FATAL_ENUMIFY_DECLARE_LAST_IMPL(__VA_ARGS__),
+#define FATAL_ENUMIFY_DECLARE_IMPL(...) \
+  FATAL_ENUMIFY_DECLARE_LAST_IMPL(__VA_ARGS__),
 /**
  * Higher-order macro to declare enumerations. This can be used in
  * conjunction with FATAL_DEFINE_ENUM_STR_CLASS (further below) to
@@ -183,14 +181,15 @@ namespace fatal {
       FATAL_ENUMIFY_DECLARE_IMPL, \
       FATAL_ENUMIFY_DECLARE_IMPL, \
       FATAL_ENUMIFY_DECLARE_LAST_IMPL, \
-      FATAL_ENUMIFY_GET_1ST_ARG, \
-      FATAL_ENUMIFY_IGNORE_ARGS_IMPL \
+      FATAL_ARG_1, \
+      FATAL_IGNORE \
     ) \
   }
 
 #define FATAL_ENUM_TO_STR_CASE_IMPL(Field, Value, Enum, Handler, ...) \
   case Handler(Value, Enum)::Field: return FB_STRINGIZE(Field);
-#define FATAL_ENUM_TO_CSTR_IMPL(Field, ...) FATAL_STR(Field, FATAL_AS_STR(Field));
+#define FATAL_ENUM_TO_CSTR_IMPL(Field, ...) \
+  FATAL_STR(Field, FATAL_AS_STR(Field));
 #define FATAL_ENUM_VALUE_TO_LIST_LAST_IMPL(Field, Value, Enum, Handler, ...) \
   Handler(Value, Enum)::Field
 #define FATAL_ENUM_VALUE_TO_LIST_IMPL(...) \
@@ -300,8 +299,8 @@ namespace fatal {
         FATAL_ENUM_VALUE_TO_LIST_IMPL, \
         FATAL_ENUM_VALUE_TO_LIST_LAST_IMPL, \
         Enum, \
-        FATAL_ENUMIFY_GET_2ND_ARG, \
-        FATAL_ENUMIFY_GET_1ST_ARG \
+        FATAL_ARG_2, \
+        FATAL_ARG_1 \
       ) \
     >; \
     using str_to_value = values::list::apply< \
@@ -334,8 +333,8 @@ namespace fatal {
           FATAL_ENUM_TO_STR_CASE_IMPL, \
           FATAL_ENUM_TO_STR_CASE_IMPL, \
           Enum, \
-          FATAL_ENUMIFY_GET_2ND_ARG, \
-          FATAL_ENUMIFY_GET_1ST_ARG \
+          FATAL_ARG_2, \
+          FATAL_ARG_1 \
         ) \
       } \
     } \
