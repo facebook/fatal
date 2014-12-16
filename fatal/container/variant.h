@@ -449,9 +449,14 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
 
   constexpr static size_type end_depth() { return Depth + 1; }
 
+  template <template <typename> class... TTransforms>
   static std::type_info const &type(size_type const depth) {
     assert(depth == Depth);
-    return typeid(value_type);
+    return typeid(
+      typename fatal::try_transform<
+        fatal::transform_sequence<TTransforms...>::template apply
+      >::template apply<value_type>
+    );
   }
 
   template <typename TVisitor, typename... UArgs>
@@ -623,10 +628,11 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
 
   constexpr static size_type end_depth() { return tail_type::end_depth(); }
 
+  template <template <typename> class... TTransforms>
   static std::type_info const &type(size_type const depth) {
     return depth == Depth
-      ? head_type::type(depth)
-      : tail_type::type(depth);
+      ? head_type::template type<TTransforms...>(depth)
+      : tail_type::template type<TTransforms...>(depth);
   }
 
   template <typename TVisitor, typename... UArgs>
@@ -1257,8 +1263,9 @@ public:
   }
 
   // for compatibility with boost::variant
+  template <template <typename> class... TTransforms>
   std::type_info const &type() const {
-    return traits::type(control_.storedType());
+    return traits::template type<TTransforms...>(control_.storedType());
   }
 
   allocator_type &allocator() const { return *control_.allocator(); }
