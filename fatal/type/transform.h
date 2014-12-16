@@ -160,7 +160,7 @@ template <typename...> using false_predicate = std::false_type;
  * There's a specialization for when `TTo` is `bool` that either returns
  * `std::true_type` or `std::false_type`.
  *
- * TODO: DOCUMENT AND TEST
+ * TODO: DOCUMENT AND TEST. ALSO TEST bool SPECIAL CASE
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -168,16 +168,6 @@ template <typename TTo>
 struct cast_transform {
   template <typename T>
   using apply = std::integral_constant<TTo, static_cast<TTo>(T::value)>;
-};
-
-template <>
-struct cast_transform<bool> {
-  template <typename T>
-  using apply = typename std::conditional<
-    static_cast<bool>(T::value),
-    std::true_type,
-    std::false_type
-  >::type;
 };
 
 /**
@@ -851,8 +841,13 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE(const_pointer);
   FATAL_IMPL_GET_MEMBER_TYPE(const_reference);
   FATAL_IMPL_GET_MEMBER_TYPE(const_reverse_iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE(data);
+  FATAL_IMPL_GET_MEMBER_TYPE(decode);
+  FATAL_IMPL_GET_MEMBER_TYPE(decoder);
   FATAL_IMPL_GET_MEMBER_TYPE(difference);
   FATAL_IMPL_GET_MEMBER_TYPE(element);
+  FATAL_IMPL_GET_MEMBER_TYPE(encode);
+  FATAL_IMPL_GET_MEMBER_TYPE(encoder);
   FATAL_IMPL_GET_MEMBER_TYPE(first);
   FATAL_IMPL_GET_MEMBER_TYPE(flag);
   FATAL_IMPL_GET_MEMBER_TYPE(hash);
@@ -873,12 +868,15 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE(pair);
   FATAL_IMPL_GET_MEMBER_TYPE(pointer);
   FATAL_IMPL_GET_MEMBER_TYPE(reference);
+  FATAL_IMPL_GET_MEMBER_TYPE(request);
+  FATAL_IMPL_GET_MEMBER_TYPE(response);
   FATAL_IMPL_GET_MEMBER_TYPE(result);
   FATAL_IMPL_GET_MEMBER_TYPE(reverse);
   FATAL_IMPL_GET_MEMBER_TYPE(reverse_iterator);
   FATAL_IMPL_GET_MEMBER_TYPE(second);
   FATAL_IMPL_GET_MEMBER_TYPE(set);
   FATAL_IMPL_GET_MEMBER_TYPE(size);
+  FATAL_IMPL_GET_MEMBER_TYPE(str);
   FATAL_IMPL_GET_MEMBER_TYPE(string);
   FATAL_IMPL_GET_MEMBER_TYPE(tag);
   FATAL_IMPL_GET_MEMBER_TYPE(traits);
