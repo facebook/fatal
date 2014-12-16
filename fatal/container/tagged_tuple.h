@@ -55,6 +55,9 @@ struct tagged_tuple {
   template <typename TTag>
   using type_of = typename tags::template type_of<TTag, type>;
 
+  template <std::size_t Index>
+  using type_at = typename std::tuple_element<Index, type>;
+
   template <
     typename... UArgs,
     typename = safe_overload_t<tagged_tuple, UArgs...>
@@ -64,16 +67,20 @@ struct tagged_tuple {
   {}
 
   template <typename TTag>
-  constexpr fast_pass<
-    typename tags::template type_of<TTag, type>
-  > get() const {
+  constexpr fast_pass<type_of<TTag>> get() const {
     return tags::template get<TTag>(data_);
   }
 
   template <typename TTag>
-  typename tags::template type_of<TTag, type> &get() {
-    return tags::template get<TTag>(data_);
+  type_of<TTag> &get() { return tags::template get<TTag>(data_); }
+
+  template <std::size_t Index>
+  constexpr fast_pass<type_at<Index>> at() const {
+    return std::get<Index>(data_);
   }
+
+  template <std::size_t Index>
+  type_at<Index> &at() { return std::get<Index>(data_); }
 
   constexpr fast_pass<type> tuple() const { return data_; }
   type &tuple() { return data_; }
