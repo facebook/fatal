@@ -48,6 +48,18 @@ using data_bits = std::integral_constant<
     : sizeof(typename std::decay<T>::type) * CHAR_BIT
 >;
 
+// TODO: DOCUMENT AND TEST
+template <typename T>
+typename std::make_signed<T>::type signed_cast(T value) {
+  return static_cast<typename std::make_signed<T>::type>(value);
+}
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+typename std::make_unsigned<T>::type unsigned_cast(T value) {
+  return static_cast<typename std::make_unsigned<T>::type>(value);
+}
+
 /**
  * The maximum shift count that can be applied to a non-negative value of type
  * `T` without causing overflow, given that the value already occupies `Size`
@@ -124,41 +136,67 @@ using shift_left_upperbound = std::integral_constant<
 >;
 
 /**
- * most_significant_bit_mp() returns the 1-based position of the
+ * most_significant_bit returns the 1-based position of the
  * most significant bit (0 for no bits set) for n
  *
  * This is the same as log_2(n) + 1, except for n = 0
  *
  * Usage:
  *
- * auto msb = most_significant_bit_mp<10>();
+ * auto msb = most_significant_bit<10>::value;
  *  // msb is now 4
  *
- * template <std::size_t msb>
+ * template <std::uintmax_t msb>
  * struct Foo { ... };
  *
- * Foo<most_significant_bit_mp<1024>()> foo;
+ * Foo<most_significant_bit<1024>::value> foo;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace detail {
 
-template <std::size_t n>
-struct msb_mp_impl:
-  public std::integral_constant<std::size_t, 1 + msb_mp_impl<(n >> 1)>::value>
-{};
+template <std::uintmax_t Value>
+struct msb_mp_impl {
+  using type = std::integral_constant<
+    std::size_t,
+    1 + msb_mp_impl<(Value >> 1)>::type::value
+  >;
+};
 
 template <>
-struct msb_mp_impl<0>:
-  public std::integral_constant<std::size_t, 0>
-{};
+struct msb_mp_impl<0> {
+  using type = std::integral_constant<std::size_t, 0>;
+};
 
 } // namespace detail {
 
-template <std::size_t n>
-constexpr std::size_t most_significant_bit_mp() {
-  return detail::msb_mp_impl<n>::value;
-}
+template <std::uintmax_t Value>
+using most_significant_bit = typename detail::msb_mp_impl<Value>::type;
+
+///////////////
+// pop_count //
+///////////////
+
+// TODO: DOCUMENT AND TEST
+namespace detail {
+
+template <std::uintmax_t Value>
+struct pop_count_impl {
+  using type = std::integral_constant<
+    std::size_t,
+    pop_count_impl<Value & (Value - 1)>::type::value + 1
+  >;
+};
+
+template <>
+struct pop_count_impl<0> {
+  using type = std::integral_constant<std::size_t, 0>;
+};
+
+} // namespace detail {
+
+template <std::uintmax_t Value>
+using pop_count = typename detail::pop_count_impl<Value>::type;
 
 ////////////////////
 // known integers //
@@ -383,9 +421,9 @@ using smallest_least_unsigned_integral = smallest_type_for_bit_count<
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <unsigned long long value>
+template <unsigned long long Value>
 using smallest_uint_for_value = smallest_unsigned_integral<
-  most_significant_bit_mp<value>()
+  most_significant_bit<Value>::value
 >;
 
 /**
@@ -548,7 +586,7 @@ struct mersenne_number:
 {
   typedef std::integral_constant<
     smallest_fast_unsigned_integral<
-      most_significant_bit_mp<Exponent>()
+      most_significant_bit<Exponent>::value
     >,
     Exponent
   > exponent;
@@ -562,7 +600,7 @@ struct mersenne_prime_impl:
 {
   typedef std::integral_constant<
     smallest_fast_unsigned_integral<
-      most_significant_bit_mp<Nth>()
+      most_significant_bit<Nth>::value
     >,
     Nth
   > nth;

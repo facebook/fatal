@@ -100,44 +100,44 @@ TEST(numerics, shift_left_upperbound) {
   CHECK_SHIFT_LEFT_UPPERBOUND(std::uint16_t, 16, 1);
 }
 
-/////////////////////////////
-// most_significant_bit_mp //
-/////////////////////////////
+//////////////////////////
+// most_significant_bit //
+//////////////////////////
 
-TEST(numerics, most_significant_bit_mp) {
-  EXPECT_EQ(0, most_significant_bit_mp<0>());
-  EXPECT_EQ(1, most_significant_bit_mp<1>());
-  EXPECT_EQ(2, most_significant_bit_mp<2>());
-  EXPECT_EQ(2, most_significant_bit_mp<3>());
-  EXPECT_EQ(3, most_significant_bit_mp<7>());
-  EXPECT_EQ(4, most_significant_bit_mp<8>());
-  EXPECT_EQ(4, most_significant_bit_mp<15>());
-  EXPECT_EQ(5, most_significant_bit_mp<16>());
-  EXPECT_EQ(5, most_significant_bit_mp<31>());
-  EXPECT_EQ(6, most_significant_bit_mp<32>());
-  EXPECT_EQ(6, most_significant_bit_mp<63>());
-  EXPECT_EQ(7, most_significant_bit_mp<64>());
-  EXPECT_EQ(7, most_significant_bit_mp<127>());
-  EXPECT_EQ(10, most_significant_bit_mp<997>());
-  EXPECT_EQ(16, most_significant_bit_mp<65535>());
-  EXPECT_EQ(17, most_significant_bit_mp<65536>());
+TEST(numerics, most_significant_bit) {
+  EXPECT_EQ(0, most_significant_bit<0>::value);
+  EXPECT_EQ(1, most_significant_bit<1>::value);
+  EXPECT_EQ(2, most_significant_bit<2>::value);
+  EXPECT_EQ(2, most_significant_bit<3>::value);
+  EXPECT_EQ(3, most_significant_bit<7>::value);
+  EXPECT_EQ(4, most_significant_bit<8>::value);
+  EXPECT_EQ(4, most_significant_bit<15>::value);
+  EXPECT_EQ(5, most_significant_bit<16>::value);
+  EXPECT_EQ(5, most_significant_bit<31>::value);
+  EXPECT_EQ(6, most_significant_bit<32>::value);
+  EXPECT_EQ(6, most_significant_bit<63>::value);
+  EXPECT_EQ(7, most_significant_bit<64>::value);
+  EXPECT_EQ(7, most_significant_bit<127>::value);
+  EXPECT_EQ(10, most_significant_bit<997>::value);
+  EXPECT_EQ(16, most_significant_bit<65535>::value);
+  EXPECT_EQ(17, most_significant_bit<65536>::value);
 
-  EXPECT_EQ(0, most_significant_bit_mp<0ull>());
-  EXPECT_EQ(1, most_significant_bit_mp<1ull>());
-  EXPECT_EQ(2, most_significant_bit_mp<2ull>());
-  EXPECT_EQ(2, most_significant_bit_mp<3ull>());
-  EXPECT_EQ(3, most_significant_bit_mp<7ull>());
-  EXPECT_EQ(4, most_significant_bit_mp<8ull>());
-  EXPECT_EQ(4, most_significant_bit_mp<15ull>());
-  EXPECT_EQ(5, most_significant_bit_mp<16ull>());
-  EXPECT_EQ(5, most_significant_bit_mp<31ull>());
-  EXPECT_EQ(6, most_significant_bit_mp<32ull>());
-  EXPECT_EQ(6, most_significant_bit_mp<63ull>());
-  EXPECT_EQ(7, most_significant_bit_mp<64ull>());
-  EXPECT_EQ(7, most_significant_bit_mp<127ull>());
-  EXPECT_EQ(10, most_significant_bit_mp<997ull>());
-  EXPECT_EQ(16, most_significant_bit_mp<65535ull>());
-  EXPECT_EQ(17, most_significant_bit_mp<65536ull>());
+  EXPECT_EQ(0, most_significant_bit<0ull>::value);
+  EXPECT_EQ(1, most_significant_bit<1ull>::value);
+  EXPECT_EQ(2, most_significant_bit<2ull>::value);
+  EXPECT_EQ(2, most_significant_bit<3ull>::value);
+  EXPECT_EQ(3, most_significant_bit<7ull>::value);
+  EXPECT_EQ(4, most_significant_bit<8ull>::value);
+  EXPECT_EQ(4, most_significant_bit<15ull>::value);
+  EXPECT_EQ(5, most_significant_bit<16ull>::value);
+  EXPECT_EQ(5, most_significant_bit<31ull>::value);
+  EXPECT_EQ(6, most_significant_bit<32ull>::value);
+  EXPECT_EQ(6, most_significant_bit<63ull>::value);
+  EXPECT_EQ(7, most_significant_bit<64ull>::value);
+  EXPECT_EQ(7, most_significant_bit<127ull>::value);
+  EXPECT_EQ(10, most_significant_bit<997ull>::value);
+  EXPECT_EQ(16, most_significant_bit<65535ull>::value);
+  EXPECT_EQ(17, most_significant_bit<65536ull>::value);
 }
 
 /////////////////////////////////

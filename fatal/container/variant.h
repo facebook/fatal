@@ -902,7 +902,7 @@ private:
     // bits_size is the amount of bits needed to represent the type_tag for
     // the given types passed as variadic template parameters (Args...)
     constexpr static std::size_t bits_size() {
-      return most_significant_bit_mp<sizeof...(Args)>();
+      return most_significant_bit<sizeof...(Args)>::value;
     }
 
     typedef smallest_uint_for_value<sizeof...(Args)> type_tag;
