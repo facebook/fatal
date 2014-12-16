@@ -125,6 +125,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(for_each);
   FATAL_CALL_TRAITS_IMPL(foreach);
   FATAL_CALL_TRAITS_IMPL(forward);
+  FATAL_CALL_TRAITS_IMPL(freeze);
   FATAL_CALL_TRAITS_IMPL(front);
   FATAL_CALL_TRAITS_IMPL(get);
   FATAL_CALL_TRAITS_IMPL(getline);
@@ -182,6 +183,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(stable_sort);
   FATAL_CALL_TRAITS_IMPL(substr);
   FATAL_CALL_TRAITS_IMPL(swap);
+  FATAL_CALL_TRAITS_IMPL(thaw);
   FATAL_CALL_TRAITS_IMPL(to);
   FATAL_CALL_TRAITS_IMPL(to_str);
   FATAL_CALL_TRAITS_IMPL(to_string);
