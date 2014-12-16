@@ -102,6 +102,10 @@ class is_template {
 public:
   template <typename U>
   using type = logical_transform::any<impl<TTemplates, U>...>;
+
+  // TODO: DOCUMENT AND TEST
+  template <typename U>
+  using apply = type<U>;
 };
 
 /**
