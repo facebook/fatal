@@ -797,6 +797,24 @@ public:
     detail::type_map_impl::transform<Args, TKeyTransform, TMappedTransform>...
   >::type;
 
+  template <
+    template <typename...> class TPredicate, typename V, typename... VArgs
+  >
+  static constexpr std::size_t foreach_if(V &&visitor, VArgs &&...args) {
+    return contents::template foreach_if<TPredicate>(
+      std::forward<V>(visitor),
+      std::forward<VArgs>(args)...
+    );
+  };
+
+  template <typename V, typename... VArgs>
+  static constexpr bool foreach(V &&visitor, VArgs &&...args) {
+    return contents::foreach(
+      std::forward<V>(visitor),
+      std::forward<VArgs>(args)...
+    );
+  };
+
   template <typename TKey, typename TVisitor, typename... VArgs>
   static constexpr bool visit(TVisitor &&visitor, VArgs &&...args) {
     using mapped = find<TKey, detail::type_map_impl::visit_not_found>;
