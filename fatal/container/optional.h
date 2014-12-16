@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_container_optional_h
 
 #include <fatal/container/uninitialized.h>
+#include <fatal/type/traits.h>
 
 #include <utility>
 
@@ -34,7 +35,9 @@ public:
   optional() noexcept: empty_(true) {}
 
   optional(optional const &rhs)
-    noexcept(noexcept(construct(rhs.reference()))):
+    noexcept(
+      noexcept(std::declval<uninitialized<T>>().construct(rhs.reference()))
+    ):
     empty_(false)
   {
     construct(rhs.reference());
@@ -43,7 +46,11 @@ public:
   }
 
   optional(optional &&rhs)
-    noexcept(noexcept(construct(std::move(rhs.reference())))):
+    noexcept(
+      noexcept(
+        std::declval<uninitialized<T>>().construct(std::move(rhs.reference()))
+      )
+    ):
     empty_(false)
   {
     construct(std::move(rhs.reference()));
@@ -55,7 +62,11 @@ public:
 
   template <typename... Args, typename = safe_overload_t<optional, Args...>>
   optional(Args &&...args)
-    noexcept(noexcept(construct(std::forward<Args>(args)...))):
+    noexcept(
+      noexcept(
+        std::declval<uninitialized<T>>().construct(std::forward<Args>(args)...)
+      )
+    ):
     empty_(false)
   {
     construct(std::forward<Args>(args)...);
@@ -67,7 +78,11 @@ public:
 
   template <typename... Args>
   type &emplace(Args &&...args)
-    noexcept(noexcept(construct(std::forward<Args>(args)...)))
+    noexcept(
+      noexcept(
+        std::declval<uninitialized<T>>().construct(std::forward<Args>(args)...)
+      )
+    )
   {
     clear();
 
@@ -90,7 +105,7 @@ public:
 
   optional &operator =(optional const &rhs)
     noexcept(
-      noexcept(construct(rhs.reference()))
+      noexcept(std::declval<uninitialized<T>>().construct(rhs.reference()))
       && noexcept(reference() = rhs.reference())
     )
   {
@@ -107,8 +122,9 @@ public:
 
   optional &operator =(optional &&rhs)
     noexcept(
-      noexcept(construct(std::move(rhs.reference())))
-      && noexcept(reference() = std::move(rhs.reference()))
+      noexcept(
+        std::declval<uninitialized<T>>().construct(std::move(rhs.reference()))
+      ) && noexcept(reference() = std::move(rhs.reference()))
     )
   {
     if (empty_) {
@@ -125,7 +141,11 @@ public:
 
   template <typename... Args, typename = safe_overload_t<optional, Args...>>
   optional &operator =(Args &&...args)
-    noexcept(noexcept(construct(std::forward<Args>(args)...)))
+    noexcept(
+      noexcept(
+        std::declval<uninitialized<T>>().construct(std::forward<Args>(args)...)
+      )
+    )
   {
     clear();
 
