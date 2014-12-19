@@ -94,6 +94,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(back);
   FATAL_CALL_TRAITS_IMPL(begin);
   FATAL_CALL_TRAITS_IMPL(binary_search);
+  FATAL_CALL_TRAITS_IMPL(c_str);
   FATAL_CALL_TRAITS_IMPL(capacity);
   FATAL_CALL_TRAITS_IMPL(cbegin);
   FATAL_CALL_TRAITS_IMPL(cend);
@@ -103,7 +104,6 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(count);
   FATAL_CALL_TRAITS_IMPL(crbegin);
   FATAL_CALL_TRAITS_IMPL(crend);
-  FATAL_CALL_TRAITS_IMPL(c_str);
   FATAL_CALL_TRAITS_IMPL(data);
   FATAL_CALL_TRAITS_IMPL(decode);
   FATAL_CALL_TRAITS_IMPL(dequeue);
@@ -117,6 +117,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(enqueue);
   FATAL_CALL_TRAITS_IMPL(equal_range);
   FATAL_CALL_TRAITS_IMPL(erase);
+  FATAL_CALL_TRAITS_IMPL(extension);
   FATAL_CALL_TRAITS_IMPL(find);
   FATAL_CALL_TRAITS_IMPL(find_first_not_of);
   FATAL_CALL_TRAITS_IMPL(find_first_of);
@@ -128,9 +129,9 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(freeze);
   FATAL_CALL_TRAITS_IMPL(front);
   FATAL_CALL_TRAITS_IMPL(get);
-  FATAL_CALL_TRAITS_IMPL(getline);
   FATAL_CALL_TRAITS_IMPL(get_pointer);
   FATAL_CALL_TRAITS_IMPL(get_reference);
+  FATAL_CALL_TRAITS_IMPL(getline);
   FATAL_CALL_TRAITS_IMPL(hash);
   FATAL_CALL_TRAITS_IMPL(id);
   FATAL_CALL_TRAITS_IMPL(index);
@@ -154,6 +155,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(pop);
   FATAL_CALL_TRAITS_IMPL(pop_back);
   FATAL_CALL_TRAITS_IMPL(pop_front);
+  FATAL_CALL_TRAITS_IMPL(predicate);
   FATAL_CALL_TRAITS_IMPL(prev);
   FATAL_CALL_TRAITS_IMPL(previous);
   FATAL_CALL_TRAITS_IMPL(push);
