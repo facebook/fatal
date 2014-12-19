@@ -42,10 +42,10 @@ template <typename...> struct variadic_union_impl;
  *  variadic_union<int, double, bool, std::string> v;
  *
  *  // gets a reference to the member of type `int`
- *  auto &i = v.reference<int>();
+ *  auto &i = v.ref<int>();
  *
  *  // gets a pointer to the member of type `double`
- *  auto d = v.pointer<double>();
+ *  auto d = v.ptr<double>();
  *
  *  // constructs the member of type `std::string` in place
  *  // passing "hello, world!" as the argument.
@@ -131,24 +131,24 @@ public:
    *  variadic_union<int, double, bool> v;
    *
    *  // gets a valid reference of type `int &`
-   *  auto &i = v.reference<int>();
+   *  auto &i = v.ref<int>();
    *
    *  // gets a valid reference of type `bool &&`
-   *  auto &&b = std::move(v).reference<bool>();
+   *  auto &&b = std::move(v).ref<bool>();
    *
    *  // fails to compile
-   *  auto &f = v.reference<float>();
+   *  auto &f = v.ref<float>();
    *
    *  variadic_union<int, double, bool> const c;
    *
    *  // gets a valid reference of type `double const &`
-   *  auto &d = v.reference<double>();
+   *  auto &d = v.ref<double>();
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
 # define FATAL_IMPL_VARIADIC_UNION_GET(Modifier, ...) \
   template <typename T> \
-  T Modifier reference() __VA_ARGS__ noexcept { \
+  T Modifier ref() __VA_ARGS__ noexcept { \
     static_assert(list::template contains<T>::value, "unsupported type"); \
     return impl::template get<T>(container_); \
   }
@@ -167,27 +167,23 @@ public:
    *  variadic_union<int, double, bool> v;
    *
    *  // gets a valid pointer of type `int *`
-   *  auto i = v.pointer<int>();
+   *  auto i = v.ptr<int>();
    *
    *  // fails to compile
-   *  auto f = v.pointer<float>();
+   *  auto f = v.ptr<float>();
    *
    *  variadic_union<int, double, bool> const c;
    *
    *  // gets a valid pointer of type `double const *`
-   *  auto d = v.pointer<double>();
+   *  auto d = v.ptr<double>();
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename T>
-  T const *pointer() const noexcept {
-    return std::addressof(reference<T>());
-  }
+  T const *ptr() const noexcept { return std::addressof(ref<T>()); }
 
   template <typename T>
-  T *pointer() noexcept {
-    return std::addressof(reference<T>());
-  }
+  T *ptr() noexcept { return std::addressof(ref<T>()); }
 
   /**
    * Calls the constructor for the member of type `T` in place,
@@ -213,7 +209,7 @@ public:
   T &construct(TArgs &&...args)
     noexcept(noexcept(T(std::forward<TArgs>(args)...)))
   {
-    return *new (pointer<T>()) T(std::forward<TArgs>(args)...);
+    return *new (ptr<T>()) T(std::forward<TArgs>(args)...);
   }
 
   /**
@@ -234,7 +230,7 @@ public:
    */
   template <typename T>
   T *destroy() noexcept {
-    auto p = pointer<T>();
+    auto p = ptr<T>();
     p->~T();
     return p;
   }

@@ -25,44 +25,49 @@ namespace fatal {
 template <typename T, bool AutomaticallyDestroy = true>
 struct uninitialized {
   using type = T;
+  using const_reference = type const &;
+  using reference = type &;
+  using const_pointer = type const *;
+  using pointer = type *;
 
-  type const &reference() const noexcept { return container_.value; }
+  uninitialized() = default;
+  uninitialized(uninitialized const &) = delete;
+  uninitialized(uninitialized &&) = delete;
 
-  type &reference() noexcept { return container_.value; }
+  const_reference cref() const noexcept { return data_.value; }
+  const_reference ref() const noexcept { return data_.value; }
+  reference ref() noexcept { return data_.value; }
 
-  type const *pointer() const noexcept {
-    return std::addressof(container_.value);
-  }
-
-  type *pointer() noexcept { return std::addressof(container_.value); }
+  const_pointer cptr() const noexcept { return std::addressof(data_.value); }
+  const_pointer ptr() const noexcept { return std::addressof(data_.value); }
+  pointer ptr() noexcept { return std::addressof(data_.value); }
 
   template <typename... Args>
-  type &construct(Args &&...args)
+  reference construct(Args &&...args)
     noexcept(noexcept(type(std::forward<Args>(args)...)))
   {
-    return *new (pointer()) type(std::forward<Args>(args)...);
+    return *new (ptr()) type(std::forward<Args>(args)...);
   }
 
-  type *destroy() noexcept {
-    reference().~type();
-    return pointer();
+  pointer destroy() noexcept {
+    ref().~type();
+    return ptr();
   }
 
-  type const &operator *() const noexcept { return container_.value; }
+  const_reference operator *() const noexcept { return data_.value; }
 
-  type &operator *() noexcept { return container_.value; }
+  reference operator *() noexcept { return data_.value; }
 
-  type const *operator ->() const noexcept {
-    return std::addressof(container_.value);
+  const_pointer operator ->() const noexcept {
+    return std::addressof(data_.value);
   }
 
-  type *operator ->() noexcept { return std::addressof(container_.value); }
-
+  pointer operator ->() noexcept { return std::addressof(data_.value); }
 
 private:
   using union_type = unitary_union<type, AutomaticallyDestroy>;
 
-  union_type container_;
+  union_type data_;
 };
 
 } // namespace fatal {

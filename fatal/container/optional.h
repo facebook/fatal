@@ -15,63 +15,59 @@
 
 #include <utility>
 
+#include <cassert>
+
 namespace fatal {
 
+// TODO: DOCUMENT
 template <typename T>
-class optional:
-  private uninitialized<T>
-{
-  using uninitialized<T>::construct;
-  using uninitialized<T>::destroy;
+class optional {
+  using data = uninitialized<T, false>;
 
 public:
-  using type = typename uninitialized<T>::type;
+  using type = typename data::type;
+  using const_reference = typename data::const_reference;
+  using reference = typename data::reference;
+  using const_pointer = typename data::const_pointer;
+  using pointer = typename data::pointer;
 
-  using uninitialized<T>::reference;
-  using uninitialized<T>::pointer;
-  using uninitialized<T>::operator *;
-  using uninitialized<T>::operator ->;
-
-  optional() noexcept: empty_(true) {}
-
-  optional(optional const &rhs)
-    noexcept(
-      noexcept(std::declval<uninitialized<T>>().construct(rhs.reference()))
-    ):
-    empty_(false)
-  {
-    construct(rhs.reference());
-
-    DCHECK(!empty_);
-  }
-
-  optional(optional &&rhs)
-    noexcept(
-      noexcept(
-        std::declval<uninitialized<T>>().construct(std::move(rhs.reference()))
-      )
-    ):
-    empty_(false)
-  {
-    construct(std::move(rhs.reference()));
-
-    rhs.clear();
-
-    DCHECK(!empty_);
-  }
+  optional() noexcept: empty_(true){};
 
   template <typename... Args, typename = safe_overload_t<optional, Args...>>
   optional(Args &&...args)
     noexcept(
       noexcept(
-        std::declval<uninitialized<T>>().construct(std::forward<Args>(args)...)
+        std::declval<data>().construct(std::forward<Args>(args)...)
       )
     ):
     empty_(false)
   {
-    construct(std::forward<Args>(args)...);
+    data_.construct(std::forward<Args>(args)...);
+  }
 
-    DCHECK(!empty_);
+  optional(optional const &rhs)
+    noexcept(
+      noexcept(std::declval<data>().construct(rhs.data_.ref()))
+    ):
+    empty_(rhs.empty_)
+  {
+    if (!rhs.empty_) {
+      data_.construct(rhs.data_.ref());
+    }
+  }
+
+  optional(optional &&rhs)
+    noexcept(
+      noexcept(
+        std::declval<data>().construct(std::move(rhs.data_.ref()))
+      )
+    ):
+    empty_(rhs.empty_)
+  {
+    if (!rhs.empty_) {
+      data_.construct(std::move(rhs.data_.ref()));
+      rhs.clear();
+    }
   }
 
   ~optional() noexcept { clear(); }
@@ -80,13 +76,13 @@ public:
   type &emplace(Args &&...args)
     noexcept(
       noexcept(
-        std::declval<uninitialized<T>>().construct(std::forward<Args>(args)...)
+        std::declval<data>().construct(std::forward<Args>(args)...)
       )
     )
   {
     clear();
 
-    auto &result = construct(std::forward<Args>(args)...);
+    auto &result = data_.construct(std::forward<Args>(args)...);
     empty_ = false;
 
     return result;
@@ -94,68 +90,138 @@ public:
 
   void clear() noexcept {
     if (!empty_) {
-      destroy();
+      data_.destroy();
       empty_ = true;
     }
 
-    DCHECK(empty_);
+    assert(empty_);
   }
 
   bool empty() const noexcept { return empty_; }
 
+  const_reference cref() const noexcept {
+    assert(!empty_);
+    return data_.cref();
+  }
+
+  const_reference ref() const noexcept {
+    assert(!empty_);
+    return data_.cref();
+  }
+
+  reference ref() noexcept {
+    assert(!empty_);
+    return data_.ref();
+  }
+
+  const_pointer cptr() const noexcept {
+    assert(!empty_);
+    return data_.cptr();
+  }
+
+  const_pointer ptr() const noexcept {
+    assert(!empty_);
+    return data_.cptr();
+  }
+
+  pointer ptr() noexcept {
+    assert(!empty_);
+    return data_.ptr();
+  }
+
+  const_reference operator *() const noexcept {
+    assert(!empty_);
+    return data_.cref();
+  }
+
+  reference operator *() noexcept {
+    assert(!empty_);
+    return data_.ref();
+  }
+
+  const_pointer operator ->() const noexcept {
+    assert(!empty_);
+    return data_.cptr();
+  }
+
+  pointer operator ->() noexcept {
+    assert(!empty_);
+    return data_.ptr();
+  }
+
   optional &operator =(optional const &rhs)
     noexcept(
-      noexcept(std::declval<uninitialized<T>>().construct(rhs.reference()))
-      && noexcept(reference() = rhs.reference())
+      noexcept(std::declval<data>().construct(rhs.data_.ref()))
+      && noexcept(std::declval<data>().ref() = rhs.data_.ref())
     )
   {
-    if (empty_) {
-      construct(rhs.reference());
-      empty_ = false;
-    } else {
-      reference() = rhs.reference();
+    if (rhs.empty_) {
+      clear();
+      return *this;
     }
 
-    DCHECK(!empty_);
+    if (empty_) {
+      data_.construct(rhs.data_.ref());
+      empty_ = false;
+    } else {
+      data_.ref() = rhs.data_.ref();
+    }
+
+    assert(!empty_);
     return *this;
   }
 
   optional &operator =(optional &&rhs)
     noexcept(
       noexcept(
-        std::declval<uninitialized<T>>().construct(std::move(rhs.reference()))
-      ) && noexcept(reference() = std::move(rhs.reference()))
+        std::declval<data>().construct(std::move(rhs.data_.ref()))
+      ) && noexcept(std::declval<data>().ref() = std::move(rhs.data_.ref()))
     )
   {
+    if (rhs.empty_) {
+      clear();
+      return *this;
+    }
+
     if (empty_) {
-      construct(std::move(rhs.reference()));
+      data_.construct(std::move(rhs.data_.ref()));
       empty_ = false;
     } else {
-      reference() = std::move(rhs.reference());
+      data_.ref() = std::move(rhs.data_.ref());
     }
 
     rhs.clear();
-    DCHECK(!empty_);
+    assert(!empty_);
     return *this;
   }
 
-  template <typename... Args, typename = safe_overload_t<optional, Args...>>
-  optional &operator =(Args &&...args)
+  template <typename U, typename = safe_overload_t<optional, U>>
+  optional &operator =(U &&value)
     noexcept(
-      noexcept(
-        std::declval<uninitialized<T>>().construct(std::forward<Args>(args)...)
-      )
+      noexcept(std::declval<data>().construct(std::forward<U>(value)))
+      && noexcept(std::declval<data>().ref() = std::forward<U>(value))
     )
   {
-    clear();
-
-    construct(std::forward<Args>(args)...);
-    empty_ = false;
+    if (empty_) {
+      data_.construct(std::forward<U>(value));
+      empty_ = false;
+    } else {
+      data_.ref() = std::forward<U>(value);
+    }
 
     return *this;
   }
 
+  bool operator ==(optional const &rhs) const {
+    return empty_
+      ? rhs.empty_
+      : !rhs.empty_ && data_.ref() == rhs.data_.ref();
+  }
+
+  bool operator !=(optional const &rhs) const { return !(*this == rhs); }
+
 private:
+  data data_;
   bool empty_;
 };
 

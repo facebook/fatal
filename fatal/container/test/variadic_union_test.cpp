@@ -10,6 +10,7 @@
 #include <fatal/container/variadic_union.h>
 
 #include <fatal/test/driver.h>
+#include <fatal/test/ref_counter.h>
 
 #include <memory>
 #include <string>
@@ -100,9 +101,9 @@ TEST(variadic_union, default_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_DEFAULT_CTOR);
 }
 
-///////////////////////////////
+//////////////////////////
 // variadic_union::list //
-///////////////////////////////
+//////////////////////////
 
 #define FATAL_IMPL_CHECK_LIST(...) \
   do { \
@@ -187,9 +188,9 @@ TEST(variadic_union, size) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_SIZE);
 }
 
-///////////////////////////////
-// variadic_union::reference //
-///////////////////////////////
+/////////////////////////
+// variadic_union::ref //
+/////////////////////////
 
 template <typename T>
 struct reference_pointer_value {
@@ -215,8 +216,8 @@ struct reference_pointer_test<T, Args...> {
   static std::size_t test_reference(U &u, std::size_t count = 0) {
     U const &c = u;
 
-    using type = decltype(u.template reference<T>());
-    using c_type = decltype(c.template reference<T>());
+    using type = decltype(u.template ref<T>());
+    using c_type = decltype(c.template ref<T>());
 
     static_assert(
       std::is_same<T &, type>::value,
@@ -229,24 +230,24 @@ struct reference_pointer_test<T, Args...> {
 
     {
       auto const value_0 = reference_pointer_value<T>::value(false);
-      new (std::addressof(u.template reference<T>())) T(value_0);
-      EXPECT_EQ(value_0, u.template reference<T>());
-      EXPECT_EQ(value_0, c.template reference<T>());
-      (u.template reference<T>()).~T();
+      new (std::addressof(u.template ref<T>())) T(value_0);
+      EXPECT_EQ(value_0, u.template ref<T>());
+      EXPECT_EQ(value_0, c.template ref<T>());
+      (u.template ref<T>()).~T();
     }
 
     {
       auto const value_1 = reference_pointer_value<T>::value(true);
-      new (std::addressof(u.template reference<T>())) T(value_1);
-      EXPECT_EQ(value_1, u.template reference<T>());
-      EXPECT_EQ(value_1, c.template reference<T>());
-      (u.template reference<T>()).~T();
+      new (std::addressof(u.template ref<T>())) T(value_1);
+      EXPECT_EQ(value_1, u.template ref<T>());
+      EXPECT_EQ(value_1, c.template ref<T>());
+      (u.template ref<T>()).~T();
     }
 
     {
       T const *p = reinterpret_cast<T *>(std::addressof(u));
-      EXPECT_EQ(p, std::addressof(u.template reference<T>()));
-      EXPECT_EQ(p, std::addressof(c.template reference<T>()));
+      EXPECT_EQ(p, std::addressof(u.template ref<T>()));
+      EXPECT_EQ(p, std::addressof(c.template ref<T>()));
     }
 
     return reference_pointer_test<Args...>::test_reference(
@@ -258,8 +259,8 @@ struct reference_pointer_test<T, Args...> {
   static std::size_t test_pointer(U &u, std::size_t count = 0) {
     U const &c = u;
 
-    using type = decltype(u.template pointer<T>());
-    using c_type = decltype(c.template pointer<T>());
+    using type = decltype(u.template ptr<T>());
+    using c_type = decltype(c.template ptr<T>());
 
     static_assert(
       std::is_same<T *, type>::value,
@@ -272,24 +273,24 @@ struct reference_pointer_test<T, Args...> {
 
     {
       auto const value_0 = reference_pointer_value<T>::value(false);
-      new (u.template pointer<T>()) T(value_0);
-      EXPECT_EQ(value_0, *u.template pointer<T>());
-      EXPECT_EQ(value_0, *c.template pointer<T>());
-      (u.template pointer<T>())->~T();
+      new (u.template ptr<T>()) T(value_0);
+      EXPECT_EQ(value_0, *u.template ptr<T>());
+      EXPECT_EQ(value_0, *c.template ptr<T>());
+      (u.template ptr<T>())->~T();
     }
 
     {
       auto const value_1 = reference_pointer_value<T>::value(true);
-      new (u.template pointer<T>()) T(value_1);
-      EXPECT_EQ(value_1, *u.template pointer<T>());
-      EXPECT_EQ(value_1, *c.template pointer<T>());
-      (u.template pointer<T>())->~T();
+      new (u.template ptr<T>()) T(value_1);
+      EXPECT_EQ(value_1, *u.template ptr<T>());
+      EXPECT_EQ(value_1, *c.template ptr<T>());
+      (u.template ptr<T>())->~T();
     }
 
     {
       T const *p = reinterpret_cast<T *>(std::addressof(u));
-      EXPECT_EQ(p, u.template pointer<T>());
-      EXPECT_EQ(p, c.template pointer<T>());
+      EXPECT_EQ(p, u.template ptr<T>());
+      EXPECT_EQ(p, c.template ptr<T>());
     }
 
     return reference_pointer_test<Args...>::test_pointer(
@@ -322,18 +323,18 @@ struct reference_pointer_test<> {
 #define FATAL_IMPL_CHECK_REFERENCE(...) \
   FATAL_IMPL_CHECK_REFERENCE_POINTER(reference, __VA_ARGS__)
 
-TEST(variadic_union, reference) {
+TEST(variadic_union, ref) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_REFERENCE);
 }
 
-/////////////////////////////
-// variadic_union::pointer //
-/////////////////////////////
+/////////////////////////
+// variadic_union::ptr //
+/////////////////////////
 
 #define FATAL_IMPL_CHECK_POINTER(...) \
   FATAL_IMPL_CHECK_REFERENCE_POINTER(pointer, __VA_ARGS__)
 
-TEST(variadic_union, pointer) {
+TEST(variadic_union, ptr) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_POINTER);
 }
 
@@ -341,16 +342,8 @@ TEST(variadic_union, pointer) {
 // variadic_union::construct //
 ///////////////////////////////
 
-static int ctor_tester_counter = 0;
-
-template <typename...>
-struct ctor_tester {
-  ctor_tester() { ++ctor_tester_counter; }
-  ~ctor_tester() { --ctor_tester_counter; }
-};
-
 template <typename... Args>
-using variadic_union_ctor_test = variadic_union<ctor_tester<Args>...>;
+using variadic_union_ctor_test = variadic_union<ref_counter::global<Args>...>;
 
 template <typename...> struct construct_destroy_test;
 
@@ -358,17 +351,17 @@ template <typename T, typename... Args>
 struct construct_destroy_test<T, Args...> {
   template <typename U>
   static std::size_t test_construct(U &u) {
-    using type = ctor_tester<T>;
+    using type = ref_counter::global<T>;
     u.template construct<type>();
     auto const count = construct_destroy_test<Args...>::test_construct(u);
-    u.template reference<type>().~type();
+    u.template ref<type>().~type();
     return count;
   }
 
   template <typename U>
   static std::size_t test_destroy(U &u) {
-    using type = ctor_tester<T>;
-    new (u.template pointer<type>()) type();
+    using type = ref_counter::global<T>;
+    new (u.template ptr<type>()) type();
     auto const count = construct_destroy_test<Args...>::test_destroy(u);
     u.template destroy<type>();
     return count;
@@ -379,23 +372,23 @@ template <>
 struct construct_destroy_test<> {
   template <typename U>
   static std::size_t test_construct(U &) {
-    return ctor_tester_counter;
+    return ref_counter::count();
   }
 
   template <typename U>
   static std::size_t test_destroy(U &) {
-    return ctor_tester_counter;
+    return ref_counter::count();
   }
 };
 
 #define FATAL_IMPL_CHECK_CONSTRUCT_DESTROY(Which, ...) \
   do { \
-    ASSERT_EQ(0, ctor_tester_counter); \
+    ASSERT_EQ(0, ref_counter::count()); \
     variadic_union_ctor_test<__VA_ARGS__> v; \
     using list = type_list<__VA_ARGS__>; \
     auto const count = construct_destroy_test<__VA_ARGS__>::test_##Which(v); \
     EXPECT_EQ(list::size, count); \
-    EXPECT_EQ(0, ctor_tester_counter); \
+    EXPECT_EQ(0, ref_counter::count()); \
   } while (false)
 
 #define FATAL_IMPL_CHECK_CONSTRUCT(...) \
