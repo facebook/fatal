@@ -34,6 +34,7 @@ struct unitary_union_impl<T, false, false> {
     type() noexcept {}
     type(type const &) = delete;
     type(type &&) = delete;
+    ~type() noexcept {}
 
     T value;
   };
@@ -41,7 +42,14 @@ struct unitary_union_impl<T, false, false> {
 
 template <typename T>
 struct unitary_union_impl<T, false, true> {
-  union type { T value; };
+  union type {
+    type() noexcept = default;
+    type(type const &) = delete;
+    type(type &&) = delete;
+    ~type() noexcept {}
+
+    T value;
+  };
 };
 
 template <typename T>
@@ -50,7 +58,6 @@ struct unitary_union_impl<T, true, false> {
     type() noexcept {}
     type(type const &) = delete;
     type(type &&) = delete;
-
     ~type() noexcept { value.~T(); }
 
     T value;
@@ -60,6 +67,9 @@ struct unitary_union_impl<T, true, false> {
 template <typename T>
 struct unitary_union_impl<T, true, true> {
   union type {
+    type() noexcept = default;
+    type(type const &) = delete;
+    type(type &&) = delete;
     ~type() noexcept { value.~T(); }
 
     T value;
