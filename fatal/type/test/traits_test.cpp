@@ -23,6 +23,33 @@ namespace fatal {
 template <std::size_t> struct T {};
 template <std::size_t> struct S {};
 
+/////////////////////////////
+// remove_rvalue_reference //
+/////////////////////////////
+
+#define FATAL_IMPL_CHECK_REMOVE_RVREF(Type, Expected) \
+  do { \
+    FATAL_EXPECT_SAME<Expected, remove_rvalue_reference<Type>::type>(); \
+  } while (false)
+
+TEST(traits, remove_rvalue_reference) {
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int, int);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int const, int const);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int &, int &);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int const &, int const &);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int &&, int);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int const &&, int const);
+
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int *, int*);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int const *, int const *);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int *&, int *&);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int const *&, int const *&);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int *&&, int *);
+  FATAL_IMPL_CHECK_REMOVE_RVREF(int const *&&, int const *);
+}
+
+#undef FATAL_IMPL_CHECK_REMOVE_RVREF
+
 /////////////////
 // is_complete //
 /////////////////

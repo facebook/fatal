@@ -17,9 +17,31 @@
 
 namespace fatal {
 
-/////////////////
-// TYPE TRAITS //
-/////////////////
+/**
+ * Removes any r-value references from a given type.
+ * L-value references remain untouched.
+ *
+ * Example:
+ *
+ *  // yields `int`
+ *  using result1 = remove_rvalue_reference<int &&>::type;
+ *
+ *  // yields `int const`
+ *  using result2 = remove_rvalue_reference<int const &&>::type;
+ *
+ *  // yields `int *`
+ *  using result3 = remove_rvalue_reference<int *>::type;
+ *
+ *  // yields `int *&`
+ *  using result4 = remove_rvalue_reference<int *&>::type;
+ *
+ *  // yields `int const &`
+ *  using result5 = remove_rvalue_reference<int const &>::type;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T> struct remove_rvalue_reference { using type = T; };
+template <typename T> struct remove_rvalue_reference<T &&> { using type = T; };
 
 /**
  * A traits class to check for incomplete types.
