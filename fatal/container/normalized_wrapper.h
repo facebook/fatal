@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#ifndef FATAL_INCLUDE_fatal_container_wrapper_h
-#define FATAL_INCLUDE_fatal_container_wrapper_h
+#ifndef FATAL_INCLUDE_fatal_container_normalized_wrapper_h
+#define FATAL_INCLUDE_fatal_container_normalized_wrapper_h
 
 #include <fatal/type/traits.h>
 
@@ -170,4 +170,4 @@ private:
 
 } // namespace fatal {
 
-#endif // FATAL_INCLUDE_fatal_container_wrapper_h
+#endif // FATAL_INCLUDE_fatal_container_normalized_wrapper_h
