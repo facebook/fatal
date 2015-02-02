@@ -417,17 +417,27 @@ struct accumulate<TTransform, TAccumulator, T, Args...> {
 // choose //
 ////////////
 
-template <template <typename...> class, typename...> struct choose;
+template <
+  template <typename...> class,
+  template <typename...> class,
+  typename...
+> struct choose;
 
 template <
-  template <typename...> class TPredicate,
+  template <typename...> class TBinaryPredicate,
+  template <typename...> class TTransform,
   typename TChosen, typename TCandidate, typename... Args
 >
-struct choose<TPredicate, TChosen, TCandidate, Args...> {
+struct choose<TBinaryPredicate, TTransform, TChosen, TCandidate, Args...> {
   using type = typename choose<
-    TPredicate,
+    TBinaryPredicate,
+    TTransform,
     typename std::conditional<
-      fatal::apply<TPredicate, TCandidate, TChosen>::value,
+      fatal::apply<
+        TBinaryPredicate,
+        fatal::apply<TTransform, TCandidate>,
+        fatal::apply<TTransform, TChosen>
+      >::value,
       TCandidate,
       TChosen
     >::type,
@@ -435,8 +445,12 @@ struct choose<TPredicate, TChosen, TCandidate, Args...> {
   >::type;
 };
 
-template <template <typename...> class TPredicate, typename TChosen>
-struct choose<TPredicate, TChosen> {
+template <
+  template <typename...> class TBinaryPredicate,
+  template <typename...> class TTransform,
+  typename TChosen
+>
+struct choose<TBinaryPredicate, TTransform, TChosen> {
   using type = TChosen;
 };
 
@@ -1693,9 +1707,14 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TPredicate>
+  template <
+    template <typename...> class TBinaryPredicate,
+    template <typename...> class... TTransforms
+  >
   using choose = typename detail::type_list_impl::choose<
-    TPredicate, Args...
+    TBinaryPredicate,
+    transform_sequence<TTransforms...>::template apply,
+    Args...
   >::type;
 
   /**
