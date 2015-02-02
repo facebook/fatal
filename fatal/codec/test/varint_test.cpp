@@ -12,6 +12,11 @@
 #include <fatal/test/driver.h>
 
 #include <algorithm>
+#include <iterator>
+#include <type_traits>
+#include <utility>
+
+#include <cstdint>
 
 using count = std::integral_constant<std::uintmax_t, 1000000>;
 
@@ -28,7 +33,7 @@ struct use {
 template <typename T>
 class impl {
   using type = T;
-  using codec = varint_codec<type>;
+  using codec = varint<type>;
   using buffer = typename codec::template automatic_buffer<>;
   using size_type = typename buffer::size_type;
   using encoded = std::pair<buffer, size_type>;

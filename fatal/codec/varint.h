@@ -233,7 +233,7 @@ struct value_traits<true, T> {
 
 // TODO: DOCUMENT
 template <typename T>
-struct varint_codec {
+struct varint {
   using type = T;
 
 private:
@@ -262,6 +262,7 @@ public:
       value_(value_traits::pre(value))
     {}
 
+    // TODO: RETURN SIZE?
     template <typename TOutputIterator>
     TOutputIterator operator ()(
       TOutputIterator begin,
@@ -297,10 +298,11 @@ public:
     // returns true if the encoding is done, false if it needs more data
     bool done() const noexcept { return !continued_; }
 
-    // returns true if the encoding still has pending data, false if it
-    // is done. this is the opposite of done(), convenient for loops
-    // that feed one chunk of output buffer at a time
-    explicit operator bool() const noexcept { return continued_; }
+    // returns false if the encoding is done, true if it needs more data
+    bool operator !() const noexcept { return continued_; }
+
+    // returns true if the encoding is done, false if it needs more data
+    explicit operator bool() const noexcept { return !continued_; }
 
   private:
     internal value_;
@@ -310,6 +312,7 @@ public:
   // returns the iterator `i` to the first unused element of the output
   // buffer such that [out, i) represents the data that have been encoded
   // buffer must be able to fit at least `max_size<decltype(*out)>` elements
+  // TODO: RETURN SIZE?
   template <typename TOutputIterator>
   static TOutputIterator encode(
     type value,
@@ -374,10 +377,11 @@ public:
     // returns true if the decoding is done, false if it needs more data
     bool done() const noexcept { return !continuation_; }
 
-    // returns true if the decoding needs more data, false if it is done.
-    // this is the opposite of done(), convenient for loops that feed one
-    // chunk of data at a time
-    explicit operator bool() const noexcept { return continuation_; }
+    // returns false if the decoding is done, true if it needs more data
+    bool operator !() const noexcept { return continuation_; }
+
+    // returns true if the decoding is done, false if it needs more data
+    explicit operator bool() const noexcept { return !continuation_; }
 
   private:
     internal value_ = 0;
@@ -395,6 +399,7 @@ public:
     return std::make_pair(decode.value(), decode.done());
   }
 
+  // TODO: bike-shed
   template <typename TInputIterator>
   static std::pair<type, bool> tracking_decode(
     TInputIterator &begin,
