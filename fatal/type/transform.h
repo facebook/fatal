@@ -1034,6 +1034,13 @@ struct transform_aggregator_impl {
  * TODO: review member_transform_stack now that we have this
  * TODO: review recursive_transform now that we have this
  *
+ *  TAggregator<
+ *    TTransforms_0<Args...>,
+ *    TTransforms_1<Args...>,
+ *    ...
+ *    TTransforms_n<Args...>
+ *  >
+ *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
@@ -1045,6 +1052,35 @@ struct transform_aggregator {
   using apply = typename detail::transform_aggregator_impl<
     TAggregator, TTransforms...
   >::template apply<Args...>::type;
+};
+
+///////////////////////////
+// transform_distributor //
+///////////////////////////
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ *  TAggregator<
+ *    transform_sequence<TTransforms...>::apply<Arg_0>,
+ *    transform_sequence<TTransforms...>::apply<Arg_1>,
+ *    ...
+ *    transform_sequence<TTransforms...>::apply<Arg_n>
+ *  >
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  template <typename...> class TAggregator,
+  template <typename...> class... TTransforms
+>
+class transform_distributor {
+  template <typename T>
+  using impl = typename transform_sequence<TTransforms...>::template apply<T>;
+
+public:
+  template <typename... Args>
+  using apply = fatal::apply<TAggregator, impl<Args>...>;
 };
 
 ////////////////////////
