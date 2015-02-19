@@ -36,11 +36,18 @@ if [ "$NO_CLEAR" != "true" ]; then
   lclear.sh >&2
 fi
 
+CC_OPT="$CC_OPT -O2 -g -o $out_binary -lfolly -lfollybenchmark -ldouble-conversion -lgflags -lglog -pthread ../lib/$USE_CC/gtest.o"
+
+if [ "$PRE_PROC" = "true" ]; then
+  CC_OPT="-E"
+fi
+
 echo -n "started: "; date
 set -x
-"$USE_CC" -Wall -Werror "-std=$USE_STD" -O3 -g -I . -lfolly -lfollybenchmark -ldouble-conversion -lgflags -lglog -pthread -o "$out_binary" "$file_name" "../lib/$USE_CC/gtest.o" 2>&1
+"$USE_CC" -Wall -Werror $CC_OPT "-std=$USE_STD" -I . "$file_name" 2>&1
+set +x
+echo -n "finished: "; date
+
 if [ "$DO_RUN" = "true" ]; then
   "$out_binary" "$@"
 fi
-set +x
-echo -n "finished: "; date

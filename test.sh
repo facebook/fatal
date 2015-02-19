@@ -19,7 +19,7 @@ elif [ -z "$2" ] && [ -e "$1" ]; then
     echo "test $test_path not found">&2
     exit 1
   fi
-  USE_CC="$USE_CC" NO_CLEAR=true DO_RUN=true ./compile.sh "$1"
+  PRE_PROC="$PRE_PROC" USE_CC="$USE_CC" NO_CLEAR=true DO_RUN=true ./compile.sh "$1"
 elif [ "$1" ] && [ "$2" ]; then
   while [ "$1" ] && [ "$2" ]; do
     dir_name="$1"
