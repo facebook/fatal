@@ -14,6 +14,7 @@
 #include <fatal/type/list.h>
 #include <fatal/type/pair.h>
 #include <fatal/type/tag.h>
+#include <fatal/type/traits.h>
 
 #include <tuple>
 #include <type_traits>
