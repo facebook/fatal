@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,7 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_reflection_h
 #define FATAL_INCLUDE_fatal_type_reflection_h
 
-#include <fatal/type/reflect_template.h>
 #include <fatal/type/reflect_member_function.h>
+#include <fatal/type/reflect_template.h>
 
 #endif // FATAL_INCLUDE_fatal_type_reflection_h

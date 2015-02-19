@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -126,17 +126,17 @@ struct reflect_template<T<Types...>> {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef T<Types...> type;
+  using type = T<Types...>;
 
   /**
    * The category of the reflected class template.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef std::integral_constant<
+  using category = std::integral_constant<
     reflect_template_category,
     reflect_template_category::type_list
-  > category;
+  >;
 
   /**
    * Rebinds the reflected class template with new types.
@@ -151,7 +151,7 @@ struct reflect_template<T<Types...>> {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef type_list<Types...> types;
+  using types = type_list<Types...>;
 
   /**
    * Tells if the original reflected type was instantiated from the same
@@ -199,17 +199,17 @@ struct reflect_template<T<V, Values...>> {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef T<V, Values...> type;
+  using type = T<V, Values...>;
 
   /**
    * The category of the reflected class template.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef std::integral_constant<
+  using category = std::integral_constant<
     reflect_template_category,
     reflect_template_category::typed_value_list
-  > category;
+  >;
 
   /**
    * The type of the values.

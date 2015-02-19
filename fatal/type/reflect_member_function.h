@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -64,7 +64,7 @@ enum class cv_qualifier: char {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 constexpr bool operator &(cv_qualifier lhs, cv_qualifier rhs) {
-  typedef std::underlying_type<cv_qualifier>::type type;
+  using type = std::underlying_type<cv_qualifier>::type;
   return static_cast<bool>(static_cast<type>(lhs) & static_cast<type>(rhs));
 }
 
@@ -196,9 +196,9 @@ struct member_function_qualifier:
   );
 };
 
-/////////////////////////////
-// reflect_member_function //
-/////////////////////////////
+///////////////////////////////
+// reflected_member_function //
+///////////////////////////////
 
 /**
  * A class that holds information obtained through
@@ -215,22 +215,27 @@ struct reflected_member_function {
   /**
    * The class that declares the member function.
    */
-  typedef TClass owner;
+  using owner = TClass;
 
   /**
    * The type returned by the member function.
    */
-  typedef TResult result;
+  using result = TResult;
 
   /**
    * The const/volatile qualifiers of the member function.
    */
-  typedef std::integral_constant<cv_qualifier, Qualifier> cv;
+  using cv = std::integral_constant<cv_qualifier, Qualifier>;
 
   /**
    * The list of arguments accepted by the member function.
    */
-  typedef type_list<Args...> args;
+  using args = type_list<Args...>;
+
+  /**
+   * A flat list of the result type followed by each argument's type.
+   */
+  using types = typename args::template push_front<result>;
 };
 
 namespace detail {
@@ -264,16 +269,16 @@ REFLECTED_MEMBER_FUNCTION_IMPL(const volatile)
  *    int bar(bool a, T const &b, double *c) const;
  *  };
  *
- *  typedef reflect_member_function<decltype(&foo<long>::bar)> info;
+ *  using info = reflect_member_function<decltype(&foo<long>::bar)>;
  *
  *  // yields `int`
- *  typedef info::result return_type;
+ *  using return_type = info::result;
  *
  *  // yields `foo<long>`
- *  typedef info::owner declaring_class;
+ *  using declaring_class = info::owner;
  *
  *  // yields `type_list<bool, long const &, double *>`
- *  typedef info::args parameters;
+ *  using parameters = info::args;
  *
  *  // yields `cv_qualifier::c`
  * auto cv = info::cv::value;
