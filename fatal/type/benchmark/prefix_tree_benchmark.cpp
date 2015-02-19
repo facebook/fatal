@@ -53,7 +53,7 @@ struct visitor {
   template <typename TString>
   void operator ()(
     type_tag<TString>,
-    fast_pass<std::string> s,
+    std::string const &s,
     unsigned &count
   ) {
     count += s.size();
