@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -80,7 +80,40 @@ void check_is_template() {
   }
 }
 
+template <typename, typename...> struct X0 {};
+template <typename, typename, typename...> struct X1 {};
+template <typename, typename, typename, typename...> struct X2 {};
+template <typename, typename, typename, typename, typename...> struct X3 {};
+
 TEST(traits, is_template) {
+  check_is_template<X0<void>, true, X0>();
+  check_is_template<X0<void, int>, true, X0>();
+  check_is_template<X0<void, int, bool>, true, X0>();
+  check_is_template<std::string, false, X0>();
+  check_is_template<void, false, X0>();
+  check_is_template<int, false, X0>();
+
+  check_is_template<X1<void, double>, true, X1>();
+  check_is_template<X1<void, double, int>, true, X1>();
+  check_is_template<X1<void, double, int, bool>, true, X1>();
+  check_is_template<std::string, false, X1>();
+  check_is_template<void, false, X1>();
+  check_is_template<int, false, X1>();
+
+  check_is_template<X2<void, double, short>, true, X2>();
+  check_is_template<X2<void, double, short, int>, true, X2>();
+  check_is_template<X2<void, double, short, int, bool>, true, X2>();
+  check_is_template<std::string, false, X2>();
+  check_is_template<void, false, X2>();
+  check_is_template<int, false, X2>();
+
+  check_is_template<X3<void, double, short, float>, true, X3>();
+  check_is_template<X3<void, double, short, float, int>, true, X3>();
+  check_is_template<X3<void, double, short, float, int, bool>, true, X3>();
+  check_is_template<std::string, false, X3>();
+  check_is_template<void, false, X3>();
+  check_is_template<int, false, X3>();
+
   check_is_template<std::string, false, std::tuple>();
   check_is_template<std::wstring, false, std::tuple>();
   check_is_template<std::basic_string<int>, false, std::tuple>();
