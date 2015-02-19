@@ -152,15 +152,15 @@ public:
       template < \
         typename U, \
         typename = decltype( \
-          detail::call_traits_arg_impl<U>().__VA_ARGS__( \
-            detail::call_traits_arg_impl<UArgs>()... \
+          ::fatal::detail::call_traits_arg_impl<U>().__VA_ARGS__( \
+            ::fatal::detail::call_traits_arg_impl<UArgs>()... \
           ) \
         ) \
       > \
-      static std::true_type sfinae(U *); \
+      static ::std::true_type sfinae(U *); \
       \
       template <typename...> \
-      static std::false_type sfinae(...); \
+      static ::std::false_type sfinae(...); \
     }; \
     \
     template <typename... UArgs> \
@@ -169,14 +169,14 @@ public:
         typename U, \
         typename = decltype( \
           U::__VA_ARGS__( \
-            detail::call_traits_arg_impl<UArgs>()... \
+            ::fatal::detail::call_traits_arg_impl<UArgs>()... \
           ) \
         ) \
       > \
-      static std::true_type sfinae(U *); \
+      static ::std::true_type sfinae(U *); \
       \
       template <typename...> \
-      static std::false_type sfinae(...); \
+      static ::std::false_type sfinae(...); \
     }; \
   \
   public: \
@@ -185,15 +185,20 @@ public:
       \
       template <typename U, typename... UArgs> \
       constexpr static auto call(U &&subject, UArgs &&...args) \
-        -> decltype(subject.__VA_ARGS__(std::forward<UArgs>(args)...)) \
-      { return subject.__VA_ARGS__(std::forward<UArgs>(args)...); } \
+        -> decltype(subject.__VA_ARGS__(::std::forward<UArgs>(args)...)) \
+      { return subject.__VA_ARGS__(::std::forward<UArgs>(args)...); } \
       \
       template <typename U, typename... UArgs> \
       constexpr auto operator ()(U &&subject, UArgs &&...args) const \
         -> decltype( \
-          call(std::forward<U>(subject), std::forward<UArgs>(args)...) \
+          call(::std::forward<U>(subject), ::std::forward<UArgs>(args)...) \
         ) \
-      { return call(std::forward<U>(subject), std::forward<UArgs>(args)...); } \
+      { \
+        return call( \
+          ::std::forward<U>(subject), \
+          ::std::forward<UArgs>(args)... \
+        ); \
+      } \
       \
       template <typename U> \
       struct bind { \
@@ -218,19 +223,19 @@ public:
         \
         template <typename... UArgs> \
         constexpr static auto call(UArgs &&...args) \
-          -> decltype(type::__VA_ARGS__(std::forward<UArgs>(args)...)) \
-        { return type::__VA_ARGS__(std::forward<UArgs>(args)...); } \
+          -> decltype(type::__VA_ARGS__(::std::forward<UArgs>(args)...)) \
+        { return type::__VA_ARGS__(::std::forward<UArgs>(args)...); } \
         \
         template <typename... UArgs> \
         constexpr auto operator ()(UArgs &&...args) const \
-          -> decltype(call(std::forward<UArgs>(args)...)) \
-        { return call(std::forward<UArgs>(args)...); } \
+          -> decltype(call(::std::forward<UArgs>(args)...)) \
+        { return call(::std::forward<UArgs>(args)...); } \
       }; \
       \
       template <typename U, typename... UArgs> \
       constexpr static auto call(UArgs &&...args) \
-        -> decltype(bind<U>::call(std::forward<UArgs>(args)...)) \
-      { return bind<U>::call(std::forward<UArgs>(args)...); } \
+        -> decltype(bind<U>::call(::std::forward<UArgs>(args)...)) \
+      { return bind<U>::call(::std::forward<UArgs>(args)...); } \
       \
       template <typename U, typename... UArgs> \
         using supports = decltype( \
@@ -245,13 +250,13 @@ public:
       \
       template <typename... UArgs> \
       constexpr static auto call(UArgs &&...args) \
-        -> decltype(__VA_ARGS__(std::forward<UArgs>(args)...)) \
-      { return __VA_ARGS__(std::forward<UArgs>(args)...); } \
+        -> decltype(__VA_ARGS__(::std::forward<UArgs>(args)...)) \
+      { return __VA_ARGS__(::std::forward<UArgs>(args)...); } \
       \
       template <typename... UArgs> \
       constexpr auto operator ()(UArgs &&...args) const \
-        -> decltype(call(std::forward<UArgs>(args)...)) \
-      { return call(std::forward<UArgs>(args)...); } \
+        -> decltype(call(::std::forward<UArgs>(args)...)) \
+      { return call(::std::forward<UArgs>(args)...); } \
     }; \
   }
 
