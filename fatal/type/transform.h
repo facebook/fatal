@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -476,6 +476,14 @@ namespace logical_transform {
    */
   template <typename T>
   using negate = std::integral_constant<decltype(!T::value), !T::value>;
+
+  // TODO: DOCUMENT AND TEST
+  template <typename... Args>
+  using not_all = negate<all<Args...>>;
+
+  // TODO: DOCUMENT AND TEST
+  template <typename... Args>
+  using none = negate<any<Args...>>;
 };
 
 ///////////////////////
@@ -824,69 +832,79 @@ struct comparison_transform {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+// TODO: OFFER THIS LIST AS AN INTERNAL HIGHER ORDER MACRO
 struct get_member_type {
-  FATAL_GET_MEMBER_TYPE(char_type);
-  FATAL_GET_MEMBER_TYPE(type);
-  FATAL_GET_MEMBER_TYPE(types);
-
 # define FATAL_IMPL_GET_MEMBER_TYPE(Name) \
-  FATAL_GET_MEMBER_TYPE(Name); \
-  FATAL_GET_MEMBER_TYPE(Name##_type)
+  FATAL_GET_MEMBER_TYPE(Name)
 
-  FATAL_IMPL_GET_MEMBER_TYPE(allocator);
-  FATAL_IMPL_GET_MEMBER_TYPE(args);
-  FATAL_IMPL_GET_MEMBER_TYPE(array);
-  FATAL_IMPL_GET_MEMBER_TYPE(config);
-  FATAL_IMPL_GET_MEMBER_TYPE(const_iterator);
-  FATAL_IMPL_GET_MEMBER_TYPE(const_pointer);
-  FATAL_IMPL_GET_MEMBER_TYPE(const_reference);
-  FATAL_IMPL_GET_MEMBER_TYPE(const_reverse_iterator);
-  FATAL_IMPL_GET_MEMBER_TYPE(data);
-  FATAL_IMPL_GET_MEMBER_TYPE(decode);
-  FATAL_IMPL_GET_MEMBER_TYPE(decoder);
-  FATAL_IMPL_GET_MEMBER_TYPE(difference);
-  FATAL_IMPL_GET_MEMBER_TYPE(element);
-  FATAL_IMPL_GET_MEMBER_TYPE(encode);
-  FATAL_IMPL_GET_MEMBER_TYPE(encoder);
-  FATAL_IMPL_GET_MEMBER_TYPE(extension);
-  FATAL_IMPL_GET_MEMBER_TYPE(first);
-  FATAL_IMPL_GET_MEMBER_TYPE(flag);
-  FATAL_IMPL_GET_MEMBER_TYPE(hash);
-  FATAL_IMPL_GET_MEMBER_TYPE(id);
-  FATAL_IMPL_GET_MEMBER_TYPE(ids);
-  FATAL_IMPL_GET_MEMBER_TYPE(index);
-  FATAL_IMPL_GET_MEMBER_TYPE(instance);
-  FATAL_IMPL_GET_MEMBER_TYPE(item);
-  FATAL_IMPL_GET_MEMBER_TYPE(iterator);
-  FATAL_IMPL_GET_MEMBER_TYPE(key);
-  FATAL_IMPL_GET_MEMBER_TYPE(list);
-  FATAL_IMPL_GET_MEMBER_TYPE(map);
-  FATAL_IMPL_GET_MEMBER_TYPE(mapped);
-  FATAL_IMPL_GET_MEMBER_TYPE(mapping);
-  FATAL_IMPL_GET_MEMBER_TYPE(mappings);
-  FATAL_IMPL_GET_MEMBER_TYPE(name);
-  FATAL_IMPL_GET_MEMBER_TYPE(names);
-  FATAL_IMPL_GET_MEMBER_TYPE(pair);
-  FATAL_IMPL_GET_MEMBER_TYPE(pointer);
-  FATAL_IMPL_GET_MEMBER_TYPE(predicate);
-  FATAL_IMPL_GET_MEMBER_TYPE(reference);
-  FATAL_IMPL_GET_MEMBER_TYPE(request);
-  FATAL_IMPL_GET_MEMBER_TYPE(response);
-  FATAL_IMPL_GET_MEMBER_TYPE(result);
-  FATAL_IMPL_GET_MEMBER_TYPE(reverse);
-  FATAL_IMPL_GET_MEMBER_TYPE(reverse_iterator);
-  FATAL_IMPL_GET_MEMBER_TYPE(second);
-  FATAL_IMPL_GET_MEMBER_TYPE(set);
-  FATAL_IMPL_GET_MEMBER_TYPE(size);
-  FATAL_IMPL_GET_MEMBER_TYPE(str);
-  FATAL_IMPL_GET_MEMBER_TYPE(string);
-  FATAL_IMPL_GET_MEMBER_TYPE(tag);
-  FATAL_IMPL_GET_MEMBER_TYPE(traits);
-  FATAL_IMPL_GET_MEMBER_TYPE(tuple);
-  FATAL_IMPL_GET_MEMBER_TYPE(value);
-  FATAL_IMPL_GET_MEMBER_TYPE(values);
-  FATAL_IMPL_GET_MEMBER_TYPE(version);
+  FATAL_IMPL_GET_MEMBER_TYPE(char_type);
+  FATAL_IMPL_GET_MEMBER_TYPE(type);
+  FATAL_IMPL_GET_MEMBER_TYPE(types);
 
+# define FATAL_IMPL_GET_MEMBER_TYPE_TYPE(Name) \
+  FATAL_IMPL_GET_MEMBER_TYPE(Name); \
+  FATAL_IMPL_GET_MEMBER_TYPE(Name##_type)
+
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(allocator);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(args);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(array);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(category);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(config);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_pointer);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_reference);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_reverse_iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(data);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(decode);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(decoder);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(difference);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(element);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(encode);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(encoder);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(extension);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(first);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(flag);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(hash);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(id);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(ids);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(index);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(info);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(information);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(instance);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(item);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(key);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(list);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(map);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(mapped);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(mapping);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(mappings);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(member);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(members);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(name);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(names);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(pair);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(pointer);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(predicate);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(reference);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(request);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(response);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(result);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(reverse);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(reverse_iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(second);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(set);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(size);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(str);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(string);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(tag);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(traits);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(tuple);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(value);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(values);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(version);
+
+# undef FATAL_IMPL_GET_MEMBER_TYPE_TYPE
 # undef FATAL_IMPL_GET_MEMBER_TYPE
 };
 
@@ -1062,10 +1080,10 @@ struct transform_aggregator {
  * TODO: DOCUMENT AND TEST
  *
  *  TAggregator<
- *    transform_sequence<TTransforms...>::apply<Arg_0>,
- *    transform_sequence<TTransforms...>::apply<Arg_1>,
+ *    transform_distributor<TTransforms...>::apply<Arg_0>,
+ *    transform_distributor<TTransforms...>::apply<Arg_1>,
  *    ...
- *    transform_sequence<TTransforms...>::apply<Arg_n>
+ *    transform_distributor<TTransforms...>::apply<Arg_n>
  *  >
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
