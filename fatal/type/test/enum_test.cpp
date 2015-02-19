@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -17,13 +17,13 @@
 
 namespace fatal {
 
-#define ENUMIFY_TEST_ENUM(FIRST, MID, LAST, ...) \
-  FIRST(state0, __VA_ARGS__) \
-  MID(state1, 4, __VA_ARGS__) \
-  MID(state2, 97, __VA_ARGS__) \
-  LAST(state3, __VA_ARGS__)
-FATAL_RICH_ENUM(test_enum, str_class, ENUMIFY_TEST_ENUM);
-#undef ENUMIFY_TEST_ENUM
+FATAL_RICH_ENUM(
+  str_class, test_enum,
+  state0,
+  (state1, 4),
+  (state2, 97),
+  state3
+);
 
 ///////////
 // enums //
@@ -38,16 +38,16 @@ TEST(enums, declare_enum) {
 
 TEST(enums, to_str) {
   EXPECT_EQ(nullptr, str_class::to_str(static_cast<test_enum>(-1)));
-  EXPECT_EQ(FB_STRINGIZE(state0), str_class::to_str(test_enum::state0));
-  EXPECT_EQ(FB_STRINGIZE(state1), str_class::to_str(test_enum::state1));
-  EXPECT_EQ(FB_STRINGIZE(state2), str_class::to_str(test_enum::state2));
-  EXPECT_EQ(FB_STRINGIZE(state3), str_class::to_str(test_enum::state3));
+  EXPECT_EQ(FATAL_TO_STR(state0), str_class::to_str(test_enum::state0));
+  EXPECT_EQ(FATAL_TO_STR(state1), str_class::to_str(test_enum::state1));
+  EXPECT_EQ(FATAL_TO_STR(state2), str_class::to_str(test_enum::state2));
+  EXPECT_EQ(FATAL_TO_STR(state3), str_class::to_str(test_enum::state3));
 }
 
 TEST(enums, parse) {
 # define CREATE_TEST(e, x) \
   do { \
-    std::string const s(FB_STRINGIZE(x)); \
+    std::string const s(FATAL_TO_STR(x)); \
     EXPECT_EQ(e::x, str_class::parse(s)); \
     EXPECT_EQ(e::x, str_class::parse(s.begin(), s.end())); \
     EXPECT_THROW( \
@@ -63,7 +63,7 @@ TEST(enums, parse) {
 
 # define CREATE_TEST(e, x) \
   do { \
-    std::string const s(FB_STRINGIZE(x)); \
+    std::string const s(FATAL_TO_STR(x)); \
     EXPECT_THROW( \
       (str_class::parse(s.begin(), std::next(s.begin(), s.size() - 1))), \
       std::invalid_argument \
@@ -77,7 +77,7 @@ TEST(enums, parse) {
 
 # define CREATE_TEST(e, x) \
   do { \
-    std::string const s(FB_STRINGIZE(x) "invalid"); \
+    std::string const s(FATAL_TO_STR(x) "invalid"); \
     EXPECT_THROW(str_class::parse(s), std::invalid_argument); \
   } while (false)
   CREATE_TEST(test_enum, state0);
@@ -88,7 +88,7 @@ TEST(enums, parse) {
 
 # define CREATE_TEST(e, x) \
   do { \
-    std::string const s(FB_STRINGIZE(x) "invalid"); \
+    std::string const s(FATAL_TO_STR(x) "invalid"); \
     EXPECT_THROW(str_class::parse(s.begin(), s.end()), std::invalid_argument); \
   } while (false)
   CREATE_TEST(test_enum, state0);
@@ -104,7 +104,7 @@ TEST(enums, parse) {
 TEST(enums, try_parse) {
 # define CREATE_TEST(e, x) \
   do { \
-    std::string const s(FB_STRINGIZE(x)); \
+    std::string const s(FATAL_TO_STR(x)); \
     e out = static_cast<e>(-1); \
     EXPECT_TRUE(str_class::try_parse(out, s)); \
     EXPECT_EQ(e::x, out); \
