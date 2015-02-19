@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_traits_h
 #define FATAL_INCLUDE_fatal_type_traits_h
 
+#include <fatal/preprocessor.h>
+#include <fatal/type/string.h>
 #include <fatal/type/transform.h>
 
 #include <type_traits>
@@ -40,8 +42,11 @@ namespace fatal {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename T> struct remove_rvalue_reference { using type = T; };
-template <typename T> struct remove_rvalue_reference<T &&> { using type = T; };
+template <typename T>
+struct remove_rvalue_reference { using type = T; };
+
+template <typename T>
+struct remove_rvalue_reference<T &&> { using type = T; };
 
 /**
  * A traits class to check for incomplete types.
@@ -70,16 +75,24 @@ template <typename T> struct remove_rvalue_reference<T &&> { using type = T; };
  */
 namespace detail {
 
-struct is_complete_impl {
-  template <std::size_t> struct dummy {};
-  template <typename U> static std::true_type sfinae(dummy<sizeof(U)> *);
-  template <typename> static std::false_type sfinae(...);
+class is_complete_impl {
+  struct impl {
+    template <typename T, std::size_t = sizeof(T)>
+    static std::true_type sfinae(T *);
+
+    template <typename = void, std::size_t = 0>
+    static std::false_type sfinae(...);
+  };
+
+public:
+  template <typename T>
+  using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
 };
 
 } // namespace detail {
 
 template <typename T>
-struct is_complete: decltype(detail::is_complete_impl::sfinae<T>(nullptr)) {};
+using is_complete = detail::is_complete_impl::type<T>;
 
 /**
  * Checks whether a given type is an instantiation of at least one of a list of
@@ -110,26 +123,30 @@ struct is_complete: decltype(detail::is_complete_impl::sfinae<T>(nullptr)) {};
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+namespace detail {
+
+template <template <typename...> class, typename>
+struct is_template_impl;
+
+template <template <typename...> class T, typename... Args>
+struct is_template_impl<T, T<Args...>> {};
+
+} // namespace detail {
+
 template <template <typename...> class... TTemplates>
 class is_template {
-  template <template <typename...> class UTemplate>
-  struct test {
-    template <typename... V> static std::true_type sfinae(UTemplate<V...> *);
-    static std::false_type sfinae(...);
-  };
-
-  template <template <typename...> class UTemplate, typename U>
-  using impl = decltype(test<UTemplate>::sfinae(static_cast<U *>(nullptr)));
+  template <template <typename...> class TTemplate, typename T>
+  using impl = is_complete<detail::is_template_impl<TTemplate, T>>;
 
 public:
-  template <typename U>
-  using type = logical_transform::any<impl<TTemplates, U>...>;
+  template <typename T>
+  using type = logical_transform::any<impl<TTemplates, T>...>;
 
   // TODO: DOCUMENT AND TEST
-  template <typename U>
-  using apply = type<U>;
+  template <typename T>
+  using apply = type<T>;
 };
-
+//*/
 /**
  * fast_pass_by_value: tells if pass-by-value is the fastest way of passing a
  * given type as a read-only argument or return value.
@@ -318,6 +335,93 @@ public:
     template <typename T> \
     using check = decltype(sfinae<T>(nullptr)); \
   }
+
+struct has_member_type {
+# define FATAL_IMPL_HAS_MEMBER_TYPE_DECL(Class, Name) \
+  private: \
+    FATAL_HAS_MEMBER_TYPE(Class, Name); \
+    \
+  public: \
+    template <typename T> \
+    using Name = typename Class::template check<T>
+
+# define FATAL_IMPL_HAS_MEMBER_TYPE(Name) \
+  FATAL_IMPL_HAS_MEMBER_TYPE_DECL( \
+    FATAL_UID(FATAL_CAT(has_member_type_impl, Name)), \
+    Name \
+  )
+
+  FATAL_IMPL_HAS_MEMBER_TYPE(char_type);
+  FATAL_IMPL_HAS_MEMBER_TYPE(type);
+  FATAL_IMPL_HAS_MEMBER_TYPE(types);
+
+# define FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(Name) \
+  FATAL_IMPL_HAS_MEMBER_TYPE(Name); \
+  FATAL_IMPL_HAS_MEMBER_TYPE(Name##_type)
+
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(allocator);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(args);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(array);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(category);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(config);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_iterator);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_pointer);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_reference);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_reverse_iterator);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(data);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(decode);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(decoder);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(difference);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(element);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(encode);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(encoder);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(extension);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(first);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(flag);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(hash);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(id);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ids);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(index);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(info);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(information);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(instance);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(item);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(iterator);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(key);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(list);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(map);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mapped);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mapping);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mappings);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(member);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(members);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(name);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(names);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(pair);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(pointer);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(predicate);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reference);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(request);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(response);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(result);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reverse);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reverse_iterator);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(second);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(set);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(size);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(str);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(string);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(tag);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(traits);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(tuple);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(value);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(values);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(version);
+
+# undef FATAL_IMPL_HAS_MEMBER_TYPE_TYPE
+# undef FATAL_IMPL_HAS_MEMBER_TYPE
+# undef FATAL_IMPL_HAS_MEMBER_TYPE_DECL
+};
 
 } // namespace fatal
 
