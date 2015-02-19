@@ -190,15 +190,15 @@ struct type_prefix_tree {
      *
      *  struct visitor {
      *    template <typename TString>
-     *    void operator()(type_tag<TString>, std::string const &s) {
-     *      cout << '\'' << s << "' matches sequence '"
+     *    void operator()(type_tag<TString>) {
+     *      cout << "Found a matching sequence: '"
      *        << TString::string() << '\''
      *        << endl;
      *    }
      *  };
      *
      *  bool match(std::string const &s) {
-     *    return prefix_tree::match<>::exact(s.begin(), s.end(), visitor(), s);
+     *    return prefix_tree::match<>::exact(s.begin(), s.end(), visitor());
      *  }
      *
      *  // yields `true` and prints "'hunt' matches sequence 'hunt'"
@@ -560,10 +560,7 @@ struct match_prefixes {
     TVisitor &&visitor, VArgs &&...args
   ) {
     if (TSubtree::is_terminal::value) {
-      match_visitor<typename TSubtree::sequence>::visit(
-        std::forward<TVisitor>(visitor),
-        std::forward<VArgs>(args)...
-      );
+      match_visitor<typename TSubtree::sequence>::visit(visitor, args...);
 
       ++found;
     }
