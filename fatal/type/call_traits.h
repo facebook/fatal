@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,30 +10,177 @@
 #ifndef FATAL_INCLUDE_fatal_type_call_traits_h
 #define FATAL_INCLUDE_fatal_type_call_traits_h
 
-#include <fatal/type/tag.h>
-
 #include <utility>
 
 namespace fatal {
+namespace detail {
+
+template <typename T> T call_traits_arg_impl();
+
+} // namespace detail {
+
+struct ctor_call_traits {
+  template <typename T>
+  struct automatic {
+    using type = T;
+
+    constexpr automatic() {}
+
+    template <typename... UArgs>
+    constexpr static T construct(UArgs &&...args) {
+      return T(std::forward<UArgs>(args)...);
+    }
+
+    template <typename... UArgs>
+    constexpr T operator ()(UArgs &&...args) const {
+      return construct(std::forward<UArgs>(args)...);
+    }
+  };
+
+  template <typename T>
+  struct dynamic {
+    using type = T;
+
+    constexpr dynamic() {}
+
+    template <typename... UArgs>
+    constexpr static T *construct(UArgs &&...args) {
+      return new T(std::forward<UArgs>(args)...);
+    }
+
+    template <typename... UArgs>
+    constexpr T *operator ()(UArgs &&...args) const {
+      return construct(std::forward<UArgs>(args)...);
+    }
+  };
+
+  template <typename T>
+  struct placement {
+    using type = T;
+
+    constexpr placement() {}
+
+    template <typename... UArgs>
+    constexpr static T *construct(T *pointer, UArgs &&...args) {
+      return new (pointer) T(std::forward<UArgs>(args)...);
+    }
+
+    template <typename... UArgs>
+    constexpr T *operator ()(T *pointer, UArgs &&...args) const {
+      return construct(pointer, std::forward<UArgs>(args)...);
+    }
+  };
+};
+
+class call_operator_traits {
+  template <typename... Args>
+  struct is_impl {
+    template <
+      typename T,
+      typename = decltype(
+        detail::call_traits_arg_impl<T>()(
+          detail::call_traits_arg_impl<Args>()...
+        )
+      )
+    >
+    static std::true_type sfinae(T *);
+
+    template <typename...>
+    static std::false_type sfinae(...);
+  };
+
+public:
+  constexpr call_operator_traits() {}
+
+  template <typename T, typename... UArgs>
+  constexpr static auto call(T &&subject, UArgs &&...args)
+    -> decltype(subject(std::forward<UArgs>(args)...))
+  { return subject(std::forward<UArgs>(args)...); }
+
+  template <typename T, typename... UArgs>
+  constexpr auto operator ()(T &&subject, UArgs &&...args) const
+    -> decltype(call(std::forward<T>(subject), std::forward<UArgs>(args)...))
+  { return call(std::forward<T>(subject), std::forward<UArgs>(args)...); }
+
+  /**
+   * TODO: DOCUMENT
+   *
+   * Example:
+   *
+   *  struct Foo {
+   *    void operator ()() {}
+   *    void operator ()(int i, std::string s) {}
+   *  };
+   *
+   *  auto const lambda_is = [](int, std::string) {};
+   *  using lambda = decltype(lambda_is);
+   *
+   *  cout << std::boolalpha
+   *    << call_operator_traits::supports<Foo>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supports<Foo, int>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supports<Foo, int, double>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supports<Foo, int, std::string>::value
+   *    << std::endl
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supports<lambda>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supports<lambda, int>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supports<lambda, int, double>::value
+   *    << ' ' << std::boolalpha
+   *    << call_operator_traits::supports<lambda, int, std::string>::value;
+   *
+   * Outputs:
+   *  true false false true
+   *  false false false true
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  using supports = decltype(
+    is_impl<Args...>::template sfinae(static_cast<T *>(nullptr))
+  );
+};
 
 #define FATAL_CALL_TRAITS(Name, ...) \
-  struct Name { \
-    class member_function { \
-      template <typename U, typename... UArgs> \
-      struct supported_impl { \
-        template <typename> struct dummy {}; \
-        template <typename V> \
-        static std::true_type sfinae( \
-          dummy< \
-            decltype(std::declval<V>().__VA_ARGS__( \
-              std::forward<UArgs>(std::declval<UArgs>())... \
-            )) \
-          > * \
-        ); \
-        template <typename> static std::false_type sfinae(...); \
-      }; \
+  class Name { \
+    template <typename... UArgs> \
+    struct member_fn_supports_impl { \
+      template < \
+        typename U, \
+        typename = decltype( \
+          detail::call_traits_arg_impl<U>().__VA_ARGS__( \
+            detail::call_traits_arg_impl<UArgs>()... \
+          ) \
+        ) \
+      > \
+      static std::true_type sfinae(U *); \
       \
-    public: \
+      template <typename...> \
+      static std::false_type sfinae(...); \
+    }; \
+    \
+    template <typename... UArgs> \
+    struct static_member_supports_impl { \
+      template < \
+        typename U, \
+        typename = decltype( \
+          U::__VA_ARGS__( \
+            detail::call_traits_arg_impl<UArgs>()... \
+          ) \
+        ) \
+      > \
+      static std::true_type sfinae(U *); \
+      \
+      template <typename...> \
+      static std::false_type sfinae(...); \
+    }; \
+  \
+  public: \
+    struct member_function { \
       constexpr member_function() {} \
       \
       template <typename U, typename... UArgs> \
@@ -48,26 +195,49 @@ namespace fatal {
         ) \
       { return call(std::forward<U>(subject), std::forward<UArgs>(args)...); } \
       \
+      template <typename U> \
+      struct bind { \
+        template <typename... UArgs> \
+        using supports = decltype( \
+          member_fn_supports_impl<UArgs...>::template sfinae( \
+            static_cast<U *>(nullptr) \
+          ) \
+        ); \
+      }; \
+      \
       template <typename U, typename... UArgs> \
-      using supported = decltype(supported_impl<U, UArgs...> \
-        ::template sfinae<U>(nullptr)); \
+      using supports = typename bind<U>::template supports<UArgs...>; \
     }; \
     \
-    template <typename TSubject> \
     struct static_member { \
-      using type = TSubject; \
+      template <typename U> \
+      struct bind { \
+        constexpr bind() {} \
+        \
+        using type = U; \
+        \
+        template <typename... UArgs> \
+        constexpr static auto call(UArgs &&...args) \
+          -> decltype(type::__VA_ARGS__(std::forward<UArgs>(args)...)) \
+        { return type::__VA_ARGS__(std::forward<UArgs>(args)...); } \
+        \
+        template <typename... UArgs> \
+        constexpr auto operator ()(UArgs &&...args) const \
+          -> decltype(call(std::forward<UArgs>(args)...)) \
+        { return call(std::forward<UArgs>(args)...); } \
+      }; \
       \
-      constexpr static_member() {} \
-      \
-      template <typename... UArgs> \
+      template <typename U, typename... UArgs> \
       constexpr static auto call(UArgs &&...args) \
-        -> decltype(TSubject::__VA_ARGS__(std::forward<UArgs>(args)...)) \
-      { return TSubject::__VA_ARGS__(std::forward<UArgs>(args)...); } \
+        -> decltype(bind<U>::call(std::forward<UArgs>(args)...)) \
+      { return bind<U>::call(std::forward<UArgs>(args)...); } \
       \
-      template <typename... UArgs> \
-      constexpr auto operator ()(UArgs &&...args) const \
-        -> decltype(call(std::forward<UArgs>(args)...)) \
-      { return call(std::forward<UArgs>(args)...); } \
+      template <typename U, typename... UArgs> \
+        using supports = decltype( \
+          static_member_supports_impl<UArgs...>::sfinae( \
+            static_cast<U *>(nullptr) \
+          ) \
+        ); \
     }; \
     \
     struct free_function { \
@@ -203,125 +373,6 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(write);
 
 # undef FATAL_CALL_TRAITS_IMPL
-};
-
-struct ctor_call_traits {
-  template <typename T>
-  struct automatic {
-    using type = T;
-
-    constexpr automatic() {}
-
-    template <typename... UArgs>
-    constexpr static T construct(UArgs &&...args) {
-      return T(std::forward<UArgs>(args)...);
-    }
-
-    template <typename... UArgs>
-    constexpr T operator ()(UArgs &&...args) const {
-      return construct(std::forward<UArgs>(args)...);
-    }
-  };
-
-  template <typename T>
-  struct dynamic {
-    using type = T;
-
-    constexpr dynamic() {}
-
-    template <typename... UArgs>
-    constexpr static T *construct(UArgs &&...args) {
-      return new T(std::forward<UArgs>(args)...);
-    }
-
-    template <typename... UArgs>
-    constexpr T *operator ()(UArgs &&...args) const {
-      return construct(std::forward<UArgs>(args)...);
-    }
-  };
-
-  template <typename T>
-  struct placement {
-    using type = T;
-
-    constexpr placement() {}
-
-    template <typename... UArgs>
-    constexpr static T *construct(T *pointer, UArgs &&...args) {
-      return new (pointer) T(std::forward<UArgs>(args)...);
-    }
-
-    template <typename... UArgs>
-    constexpr T *operator ()(T *pointer, UArgs &&...args) const {
-      return construct(pointer, std::forward<UArgs>(args)...);
-    }
-  };
-};
-
-class call_operator_traits {
-  template <typename... Args>
-  struct is_impl {
-    template <typename T>
-    static std::true_type sfinae(
-      type_tag<decltype(std::declval<T>().operator()(
-        std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
-      ))> *
-    );
-    template <typename> static std::false_type sfinae(...);
-  };
-
-public:
-  constexpr call_operator_traits() {}
-
-  template <typename T, typename... UArgs>
-  constexpr static auto call(T &&subject, UArgs &&...args)
-    -> decltype(subject(std::forward<UArgs>(args)...))
-  { return subject(std::forward<UArgs>(args)...); }
-
-  template <typename T, typename... UArgs>
-  constexpr auto operator ()(T &&subject, UArgs &&...args) const
-    -> decltype(call(std::forward<T>(subject), std::forward<UArgs>(args)...))
-  { return call(std::forward<T>(subject), std::forward<UArgs>(args)...); }
-
-  /**
-   * TODO: DOCUMENT
-   *
-   * Example:
-   *
-   *  struct Foo {
-   *    void operator ()() {}
-   *    void operator ()(int i, std::string s) {}
-   *  };
-   *
-   *  auto const lambda_is = [](int, std::string) {};
-   *  using lambda = decltype(lambda_is);
-   *
-   *  cout << std::boolalpha
-   *    << call_operator_traits::supported<Foo>::value
-   *    << ' ' << std::boolalpha
-   *    << call_operator_traits::supported<Foo, int>::value
-   *    << ' ' << std::boolalpha
-   *    << call_operator_traits::supported<Foo, int, double>::value
-   *    << ' ' << std::boolalpha
-   *    << call_operator_traits::supported<Foo, int, std::string>::value
-   *    << std::endl
-   *    << ' ' << std::boolalpha
-   *    << call_operator_traits::supported<lambda>::value
-   *    << ' ' << std::boolalpha
-   *    << call_operator_traits::supported<lambda, int>::value
-   *    << ' ' << std::boolalpha
-   *    << call_operator_traits::supported<lambda, int, double>::value
-   *    << ' ' << std::boolalpha
-   *    << call_operator_traits::supported<lambda, int, std::string>::value;
-   *
-   * Outputs:
-   *  true false false true
-   *  false false false true
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  template <typename T, typename... Args>
-  using supported = decltype(is_impl<Args...>::template sfinae<T>(nullptr));
 };
 
 } // namespace fatal {
