@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -32,10 +32,10 @@ template <typename T, T... Chars>
 class type_string:
   public constant_sequence<T, Chars...>
 {
-  typedef constant_sequence<T, Chars...> as_sequence;
+  using as_sequence = constant_sequence<T, Chars...>;
 
-  typedef std::char_traits<T> default_char_traits;
-  typedef std::allocator<T> default_allocator;
+  using default_char_traits = std::char_traits<T>;
+  using default_allocator = std::allocator<T>;
 
 public:
   /**
@@ -43,7 +43,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef typename as_sequence::type char_type;
+  using char_type = typename as_sequence::type;
 
   /**
    * The `std::basic_string` type returned by the `string()` method.
@@ -65,7 +65,7 @@ public:
    *
    * Example:
    *
-   *  typedef type_string<char, 'h', 'i'> hi;
+   *  using hi = type_string<char, 'h', 'i'>;
    *
    *  // yields `std::string("hi")`
    *  auto result = hi::string();
@@ -86,22 +86,27 @@ public:
 /////////////////////
 
 /**
- * Creates a `type_string` typedef out of a regular string.
+ * Instantiates a `type_string` class template out of a regular string.
  *
  * Example:
  *
  *  // this is equivalent to
- *  // `typedef type_string<char, 'h', 'i'> hi;`
+ *  // `using hi = type_string<char, 'h', 'i'>;`
  *  FATAL_STR("hi") hi;
  *
  *  // this is equivalent to
- *  // `typedef type_string<char32_t, U'h', U'e', U'y'> hey;`
+ *  // `using hey = type_string<char32_t, U'h', U'e', U'y'>;`
  *  FATAL_STR(U"hey") hey;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_STR(Id, String) \
-  FATAL_BUILD_STR_IMPL(String, FATAL_CAT(Id, FATAL_UID(build_cstr_impl_))) Id
+  FATAL_BUILD_STR_IMPL( \
+    Id, \
+    String, \
+    FATAL_UID(FATAL_CAT(type_string_impl_, Id)), \
+    FATAL_UID(Indexes) \
+  )
 
 ///////////////////////////////////////
 // IMPLEMENTATION DETAILS DEFINITION //
@@ -123,22 +128,24 @@ constexpr std::size_t size(T const (&)[Size]) {
   return Size - 1;
 }
 
-#define FATAL_BUILD_STR_IMPL(String, Class) \
-  template <std::size_t... Indexes> \
+#define FATAL_BUILD_STR_IMPL(Id, String, Class, Indexes) \
+  template <::std::size_t... Indexes> \
   struct Class { \
     static_assert( \
       !((String)[sizeof...(Indexes)]), \
       "expecting a valid null-terminated string" \
     ); \
-    typedef typename ::std::decay<decltype(*(String))>::type char_type; \
-    typedef ::fatal::type_string< \
+    \
+    using char_type = typename ::std::decay<decltype(*(String))>::type; \
+    \
+    using type = ::fatal::type_string< \
       char_type, \
       (String)[Indexes]... \
-    > type; \
+    >; \
   }; \
   \
-  typedef typename ::fatal::constant_range< \
-    std::size_t, 0, ::fatal::detail::type_string_impl::size(String) \
+  using Id = typename ::fatal::constant_range< \
+    ::std::size_t, 0, ::fatal::detail::type_string_impl::size(String) \
   >::apply<Class>::type
 
 } // namespace type_string_impl {
