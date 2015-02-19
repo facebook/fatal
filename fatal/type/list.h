@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -12,7 +12,7 @@
 
 #include <fatal/type/pair.h>
 #include <fatal/type/tag.h>
-#include <fatal/type/traits.h>
+#include <fatal/type/transform.h>
 
 #include <limits>
 #include <type_traits>
@@ -20,6 +20,8 @@
 #include <utility>
 
 namespace fatal {
+
+// TODO: ADD TESTS TO AVOID DOUBLE MOVES
 
 /**
  * READ ME FIRST: You probably want to jump to
@@ -323,12 +325,9 @@ struct foreach_if<TPredicate, Index, U, UArgs...> {
   template <typename V, typename... VArgs>
   static constexpr std::size_t visit(V &&visitor, VArgs &&...args) {
     return conditional_visit<fatal::apply<TPredicate, U>::value>::visit(
-      std::forward<V>(visitor),
-      indexed_type_tag<U, Index>(),
-      std::forward<VArgs>(args)...
+      visitor, indexed_type_tag<U, Index>(), args...
     ) + foreach_if<TPredicate, Index + 1, UArgs...>::visit(
-      std::forward<V>(visitor),
-      std::forward<VArgs>(args)...
+      visitor, args...
     );
   }
 };
@@ -342,11 +341,7 @@ template <std::size_t Index, typename... Args> struct visit;
 template <std::size_t Index, typename T, typename... Args>
 struct visit<Index, T, Args...> {
   template <typename V, typename... VArgs>
-  static constexpr bool at(
-    fast_pass<std::size_t> index,
-    V &&visitor,
-    VArgs &&...args
-  ) {
+  static constexpr bool at(std::size_t index, V &&visitor, VArgs &&...args) {
     return index == Index
       ? (
         visitor(
@@ -366,7 +361,7 @@ struct visit<Index, T, Args...> {
 template <std::size_t Index>
 struct visit<Index> {
   template <typename V, typename... VArgs>
-  static constexpr bool at(fast_pass<std::size_t>, V &&, VArgs &&...) {
+  static constexpr bool at(std::size_t, V &&, VArgs &&...) {
     return false;
   }
 };
@@ -692,6 +687,20 @@ struct insert_sorted<TLessComparer, T, THead, TTail...> {
   >::type;
 };
 
+//////////////
+// multiply //
+//////////////
+
+template <std::size_t Multiplier, typename TResult, typename... Args>
+struct multiply {
+  using type = typename TResult::template push_back<Args...>;
+};
+
+template <typename TResult, typename... Args>
+struct multiply<0, TResult, Args...> {
+  using type = TResult;
+};
+
 //////////
 // tail //
 //////////
@@ -922,10 +931,8 @@ struct binary_search_exact {
     TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
   ) {
     return impl<TComparer, Offset>(
-      TComparer::compare(std::forward<TNeedle>(needle), pivot<Offset>{}),
-      std::forward<TNeedle>(needle),
-      std::forward<TVisitor>(visitor),
-      std::forward<VArgs>(args)...
+      TComparer::compare(needle, pivot<Offset>{}),
+      needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
     );
   }
 };
@@ -960,26 +967,20 @@ struct binary_search_lower_bound {
     typename TComparer, std::size_t Offset,
     typename TNeedle, typename TVisitor, typename... VArgs
   >
-  static constexpr bool recursion(
+  static constexpr bool impl(
     TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
   ) {
     // ternary needed due to C++11's constexpr restrictions
-    return TComparer::compare(
-      std::forward<TNeedle>(needle), pivot<Offset>{}
-    ) < 0
+    return TComparer::compare(needle, pivot<Offset>{}) < 0
       ? left::template apply<
           type_list_impl::binary_search_lower_bound
-        >::template recursion<TComparer, Offset>(
-          std::forward<TNeedle>(needle),
-          std::forward<TVisitor>(visitor),
-          std::forward<VArgs>(args)...
+        >::template impl<TComparer, Offset>(
+          needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
         )
       : right::template apply<
           type_list_impl::binary_search_lower_bound
-        >::template recursion<TComparer, Offset + left::size>(
-          std::forward<TNeedle>(needle),
-          std::forward<TVisitor>(visitor),
-          std::forward<VArgs>(args)...
+        >::template impl<TComparer, Offset + left::size>(
+          needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
         );
   }
 
@@ -990,11 +991,9 @@ struct binary_search_lower_bound {
     TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
   ) {
     typedef indexed_type_tag<typename list::template at<0>, 0> first;
-    return TComparer::compare(std::forward<TNeedle>(needle), first{}) >= 0
-      && recursion<TComparer, 0>(
-        std::forward<TNeedle>(needle),
-        std::forward<TVisitor>(visitor),
-        std::forward<VArgs>(args)...
+    return TComparer::compare(needle, first{}) >= 0
+      && impl<TComparer, 0>(
+        needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
       );
   }
 };
@@ -1005,7 +1004,7 @@ struct binary_search_lower_bound<T> {
     typename TComparer, std::size_t Offset,
     typename TNeedle, typename TVisitor, typename... VArgs
   >
-  static constexpr bool recursion(
+  static constexpr bool impl(
     TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
   ) {
     // comma operator needed due to C++11's constexpr restrictions
@@ -1022,14 +1021,10 @@ struct binary_search_lower_bound<T> {
   static constexpr bool search(
     TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
   ) {
-    return TComparer::compare(
-      std::forward<TNeedle>(needle),
-      indexed_type_tag<T, 0>{}
-    ) >= 0 && recursion<TComparer, 0>(
-      std::forward<TNeedle>(needle),
-      std::forward<TVisitor>(visitor),
-      std::forward<VArgs>(args)...
-    );
+    return TComparer::compare(needle, indexed_type_tag<T, 0>{}) >= 0
+      && impl<TComparer, 0>(
+        needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
+      );
   }
 };
 
@@ -1039,7 +1034,7 @@ struct binary_search_lower_bound<> {
     typename, std::size_t,
     typename TNeedle, typename TVisitor, typename... VArgs
   >
-  static constexpr bool recursion(TNeedle &&, TVisitor &&, VArgs &&...) {
+  static constexpr bool impl(TNeedle &&, TVisitor &&, VArgs &&...) {
     return false;
   }
 
@@ -1072,23 +1067,16 @@ struct binary_search_upper_bound {
     TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
   ) {
     // ternary needed due to C++11's constexpr restrictions
-    return TComparer::compare(
-      std::forward<TNeedle>(needle),
-      pivot<Offset>{}
-    ) < 0
+    return TComparer::compare(needle, pivot<Offset>{}) < 0
       ? left::template apply<
           type_list_impl::binary_search_upper_bound
         >::template search<TComparer, Offset>(
-          std::forward<TNeedle>(needle),
-          std::forward<TVisitor>(visitor),
-          std::forward<VArgs>(args)...
+          needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
         )
       : right::template apply<
           type_list_impl::binary_search_upper_bound
         >::template search<TComparer, Offset + left::size>(
-          std::forward<TNeedle>(needle),
-          std::forward<TVisitor>(visitor),
-          std::forward<VArgs>(args)...
+          needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
         );
   }
 };
@@ -1102,13 +1090,11 @@ struct binary_search_upper_bound<T> {
   static constexpr bool search(
     TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
   ) {
-    return TComparer::compare(
-      std::forward<TNeedle>(needle), indexed_type_tag<T, Offset>{}
-    ) < 0 && (
+    return TComparer::compare(needle, indexed_type_tag<T, Offset>{}) < 0 && (
       // comma operator needed due to C++11's constexpr restrictions
       visitor(
         indexed_type_tag<T, Offset>{},
-        std::forward<TNeedle>(needle),
+        needle,
         std::forward<VArgs>(args)...
       ), true
     );
@@ -1323,6 +1309,12 @@ struct type_list {
   >
   using insert_sorted = typename detail::type_list_impl::insert_sorted<
     TLessComparer, T, Args...
+  >::type;
+
+  // TODO: DOCUMENT AND TEST
+  template <std::size_t Multiplier>
+  using multiply = typename detail::type_list_impl::multiply<
+    Multiplier, type_list<>, Args...
   >::type;
 
   /**
@@ -1608,11 +1600,7 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename V, typename... VArgs>
-  static constexpr bool visit(
-    fast_pass<std::size_t> index,
-    V &&visitor,
-    VArgs &&...args
-  ) {
+  static constexpr bool visit(std::size_t index, V &&visitor, VArgs &&...args) {
     return detail::type_list_impl::visit<0, Args...>::at(
       index,
       std::forward<V>(visitor),
