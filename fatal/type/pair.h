@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,7 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_pair_h
 #define FATAL_INCLUDE_fatal_type_pair_h
 
-#include <fatal/type/traits.h>
+#include <fatal/type/tag.h>
+#include <fatal/type/transform.h>
 
 #include <type_traits>
 #include <utility>
@@ -24,22 +25,22 @@ namespace fatal {
  */
 template <typename TFirst, typename TSecond>
 struct type_pair {
-  typedef TFirst first;
-  typedef TSecond second;
+  using first = TFirst;
+  using second = TSecond;
 
   /**
    * A `type_pair` with `first` and `second` swapped.
    *
    * Example:
    *
-   *  typedef type_pair<int, double> pair;
+   *  using pair = type_pair<int, double>;
    *
    *  // yields `type_pair<double, int>`
-   *  typedef pair::invert result;
+   *  using result = pair::invert;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef type_pair<TSecond, TFirst> invert;
+  using invert = type_pair<TSecond, TFirst>;
 
   /**
    * TODO: TEST
@@ -50,16 +51,16 @@ struct type_pair {
    *
    * Example:
    *
-   *  typedef type_pair<int, bool> pair;
+   *  using pair = type_pair<int, bool>;
    *
    *  // yields `std::pair<int, bool>`
-   *  typdef pair::apply<std::pair> result2;
+   *  using result2 = pair::apply<std::pair>;
    *
    *  // yields `std::pair<Foo<int>, bool>`
-   *  typdef pair::apply<std::pair, Foo> result2;
+   *  using result2 = pair::apply<std::pair, Foo>;
    *
    *  // yields `std::pair<Foo<int>, Bar<bool>>`
-   *  typdef pair::apply<std::pair, Foo, Bar> result1;
+   *  using result1 = pair::apply<std::pair, Foo, Bar>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -78,16 +79,16 @@ struct type_pair {
    *
    * Example:
    *
-   *  typedef type_pair<int, bool> pair;
+   *  using pair = type_pair<int, bool>;
    *
    *  // yields `type_pair<Foo<int>, Bar<bool>>`
-   *  typdef pair::transform<Foo, Bar> result1;
+   *  using result1 = pair::transform<Foo, Bar>;
    *
    *  // yields `type_pair<Foo<int>, bool>`
-   *  typdef pair::transform<Foo> result2;
+   *  using result2 = pair::transform<Foo>;
    *
    *  // yields `type_pair<int, bool>`
-   *  typdef pair::transform<> result2;
+   *  using result2 = pair::transform<>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -119,13 +120,13 @@ struct type_pair_from {
    * Example:
    *
    *  // yields `type_pair<Foo<int>, Bar<int>>`
-   *  typdef type_pair_from<Foo, Bar>::type<int> result1;
+   *  using result1 = type_pair_from<Foo, Bar>::type<int>;
    *
    *  // yields `type_pair<Foo<int>, int>`
-   *  typdef type_pair_from<Foo>::type<int> result2;
+   *  using result2 = type_pair_from<Foo>::type<int>;
    *
    *  // yields `type_pair<int, int>`
-   *  typdef type_pair_from<>::type<int> result3;
+   *  using result3 = type_pair_from<>::type<int>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -141,8 +142,15 @@ struct type_pair_from {
 template <typename TFirst, typename TSecond, std::size_t Index>
 struct type_get_traits<type_pair<TFirst, TSecond>, Index> {
   static_assert(Index < 2, "index out of bounds");
-  typedef typename std::conditional<Index == 0, TFirst, TSecond>::type type;
+  using type = typename std::conditional<Index == 0, TFirst, TSecond>::type;
 };
+
+// TODO: DOCUMENT AND TEST
+template <typename TFirst, typename TSecond, std::size_t Index>
+using indexed_type_pair_tag = indexed_type_tag<
+  type_pair<TFirst, TSecond>,
+  Index
+>;
 
 } // namespace fatal {
 
