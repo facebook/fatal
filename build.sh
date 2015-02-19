@@ -11,7 +11,7 @@ if [ -z "$USE_CC" ]; then
     USE_CC="$cc" NO_CLEAR=true "$0" "$@"
   done
 else
-  for f in `find ./ -name \*.cpp`; do
+  for f in `find ./fatal -name \*.cpp`; do
     USE_CC="$USE_CC" NO_CLEAR=true ./compile.sh "$f" "$@"
   done
 fi
