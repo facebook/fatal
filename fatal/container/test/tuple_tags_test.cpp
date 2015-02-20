@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -17,6 +17,9 @@ struct Foo {};
 struct Bar {};
 struct Baz {};
 struct Gaz {};
+
+template <std::size_t Id>
+using tag = std::integral_constant<std::size_t, Id>;
 
 TEST(tuple_tags, tags) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
@@ -67,6 +70,55 @@ TEST(tuple_tags, get) {
   EXPECT_EQ(5.6, tags::get<Bar>(tuple));
   EXPECT_EQ(true, tags::get<Baz>(tuple));
   EXPECT_EQ(999, tags::get<Gaz>(tuple));
+}
+
+struct foreach_visitor {
+  template <typename TTag, std::size_t Index, typename T>
+  void operator ()(
+    indexed_type_tag<TTag, Index>,
+    T &&element,
+    std::vector<std::size_t> &indexes,
+    std::vector<std::string> &elements
+  ) const {
+    indexes.push_back(Index);
+    elements.push_back(element);
+  }
+};
+
+template <typename T>
+using is_even_predicate = std::integral_constant<bool, T::value % 2 == 0>;
+
+TEST(tuple_tags, foreach_if) {
+  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
+
+  auto tuple = std::make_tuple("hello", "world", "!");
+
+  std::vector<std::size_t> indexes;
+  std::vector<std::string> elements;
+
+  EXPECT_EQ(
+    2,
+    tags::foreach_if<is_even_predicate>(
+      tuple, foreach_visitor(), indexes, elements
+    )
+  );
+
+  EXPECT_EQ((std::vector<std::size_t>{0, 2}), indexes);
+  EXPECT_EQ((std::vector<std::string>{"hello", "!"}), elements);
+}
+
+TEST(tuple_tags, foreach) {
+  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
+
+  auto tuple = std::make_tuple("hello", "world", "!");
+
+  std::vector<std::size_t> indexes;
+  std::vector<std::string> elements;
+
+  EXPECT_TRUE(tags::foreach(tuple, foreach_visitor(), indexes, elements));
+
+  EXPECT_EQ((std::vector<std::size_t>{0, 1, 2}), indexes);
+  EXPECT_EQ((std::vector<std::string>{"hello", "world", "!"}), elements);
 }
 
 } // namespace fatal {

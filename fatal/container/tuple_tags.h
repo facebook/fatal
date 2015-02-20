@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -17,6 +17,24 @@
 #include <utility>
 
 namespace fatal {
+namespace detail {
+namespace tuple_tags_impl {
+
+struct foreach_visitor {
+  template <
+    typename TTag, std::size_t Index,
+    typename TTuple, typename V, typename... VArgs
+  >
+  void operator ()(
+    indexed_type_tag<TTag, Index> tag,
+    TTuple &&tuple, V &&visitor, VArgs &&...args
+  ) const {
+    visitor(tag, std::get<Index>(tuple), args...);
+  }
+};
+
+} // namespace tuple_tags_impl {
+} // namespace detail {
 
 template <typename... TTags>
 struct tuple_tags {
@@ -138,6 +156,113 @@ struct tuple_tags {
   {
     return std::get<index_of<TTag>::value>(std::forward<TTuple>(tuple));
   }
+
+  /**
+   * Calls the given visitor for each element in the tuple whose tag is
+   * accepted by the given predicate.
+   *
+   * The first parameter given to the visitor is `indexed_type_tag`
+   * with the tag and its index, followed by `args`.
+   *
+   * The predicate must accept a tag as its single template parameter
+   * and evaluate to a `std::integral_constant<bool>` like type with
+   * the result. A value of `true` means the element should be visited.
+   * A value of `false` means it should be ignored.
+   *
+   * This function returns the amount of elements visited (i.e.: the amount of
+   * calls to the visitor or the amount of tags accepted by the predicate).
+   *
+   * Note: this is a runtime facility.
+   *
+   * Example:
+   *
+   *  struct visitor {
+   *    template <typename TTag, std::size_t Index, typename T>
+   *    void operator ()(indexed_type_tag<TTag, Index>, T &&element) const {
+   *      std::cout << "visiting '" << element << '\'' << std::endl;
+   *    }
+   *  };
+   *
+   *  template <std::size_t Id>
+   *  using tag = std::integral_constant<std::size_t, Id>;
+   *
+   *  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
+   *
+   *  template <typename T>
+   *  using predicate = std::integral_constant<bool, T::value % 2 == 0>;
+   *
+   *  auto tuple = std::make_tuple("hello", "world", '!');
+   *
+   *  // yields `2` and prints `
+   *  //  visiting 'hello'
+   *  //  visiting '!'
+   *  // `
+   *  auto result = tags::foreach_if<predicate>(tuple, visitor());
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <
+    template <typename...> class TPredicate,
+    typename TTuple, typename V, typename... VArgs
+  >
+  static constexpr std::size_t foreach_if(
+    TTuple &&tuple, V &&visitor, VArgs &&...args
+  ) {
+    return list::template foreach_if<TPredicate>(
+      detail::tuple_tags_impl::foreach_visitor(),
+      std::forward<TTuple>(tuple),
+      std::forward<V>(visitor),
+      std::forward<VArgs>(args)...
+    );
+  };
+
+  /**
+   * Calls the given visitor for each element in the tuple.
+   *
+   * The first parameter given to the visitor is `indexed_type_tag`
+   * with the tag and its index. The second parameter is the tuple
+   * element, followed by `args`, if any.
+   *
+   * This function returns `true` if the tuple has at least one element
+   * and `false` otherwise (i.e.: tells whether the visitor has been
+   * called at least once or not).
+   *
+   * Note: this is a runtime facility.
+   *
+   * Example:
+   *
+   *  struct visitor {
+   *    template <typename TTag, std::size_t Index, typename T>
+   *    void operator ()(indexed_type_tag<TTag, Index>, T &&element) const {
+   *      std::cout << "visiting '" << element << '\'' << std::endl;
+   *    }
+   *  };
+   *
+   *  template <std::size_t Id>
+   *  using tag = std::integral_constant<std::size_t, Id>;
+   *
+   *  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
+   *
+   *  auto tuple = std::make_tuple("hello", "world", '!');
+   *
+   *  // yields `true` and prints `
+   *  //  visiting 'hello'
+   *  //  visiting 'world'
+   *  //  visiting '!'
+   *  // `
+   *  auto result = tags::foreach(tuple, visitor());
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TTuple, typename V, typename... VArgs>
+  static constexpr bool foreach(TTuple &&tuple, V &&visitor, VArgs &&...args) {
+    return list::foreach(
+      detail::tuple_tags_impl::foreach_visitor(),
+      std::forward<TTuple>(tuple),
+      std::forward<V>(visitor),
+      std::forward<VArgs>(args)...
+    );
+  };
 };
 
 } // namespace fatal {
