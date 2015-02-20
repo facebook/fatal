@@ -1448,7 +1448,7 @@ struct type_list {
    * `false`.
    *
    * The first parameter given to the visitor is `indexed_type_tag` with the
-   * list's type and its index, followed by a perfect forward of `args`.
+   * list's type and its index, followed by `args`.
    *
    * This function returns the amount of types visited (i.e.: the amount of
    * calls to the visitor).
@@ -1480,7 +1480,7 @@ struct type_list {
    *  //  overload for long at index 2: visited!
    *  //  overload for int at index 4: visited!
    *  // `
-   *  list::foreach_if<std::is_integral>(visitor(), "visited!");
+   *  auto result = list::foreach_if<std::is_integral>(visitor(), "visited!");
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1498,8 +1498,7 @@ struct type_list {
    * Calls the given visitor for each type in the list.
    *
    * The first parameter given to the visitor is `indexed_type_tag`
-   * with the list's type and its index, followed by a perfect forward
-   * of `args`.
+   * with the list's type and its index, followed by `args`.
    *
    * This function returns `true` if the list is not empty (visitor has been
    * called for all types in the list, in order) or `false` if the list is empty
@@ -2291,8 +2290,8 @@ struct type_list {
    * If a matching type is found, the visitor is called with the following
    * arguments:
    *  - an instance of `indexed_type_tag<MatchingType, Index>`
-   *  - the perfectly forwarded `needle`
-   *  - the perfectly forwarded list of additional arguments `args` given to
+   *  - the `needle`
+   *  - the list of additional arguments `args` given to
    *    the visitor
    *
    * in other words, with this general signature:

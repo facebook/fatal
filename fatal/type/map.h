@@ -835,8 +835,8 @@ public:
    *      type_pair<MatchingKey, MappedType>,
    *      Index
    *    >`
-   *  - the perfectly forwarded `needle`
-   *  - the perfectly forwarded list of additional arguments `args` given to
+   *  - the `needle`
+   *  - the list of additional arguments `args` given to
    *    the visitor
    *
    * in other words, with this general signature:
