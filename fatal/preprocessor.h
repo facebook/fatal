@@ -46,6 +46,30 @@ namespace fatal {
 #define FATAL_IDENTITY(...) \
   __VA_ARGS__
 
+/////////////////
+// FATAL_COMMA //
+/////////////////
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_COMMA(...) \
+  ,
+
+/////////////////////
+// FATAL_SEMICOLON //
+/////////////////////
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_SEMICOLON(...) \
+  ;
+
 ///////////////
 // FATAL_CAT //
 ///////////////
@@ -125,11 +149,77 @@ namespace fatal {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_UNPARENTHESIZE(...) \
-  FATAL_CONDITIONAL(FATAL_IS_PARENTHESIZED(__VA_ARGS__))( \
-    FATAL_IDENTITY __VA_ARGS__ \
+  FATAL_CONDITIONAL_INTERNAL_UNPARENTHESIZE( \
+    FATAL_IS_PARENTHESIZED(__VA_ARGS__) \
   )( \
-    __VA_ARGS__ \
-  )
+    FATAL_IDENTITY __VA_ARGS__ \
+  )(__VA_ARGS__)
+
+////////////////
+// FATAL_CALL //
+////////////////
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_CALL(Fn, ...) \
+  FATAL_IDENTITY(Fn)(__VA_ARGS__)
+
+///////////////////////
+// FATAL_TUPLE_APPLY //
+///////////////////////
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_TUPLE_APPLY(Fn, Arg, ...) \
+  FATAL_IMPL_TUPLE_APPLY(Fn, Arg, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_IMPL_TUPLE_APPLY(Fn, ...) \
+  Fn(__VA_ARGS__)
+
+///////////////////////
+// FATAL_TUPLE_GET_1 //
+///////////////////////
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_TUPLE_GET_1(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_1, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_TUPLE_GET_2(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_2, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_TUPLE_GET_3(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_3, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_TUPLE_GET_4(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_4, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_TUPLE_GET_5(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_5, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_TUPLE_GET_6(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_6, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_TUPLE_GET_7(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_7, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_TUPLE_GET_8(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_8, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_TUPLE_GET_9(...) \
+  FATAL_IMPL_TUPLE_GET(FATAL_ARG_9, FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_IMPL_TUPLE_GET(Fn, ...) \
+  Fn(__VA_ARGS__)
 
 /////////////////
 // FATAL_ARG_n //
@@ -250,7 +340,43 @@ namespace fatal {
   FATAL_BOOL( \
     FATAL_ARG_1( \
       FATAL_IMPL_HAS_ARGS_1( \
-        FATAL_UNPARENTHESIZE(__VA_ARGS__) \
+        FATAL_UNPARENTHESIZE( \
+          FATAL_UNPARENTHESIZE( \
+            FATAL_UNPARENTHESIZE( \
+              FATAL_UNPARENTHESIZE( \
+                FATAL_UNPARENTHESIZE( \
+                  FATAL_UNPARENTHESIZE( \
+                    FATAL_UNPARENTHESIZE( \
+                      FATAL_UNPARENTHESIZE( \
+                        FATAL_UNPARENTHESIZE( \
+                          FATAL_UNPARENTHESIZE( \
+                            FATAL_UNPARENTHESIZE( \
+                              FATAL_UNPARENTHESIZE( \
+                                FATAL_UNPARENTHESIZE( \
+                                  FATAL_UNPARENTHESIZE( \
+                                    FATAL_UNPARENTHESIZE( \
+                                      FATAL_UNPARENTHESIZE( \
+                                        FATAL_UNPARENTHESIZE( \
+                                          FATAL_UNPARENTHESIZE( \
+                                            FATAL_UNPARENTHESIZE(__VA_ARGS__) \
+                                          ) \
+                                        ) \
+                                      ) \
+                                    ) \
+                                  ) \
+                                ) \
+                              ) \
+                            ) \
+                          ) \
+                        ) \
+                      ) \
+                    ) \
+                  ) \
+                ) \
+              ) \
+            ) \
+          ) \
+        ) \
       ) \
     )() \
   )
@@ -283,6 +409,90 @@ namespace fatal {
   __VA_ARGS__ FATAL_IGNORE
 
 #define FATAL_CONDITIONAL_IMPL_0(...) \
+  FATAL_IDENTITY
+
+#define FATAL_CONDITIONAL_2(condition) \
+  FATAL_IMPL_CONDITIONAL_2(FATAL_BOOL(condition))
+
+#define FATAL_IMPL_CONDITIONAL_2(condition) \
+  FATAL_CAT(FATAL_CONDITIONAL_2_IMPL_, condition)
+
+#define FATAL_CONDITIONAL_2_IMPL_1(...) \
+  __VA_ARGS__ FATAL_IGNORE
+
+#define FATAL_CONDITIONAL_2_IMPL_0(...) \
+  FATAL_IDENTITY
+
+#define FATAL_CONDITIONAL_INTERNAL_UNPARENTHESIZE(condition) \
+  FATAL_IMPL_CONDITIONAL_INTERNAL_UNPARENTHESIZE(FATAL_BOOL(condition))
+
+#define FATAL_IMPL_CONDITIONAL_INTERNAL_UNPARENTHESIZE(condition) \
+  FATAL_CAT(FATAL_CONDITIONAL_INTERNAL_UNPARENTHESIZE_IMPL_, condition)
+
+#define FATAL_CONDITIONAL_INTERNAL_UNPARENTHESIZE_IMPL_1(...) \
+  __VA_ARGS__ FATAL_IGNORE
+
+#define FATAL_CONDITIONAL_INTERNAL_UNPARENTHESIZE_IMPL_0(...) \
+  FATAL_IDENTITY
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP(condition) \
+  FATAL_IMPL_CONDITIONAL_INTERNAL_MAP(FATAL_BOOL(condition))
+
+#define FATAL_IMPL_CONDITIONAL_INTERNAL_MAP(condition) \
+  FATAL_CAT(FATAL_CONDITIONAL_INTERNAL_MAP_IMPL_, condition)
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_IMPL_1(...) \
+  __VA_ARGS__ FATAL_IGNORE
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_IMPL_0(...) \
+  FATAL_IDENTITY
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_2(condition) \
+  FATAL_IMPL_CONDITIONAL_INTERNAL_MAP_2(FATAL_BOOL(condition))
+
+#define FATAL_IMPL_CONDITIONAL_INTERNAL_MAP_2(condition) \
+  FATAL_CAT(FATAL_CONDITIONAL_INTERNAL_MAP_2_IMPL_, condition)
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_2_IMPL_1(...) \
+  __VA_ARGS__ FATAL_IGNORE
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_2_IMPL_0(...) \
+  FATAL_IDENTITY
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_3(condition) \
+  FATAL_IMPL_CONDITIONAL_INTERNAL_MAP_3(FATAL_BOOL(condition))
+
+#define FATAL_IMPL_CONDITIONAL_INTERNAL_MAP_3(condition) \
+  FATAL_CAT(FATAL_CONDITIONAL_INTERNAL_MAP_3_IMPL_, condition)
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_3_IMPL_1(...) \
+  __VA_ARGS__ FATAL_IGNORE
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_3_IMPL_0(...) \
+  FATAL_IDENTITY
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_4(condition) \
+  FATAL_IMPL_CONDITIONAL_INTERNAL_MAP_4(FATAL_BOOL(condition))
+
+#define FATAL_IMPL_CONDITIONAL_INTERNAL_MAP_4(condition) \
+  FATAL_CAT(FATAL_CONDITIONAL_INTERNAL_MAP_4_IMPL_, condition)
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_4_IMPL_1(...) \
+  __VA_ARGS__ FATAL_IGNORE
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_4_IMPL_0(...) \
+  FATAL_IDENTITY
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_5(condition) \
+  FATAL_IMPL_CONDITIONAL_INTERNAL_MAP_5(FATAL_BOOL(condition))
+
+#define FATAL_IMPL_CONDITIONAL_INTERNAL_MAP_5(condition) \
+  FATAL_CAT(FATAL_CONDITIONAL_INTERNAL_MAP_5_IMPL_, condition)
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_5_IMPL_1(...) \
+  __VA_ARGS__ FATAL_IGNORE
+
+#define FATAL_CONDITIONAL_INTERNAL_MAP_5_IMPL_0(...) \
   FATAL_IDENTITY
 
 ///////////////////
@@ -396,7 +606,7 @@ namespace fatal {
 
 #define FATAL_IMPL_MAP(Fn, arg, is_first, index, x, ...) \
   Fn(arg, is_first, index, x) \
-  FATAL_CONDITIONAL(FATAL_HAS_ARGS(__VA_ARGS__))( \
+  FATAL_CONDITIONAL_INTERNAL_MAP(FATAL_HAS_ARGS(__VA_ARGS__))( \
     FATAL_DEFER_2(FATAL_IMPL_MAP_RECURSE)()\
       (Fn, arg, 0, (index + 1), __VA_ARGS__) \
   )()
@@ -404,6 +614,66 @@ namespace fatal {
 #define FATAL_IMPL_MAP_RECURSE() \
   FATAL_IMPL_MAP
 
+/////////////////
+// FATAL_MAP_n //
+/////////////////
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_MAP_2(Fn, arg, ...) \
+  FATAL_IMPL_MAP_2(Fn, arg, 1, 0, __VA_ARGS__)
+
+#define FATAL_IMPL_MAP_2(Fn, arg, is_first, index, x, ...) \
+  Fn(arg, is_first, index, x) \
+  FATAL_CONDITIONAL_INTERNAL_MAP_2(FATAL_HAS_ARGS(__VA_ARGS__))( \
+    FATAL_DEFER_2(FATAL_IMPL_MAP_2_RECURSE)()\
+      (Fn, arg, 0, (index + 1), __VA_ARGS__) \
+  )()
+
+#define FATAL_IMPL_MAP_2_RECURSE() \
+  FATAL_IMPL_MAP_2
+
+#define FATAL_MAP_3(Fn, arg, ...) \
+  FATAL_IMPL_MAP_3(Fn, arg, 1, 0, __VA_ARGS__)
+
+#define FATAL_IMPL_MAP_3(Fn, arg, is_first, index, x, ...) \
+  Fn(arg, is_first, index, x) \
+  FATAL_CONDITIONAL_INTERNAL_MAP_3(FATAL_HAS_ARGS(__VA_ARGS__))( \
+    FATAL_DEFER_3(FATAL_IMPL_MAP_3_RECURSE)()\
+      (Fn, arg, 0, (index + 1), __VA_ARGS__) \
+  )()
+
+#define FATAL_IMPL_MAP_3_RECURSE() \
+  FATAL_IMPL_MAP_3
+
+#define FATAL_MAP_4(Fn, arg, ...) \
+  FATAL_IMPL_MAP_4(Fn, arg, 1, 0, __VA_ARGS__)
+
+#define FATAL_IMPL_MAP_4(Fn, arg, is_first, index, x, ...) \
+  Fn(arg, is_first, index, x) \
+  FATAL_CONDITIONAL_INTERNAL_MAP_4(FATAL_HAS_ARGS(__VA_ARGS__))( \
+    FATAL_DEFER_4(FATAL_IMPL_MAP_4_RECURSE)()\
+      (Fn, arg, 0, (index + 1), __VA_ARGS__) \
+  )()
+
+#define FATAL_IMPL_MAP_4_RECURSE() \
+  FATAL_IMPL_MAP_4
+
+#define FATAL_MAP_5(Fn, arg, ...) \
+  FATAL_IMPL_MAP_5(Fn, arg, 1, 0, __VA_ARGS__)
+
+#define FATAL_IMPL_MAP_5(Fn, arg, is_first, index, x, ...) \
+  Fn(arg, is_first, index, x) \
+  FATAL_CONDITIONAL_INTERNAL_MAP_5(FATAL_HAS_ARGS(__VA_ARGS__))( \
+    FATAL_DEFER_5(FATAL_IMPL_MAP_5_RECURSE)()\
+      (Fn, arg, 0, (index + 1), __VA_ARGS__) \
+  )()
+
+#define FATAL_IMPL_MAP_5_RECURSE() \
+  FATAL_IMPL_MAP_5
 
 //////////////////
 // FATAL_TO_STR //
