@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#ifndef FATAL_INCLUDE_fatal_type_tagged_tuple_h
-#define FATAL_INCLUDE_fatal_type_tagged_tuple_h
+#ifndef FATAL_INCLUDE_fatal_type_tuple_h
+#define FATAL_INCLUDE_fatal_type_tuple_h
 
 #include <fatal/container/tuple_tags.h>
 #include <fatal/type/list.h>
@@ -22,7 +22,7 @@
 
 namespace fatal {
 namespace detail {
-namespace tagged_tuple_impl {
+namespace tuple_impl {
 
 struct foreach_visitor {
   template <
@@ -39,15 +39,15 @@ struct foreach_visitor {
   }
 };
 
-} // namespace tagged_tuple_impl {
+} // namespace tuple_impl {
 } // namespace detail {
 
-//////////////////
-// tagged_tuple //
-//////////////////
+///////////
+// tuple //
+///////////
 
 template <typename... Args>
-struct tagged_tuple {
+struct tuple {
   using map = type_map<Args...>;
   using tags = tuple_tags<type_get_first<Args>...>;
   using values = type_list<type_get_second<Args>...>;
@@ -61,9 +61,9 @@ struct tagged_tuple {
 
   template <
     typename... UArgs,
-    typename = safe_overload_t<tagged_tuple, UArgs...>
+    typename = safe_overload_t<tuple, UArgs...>
   >
-  explicit constexpr tagged_tuple(UArgs &&...args):
+  explicit constexpr tuple(UArgs &&...args):
     data_(std::forward<UArgs>(args)...)
   {}
 
@@ -83,18 +83,18 @@ struct tagged_tuple {
   template <std::size_t Index>
   type_at<Index> &at() { return std::get<Index>(data_); }
 
-  constexpr fast_pass<type> tuple() const { return data_; }
-  type &tuple() { return data_; }
+  constexpr fast_pass<type> data() const { return data_; }
+  type &data() { return data_; }
 
   // TODO: TEST
   template <typename... UArgs>
-  bool operator ==(tagged_tuple<UArgs...> const &rhs) const {
-    return data_ == rhs.tuple();
+  bool operator ==(tuple<UArgs...> const &rhs) const {
+    return data_ == rhs.data();
   }
 
   // TODO: TEST
   template <typename... UArgs>
-  bool operator !=(tagged_tuple<UArgs...> const &rhs) const {
+  bool operator !=(tuple<UArgs...> const &rhs) const {
     return !(*this == rhs);
   }
 
@@ -109,7 +109,7 @@ struct tagged_tuple {
   >
   using transform = typename map::template transform<
     TTypeTransform, TTagTransform
-  >::contents::template apply<fatal::tagged_tuple>;
+  >::contents::template apply<fatal::tuple>;
 
   // TODO: DOCUMENT AND TEST
   template <
@@ -119,24 +119,24 @@ struct tagged_tuple {
   >
   using transform_at = typename map::template transform_at<
     TTag, TTypeTransform, TTagTransform
-  >::template apply<fatal::tagged_tuple>;
+  >::template apply<fatal::tuple>;
 
   // TODO: DOCUMENT AND TEST
   template <typename... TPairs>
   using push_front = typename tags::list::template push_front<TPairs...>
-    ::template apply<fatal::tagged_tuple>;
+    ::template apply<fatal::tuple>;
 
   // TODO: DOCUMENT AND TEST
   template <typename... TPairs>
   using push_back = typename tags::list::template push_back<TPairs...>
-    ::template apply<fatal::tagged_tuple>;
+    ::template apply<fatal::tuple>;
 
   template <
     template <typename...> class TPredicate, typename V, typename... VArgs
   >
   std::size_t foreach_if(V &&visitor, VArgs &&...args) const {
     return map::contents::template foreach_if<TPredicate>(
-      detail::tagged_tuple_impl::foreach_visitor(),
+      detail::tuple_impl::foreach_visitor(),
       *this,
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
@@ -148,7 +148,7 @@ struct tagged_tuple {
   >
   std::size_t foreach_if(V &&visitor, VArgs &&...args) {
     return map::contents::template foreach_if<TPredicate>(
-      detail::tagged_tuple_impl::foreach_visitor(),
+      detail::tuple_impl::foreach_visitor(),
       *this,
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
@@ -158,7 +158,7 @@ struct tagged_tuple {
   template <typename V, typename... VArgs>
   bool foreach(V &&visitor, VArgs &&...args) const {
     return map::contents::foreach(
-      detail::tagged_tuple_impl::foreach_visitor(),
+      detail::tuple_impl::foreach_visitor(),
       *this,
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
@@ -168,7 +168,7 @@ struct tagged_tuple {
   template <typename V, typename... VArgs>
   bool foreach(V &&visitor, VArgs &&...args) {
     return map::contents::foreach(
-      detail::tagged_tuple_impl::foreach_visitor(),
+      detail::tuple_impl::foreach_visitor(),
       *this,
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
@@ -179,13 +179,13 @@ private:
   type data_;
 };
 
-///////////////////////
-// tagged_tuple_from //
-///////////////////////
+////////////////
+// tuple_from //
+////////////////
 
 // TODO: DOCUMENT AND TEST
 template <typename... Args>
-class tagged_tuple_from {
+class tuple_from {
   template <
     template <typename...> class TTagTransform,
     template <typename...> class TTypeTransform
@@ -199,14 +199,14 @@ class tagged_tuple_from {
 
   public:
     template <typename... UArgs>
-    using args = tagged_tuple<pair<UArgs>...>;
+    using args = tuple<pair<UArgs>...>;
 
     template <typename TList>
-    using list = typename TList::template apply<tagged_tuple, pair>;
+    using list = typename TList::template apply<tuple, pair>;
 
     template <typename TMap>
     using map = typename TMap::template apply<
-      tagged_tuple, TTypeTransform, TTagTransform
+      tuple, TTypeTransform, TTagTransform
     >;
   };
 
@@ -237,12 +237,12 @@ public:
   >;
 };
 
-////////////////////////
-// build_tagged_tuple //
-////////////////////////
+/////////////////
+// build_tuple //
+/////////////////
 
 namespace detail {
-namespace tagged_tuple_impl {
+namespace tuple_impl {
 
 template <typename... Args>
 class builder {
@@ -255,37 +255,37 @@ class builder {
 
 public:
   using type = typename tags::template combine<type_pair>::template list<types>
-    ::template apply<tagged_tuple>;
+    ::template apply<tuple>;
 };
 
-} // namespace tagged_tuple_impl {
+} // namespace tuple_impl {
 } // namespace detail {
 
 template <typename... Args>
-using build_tagged_tuple = typename detail::tagged_tuple_impl::builder<
+using build_tuple = typename detail::tuple_impl::builder<
   Args...
 >::type;
 
-///////////////////////
-// make_tagged_tuple //
-///////////////////////
+////////////////
+// make_tuple //
+////////////////
 
 template <typename... TTags, typename... Args>
-constexpr auto make_tagged_tuple(Args &&...args)
-  -> tagged_tuple<type_pair<TTags, typename std::decay<Args>::type>...>
+constexpr auto make_tuple(Args &&...args)
+  -> tuple<type_pair<TTags, typename std::decay<Args>::type>...>
 {
-  return tagged_tuple<type_pair<TTags, typename std::decay<Args>::type>...>(
+  return tuple<type_pair<TTags, typename std::decay<Args>::type>...>(
     std::forward<Args>(args)...
   );
 }
 
 template <typename... TTags, typename... Args>
-constexpr auto make_tagged_tuple(std::tuple<Args...> tuple)
-  -> tagged_tuple<type_pair<TTags, Args>...>
+constexpr auto make_tuple(std::tuple<Args...> tuple)
+  -> fatal::tuple<type_pair<TTags, Args>...>
 {
-  return tagged_tuple<type_pair<TTags, Args>...>(std::move(tuple));
+  return fatal::tuple<type_pair<TTags, Args>...>(std::move(tuple));
 }
 
 } // namespace fatal {
 
-#endif // FATAL_INCLUDE_fatal_type_tagged_tuple_h
+#endif // FATAL_INCLUDE_fatal_type_tuple_h
