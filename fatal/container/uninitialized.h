@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -22,7 +22,7 @@ namespace fatal {
 ///////////////////
 
 // TODO: DOCUMENT AND TEST
-template <typename T, bool AutomaticallyDestroy = true>
+template <typename T, bool AutoDestroy>
 struct uninitialized {
   using type = T;
   using const_reference = type const &;
@@ -65,7 +65,7 @@ struct uninitialized {
   pointer operator ->() noexcept { return std::addressof(data_.value); }
 
 private:
-  using union_type = unitary_union<type, AutomaticallyDestroy>;
+  using union_type = unitary_union<type, AutoDestroy>;
 
   union_type data_;
 };

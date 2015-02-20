@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -79,10 +79,8 @@ struct unitary_union_impl<T, true, true> {
 } // namespace detail {
 
 // TODO: DOCUMENT AND TEST
-template <typename T, bool AutomaticallyDestroy = false>
-using unitary_union = typename detail::unitary_union_impl<
-  T, AutomaticallyDestroy
->::type;
+template <typename T, bool AutoDestroy>
+using unitary_union = typename detail::unitary_union_impl<T, AutoDestroy>::type;
 
 } // namespace fatal {
 
