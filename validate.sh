@@ -17,22 +17,22 @@ while [ "$1" ]; do
   shift
 done
 
-if [ "$NO_CLEAR" != "true" ]; then
-  lclear.sh >&2
-fi
+for cc in clang++-3.5 g++-4.9 g++-4.8 clang++-3.4; do
+  if [ "$NO_CLEAR" != "true" ]; then
+    lclear.sh >&2
+  fi
 
-if [ "$skip_test" != "true" ]; then
-  NO_CLEAR=true ./test.sh
-fi
+  if [ "$skip_test" != "true" ]; then
+    USE_CC="$cc" NO_CLEAR=true ./test.sh
+  fi
 
-if [ "$skip_build" != "true" ]; then
-  NO_CLEAR=true ./build.sh
-fi
+  if [ "$skip_build" != "true" ]; then
+    USE_CC="$cc" NO_CLEAR=true ./build.sh
+  fi
 
-if [ "$skip_demo" != "true" ]; then
-  for demo in ytse_jam; do
-    for cc in clang++-3.5 g++-4.9 clang++-3.4; do
+  if [ "$skip_demo" != "true" ] && [ "$cc" != "g++-4.8" ]; then
+    for demo in ytse_jam; do
       echo -n | USE_CC="$cc" NO_CLEAR=true ./demo.sh $demo
     done
-  done
-fi
+  fi
+done
