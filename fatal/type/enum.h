@@ -30,15 +30,25 @@ namespace fatal {
  *
  * Example:
  *
- *  // yields `enum class my_enum { field0, field1, field2 };`
+ *  // yields `enum my_enum { field0, field1, field2 };`
  *  FATAL_ENUM(my_enum, field0, field1, field2);
  *
- *  // yields `enum class my_enum { field0, field1 = 37, field2 };`
+ *  // yields `enum my_enum { field0, field1 = 37, field2 };`
  *  FATAL_ENUM(my_enum, field0, (field1, 37), field2);
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_ENUM(Enum, ...) \
+  enum Enum { \
+    FATAL_MAP(FATAL_IMPL_ENUM_DECLARE_FIELD_ENTRY_POINT, ~, __VA_ARGS__) \
+  }
+
+/**
+ * The same as `FATAL_ENUM`, but declares an `enum class` instead of an `enum`.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_ENUM_CLASS(Enum, ...) \
   enum class Enum { \
     FATAL_MAP(FATAL_IMPL_ENUM_DECLARE_FIELD_ENTRY_POINT, ~, __VA_ARGS__) \
   }
@@ -56,11 +66,11 @@ namespace fatal {
  *
  * Example:
  *
- *  // yields `enum class my_enum { field0, field1, field2 };`
+ *  // yields `enum my_enum { field0, field1, field2 };`
  *  // and a companion class called `my_companion_class`
  *  FATAL_RICH_ENUM(my_companion_class, my_enum, field0, field1, field2);
  *
- *  // yields `enum class my_enum { field0, field1 = 37, field2 };`
+ *  // yields `enum my_enum { field0, field1 = 37, field2 };`
  *  // and a companion class called `my_companion_class`
  *  FATAL_RICH_ENUM(my_companion_class, field0, (field1, 37), field2);
  *
@@ -68,6 +78,21 @@ namespace fatal {
  */
 #define FATAL_RICH_ENUM(ClassName, Enum, ...) \
   FATAL_ENUM(Enum, __VA_ARGS__); \
+  \
+  FATAL_EXPORT_RICH_ENUM( \
+    ClassName, \
+    Enum \
+    FATAL_SIMPLE_MAP(FATAL_IMPL_RICH_ENUM_EXTRACT_FIELD, __VA_ARGS__) \
+  )
+
+/**
+ * The same as `FATAL_RICH_ENUM`, but declares
+ * an `enum class` instead of an `enum`.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_RICH_ENUM_CLASS(ClassName, Enum, ...) \
+  FATAL_ENUM_CLASS(Enum, __VA_ARGS__); \
   \
   FATAL_EXPORT_RICH_ENUM( \
     ClassName, \
@@ -84,7 +109,7 @@ namespace fatal {
  *
  * Example:
  *
- *  enum class my_enum { field0, field1 = 37, field2 };
+ *  enum my_enum { field0, field1 = 37, field2 };
  *
  *  // generates the class `my_companion_class`, as specified below
  *  FATAL_EXPORT_RICH_ENUM(my_companion_class, my_enum, field0, field1, field2);
