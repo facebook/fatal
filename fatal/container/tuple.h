@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -21,26 +21,6 @@
 #include <utility>
 
 namespace fatal {
-namespace detail {
-namespace tuple_impl {
-
-struct foreach_visitor {
-  template <
-    typename TTag, typename T, std::size_t Index,
-    typename TTaggedTuple, typename V, typename... VArgs
-  >
-  void operator ()(
-    indexed_type_tag<type_pair<TTag, T>, Index> tag,
-    TTaggedTuple &&tuple,
-    V &&visitor,
-    VArgs &&...args
-  ) const {
-    visitor(tag, tuple.template get<TTag>(), std::forward<VArgs>(args)...);
-  }
-};
-
-} // namespace tuple_impl {
-} // namespace detail {
 
 ///////////
 // tuple //
@@ -86,18 +66,6 @@ struct tuple {
   constexpr fast_pass<type> data() const { return data_; }
   type &data() { return data_; }
 
-  // TODO: TEST
-  template <typename... UArgs>
-  bool operator ==(tuple<UArgs...> const &rhs) const {
-    return data_ == rhs.data();
-  }
-
-  // TODO: TEST
-  template <typename... UArgs>
-  bool operator !=(tuple<UArgs...> const &rhs) const {
-    return !(*this == rhs);
-  }
-
   // TODO: DOCUMENT AND TEST
   template <template <typename...> class TTransform>
   using apply = fatal::apply<TTransform, Args...>;
@@ -134,46 +102,46 @@ struct tuple {
   template <
     template <typename...> class TPredicate, typename V, typename... VArgs
   >
-  std::size_t foreach_if(V &&visitor, VArgs &&...args) const {
-    return map::contents::template foreach_if<TPredicate>(
-      detail::tuple_impl::foreach_visitor(),
-      *this,
-      std::forward<V>(visitor),
-      std::forward<VArgs>(args)...
+  constexpr std::size_t foreach_if(V &&visitor, VArgs &&...args) const {
+    return tags::template foreach_if<TPredicate>(
+      data_, std::forward<V>(visitor), std::forward<VArgs>(args)...
     );
-  };
+  }
 
   template <
     template <typename...> class TPredicate, typename V, typename... VArgs
   >
   std::size_t foreach_if(V &&visitor, VArgs &&...args) {
-    return map::contents::template foreach_if<TPredicate>(
-      detail::tuple_impl::foreach_visitor(),
-      *this,
-      std::forward<V>(visitor),
-      std::forward<VArgs>(args)...
+    return tags::template foreach_if<TPredicate>(
+      data_, std::forward<V>(visitor), std::forward<VArgs>(args)...
     );
-  };
+  }
 
   template <typename V, typename... VArgs>
-  bool foreach(V &&visitor, VArgs &&...args) const {
-    return map::contents::foreach(
-      detail::tuple_impl::foreach_visitor(),
-      *this,
-      std::forward<V>(visitor),
-      std::forward<VArgs>(args)...
+  constexpr bool foreach(V &&visitor, VArgs &&...args) const {
+    return tags::foreach(
+      data_, std::forward<V>(visitor), std::forward<VArgs>(args)...
     );
-  };
+  }
 
   template <typename V, typename... VArgs>
   bool foreach(V &&visitor, VArgs &&...args) {
-    return map::contents::foreach(
-      detail::tuple_impl::foreach_visitor(),
-      *this,
-      std::forward<V>(visitor),
-      std::forward<VArgs>(args)...
+    return tags::foreach(
+      data_, std::forward<V>(visitor), std::forward<VArgs>(args)...
     );
-  };
+  }
+
+  // TODO: TEST
+  template <typename... UArgs>
+  bool operator ==(tuple<UArgs...> const &rhs) const {
+    return data_ == rhs.data();
+  }
+
+  // TODO: TEST
+  template <typename... UArgs>
+  bool operator !=(tuple<UArgs...> const &rhs) const {
+    return !(*this == rhs);
+  }
 
 private:
   type data_;
