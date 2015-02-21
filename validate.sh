@@ -17,7 +17,7 @@ while [ "$1" ]; do
   shift
 done
 
-for cc in clang++-3.5 g++-4.9 g++-4.8 clang++-3.4; do
+for cc in clang++-3.5 g++-4.8 g++-4.9 clang++-3.4; do
   if [ "$NO_CLEAR" != "true" ]; then
     lclear.sh >&2
   fi
