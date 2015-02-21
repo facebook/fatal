@@ -49,52 +49,6 @@ template <typename T>
 struct remove_rvalue_reference<T &&> { using type = T; };
 
 /**
- * A traits class to check for incomplete types.
- *
- * Example:
- *
- *  struct complete_type {}; // complete type
- *  struct forward_declared_type;
- *
- *  // yields `true`
- *  is_complete<int>::type::value
- *
- *  // yields `true`
- *  is_complete<complete_type>::type::value
- *
- *  // yields `false`
- *  is_complete<forward_declared_type>::type::value
- *
- *  // now it has been declared and is not incomplete anymore
- *  struct forward_declared_type {};
- *
- *  // yields `true`
- *  is_complete<forward_declared_type>::type::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-namespace detail {
-
-class is_complete_impl {
-  struct impl {
-    template <typename T, std::size_t = sizeof(T)>
-    static std::true_type sfinae(T *);
-
-    template <typename = void, std::size_t = 0>
-    static std::false_type sfinae(...);
-  };
-
-public:
-  template <typename T>
-  using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
-};
-
-} // namespace detail {
-
-template <typename T>
-using is_complete = detail::is_complete_impl::type<T>;
-
-/**
  * Checks whether a given type is an instantiation of at least one of a list of
  * class templates.
  *
@@ -146,7 +100,7 @@ public:
   template <typename T>
   using apply = type<T>;
 };
-//*/
+
 /**
  * fast_pass_by_value: tells if pass-by-value is the fastest way of passing a
  * given type as a read-only argument or return value.
@@ -279,20 +233,35 @@ using safe_overload_t = typename std::enable_if<
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename T, typename... Args>
-class is_callable {
-  template <typename> struct dummy {};
-  template <typename U>
-  static std::true_type sfinae(
-    type_tag<decltype(std::declval<U>()(
-      std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
-    ))> *
-  );
-  template <typename> static std::false_type sfinae(...);
+namespace detail {
+
+template <typename... Args>
+class is_callable_impl {
+  struct impl {
+    template <
+      typename T,
+      typename = decltype(
+        std::declval<T>()(
+          std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
+        )
+      )
+    >
+    static std::true_type sfinae(T *);
+
+    template <typename = void>
+    static std::false_type sfinae(...);
+  };
 
 public:
-  using check = decltype(sfinae<T>(nullptr));
+  template <typename T>
+  using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
 };
+
+} // namespace detail {
+
+template <typename T, typename... Args>
+using is_callable = typename detail::is_callable_impl<Args...>
+  ::template type<T>;
 
 /**
  * This macro creates a class named `Class` that can check whether some

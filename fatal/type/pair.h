@@ -17,6 +17,24 @@
 #include <utility>
 
 namespace fatal {
+namespace detail {
+namespace type_pair_impl {
+
+template <std::size_t, typename, typename>
+struct at;
+
+template <typename TFirst, typename TSecond>
+struct at<0, TFirst, TSecond> {
+  using type = TFirst;
+};
+
+template <typename TFirst, typename TSecond>
+struct at<1, TFirst, TSecond> {
+  using type = TSecond;
+};
+
+} // namespace type_pair_impl {
+} // namespace detail {
 
 /**
  * Type pair for template metaprogramming.
@@ -27,6 +45,24 @@ template <typename TFirst, typename TSecond>
 struct type_pair {
   using first = TFirst;
   using second = TSecond;
+
+  /**
+   * Gets the type at the given index.
+   *
+   * Example:
+   *
+   *  using pair = type_pair<int, double>;
+   *
+   *  // yields `int`
+   *  using result1 = pair::at<0>;
+   *
+   *  // yields `double`
+   *  using result1 = pair::at<1>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <std::size_t Index>
+  using at = typename detail::type_pair_impl::at<Index, first, second>::type;
 
   /**
    * A `type_pair` with `first` and `second` swapped.
@@ -69,7 +105,11 @@ struct type_pair {
     template <typename...> class TFirstTransform = identity_transform,
     template <typename...> class TSecondTransform = identity_transform
   >
-  using apply = T<TFirstTransform<first>, TSecondTransform<second>>;
+  using apply = fatal::apply<
+    T,
+    fatal::apply<TFirstTransform, first>,
+    fatal::apply<TSecondTransform, second>
+  >;
 
   /**
    * Applies optional transforms to the elements of this pair.
@@ -139,10 +179,13 @@ struct type_pair_from {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename TFirst, typename TSecond, std::size_t Index>
-struct type_get_traits<type_pair<TFirst, TSecond>, Index> {
-  static_assert(Index < 2, "index out of bounds");
-  using type = typename std::conditional<Index == 0, TFirst, TSecond>::type;
+template <typename TFirst, typename TSecond>
+struct type_get_traits<type_pair<TFirst, TSecond>> {
+  template <std::size_t Index>
+  using supported = std::integral_constant<bool, (Index < 2)>;
+
+  template <std::size_t Index>
+  using type = typename type_pair<TFirst, TSecond>::template at<Index>;
 };
 
 // TODO: DOCUMENT AND TEST

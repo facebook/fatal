@@ -19,6 +19,52 @@
 
 namespace fatal {
 
+/**
+ * Tells whether a type is complete or not.
+ *
+ * Example:
+ *
+ *  struct complete_type {}; // complete type
+ *  struct forward_declared_type;
+ *
+ *  // yields `true`
+ *  is_complete<int>::type::value
+ *
+ *  // yields `true`
+ *  is_complete<complete_type>::type::value
+ *
+ *  // yields `false`
+ *  is_complete<forward_declared_type>::type::value
+ *
+ *  // now it has been declared and is not incomplete anymore
+ *  struct forward_declared_type {};
+ *
+ *  // yields `true`
+ *  is_complete<forward_declared_type>::type::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+namespace detail {
+
+class is_complete_impl {
+  struct impl {
+    template <typename T, std::size_t = sizeof(T)>
+    static std::true_type sfinae(T *);
+
+    template <typename = void, std::size_t = 0>
+    static std::false_type sfinae(...);
+  };
+
+public:
+  template <typename T>
+  using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
+};
+
+} // namespace detail {
+
+template <typename T>
+using is_complete = detail::is_complete_impl::type<T>;
+
 ///////////
 // apply //
 ///////////
@@ -992,18 +1038,19 @@ struct conditional_transform {
 
 // TODO: DOCUMENT
 template <template <typename...> class TTransform>
-struct transform_traits {
-  template <std::size_t> struct dummy;
+class transform_traits {
+  struct impl {
+    template <typename T, typename = TTransform<T>>
+    static std::true_type sfinae(T *);
 
-  template <typename T, template <typename...> class UTransform>
-  static std::true_type sfinae(dummy<sizeof(UTransform<T>)> *);
+    template <typename = void>
+    static std::false_type sfinae(...);
+  };
 
-  template <typename, template <typename...> class>
-  static std::false_type sfinae(...);
-
+public:
   // TODO: DOCUMENT
   template <typename T>
-  using supports = decltype(sfinae<T, TTransform>(nullptr));
+  using supports = decltype(impl::sfinae(static_cast<T *>(nullptr)));
 };
 
 ///////////////////
@@ -1137,19 +1184,19 @@ class variadic_transform {
 ///////////////////////////
 
 /**
- * An adapter that allows using a template class' member typedef `type`
+ * An adapter that allows using a template class' member type `type`
  * as a transform.
  *
  * This is useful for using C++'s type modifiers (decay, make_signed, ...)
  * as transforms on a pre-C++14 compiler.
  *
  * `TTransform` is any class that receives a given type `T` as a template
- * parameter and provides a member typedef `type`, which is to be used as
+ * parameter and provides a member type `type`, which is to be used as
  * the transform result.
  *
  * Example:
  *
- *  typedef type_member_transform<std::decay> dc;
+ *  using dc = type_member_transform<std::decay>;
  *
  *  // yields `int`
  *  typedef dc::apply<int const &> result1;
@@ -1792,7 +1839,8 @@ using full_recursive_type_sort = typename recursive_type_sort<>
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename TDataStructure, std::size_t Index> struct type_get_traits;
+template <typename>
+struct type_get_traits;
 
 //////////////
 // type_get //
@@ -1819,10 +1867,26 @@ template <typename TDataStructure, std::size_t Index> struct type_get_traits;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+namespace detail {
+
+template <
+  typename T,
+  std::size_t Index,
+  bool = type_get_traits<T>::template supported<Index>::value
+>
+struct type_get_impl;
+
+template <typename T, std::size_t Index>
+struct type_get_impl<T, Index, true> {
+  using type = typename type_get_traits<T>::template type<Index>;
+};
+
+} // namespace detail {
+
 template <std::size_t Index>
 struct type_get {
-  template <typename TDataStructure>
-  using from = typename type_get_traits<TDataStructure, Index>::type;
+  template <typename T>
+  using from = typename detail::type_get_impl<T, Index>::type;
 };
 
 /**
@@ -2067,12 +2131,16 @@ struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <std::size_t Index, typename TFirst, typename TSecond>
-struct type_get_traits<std::pair<TFirst, TSecond>, Index> {
-  typedef typename std::tuple_element<
+template <typename TFirst, typename TSecond>
+struct type_get_traits<std::pair<TFirst, TSecond>> {
+  template <std::size_t Index>
+  using supported = std::integral_constant<bool, (Index < 2)>;
+
+  template <std::size_t Index>
+  using type = typename std::tuple_element<
     Index,
     std::pair<TFirst, TSecond>
-  >::type type;
+  >::type;
 };
 
 /**
@@ -2080,12 +2148,16 @@ struct type_get_traits<std::pair<TFirst, TSecond>, Index> {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <std::size_t Index, typename... Args>
-struct type_get_traits<std::tuple<Args...>, Index> {
-  typedef typename std::tuple_element<
+template <typename... Args>
+struct type_get_traits<std::tuple<Args...>> {
+  template <std::size_t Index>
+  using supported = std::integral_constant<bool, (Index < sizeof...(Args))>;
+
+  template <std::size_t Index>
+  using type = typename std::tuple_element<
     Index,
     std::tuple<Args...>
-  >::type type;
+  >::type;
 };
 
 } // namespace fatal

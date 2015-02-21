@@ -51,20 +51,6 @@ TEST(traits, remove_rvalue_reference) {
 #undef FATAL_IMPL_CHECK_REMOVE_RVREF
 
 /////////////////
-// is_complete //
-/////////////////
-
-struct complete_type {};
-struct incomplete_type;
-
-TEST(traits, is_complete) {
-  EXPECT_TRUE((is_complete<int>::value));
-  EXPECT_TRUE((is_complete<std::string>::value));
-  EXPECT_TRUE((is_complete<complete_type>::value));
-  EXPECT_FALSE((is_complete<incomplete_type>::value));
-}
-
-/////////////////
 // is_template //
 /////////////////
 
@@ -455,32 +441,32 @@ TEST(traits, is_callable) {
   auto const lambda = []() {};
   auto const lambda_is = [](int, std::string) {};
 
-  EXPECT_TRUE((is_callable<foonctor>::check::value));
-  EXPECT_FALSE((is_callable<foonctor, int>::check::value));
-  EXPECT_FALSE((is_callable<foonctor, int, double>::check::value));
-  EXPECT_TRUE((is_callable<foonctor, int, std::string>::check::value));
+  EXPECT_TRUE((is_callable<foonctor>::value));
+  EXPECT_FALSE((is_callable<foonctor, int>::value));
+  EXPECT_FALSE((is_callable<foonctor, int, double>::value));
+  EXPECT_TRUE((is_callable<foonctor, int, std::string>::value));
 
-  EXPECT_TRUE((is_callable<decltype(lambda)>::check::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int>::check::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int, double>::check::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int, std::string>::check::value));
+  EXPECT_TRUE((is_callable<decltype(lambda)>::value));
+  EXPECT_FALSE((is_callable<decltype(lambda), int>::value));
+  EXPECT_FALSE((is_callable<decltype(lambda), int, double>::value));
+  EXPECT_FALSE((is_callable<decltype(lambda), int, std::string>::value));
 
-  EXPECT_FALSE((is_callable<decltype(lambda_is)>::check::value));
-  EXPECT_FALSE((is_callable<decltype(lambda_is), int>::check::value));
-  EXPECT_FALSE((is_callable<decltype(lambda_is), int, double>::check::value));
+  EXPECT_FALSE((is_callable<decltype(lambda_is)>::value));
+  EXPECT_FALSE((is_callable<decltype(lambda_is), int>::value));
+  EXPECT_FALSE((is_callable<decltype(lambda_is), int, double>::value));
   EXPECT_TRUE((
-    is_callable<decltype(lambda_is), int, std::string>::check::value
+    is_callable<decltype(lambda_is), int, std::string>::value
   ));
 
-  EXPECT_TRUE((is_callable<foonction>::check::value));
-  EXPECT_FALSE((is_callable<foonction, int>::check::value));
-  EXPECT_FALSE((is_callable<foonction, int, double>::check::value));
-  EXPECT_FALSE((is_callable<foonction, int, std::string>::check::value));
+  EXPECT_TRUE((is_callable<foonction>::value));
+  EXPECT_FALSE((is_callable<foonction, int>::value));
+  EXPECT_FALSE((is_callable<foonction, int, double>::value));
+  EXPECT_FALSE((is_callable<foonction, int, std::string>::value));
 
-  EXPECT_FALSE((is_callable<foonction_is>::check::value));
-  EXPECT_FALSE((is_callable<foonction_is, int>::check::value));
-  EXPECT_FALSE((is_callable<foonction_is, int, double>::check::value));
-  EXPECT_TRUE((is_callable<foonction_is, int, std::string>::check::value));
+  EXPECT_FALSE((is_callable<foonction_is>::value));
+  EXPECT_FALSE((is_callable<foonction_is, int>::value));
+  EXPECT_FALSE((is_callable<foonction_is, int, double>::value));
+  EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
 }
 
 //////////////////////////////

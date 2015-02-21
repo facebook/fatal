@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -110,6 +110,25 @@ using transform_int = transform_values<TTransform, int, Values...>;
 
 template <template <typename...> class TTransform, bool... Values>
 using transform_bool = transform_values<TTransform, bool, Values...>;
+
+struct complete_type {};
+struct incomplete_type;
+
+/////////////////
+// is_complete //
+/////////////////
+
+TEST(traits, is_complete) {
+  EXPECT_TRUE((is_complete<int>::value));
+  EXPECT_TRUE((is_complete<std::string>::value));
+  EXPECT_TRUE((is_complete<complete_type>::value));
+  EXPECT_FALSE((is_complete<incomplete_type>::value));
+
+  using pair = std::pair<void, void>;
+  EXPECT_TRUE((is_complete<std::tuple_element<0, pair>>::value));
+  EXPECT_TRUE((is_complete<std::tuple_element<1, pair>>::value));
+  EXPECT_FALSE((is_complete<std::tuple_element<2, pair>>::value));
+}
 
 ////////////////////////
 // identity_transform //
@@ -659,11 +678,9 @@ TEST(transform_traits, supports) {
   using pair = std::pair<short, double>;
   CHECK_SUPPORTS(true, pair, type_get_first);
   CHECK_SUPPORTS(true, pair, type_get_second);
-/* TODO: Fix this
   CHECK_SUPPORTS(false, pair, type_get_third);
   CHECK_SUPPORTS(false, pair, type_get_fourth);
   CHECK_SUPPORTS(false, pair, type_get_fifth);
-*/
 
 # undef CHECK_SUPPORTS
 }

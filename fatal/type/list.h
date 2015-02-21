@@ -47,8 +47,12 @@ template <typename...> struct type_list;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <std::size_t Index, typename... Args>
-struct type_get_traits<type_list<Args...>, Index> {
+template <typename... Args>
+struct type_get_traits<type_list<Args...>> {
+  template <std::size_t Index>
+  using supported = std::integral_constant<bool, (Index < sizeof...(Args))>;
+
+  template <std::size_t Index>
   using type = typename type_list<Args...>::template at<Index>;
 };
 

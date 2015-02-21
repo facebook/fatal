@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -1080,9 +1080,13 @@ template <typename... Args> constexpr bool type_map<Args...>::empty;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <std::size_t Index, typename... Args>
-struct type_get_traits<type_map<Args...>, Index> {
-  typedef typename type_map<Args...>::contents::template at<Index> type;
+template <typename... Args>
+struct type_get_traits<type_map<Args...>> {
+  template <std::size_t Index>
+  using supported = std::integral_constant<bool, (Index < sizeof...(Args))>;
+
+  template <std::size_t Index>
+  using type = typename type_map<Args...>::contents::template at<Index>;
 };
 
 ////////////////////
