@@ -27,28 +27,287 @@ template <std::size_t> struct S {};
 // remove_rvalue_reference //
 /////////////////////////////
 
-#define FATAL_IMPL_CHECK_REMOVE_RVREF(Type, Expected) \
+TEST(traits, remove_rvalue_reference) {
+# define TEST_IMPL(Type, Expected) \
   do { \
     FATAL_EXPECT_SAME<Expected, remove_rvalue_reference<Type>::type>(); \
   } while (false)
 
-TEST(traits, remove_rvalue_reference) {
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int, int);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int const, int const);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int &, int &);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int const &, int const &);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int &&, int);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int const &&, int const);
+  TEST_IMPL(int &&, int);
+  TEST_IMPL(int &, int &);
+  TEST_IMPL(int, int);
+  TEST_IMPL(int *&&, int *);
+  TEST_IMPL(int *&, int *&);
+  TEST_IMPL(int *, int*);
+  TEST_IMPL(int const &&, int const);
+  TEST_IMPL(int const &, int const &);
+  TEST_IMPL(int const, int const);
+  TEST_IMPL(int const *&&, int const *);
+  TEST_IMPL(int const *&, int const *&);
+  TEST_IMPL(int const *, int const *);
 
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int *, int*);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int const *, int const *);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int *&, int *&);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int const *&, int const *&);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int *&&, int *);
-  FATAL_IMPL_CHECK_REMOVE_RVREF(int const *&&, int const *);
+# undef TEST_IMPL
 }
 
-#undef FATAL_IMPL_CHECK_REMOVE_RVREF
+TEST(traits, same_reference_as) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    same_reference_as<FATAL_UNPARENTHESIZE(T), From>::type \
+  >();
+
+  TEST_IMPL(int &&, int &&, int &&);
+  TEST_IMPL(int &&, int &, int &&);
+  TEST_IMPL(int &&, int, int &&);
+  TEST_IMPL(int &&, int *&&, int *&&);
+  TEST_IMPL(int &&, int *&, int *&&);
+  TEST_IMPL(int &&, int *, int *&&);
+  TEST_IMPL(int &&, int *const &&, int *const &&);
+  TEST_IMPL(int &&, int *const &, int *const &&);
+  TEST_IMPL(int &&, int *const, int *const &&);
+  TEST_IMPL(int &&, int const &&, int const &&);
+  TEST_IMPL(int &&, int const &, int const &&);
+  TEST_IMPL(int &&, int const, int const &&);
+  TEST_IMPL(int &&, int const *&&, int const *&&);
+  TEST_IMPL(int &&, int const *&, int const *&&);
+  TEST_IMPL(int &&, int const *, int const *&&);
+  TEST_IMPL(int &&, int const *const &&, int const *const &&);
+  TEST_IMPL(int &&, int const *const &, int const *const &&);
+  TEST_IMPL(int &&, int const *const, int const *const &&);
+
+  TEST_IMPL(int &, int &&, int &);
+  TEST_IMPL(int &, int &, int &);
+  TEST_IMPL(int &, int, int &);
+  TEST_IMPL(int &, int *&&, int *&);
+  TEST_IMPL(int &, int *&, int *&);
+  TEST_IMPL(int &, int *, int *&);
+  TEST_IMPL(int &, int *const &&, int *const &);
+  TEST_IMPL(int &, int *const &, int *const &);
+  TEST_IMPL(int &, int *const, int *const &);
+  TEST_IMPL(int &, int const &&, int const &);
+  TEST_IMPL(int &, int const &, int const &);
+  TEST_IMPL(int &, int const, int const &);
+  TEST_IMPL(int &, int const *&&, int const *&);
+  TEST_IMPL(int &, int const *&, int const *&);
+  TEST_IMPL(int &, int const *, int const *&);
+  TEST_IMPL(int &, int const *const &&, int const *const &);
+  TEST_IMPL(int &, int const *const &, int const *const &);
+  TEST_IMPL(int &, int const *const, int const *const &);
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int *const &&, int *const &&);
+  TEST_IMPL(int, int *const &, int *const &);
+  TEST_IMPL(int, int *const, int *const);
+  TEST_IMPL(int, int const &&, int const &&);
+  TEST_IMPL(int, int const &, int const &);
+  TEST_IMPL(int, int const, int const);
+  TEST_IMPL(int, int const *&&, int const *&&);
+  TEST_IMPL(int, int const *&, int const *&);
+  TEST_IMPL(int, int const *, int const *);
+  TEST_IMPL(int, int const *const &&, int const *const &&);
+  TEST_IMPL(int, int const *const &, int const *const &);
+  TEST_IMPL(int, int const *const, int const *const);
+
+# undef TEST_IMPL
+}
+
+TEST(traits, add_reference_from) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    add_reference_from<FATAL_UNPARENTHESIZE(T), From>::type \
+  >();
+
+  TEST_IMPL(int &&, int &&, int &&);
+  TEST_IMPL(int &&, int &, int &);
+  TEST_IMPL(int &&, int, int &&);
+  TEST_IMPL(int &&, int *&&, int *&&);
+  TEST_IMPL(int &&, int *&, int *&);
+  TEST_IMPL(int &&, int *, int * &&);
+  TEST_IMPL(int &&, int *const &&, int *const &&);
+  TEST_IMPL(int &&, int *const &, int *const &);
+  TEST_IMPL(int &&, int *const, int *const &&);
+  TEST_IMPL(int &&, int const &&, int const &&);
+  TEST_IMPL(int &&, int const &, int const &);
+  TEST_IMPL(int &&, int const, int const &&);
+  TEST_IMPL(int &&, int const *&&, int const *&&);
+  TEST_IMPL(int &&, int const *&, int const *&);
+  TEST_IMPL(int &&, int const *, int const * &&);
+  TEST_IMPL(int &&, int const *const &&, int const *const &&);
+  TEST_IMPL(int &&, int const *const &, int const *const &);
+  TEST_IMPL(int &&, int const *const, int const *const &&);
+
+  TEST_IMPL(int &, int &&, int &);
+  TEST_IMPL(int &, int &, int &);
+  TEST_IMPL(int &, int, int &);
+  TEST_IMPL(int &, int *&&, int *&);
+  TEST_IMPL(int &, int *&, int *&);
+  TEST_IMPL(int &, int *, int *&);
+  TEST_IMPL(int &, int *const &&, int *const &);
+  TEST_IMPL(int &, int *const &, int *const &);
+  TEST_IMPL(int &, int *const, int *const &);
+  TEST_IMPL(int &, int const &&, int const &);
+  TEST_IMPL(int &, int const &, int const &);
+  TEST_IMPL(int &, int const, int const &);
+  TEST_IMPL(int &, int const *&&, int const *&);
+  TEST_IMPL(int &, int const *&, int const *&);
+  TEST_IMPL(int &, int const *, int const *&);
+  TEST_IMPL(int &, int const *const &&, int const *const &);
+  TEST_IMPL(int &, int const *const &, int const *const &);
+  TEST_IMPL(int &, int const *const, int const *const &);
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int *const &&, int *const &&);
+  TEST_IMPL(int, int *const &, int *const &);
+  TEST_IMPL(int, int *const, int *const);
+  TEST_IMPL(int, int const &&, int const &&);
+  TEST_IMPL(int, int const &, int const &);
+  TEST_IMPL(int, int const, int const);
+  TEST_IMPL(int, int const *&&, int const *&&);
+  TEST_IMPL(int, int const *&, int const *&);
+  TEST_IMPL(int, int const *, int const *);
+  TEST_IMPL(int, int const *const &&, int const *const &&);
+  TEST_IMPL(int, int const *const &, int const *const &);
+  TEST_IMPL(int, int const *const, int const *const);
+
+# undef TEST_IMPL
+}
+
+TEST(traits, add_const_from) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    add_const_from<FATAL_UNPARENTHESIZE(T), From>::type \
+  >();
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *const &&, int *const &&);
+  TEST_IMPL(int, int *const &, int *const &);
+  TEST_IMPL(int, int *const, int *const);
+  TEST_IMPL(int, int const &&, int const &&);
+  TEST_IMPL(int, int const &, int const &);
+  TEST_IMPL(int, int const *&&, int const *&&);
+  TEST_IMPL(int, int const *&, int const *&);
+  TEST_IMPL(int, int const *, int const *);
+  TEST_IMPL(int, int const *const &&, int const *const &&);
+  TEST_IMPL(int, int const *const &, int const *const &);
+  TEST_IMPL(int, int const *const, int const *const);
+  TEST_IMPL(int, int const, int const);
+
+  TEST_IMPL(int const, int &&, int &&);
+  TEST_IMPL(int const, int &, int &);
+  TEST_IMPL(int const, int, int const);
+  TEST_IMPL(int const, int *&&, int *&&);
+  TEST_IMPL(int const, int *&, int *&);
+  TEST_IMPL(int const, int *, int *const);
+  TEST_IMPL(int const, int *const &&, int *const &&);
+  TEST_IMPL(int const, int *const &, int *const &);
+  TEST_IMPL(int const, int *const, int *const);
+  TEST_IMPL(int const, int const &&, int const &&);
+  TEST_IMPL(int const, int const &, int const &);
+  TEST_IMPL(int const, int const, int const);
+  TEST_IMPL(int const, int const *&&, int const *&&);
+  TEST_IMPL(int const, int const *&, int const *&);
+  TEST_IMPL(int const, int const *, int const *const);
+  TEST_IMPL(int const, int const *const &&, int const *const &&);
+  TEST_IMPL(int const, int const *const &, int const *const &);
+  TEST_IMPL(int const, int const *const, int const *const);
+
+# undef TEST_IMPL
+}
+
+TEST(traits, constify) {
+# define TEST_IMPL(T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    constify<FATAL_UNPARENTHESIZE(T)>::type \
+  >();
+
+  TEST_IMPL(int &&, int const &&);
+  TEST_IMPL(int &, int const &);
+  TEST_IMPL(int, int const);
+  TEST_IMPL(int *&&, int *const &&);
+  TEST_IMPL(int *&, int *const &);
+  TEST_IMPL(int *, int *const);
+  TEST_IMPL(int *const &&, int *const &&);
+  TEST_IMPL(int *const &, int *const &);
+  TEST_IMPL(int *const, int *const);
+
+  TEST_IMPL(int const &&, int const &&);
+  TEST_IMPL(int const &, int const &);
+  TEST_IMPL(int const, int const);
+  TEST_IMPL(int const *&&, int const *const &&);
+  TEST_IMPL(int const *&, int const *const &);
+  TEST_IMPL(int const *, int const *const);
+  TEST_IMPL(int const *const &&, int const *const &&);
+  TEST_IMPL(int const *const &, int const *const &);
+  TEST_IMPL(int const *const, int const *const);
+
+# undef TEST_IMPL
+}
+
+TEST(traits, constify_from) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    constify_from<FATAL_UNPARENTHESIZE(T), From>::type \
+  >();
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int *const &&, int *const &&);
+  TEST_IMPL(int, int *const &, int *const &);
+  TEST_IMPL(int, int *const, int *const);
+  TEST_IMPL(int, int const &&, int const &&);
+  TEST_IMPL(int, int const &, int const &);
+  TEST_IMPL(int, int const, int const);
+  TEST_IMPL(int, int const *&&, int const *&&);
+  TEST_IMPL(int, int const *&, int const *&);
+  TEST_IMPL(int, int const *, int const *);
+  TEST_IMPL(int, int const *const &&, int const *const &&);
+  TEST_IMPL(int, int const *const &, int const *const &);
+  TEST_IMPL(int, int const *const, int const *const);
+
+  TEST_IMPL(int const, int &&, int const &&);
+  TEST_IMPL(int const, int &, int const &);
+  TEST_IMPL(int const, int, int const);
+  TEST_IMPL(int const, int *&&, int *const &&);
+  TEST_IMPL(int const, int *&, int *const &);
+  TEST_IMPL(int const, int *, int *const);
+  TEST_IMPL(int const, int *const &&, int *const &&);
+  TEST_IMPL(int const, int *const &, int *const &);
+  TEST_IMPL(int const, int *const, int *const);
+  TEST_IMPL(int const, int const &&, int const &&);
+  TEST_IMPL(int const, int const &, int const &);
+  TEST_IMPL(int const, int const, int const);
+  TEST_IMPL(int const, int const *&&, int const *const &&);
+  TEST_IMPL(int const, int const *&, int const *const &);
+  TEST_IMPL(int const, int const *, int const *const);
+  TEST_IMPL(int const, int const *const &&, int const *const &&);
+  TEST_IMPL(int const, int const *const &, int const *const &);
+  TEST_IMPL(int const, int const *const, int const *const);
+
+# undef TEST_IMPL
+}
 
 /////////////////
 // is_template //
@@ -496,6 +755,323 @@ TEST(traits, has_member_type) {
     std::false_type,
     has_member_type_test::has_xyz::check<has_member_type_test::baz>
   >();
+}
+
+//////////////////////////////
+// FATAL_DATA_MEMBER_GETTER //
+//////////////////////////////
+
+namespace data_member_getter_test {
+
+struct data {
+  data(
+    int i, std::string const &s, long &&l, double const d,
+    bool &b, std::vector<short> v, float const &&f
+  ):
+    i(i), s(s), l(std::move(l)), d(d), b(b), v(v), f(std::move(f))
+  {}
+
+  int i;
+  std::string const &s;
+  long &&l;
+  double const d;
+  bool &b;
+  std::vector<short> v;
+  float const &&f;
+};
+
+struct getter {
+# define TEST_IMPL(...) \
+  FATAL_DATA_MEMBER_GETTER(__VA_ARGS__, __VA_ARGS__)
+
+  TEST_IMPL(i);
+  TEST_IMPL(s);
+  TEST_IMPL(l);
+  TEST_IMPL(d);
+  TEST_IMPL(b);
+  TEST_IMPL(v);
+  TEST_IMPL(f);
+
+# undef TEST_IMPL
+};
+
+} // namespace data_member_getter_test {
+
+TEST(data_member_getter, type) {
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data>>();\
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &>>();\
+  } while (false)
+
+  TEST_IMPL(i, int &);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &);
+  TEST_IMPL(d, double const &);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short> &);
+  TEST_IMPL(f, float const &);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &&>>();\
+  } while (false)
+
+  TEST_IMPL(i, int &&);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const &&);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short> &&);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long const &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool const &);
+  TEST_IMPL(v, std::vector<short> const);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const &);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long const &);
+  TEST_IMPL(d, double const &);
+  TEST_IMPL(b, bool const &);
+  TEST_IMPL(v, std::vector<short> const &);
+  TEST_IMPL(f, float const &);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &&>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const &&);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long const &&);
+  TEST_IMPL(d, double const &&);
+  TEST_IMPL(b, bool const &);
+  TEST_IMPL(v, std::vector<short> const &&);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+}
+
+TEST(data_member_getter, get_ptr) {
+  int i = 99;
+  std::string const s("hello, world!");
+  long l = 27;
+  double const d = 5.6;
+  bool b = true;
+  std::vector<short> v{1, 2, 3, 4, 5, 6};
+  float const f = 7.2;
+
+  data_member_getter_test::data x(i, s, std::move(l), d, b, v, std::move(f));
+  auto const &y = x;
+
+  ASSERT_EQ(i, x.i);
+  ASSERT_EQ(s, x.s);
+  ASSERT_EQ(l, x.l);
+  ASSERT_EQ(d, x.d);
+  ASSERT_EQ(b, x.b);
+  ASSERT_EQ(v, x.v);
+  ASSERT_EQ(f, x.f);
+
+# define TEST_IMPL(Data, Field) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    \
+    EXPECT_EQ(Field, getter::Field::ref(Data)); \
+    EXPECT_EQ(Field, getter::Field::ref_getter()(Data)); \
+    \
+    EXPECT_EQ(Data.Field, getter::Field::ref(Data)); \
+    EXPECT_EQ(Data.Field, getter::Field::ref_getter()(Data)); \
+    \
+    EXPECT_EQ( \
+      std::addressof(Data.Field), \
+      std::addressof(getter::Field::ref(Data)) \
+    ); \
+    \
+    EXPECT_EQ( \
+      std::addressof(Data.Field), \
+      std::addressof(getter::Field::ref_getter()(Data)) \
+    ); \
+    \
+    FATAL_EXPECT_SAME< \
+      std::add_lvalue_reference< \
+        constify_from< \
+          decltype(Data.Field), \
+          std::remove_reference<decltype(Data)>::type \
+        >::type \
+      >::type, \
+      decltype(getter::Field::ref(Data)) \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      std::add_lvalue_reference< \
+        constify_from< \
+          decltype(Data.Field), \
+          std::remove_reference<decltype(Data)>::type \
+        >::type \
+      >::type, \
+      decltype(getter::Field::ref_getter()(Data)) \
+    >(); \
+  } while (false)
+
+  TEST_IMPL(x, i);
+  TEST_IMPL(x, s);
+  TEST_IMPL(x, l);
+  TEST_IMPL(x, d);
+  TEST_IMPL(x, b);
+  TEST_IMPL(x, v);
+  TEST_IMPL(x, f);
+
+  TEST_IMPL(y, i);
+  TEST_IMPL(y, s);
+  TEST_IMPL(y, l);
+  TEST_IMPL(y, d);
+  TEST_IMPL(y, b);
+  TEST_IMPL(y, v);
+  TEST_IMPL(y, f);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Data, Field) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    \
+    EXPECT_EQ(Field, getter::Field::ref(std::move(Data))); \
+    EXPECT_EQ(Field, getter::Field::ref_getter()(std::move(Data))); \
+    \
+    EXPECT_EQ(std::move(Data).Field, getter::Field::ref(std::move(Data))); \
+    EXPECT_EQ( \
+      std::move(Data).Field, \
+      getter::Field::ref_getter()(std::move(Data)) \
+    ); \
+    \
+    FATAL_EXPECT_SAME< \
+      std::add_rvalue_reference< \
+        constify_from< \
+          decltype(std::move(Data).Field), \
+          std::remove_reference<decltype(std::move(Data))>::type \
+        >::type \
+      >::type, \
+      decltype(getter::Field::ref(std::move(Data))) \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      std::add_rvalue_reference< \
+        constify_from< \
+          decltype(std::move(Data).Field), \
+          std::remove_reference<decltype(std::move(Data))>::type \
+        >::type \
+      >::type, \
+      decltype(getter::Field::ref_getter()(std::move(Data))) \
+    >(); \
+  } while (false)
+
+  TEST_IMPL(x, i);
+  TEST_IMPL(x, s);
+  TEST_IMPL(x, l);
+  TEST_IMPL(x, d);
+  TEST_IMPL(x, b);
+  TEST_IMPL(x, v);
+  TEST_IMPL(x, f);
+
+  TEST_IMPL(y, i);
+  TEST_IMPL(y, s);
+  TEST_IMPL(y, l);
+  TEST_IMPL(y, d);
+  TEST_IMPL(y, b);
+  TEST_IMPL(y, v);
+  TEST_IMPL(y, f);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Data, Field) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    \
+    EXPECT_EQ(std::addressof(Data.Field), getter::Field::ptr(Data)); \
+    EXPECT_EQ(std::addressof(Data.Field), getter::Field::ptr_getter()(Data)); \
+    \
+    FATAL_EXPECT_SAME< \
+      constify_from< \
+        std::remove_pointer<decltype(std::addressof(Data.Field))>::type, \
+        std::remove_reference<decltype(Data)>::type \
+      >::type *, \
+      decltype(getter::Field::ptr(Data)) \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      constify_from< \
+        std::remove_pointer<decltype(std::addressof(Data.Field))>::type, \
+        std::remove_reference<decltype(Data)>::type \
+      >::type *, \
+      decltype(getter::Field::ptr_getter()(Data)) \
+    >(); \
+  } while (false)
+
+  TEST_IMPL(x, i);
+  TEST_IMPL(x, s);
+  TEST_IMPL(x, l);
+  TEST_IMPL(x, d);
+  TEST_IMPL(x, b);
+  TEST_IMPL(x, v);
+  TEST_IMPL(x, f);
+
+  TEST_IMPL(y, i);
+  TEST_IMPL(y, s);
+  TEST_IMPL(y, l);
+  TEST_IMPL(y, d);
+  TEST_IMPL(y, b);
+  TEST_IMPL(y, v);
+  TEST_IMPL(y, f);
+
+# undef TEST_IMPL
 }
 
 } // namespace fatal {

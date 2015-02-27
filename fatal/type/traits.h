@@ -49,6 +49,195 @@ template <typename T>
 struct remove_rvalue_reference<T &&> { using type = T; };
 
 /**
+ * Given types `T` and `U`:
+ * - if `U` is not a reference, yield `T`
+ * - if `U` is an l-value reference, turn `T` into an l-value reference
+ * - if `U` is an r-value reference, turn `T` into an r-value reference
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `foo`
+ *  using result1 = same_reference_as<foo, int>::type;
+ *
+ *  // yields `foo &&`
+ *  using result2 = same_reference_as<foo &&, int>::type;
+ *
+ *  // yields `foo &`
+ *  using result3 = same_reference_as<foo, int &>::type;
+ *
+ *  // yields `foo &`
+ *  using result4 = same_reference_as<foo &&, int &>::type;
+ *
+ *  // yields `foo &&`
+ *  using result5 = same_reference_as<foo, int &&>::type;
+ *
+ *  // yields `foo &&`
+ *  using result6 = same_reference_as<foo &, int &&>::type;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, typename>
+struct same_reference_as {
+  using type = T;
+};
+
+template <typename T, typename TFrom>
+struct same_reference_as<T, TFrom &> {
+  using type = typename std::add_lvalue_reference<
+    typename std::remove_reference<T>::type
+  >::type;
+};
+
+template <typename T, typename TFrom>
+struct same_reference_as<T, TFrom &&> {
+  using type = typename std::add_rvalue_reference<
+    typename std::remove_reference<T>::type
+  >::type;
+};
+
+/**
+ * Given types `T` and `U`:
+ * - if `U` is not a reference, yield `T`
+ * - if `U` is an l-value reference, yield `std::add_lvalue_reference<T>::type`
+ * - if `U` is an r-value reference, yield `std::add_rvalue_reference<T>::type`
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `foo`
+ *  using result1 = add_reference_from<foo, int>::type;
+ *
+ *  // yields `foo &&`
+ *  using result2 = add_reference_from<foo &&, int>::type;
+ *
+ *  // yields `foo &`
+ *  using result3 = add_reference_from<foo, int &>::type;
+ *
+ *  // yields `foo &`
+ *  using result4 = add_reference_from<foo &&, int &>::type;
+ *
+ *  // yields `foo &&`
+ *  using result5 = add_reference_from<foo, int &&>::type;
+ *
+ *  // yields `foo &`
+ *  using result6 = add_reference_from<foo &, int &&>::type;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, typename>
+struct add_reference_from {
+  using type = T;
+};
+
+template <typename T, typename TFrom>
+struct add_reference_from<T, TFrom &> {
+  using type = typename std::add_lvalue_reference<T>::type;
+};
+
+template <typename T, typename TFrom>
+struct add_reference_from<T, TFrom &&> {
+  using type = typename std::add_rvalue_reference<T>::type;
+};
+
+/**
+ * Applies `std::add_const` to a type iff some other type is const.
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `foo`
+ *  using result1 = add_const_from<foo, int>::type;
+ *
+ *  // yields `foo const`
+ *  using result2 = add_const_from<foo, int const>::type;
+ *
+ *  // yields `foo const`
+ *  using result3 = add_const_from<foo const, int const>::type;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, typename>
+struct add_const_from {
+  using type = T;
+};
+
+template <typename T, typename TFrom>
+struct add_const_from<T, TFrom const> {
+  using type = typename std::add_const<T>::type;
+};
+
+/**
+ * Adds the const qualifier to a type.
+ *
+ * If the type is a reference, to some other type `U`,
+ * make it the same kind of reference to `U const`.
+ *
+ * Example:
+ *
+ *  // yields `int const`
+ *  using result1 = constify<int>::type;
+ *
+ *  // yields `int const &`
+ *  using result2 = constify<int &>::type;
+ *
+ *  // yields `int const &&`
+ *  using result3 = constify<int &&>::type;
+ *
+ *  // yields `int const &`
+ *  using result4 = constify<int const &>::type;
+ *
+ *  // yields `int *const`
+ *  using result4 = constify<int *>::type;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+struct constify {
+  using type = typename add_reference_from<
+    typename std::decay<T>::type const,
+    T
+  >::type;
+};
+
+/**
+ * Applies `constify` to a type iff some other type is const.
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `foo const`
+ *  using result1 = constify_from<foo, int const>::type;
+ *
+ *  // yields `foo const &`
+ *  using result2 = constify_from<foo &, int const>::type;
+ *
+ *  // yields `foo &&`
+ *  using result3 = constify_from<foo &&, int>::type;
+ *
+ *  // yields `foo const &`
+ *  using result4 = constify_from<foo const &, int const>::type;
+ *
+ *  // yields `foo const &`
+ *  using result5 = constify_from<foo const &, int>::type;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, typename>
+struct constify_from {
+  using type = T;
+};
+
+template <typename T, typename TFrom>
+struct constify_from<T, TFrom const> {
+  using type = typename constify<T>::type;
+};
+
+/**
  * Checks whether a given type is an instantiation of at least one of a list of
  * class templates.
  *
@@ -95,10 +284,6 @@ class is_template {
 public:
   template <typename T>
   using type = logical_transform::any<impl<TTemplates, T>...>;
-
-  // TODO: DOCUMENT AND TEST
-  template <typename T>
-  using apply = type<T>;
 };
 
 /**
@@ -229,7 +414,41 @@ using safe_overload_t = typename std::enable_if<
 >::type;
 
 /**
- * TODO: DOCUMENT
+ * Tells whether an instance of a given type supports the
+ * call operator, when passing arguments of given types.
+ *
+ * Example:
+ *
+ *  void noop();
+ *
+ *  int fn(std::string const &s, bool b);
+ *
+ *  struct non_callable {};
+ *
+ *  struct callable {
+ *    void operator ()(int i, double d);
+ *  };
+ *
+ *  // yields `true`
+ *  is_callable<noop>::value
+ *
+ *  // yields `false`
+ *  is_callable<decltype(fn), int, double>::value
+ *
+ *  // yields `true`
+ *  is_callable<decltype(fn), char const *, bool>::value
+ *
+ *  // yields `false`
+ *  is_callable<non_callable>::value
+ *
+ *  // yields `false`
+ *  is_callable<non_callable, int>::value
+ *
+ *  // yields `true`
+ *  is_callable<callable, int, double>::value
+ *
+ *  // yields `false`
+ *  is_callable<callable, int, double, std::string>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -335,6 +554,8 @@ struct has_member_type {
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(config);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_iterator);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_pointer);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_ptr);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_ref);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_reference);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_reverse_iterator);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(data);
@@ -369,6 +590,8 @@ struct has_member_type {
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(pair);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(pointer);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(predicate);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ptr);
+  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ref);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reference);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(request);
   FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(response);
@@ -390,6 +613,138 @@ struct has_member_type {
 # undef FATAL_IMPL_HAS_MEMBER_TYPE_TYPE
 # undef FATAL_IMPL_HAS_MEMBER_TYPE
 # undef FATAL_IMPL_HAS_MEMBER_TYPE_DECL
+};
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_DATA_MEMBER_GETTER(Class, ...) \
+  struct Class { \
+    template <typename TOwner> \
+    using type = typename ::fatal::add_reference_from< \
+      typename ::fatal::constify_from< \
+        decltype(::std::declval<TOwner>().__VA_ARGS__), \
+        typename ::std::remove_reference<TOwner>::type \
+      >::type, \
+      TOwner \
+    >::type; \
+    \
+  public: \
+    FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
+    \
+    template <typename TOwner> \
+    static type<TOwner &&> ref(TOwner &&owner) { \
+      return static_cast<type<TOwner &&>>( \
+        ::std::forward<TOwner>(owner).__VA_ARGS__ \
+      ); \
+    } \
+    \
+    struct ref_getter { \
+      template <typename TOwner> \
+      type<TOwner &&> operator ()(TOwner &&owner) const { \
+        return static_cast<type<TOwner &&>>( \
+          ::std::forward<TOwner>(owner).__VA_ARGS__ \
+        ); \
+      } \
+    }; \
+    \
+    template <typename TOwner> \
+    static typename ::std::remove_reference<type<TOwner>>::type *ptr( \
+      TOwner &owner \
+    ) { \
+      return ::std::addressof(owner.__VA_ARGS__); \
+    } \
+    \
+    struct ptr_getter { \
+      template <typename TOwner> \
+      typename ::std::remove_reference<type<TOwner>>::type *operator ()( \
+        TOwner &owner \
+      ) const { \
+        return ::std::addressof(owner.__VA_ARGS__); \
+      } \
+    }; \
+  }
+
+/**
+ * Instantiations of FATAL_DATA_MEMBER_GETTER
+ * for some popular names.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct data_member_getter {
+# define FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL(Class, ...) \
+  private: \
+    FATAL_DATA_MEMBER_GETTER(Class, __VA_ARGS__); \
+    \
+  public: \
+    using __VA_ARGS__ = Class
+
+# define FATAL_IMPL_DATA_MEMBER_GETTER_FOR(...) \
+  FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL(FATAL_UID(__VA_ARGS__), __VA_ARGS__)
+
+# define FATAL_IMPL_DATA_MEMBER_GETTER(...) \
+  FATAL_IMPL_DATA_MEMBER_GETTER_FOR(__VA_ARGS__); \
+  FATAL_IMPL_DATA_MEMBER_GETTER_FOR(FATAL_CAT(__VA_ARGS__, _))
+
+  FATAL_IMPL_DATA_MEMBER_GETTER(allocator);
+  FATAL_IMPL_DATA_MEMBER_GETTER(args);
+  FATAL_IMPL_DATA_MEMBER_GETTER(array);
+  FATAL_IMPL_DATA_MEMBER_GETTER(category);
+  FATAL_IMPL_DATA_MEMBER_GETTER(config);
+  FATAL_IMPL_DATA_MEMBER_GETTER(data);
+  FATAL_IMPL_DATA_MEMBER_GETTER(decoder);
+  FATAL_IMPL_DATA_MEMBER_GETTER(difference);
+  FATAL_IMPL_DATA_MEMBER_GETTER(element);
+  FATAL_IMPL_DATA_MEMBER_GETTER(encoder);
+  FATAL_IMPL_DATA_MEMBER_GETTER(extension);
+  FATAL_IMPL_DATA_MEMBER_GETTER(first);
+  FATAL_IMPL_DATA_MEMBER_GETTER(flag);
+  FATAL_IMPL_DATA_MEMBER_GETTER(hash);
+  FATAL_IMPL_DATA_MEMBER_GETTER(id);
+  FATAL_IMPL_DATA_MEMBER_GETTER(ids);
+  FATAL_IMPL_DATA_MEMBER_GETTER(index);
+  FATAL_IMPL_DATA_MEMBER_GETTER(info);
+  FATAL_IMPL_DATA_MEMBER_GETTER(information);
+  FATAL_IMPL_DATA_MEMBER_GETTER(instance);
+  FATAL_IMPL_DATA_MEMBER_GETTER(item);
+  FATAL_IMPL_DATA_MEMBER_GETTER(iterator);
+  FATAL_IMPL_DATA_MEMBER_GETTER(key);
+  FATAL_IMPL_DATA_MEMBER_GETTER(list);
+  FATAL_IMPL_DATA_MEMBER_GETTER(map);
+  FATAL_IMPL_DATA_MEMBER_GETTER(mapped);
+  FATAL_IMPL_DATA_MEMBER_GETTER(mapping);
+  FATAL_IMPL_DATA_MEMBER_GETTER(mappings);
+  FATAL_IMPL_DATA_MEMBER_GETTER(member);
+  FATAL_IMPL_DATA_MEMBER_GETTER(members);
+  FATAL_IMPL_DATA_MEMBER_GETTER(name);
+  FATAL_IMPL_DATA_MEMBER_GETTER(names);
+  FATAL_IMPL_DATA_MEMBER_GETTER(pair);
+  FATAL_IMPL_DATA_MEMBER_GETTER(pointer);
+  FATAL_IMPL_DATA_MEMBER_GETTER(predicate);
+  FATAL_IMPL_DATA_MEMBER_GETTER(ptr);
+  FATAL_IMPL_DATA_MEMBER_GETTER(ref);
+  FATAL_IMPL_DATA_MEMBER_GETTER(reference);
+  FATAL_IMPL_DATA_MEMBER_GETTER(request);
+  FATAL_IMPL_DATA_MEMBER_GETTER(response);
+  FATAL_IMPL_DATA_MEMBER_GETTER(result);
+  FATAL_IMPL_DATA_MEMBER_GETTER(second);
+  FATAL_IMPL_DATA_MEMBER_GETTER(set);
+  FATAL_IMPL_DATA_MEMBER_GETTER(size);
+  FATAL_IMPL_DATA_MEMBER_GETTER(str);
+  FATAL_IMPL_DATA_MEMBER_GETTER(string);
+  FATAL_IMPL_DATA_MEMBER_GETTER(tag);
+  FATAL_IMPL_DATA_MEMBER_GETTER(tuple);
+  FATAL_IMPL_DATA_MEMBER_GETTER(type);
+  FATAL_IMPL_DATA_MEMBER_GETTER(types);
+  FATAL_IMPL_DATA_MEMBER_GETTER(value);
+  FATAL_IMPL_DATA_MEMBER_GETTER(values);
+  FATAL_IMPL_DATA_MEMBER_GETTER(version);
+
+# undef FATAL_IMPL_DATA_MEMBER_GETTER
+# undef FATAL_IMPL_DATA_MEMBER_GETTER_FOR
+# undef FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL
 };
 
 } // namespace fatal
