@@ -5,6 +5,7 @@ It provides a broad range of template meta-programming tools for reflection and 
 
 The goal is to speed up prototyping of complex software, while abstracting the complexity of template meta-programming and making its benefits available to a wider audience other than hard-core library writers.
 
+Bleeding edge: https://github.com/facebook/fatal/tree/dev
 Discussions group: https://www.facebook.com/groups/libfatal/
 
 ## Examples
