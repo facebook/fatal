@@ -6,6 +6,7 @@ It provides a broad range of template meta-programming tools for reflection and 
 The goal is to speed up prototyping of complex software, while abstracting the complexity of template meta-programming and making its benefits available to a wider audience other than hard-core library writers.
 
 Bleeding edge: https://github.com/facebook/fatal/tree/dev
+
 Discussions group: https://www.facebook.com/groups/libfatal/
 
 ## Examples
@@ -81,6 +82,7 @@ Extensive documentation with examples can be found inline in the source header f
 - Website: https://github.com/facebook/fatal/
 - Facebook Page: https://www.facebook.com/libfatal
 - Talk at CppCon 2014: https://www.youtube.com/watch?v=0A9pYr8wevk
+
 See the CONTRIBUTING file for how to help out.
 
 ## License
