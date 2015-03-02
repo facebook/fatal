@@ -12,16 +12,11 @@
 
 #include <folly/Benchmark.h>
 
-#include <glog/logging.h>
-
 ////////////
 // DRIVER //
 ////////////
 
 int main(int argc, char **argv) {
-  google::InitGoogleLogging(argc > 0 ? argv[0] : "unknown");
-  google::ParseCommandLineFlags(&argc, &argv, true);
-
   folly::runBenchmarks();
 
   return 0;

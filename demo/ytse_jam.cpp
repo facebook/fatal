@@ -8,12 +8,10 @@
  */
 
 #include <fatal/container/variant.h>
+#include <fatal/test/lib.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
 #include <fatal/type/string.h>
-
-#include <folly/Conv.h>
-#include <folly/Demangle.h>
 
 #include <iostream>
 #include <unordered_map>
@@ -29,12 +27,12 @@ struct request_args {
 
   template <typename T>
   T next() {
-    if (offset_ < tokens_.size()) { return folly::to<T>(tokens_[offset_++]); }
+    if (offset_ < tokens_.size()) { return fatal::parse<T>(tokens_[offset_++]); }
     throw std::runtime_error("expected: token");
   }
 
   template <typename T>
-  T get(std::size_t index) { return folly::to<T>(tokens_[index + offset_]); }
+  T get(std::size_t index) { return fatal::parse<T>(tokens_[index + offset_]); }
   std::size_t size() const { return tokens_.size() - offset_; }
 
 private:
@@ -272,7 +270,7 @@ private:
         data_type::type::constructor::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
           using arg = decltype(arg_tag);
           if (arg::value) { std::cout << ", "; }
-          std::cout << folly::demangle(typeid(typename arg::type));
+          std::cout << fatal::type_str<typename arg::type>();
         });
         std::cout << ')' << std::endl;
 
@@ -282,7 +280,7 @@ private:
           op::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
             using arg = decltype(arg_tag);
             if (arg::value) { std::cout << ", "; }
-            std::cout << folly::demangle(typeid(typename arg::type));
+            std::cout << fatal::type_str<typename arg::type>();
           });
           std::cout << ')' << std::endl;
         });
@@ -296,12 +294,12 @@ private:
       supported::foreach([](auto data_type_tag) { // indexed_type_tag<data_type>
         using data_type = typename decltype(data_type_tag)::type;
         std::cout << "  \"" << data_type::name::z_data() << "\": {" << std::endl;
-        std::cout << "    \"type\": \"" << folly::demangle(typeid(typename data_type::type)) << "\"," << std::endl;
+        std::cout << "    \"type\": \"" << fatal::type_str<typename data_type::type>() << "\"," << std::endl;
         std::cout << "    \"constructor\": {" << std::endl;
         std::cout << "      \"args\": {" << std::endl;
         data_type::constructor::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
           using arg = decltype(arg_tag);
-          std::cout << "        \"" << arg::value << "\": \"" << folly::demangle(typeid(typename arg::type)) << '"';
+          std::cout << "        \"" << arg::value << "\": \"" << fatal::type_str<typename arg::type>() << '"';
           if (arg::value + 1 < data_type::constructor::args::size) { std::cout << ','; }
           std::cout << std::endl;
         });
@@ -311,11 +309,11 @@ private:
         data_type::operations::foreach([](auto op_tag) { // indexed_type_tag<operation>
           using op = typename decltype(op_tag)::type;
           std::cout << "      \"" << op::verb::z_data() << "\": {" << std::endl;
-          std::cout << "        \"result\": \"" << folly::demangle(typeid(typename op::result)) << "\"," << std::endl;
+          std::cout << "        \"result\": \"" << fatal::type_str<typename op::result>() << "\"," << std::endl;
           std::cout << "        \"args\": {" << std::endl;
           op::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
             using arg = decltype(arg_tag);
-            std::cout << "          \"" << arg::value << "\": \"" << folly::demangle(typeid(typename arg::type)) << '"';
+            std::cout << "          \"" << arg::value << "\": \"" << fatal::type_str<typename arg::type>() << '"';
             if (arg::value + 1 < op::args::size) { std::cout << ','; }
             std::cout << std::endl;
           });

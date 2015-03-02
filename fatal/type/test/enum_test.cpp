@@ -11,8 +11,6 @@
 
 #include <fatal/test/driver.h>
 
-#include <folly/Preprocessor.h>
-
 #include <cstring>
 
 namespace fatal {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -11,9 +11,10 @@
 
 #include <fatal/test/driver.h>
 
+#include <fatal/container/optional.h>
+
 #include <folly/Arena.h>
 #include <folly/Memory.h>
-#include <folly/Optional.h>
 #include <folly/String.h>
 #include <folly/dynamic.h>
 
@@ -555,12 +556,12 @@ struct visit_if_visitor {
   visit_if_visitor(T expected): expected_(std::move(expected)) {}
 
   void operator ()(T const &actual) const {
-    ASSERT_TRUE(expected_.hasValue());
+    ASSERT_FALSE(expected_.empty());
     EXPECT_EQ(*expected_, actual);
   }
 
 private:
-  folly::Optional<T> const expected_;
+  optional<T> const expected_;
 };
 
 template <typename T, typename TVariant, typename... Args>
@@ -600,8 +601,8 @@ struct type_checker_visitor {
   struct comparer<U, false> {
     static void compare(T const &expected, U const &actual) {
       LOG(INFO) << "visited \"" << actual << "\" ["
-        << demangle(typeid(U).name()) << ", expecting \""
-        << expected << "\" [" << demangle(typeid(T).name()) << ']';
+        << type_str<U>() << ", expecting \""
+        << expected << "\" [" << type_str<T>() << ']';
       EXPECT_TRUE(false);
     }
   };
@@ -1158,8 +1159,8 @@ template <typename Expected, typename ...Args>
 void check_type_tag_size() {
   typedef variant<default_storage_policy<>, Args...> var;
   if(!std::is_same<Expected, typename var::type_tag>::value) {
-    LOG(INFO) << "expected \"" << demangle(typeid(Expected).name())
-      << "\", got \"" << demangle(typeid(typename var::type_tag).name())
+    LOG(INFO) << "expected \"" << type_str<Expected>()
+      << "\", got \"" << type_str<typename var::type_tag>()
       << "\" for " << sizeof...(Args) << " types";
     EXPECT_TRUE(false);
   }

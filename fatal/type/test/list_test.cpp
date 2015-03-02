@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -446,44 +446,28 @@ TEST(foreach_if, foreach_if) {
 
 template <typename TExpectedList>
 struct foreach_test_visitor {
-  typedef TExpectedList expected;
+  using expected_list = TExpectedList;
 
   template <typename U, std::size_t Index>
-  void operator ()(indexed_type_tag<U, Index> type) {
-    FATAL_EXPECT_SAME<
-      typename expected::template at<Index>,
-      indexed_type_tag<U, Index>
-    >();
+  void operator ()(indexed_type_tag<U, Index>) {
+    FATAL_EXPECT_SAME<typename expected_list::template at<Index>, U>();
 
-    auto const index = index_++;
-    EXPECT_EQ(index, Index);
-
-    auto const &actual = typeid(type);
-    auto const &expected = expected::type_at(index);
-
-    if (expected != actual) {
-      EXPECT_EQ(
-        folly::to<std::string>(
-          "expected type '", folly::demangle(expected.name()), '\''
-        ),
-        folly::to<std::string>(
-          "actual type '", folly::demangle(actual.name()), '\''
-        )
-      );
-    }
+    visited.push_back(Index);
   }
 
-private:
-  std::size_t index_ = 0;
+  std::vector<std::size_t> visited;
 };
 
 template <typename TList>
 void check_foreach() {
-  typedef typename TList::template indexed_transform<
-    indexed_type_tag
-  > expected;
+  foreach_test_visitor<TList> visitor;
 
-  TList::foreach(foreach_test_visitor<expected>());
+  TList::foreach(visitor);
+
+  EXPECT_EQ(TList::size, visitor.visited.size());
+  for (auto i = visitor.visited.size(); i--; ) {
+    EXPECT_EQ(i, visitor.visited[i]);
+  }
 }
 
 TEST(foreach, foreach) {
@@ -1233,14 +1217,14 @@ void check_sort() {
     "expected list should be sorted"
   );
 
-  typedef int_seq<Values...> input;
-  typedef typename input::template sort<> sorted;
+  using input = int_seq<Values...>;
+  using sorted = typename input::template sort<>;
   auto is_sorted = sorted::template is_sorted<>::value;
-  typedef typename sorted::template apply_values<int, int_seq> actual;
+  using actual = typename sorted::template apply_values<int, int_seq>;
 
   if (!is_sorted || !std::is_same<expected, actual>::value) {
-    VLOG(1) << "input: '" << folly::demangle(typeid(input).name()) << '\'';
-    VLOG(1) << "result: '" << folly::demangle(typeid(actual).name()) << '\'';
+    VLOG(1) << "input: '" << type_str<input>() << '\'';
+    VLOG(1) << "result: '" << type_str<actual>() << '\'';
   }
 
   EXPECT_TRUE(is_sorted);

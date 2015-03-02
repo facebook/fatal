@@ -269,6 +269,7 @@ template <typename U> struct type_at<U> {
   }
 };
 
+// TODO: speed up search using interpolation search
 template <typename U, typename... UArgs> struct type_at<U, UArgs...> {
   static constexpr std::type_info const &at(std::size_t index) {
     return index ? type_at<UArgs...>::at(index - 1) : type_at<U>::at(index);
@@ -1527,7 +1528,7 @@ struct type_list {
    *    }
    *  };
    *
-   *  typedef type_list<double, float, long, bool, int> list;
+   *  using list = type_list<double, float, long, bool, int>;
    *
    *  // yields `true` and prints `
    *  //  overload for double at index 0: visited!

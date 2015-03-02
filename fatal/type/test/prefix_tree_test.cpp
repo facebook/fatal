@@ -12,8 +12,6 @@
 
 #include <fatal/test/driver.h>
 
-#include <folly/Conv.h>
-
 #include <type_traits>
 
 namespace fatal {
@@ -273,7 +271,7 @@ template <> struct check_match_exact_visitor<false> {
   void operator ()(type_tag<TString>, VArgs &&...) {
     EXPECT_EQ(
       "no match expected",
-      folly::to<std::string>("got '", TString::string(), '\'')
+      to_string("got '", TString::string(), '\'')
     );
   }
 };

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -11,8 +11,7 @@
 
 #include <fatal/test/driver.h>
 
-#include <folly/String.h>
-#include <folly/Random.h>
+#include <random>
 
 namespace fatal {
 
@@ -253,9 +252,7 @@ TEST(numerics, smallest_least_unsigned_integral) {
 
 #define SMALLEST_FOR_VALUE_TEST(n, expected) \
   VLOG(1) << "expected = " << #expected << ", actual = " \
-    << folly::demangle( \
-      typeid(smallest_uint_for_value<n>).name() \
-    ).toStdString(); \
+    << ::fatal::type_str<smallest_uint_for_value<n>>(); \
   EXPECT_TRUE((std::is_same<expected, smallest_uint_for_value<n>>::value))
 
 TEST(numerics, smallest_uint_for_value) {
@@ -614,7 +611,7 @@ void check_largest_mersenne_prime_for_type() {
   typedef mersenne_prime<nth_mersenne> expected;
   typedef largest_mersenne_prime_for_type<T, diff> actual;
 
-  VLOG(1) << "T = " << folly::demangle(typeid(T).name())
+  VLOG(1) << "T = " << type_str<T>()
     << ", unsigned_bits_size = "
     << (data_bits<T>::value - std::is_signed<T>::value)
     << ", diff = " << diff << ", nth_mersenne = " << nth_mersenne;
@@ -683,12 +680,12 @@ TEST(numerics, largest_mersenne_prime_for_type) {
 // DISCRETE_TO_CONTINUOUS //
 ////////////////////////////
 
-#define C_TEST_IMPL(conv, dmin, dmax) \
+#define C_TEST_IMPL(conv, dmin, dmax, rng) \
   do { \
     auto const drange = dmax - dmin; \
     auto const crange = conv.max() - conv.min(); \
-    for(auto i = 10000; i--; ) { \
-      auto n = dmin + (folly::Random::rand32() % drange); \
+    for(auto i = 100000; i--; ) { \
+      auto n = dmin + (rng() % drange); \
       auto expected = static_cast<double>(n - dmin) \
         / drange * crange + conv.min(); \
       EXPECT_EQ(expected, conv(n)); \
@@ -696,8 +693,14 @@ TEST(numerics, largest_mersenne_prime_for_type) {
   } while(false);
 
 TEST(discrete_to_continuous, sanity_check) {
+  std::mt19937 rng([]() {
+    std::random_device r;
+    return r();
+  }());
+
   discrete_to_continuous<unsigned, double> conv(11, 9999, -5.5, 5.5);
-  C_TEST_IMPL(conv, 11, 9999);
+
+  C_TEST_IMPL(conv, 11, 9999, rng);
 }
 
 #undef C_TEST_IMPL

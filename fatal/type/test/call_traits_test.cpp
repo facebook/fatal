@@ -16,6 +16,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <cstring>
+
 namespace fatal {
 
 struct dummy_static_member { static void test_fn(int); };
