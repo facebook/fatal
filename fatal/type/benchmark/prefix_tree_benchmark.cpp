@@ -73,7 +73,7 @@ struct benchmark_impl {
   static void prefix_tree_benchmark() {
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {}
+    FATAL_BENCHMARK_SUSPEND {}
 
     for (auto const &s: str) {
       prefix_tree::template match<>::exact(
@@ -87,7 +87,7 @@ struct benchmark_impl {
   static void sequential_ifs_benchmark() {
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {}
+    FATAL_BENCHMARK_SUSPEND {}
 
     for (auto const &s: str) {
       sequential_ifs_impl<TStrings...>::match(s, count);
@@ -100,7 +100,7 @@ struct benchmark_impl {
     std::array<std::string, list::size> c = str;
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {
+    FATAL_BENCHMARK_SUSPEND {
       std::sort(c.begin(), c.end());
     }
 
@@ -115,7 +115,7 @@ struct benchmark_impl {
     std::vector<std::string> c;
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {
+    FATAL_BENCHMARK_SUSPEND {
       for (auto const &s: str) {
         c.push_back(s);
       }
@@ -134,7 +134,7 @@ struct benchmark_impl {
     std::set<std::string> c;
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {
+    FATAL_BENCHMARK_SUSPEND {
       for (auto const &s: str) {
         c.insert(s);
       }
@@ -152,7 +152,7 @@ struct benchmark_impl {
     std::unordered_set<std::string> c;
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {
+    FATAL_BENCHMARK_SUSPEND {
       for (auto const &s: str) {
         c.insert(s);
       }
@@ -190,27 +190,27 @@ std::array<std::string, sizeof...(TStrings)> const benchmark_impl<
     folly::doNotOptimizeAway(count); \
     return count; \
   }(); \
-  BENCHMARK(name##_type_prefix_tree) { \
+  FATAL_BENCHMARK(name##_type_prefix_tree) { \
     folly::doNotOptimizeAway(name##_warmup); \
     name##_impl::prefix_tree_benchmark(); \
   } \
-  BENCHMARK_RELATIVE(name##_sorted_std_array) { \
+  FATAL_BENCHMARK(name##_sorted_std_array) { \
     folly::doNotOptimizeAway(name##_warmup); \
     name##_impl::sorted_std_array_benchmark(); \
   } \
-  BENCHMARK_RELATIVE(name##_sorted_std_vector) { \
+  FATAL_BENCHMARK(name##_sorted_std_vector) { \
     folly::doNotOptimizeAway(name##_warmup); \
     name##_impl::sorted_std_vector_benchmark(); \
   } \
-  BENCHMARK_RELATIVE(name##_std_unordered_set) { \
+  FATAL_BENCHMARK(name##_std_unordered_set) { \
     folly::doNotOptimizeAway(name##_warmup); \
     name##_impl::std_unordered_set_benchmark(); \
   } \
-  BENCHMARK_RELATIVE(name##_std_set) { \
+  FATAL_BENCHMARK(name##_std_set) { \
     folly::doNotOptimizeAway(name##_warmup); \
     name##_impl::std_set_benchmark(); \
   } \
-  BENCHMARK_RELATIVE(name##_sequential_ifs) { \
+  FATAL_BENCHMARK(name##_sequential_ifs) { \
     folly::doNotOptimizeAway(name##_warmup); \
     name##_impl::sequential_ifs_benchmark(); \
   }
@@ -363,7 +363,6 @@ CREATE_BENCHMARK(n1_len5, s5_00);
 CREATE_BENCHMARK(n1_len10, s10_00);
 CREATE_BENCHMARK(n1_len20, s20_00);
 CREATE_BENCHMARK(n1_len30, s30_00);
-BENCHMARK_DRAW_LINE();
 
 ///////////
 // n = 2 //
@@ -373,7 +372,6 @@ CREATE_BENCHMARK(n2_len5, s5_00, s5_01);
 CREATE_BENCHMARK(n2_len10, s10_00, s10_01);
 CREATE_BENCHMARK(n2_len20, s20_00, s20_01);
 CREATE_BENCHMARK(n2_len30, s30_00, s30_01);
-BENCHMARK_DRAW_LINE();
 
 ///////////
 // n = 3 //
@@ -383,7 +381,6 @@ CREATE_BENCHMARK(n3_len5, s5_00, s5_01, s5_02);
 CREATE_BENCHMARK(n3_len10, s10_00, s10_01, s10_02);
 CREATE_BENCHMARK(n3_len20, s20_00, s20_01, s20_02);
 CREATE_BENCHMARK(n3_len30, s30_00, s30_01, s30_02);
-BENCHMARK_DRAW_LINE();
 
 ///////////
 // n = 4 //
@@ -393,7 +390,6 @@ CREATE_BENCHMARK(n4_len5, s5_00, s5_01, s5_02, s5_03);
 CREATE_BENCHMARK(n4_len10, s10_00, s10_01, s10_02, s10_03);
 CREATE_BENCHMARK(n4_len20, s20_00, s20_01, s20_02, s20_03);
 CREATE_BENCHMARK(n4_len30, s30_00, s30_01, s30_02, s30_03);
-BENCHMARK_DRAW_LINE();
 
 ///////////
 // n = 5 //
@@ -403,7 +399,6 @@ CREATE_BENCHMARK(n5_len5, s5_00, s5_01, s5_02, s5_03, s5_04);
 CREATE_BENCHMARK(n5_len10, s10_00, s10_01, s10_02, s10_03, s10_04);
 CREATE_BENCHMARK(n5_len20, s20_00, s20_01, s20_02, s20_03, s20_04);
 CREATE_BENCHMARK(n5_len30, s30_00, s30_01, s30_02, s30_03, s30_04);
-BENCHMARK_DRAW_LINE();
 
 ////////////
 // n = 10 //
@@ -428,8 +423,6 @@ CREATE_BENCHMARK(n10_len30,
   s30_00, s30_01, s30_02, s30_03, s30_04,
   s30_05, s30_06, s30_07, s30_08, s30_09
 );
-
-BENCHMARK_DRAW_LINE();
 
 ////////////
 // n = 20 //
@@ -462,8 +455,6 @@ CREATE_BENCHMARK(n20_len30,
   s30_10, s30_11, s30_12, s30_13, s30_14,
   s30_15, s30_16, s30_17, s30_18, s30_19
 );
-
-BENCHMARK_DRAW_LINE();
 
 ////////////
 // n = 30 //
