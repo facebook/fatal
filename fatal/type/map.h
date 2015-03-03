@@ -34,20 +34,22 @@ template <typename... Args> class type_map;
 namespace detail {
 namespace type_map_impl {
 
-///////////////////
-// pair_resolver //
-///////////////////
+/////////////////////
+// build_pair_list //
+/////////////////////
 
-template <typename... Args> struct pair_resolver;
+template <typename...> struct build_pair_list;
 
-template <typename TKey, typename TMapped>
-struct pair_resolver<TKey, TMapped> {
-  typedef type_pair<TKey, TMapped> type;
+template <typename TKey, typename TValue, typename... Args>
+struct build_pair_list<TKey, TValue, Args...> {
+  using type = typename build_pair_list<Args...>::type::template push_front<
+    type_pair<TKey, TValue>
+  >;
 };
 
-template <typename TKey, typename TMapped>
-struct pair_resolver<type_pair<TKey, TMapped>> {
-  typedef type_pair<TKey, TMapped> type;
+template <>
+struct build_pair_list<> {
+  using type = type_list<>;
 };
 
 ///////////////
@@ -139,10 +141,10 @@ struct separate {
     transform_sequence<type_get_first, TPredicate>::template apply
   >;
 
-  typedef type_pair<
+  using type = type_pair<
     typename type_get_first<separated>::template apply<type_map>,
     typename type_get_second<separated>::template apply<type_map>
-  > type;
+  >;
 };
 
 /////////////
@@ -157,23 +159,23 @@ struct cluster_transform {
 
 template <typename... Args>
 struct cluster {
-  typedef type_map<> type;
+  using type = type_map<>;
 };
 
 template <typename T, typename... Args>
 struct cluster<T, Args...> {
-  typedef typename cluster<Args...>::type tail;
-  typedef type_get_first<T> key;
-  typedef type_get_second<T> mapped;
+  using tail = typename cluster<Args...>::type;
+  using key = type_get_first<T>;
+  using mapped = type_get_second<T>;
 
-  typedef typename std::conditional<
+  using type = typename std::conditional<
     tail::template contains<key>::value,
     typename tail::template transform_at<
       key,
       cluster_transform<mapped>::template add
     >,
     typename tail::template push_back<key, type_list<mapped>>
-  >::type type;
+  >::type;
 };
 
 ///////////
@@ -241,7 +243,7 @@ public:
    * The underlying type_list of type_pair<TKey, TMapped> used for
    *  implementing this map.
    */
-  typedef type_list<Args...> contents;
+  using contents = type_list<Args...>;
 
   /**
    * The size of this map.
@@ -260,13 +262,13 @@ public:
    * A list of all the keys in this map. The order of the keys are guaranteed
    * to follow `contents`'s order.
    */
-  typedef typename contents::template transform<type_get_first> keys;
+  using keys = typename contents::template transform<type_get_first>;
 
   /**
    * A list of all the mapped types in this map. The order of the mapped types
    * are guaranteed to follow `contents`'s order.
    */
-  typedef typename contents::template transform<type_get_second> mapped;
+  using mapped = typename contents::template transform<type_get_second>;
 
   // TODO: DOCUMENT AND TEST
   template <
@@ -306,16 +308,16 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<int, bool>,
    *    type_pair<float, long>
-   *  > map;
+   *  >;
    *
    *  // yields `type_map<
    *  //   type_pair<bool, int>,
    *  //   type_pair<long, float>
    *  // >`
-   *  typedef map::invert<> result1;
+   *  using result1 = map::invert<>;
    *
    *  // yields `type_map<
    *  //   type_pair<Bar<bool>, Foo<int>>,
@@ -323,7 +325,7 @@ public:
    *  // >`
    *  template <typename> struct Foo {};
    *  template <typename> struct Bar {};
-   *  typedef map::invert<Foo, Bar> result2;
+   *  using result2 = map::invert<Foo, Bar>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -420,7 +422,7 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<type_pair<int, double>> map;
+   *  using map = type_map<type_pair<int, double>>;
    *
    *  // yields `true`
    *  map::contains<int>::value
@@ -432,6 +434,8 @@ public:
   using contains = typename keys::template contains<T>;
 
   /**
+   * TODO: FIX DOCS
+   *
    * Inserts the given `TKey` and `TValue` pair before all elements of this map.
    *
    * There are two overloads, one accepting the key and mapped type
@@ -443,34 +447,34 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<int, bool>,
    *    type_pair<float, double>
-   *  > map;
+   *  >;
    *
    *  // yields `type_map<
    *  //   type_pair<short, long>,
    *  //   type_pair<int, bool>,
    *  //   type_pair<float, double>
    *  // >`
-   *  typedef map::push_front<short, long> result1;
+   *  using result1 = map::push_front<short, long>;
    *
    *  // yields `type_map<
    *  //   type_pair<short, long>,
    *  //   type_pair<int, bool>,
    *  //   type_pair<float, double>
    *  // >`
-   *  typedef map::push_front<type_pair<short, long>> result2;
+   *  using result2 = map::push_front<type_pair<short, long>>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... UArgs>
-  using push_front = type_map<
-    typename detail::type_map_impl::pair_resolver<UArgs...>::type,
-    Args...
-  >;
+  using push_front = typename detail::type_map_impl::build_pair_list<UArgs...>
+    ::type::template apply_back<fatal::type_map, Args...>;
 
   /**
+   * TODO: FIX DOCS
+   *
    * Inserts the given `TKey` and `TValue` pair after all elements of this map.
    *
    * There are two overloads, one accepting the key and mapped type
@@ -482,34 +486,35 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<int, bool>,
    *    type_pair<float, double>
-   *  > map;
+   *  >;
    *
    *  // yields `type_map<
    *  //   type_pair<int, bool>,
    *  //   type_pair<float, double>,
    *  //   type_pair<short, long>
    *  // >`
-   *  typedef map::push_back<short, long> result1;
+   *  using result1 = map::push_back<short, long>;
    *
    *  // yields `type_map<
    *  //   type_pair<int, bool>,
    *  //   type_pair<float, double>,
    *  //   type_pair<short, long>
    *  // >`
-   *  typedef map::push_back<type_pair<short, long>> result2;
+   *  using result2 = map::push_back<type_pair<short, long>>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... UArgs>
-  using push_back = type_map<
-    Args...,
-    typename detail::type_map_impl::pair_resolver<UArgs...>::type
-  >;
+  using push_back = typename detail::type_map_impl::build_pair_list<UArgs...>
+    ::type::template apply_front<fatal::type_map, Args...>;
 
   /**
+   * TODO: FIX DOCS
+   * TODO: IT SHOULD INSERT AFTER A SPECIFIC KEY, OR END OF MAP IF NOT FOUND
+   *
    * Inserts a new mapping into the type_map, in no specified order.
    *
    * Note that keys are not necessarily unique. Inserting an existing key
@@ -522,19 +527,17 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<type_pair<int, double>> map;
+   *  using map = type_map<type_pair<int, double>>;
    *
    *  // yields `type_map<type_pair<int, double>, type_pair<float, long>>`
-   *  typedef map::insert<float, long> result1;
+   *  using result1 = map::insert<float, long>;
    *
    *  // yields `type_map<type_pair<int, double>, type_pair<float, long>>`
-   *  typedef type_pair<float, long> pair;
-   *  typedef map::insert<pair> result2;
+   *  using pair = type_pair<float, long>;
+   *  using result2 = map::insert<pair>;
    */
   template <typename... UArgs>
-  using insert = typename contents::template push_back<
-    typename detail::type_map_impl::pair_resolver<UArgs...>::type
-  >::template apply<fatal::type_map>;
+  using insert = push_back<UArgs...>;
 
   /**
    * Inserts a new `TKey`, `TValue` mapping into the type_map in its sorted
@@ -548,10 +551,10 @@ public:
    *  template <int Value>
    *  using val = std::integral_constant<int, Value>;
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<val<0>, bool>,
    *    type_pair<val<3>, double>
-   *  > map;
+   *  >;
    *
    *  // yields `type_map<
    *  //   type_pair<val<0>, bool>,
@@ -583,7 +586,7 @@ public:
    *  template <int Value>
    *  using val = std::integral_constant<int, Value>;
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<val<0>, bool>,
    *    type_pair<val<3>, double>
    *  > map;
@@ -593,10 +596,10 @@ public:
    *  //   type_pair<val<1>, int>,
    *  //   type_pair<val<3>, double>
    *  // >`
-   *  typedef map::insert_pair_sorted<
+   *  using result = map::insert_pair_sorted<
    *    comparison_transform::less_than,
    *    type_pair<val<1>, int>
-   *  > result;
+   *  >;
    */
   template <
     typename TPair,
@@ -613,18 +616,18 @@ public:
    * Example:
    *
    *  // yields `type_map<type_pair<int, double>>`
-   *  typedef type_map<type_pair<int, long>>::replace<int, double> result1;
+   *  using result1 = type_map<type_pair<int, long>>::replace<int, double>;
    *
-   *  // yields `typedef type_map<
+   *  // yields `type_map<
    *  //   type_pair<int, double>,
    *  //   type_pair<float, short>,
    *  //   type_pair<int, double>
    *  // >`
-   *  typedef type_map<
+   *  using result2 = type_map<
    *    type_pair<int, long>,
    *    type_pair<float, short>,
    *    type_pair<int, bool>
-   *  >::replace<int, double> result2;
+   *  >::replace<int, double>;
    */
   template <typename TKey, typename TMapped>
   using replace = typename type_map::template transform_at<
@@ -637,16 +640,16 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<int, bool>,
    *    type_pair<int, float>,
    *    type_pair<void, std::string>,
    *    type_pair<float, double>,
    *    type_pair<bool, bool>
-   *  > map;
+   *  >;
    *
    *  // yields `type_map<type_pair<float, double>, type_pair<bool, bool>>`
-   *  typedef map::remove<int, void> result;
+   *  using result = map::remove<int, void>;
    */
   template <typename... UArgs>
   using remove = typename contents::template reject<
@@ -666,13 +669,13 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<int, bool>,
    *    type_pair<int, float>,
    *    type_pair<void, std::string>,
    *    type_pair<float, double>,
    *    type_pair<bool, bool>
-   *  > map;
+   *  >;
    *
    *  // yields `type_pair<
    *  //   type_map<
@@ -703,13 +706,13 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<int, bool>,
    *    type_pair<int, float>,
    *    type_pair<void, std::string>,
    *    type_pair<float, double>,
    *    type_pair<bool, bool>
-   *  > map;
+   *  >;
    *
    *  // yields `type_map<
    *  //   type_pair<int, bool>,
@@ -732,13 +735,13 @@ public:
    *
    * Example:
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<int, bool>,
    *    type_pair<int, float>,
    *    type_pair<void, std::string>,
    *    type_pair<float, double>,
    *    type_pair<bool, bool>
-   *  > map;
+   *  >;
    *
    *  // yields `type_map<
    *  //   type_pair<void, std::string>,
@@ -757,18 +760,19 @@ public:
    *
    * `TLessComparer` must represent a total order relation between all types.
    *
-   * The default comparer is `comparison_transform::less_than`.
+   * The default comparer is `comparison_transform::less_than`, which sorts
+   * in a non-decreasing order.
    *
    * Example:
    *
-   *  typedef type_map<
+   *  using map = type_map<
    *    type_pair<T<0>, void>,
    *    type_pair<T<1>, short>,
    *    type_pair<T<4>, double>,
    *    type_pair<T<2>, bool>,
    *    type_pair<T<1>, int>,
    *    type_pair<T<3>, float>
-   *  > map;
+   *  >;
    *
    *  // yields `type_map<
    *  //   type_pair<T<0>, void>,
@@ -778,7 +782,7 @@ public:
    *  //   type_pair<T<3>, float>,
    *  //   type_pair<T<4>, double>
    *  // >`
-   *  typedef map::sort<> result;
+   *  using result = map::sort<>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -924,13 +928,13 @@ public:
      *    };
      *  };
      *
-     *  typedef type_map<
+     *  using map = type_map<
      *    type_pair<chr<'a'>, chr<'A'>>,
      *    type_pair<chr<'e'>, chr<'E'>>,
      *    type_pair<chr<'i'>, chr<'I'>>,
      *    type_pair<chr<'o'>, chr<'O'>>,
      *    type_pair<chr<'u'>, chr<'U'>>
-     *  > map;
+     *  >;
      *
      *  // yields `false`
      *  map::binary_search::exact<cmp>('x', visitor());
@@ -974,12 +978,12 @@ public:
      *    };
      *  };
      *
-     *  typedef type_map<
+     *  using map = type_map<
      *    type_pair<int_val<10>, int_val<100>>,
      *    type_pair<int_val<30>, int_val<300>>,
      *    type_pair<int_val<50>, int_val<500>>,
      *    type_pair<int_val<70>, int_val<700>>
-     *  > map;
+     *  >;
      *
      *  // yields `false`
      *  map::binary_search<cmp>::lower_bound(5, visitor());
@@ -1032,7 +1036,7 @@ public:
      *    };
      *  };
      *
-     *  typedef int_seq<10, 30, 50, 70> list;
+     *  using list = int_seq<10, 30, 50, 70>;
      *
      *  // yields `false`
      *  map::binary_search<cmp>::upper_bound(70, visitor());
@@ -1093,26 +1097,6 @@ struct type_get_traits<type_map<Args...>> {
 // build_type_map //
 ////////////////////
 
-namespace detail {
-namespace type_map_impl {
-
-template <typename... Args>
-class builder {
-  typedef type_list<Args...> args;
-
-  typedef typename args::template unzip<2, 0> keys;
-  typedef typename args::template unzip<2, 1> mapped;
-
-  static_assert(keys::size == mapped::size, "not all keys map to a type");
-
-public:
-  typedef typename keys::template combine<type_pair>::template list<mapped>
-    ::template apply<type_map> type;
-};
-
-} // namespace type_map_impl {
-} // namespace detail {
-
 /**
  * Convenience mechanism to construct new type maps.
  *
@@ -1121,10 +1105,10 @@ public:
  * Example:
  *
  *  // yields an empty `type_map<>`
- *  typedef build_type_map<> empty;
+ *  using empty = build_type_map<>;
  *
  *  // yields `type_map<type_pair<int, double>>`
- *  typedef build_type_map<int, double> result1;
+ *  using result1 = build_type_map<int, double>;
  *
  *  // yields
  *  //   type_map<
@@ -1132,10 +1116,11 @@ public:
  *  //     type_pair<double, float>,
  *  //     type_pair<void, std::string>,
  *  //   > map
- *  typedef build_type_map<int, bool, double, float, void, std::string> result2;
+ *  using result2 = build_type_map<int, bool, double, float, void, std::string>;
  */
 template <typename... Args>
-using build_type_map = typename detail::type_map_impl::builder<Args...>::type;
+using build_type_map = typename detail::type_map_impl::build_pair_list<Args...>
+  ::type::template apply<type_map>;
 
 ///////////////////
 // type_map_from //
@@ -1151,7 +1136,7 @@ using build_type_map = typename detail::type_map_impl::builder<Args...>::type;
  *
  * Example:
  *
- *  typedef type_list<int, bool, double> list;
+ *  using list = type_list<int, bool, double>;
  *
  *  template <typename> struct Foo {};
  *  template <typename> struct Bar {};
@@ -1161,21 +1146,21 @@ using build_type_map = typename detail::type_map_impl::builder<Args...>::type;
  *  //    type_pair<Foo<bool>, bool>,
  *  //    type_pair<Foo<double>, double>
  *  // >`
- *  typedef type_map_from<Foo>::list<list> result1;
+ *  using result1 = type_map_from<Foo>::list<list>;
  *
  *  // yield `type_map<
  *  //    type_pair<Foo<int>, Bar<int>>,
  *  //    type_pair<Foo<bool>, Bar<bool>>,
  *  //    type_pair<Foo<double>, Bar<double>>
  *  // >`
- *  typedef type_map_from<Foo, Bar>::list<list> result2;
+ *  using result2 = type_map_from<Foo, Bar>::list<list>;
  *
  *  // yield `type_map<
  *  //    type_pair<int, int>,
  *  //    type_pair<bool, bool>,
  *  //    type_pair<double, double>
  *  // >`
- *  typedef type_map_from<>::list<list> result3;
+ *  using result3 = type_map_from<>::list<list>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */

@@ -343,24 +343,35 @@ TEST(type_map, contains) {
 ////////////////
 
 TEST(type_map, push_front) {
-  typedef type_map<
-    type_pair<int, bool>,
-    type_pair<float, double>
-  > map;
+  using map = build_type_map<
+    int, bool,
+    float, double
+  >;
 
-  typedef type_map<
-    type_pair<short, long>,
-    type_pair<int, bool>,
-    type_pair<float, double>
-  > expected1;
+  using expected1 = build_type_map<
+    short, long,
+    int, bool,
+    float, double
+  >;
   FATAL_EXPECT_SAME<expected1, map::push_front<short, long>>();
 
-  typedef type_map<
-    type_pair<short, long>,
-    type_pair<int, bool>,
-    type_pair<float, double>
-  > expected2;
-  FATAL_EXPECT_SAME<expected2, map::push_front<type_pair<short, long>>>();
+  using expected2 = build_type_map<
+    short, long,
+    void, float,
+    int, bool,
+    float, double
+  >;
+  FATAL_EXPECT_SAME<expected2, map::push_front<short, long, void, float>>();
+
+  using expected3 = build_type_map<
+    type_pair<short, long>, type_pair<void, unsigned>,
+    int, bool,
+    float, double
+  >;
+  FATAL_EXPECT_SAME<
+    expected3,
+    map::push_front<type_pair<short, long>, type_pair<void, unsigned>>
+  >();
 }
 
 ///////////////
@@ -368,24 +379,35 @@ TEST(type_map, push_front) {
 ///////////////
 
 TEST(type_map, push_back) {
-  typedef type_map<
-    type_pair<int, bool>,
-    type_pair<float, double>
-  > map;
+  using map = build_type_map<
+    int, bool,
+    float, double
+  >;
 
-  typedef type_map<
-    type_pair<int, bool>,
-    type_pair<float, double>,
-    type_pair<short, long>
-  > expected1;
+  using expected1 = build_type_map<
+    int, bool,
+    float, double,
+    short, long
+  >;
   FATAL_EXPECT_SAME<expected1, map::push_back<short, long>>();
 
-  typedef type_map<
-    type_pair<int, bool>,
-    type_pair<float, double>,
-    type_pair<short, long>
-  > expected2;
-  FATAL_EXPECT_SAME<expected2, map::push_back<type_pair<short, long>>>();
+  using expected2 = build_type_map<
+    int, bool,
+    float, double,
+    short, long,
+    void, float
+  >;
+  FATAL_EXPECT_SAME<expected2, map::push_back<short, long, void, float>>();
+
+  using expected3 = build_type_map<
+    int, bool,
+    float, double,
+    type_pair<short, long>, type_pair<void, unsigned>
+  >;
+  FATAL_EXPECT_SAME<
+    expected3,
+    map::push_back<type_pair<short, long>, type_pair<void, unsigned>>
+  >();
 }
 
 ////////////
@@ -398,12 +420,18 @@ TEST(type_map, insert) {
     type_map<>
       ::insert<int, bool>
   >();
+
   FATAL_EXPECT_SAME<
     build_type_map<int, bool, double, long>,
     type_map<>
       ::insert<int, bool>
       ::insert<double, long>
   >();
+  FATAL_EXPECT_SAME<
+    build_type_map<int, bool, double, long>,
+    type_map<>::insert<int, bool, double, long>
+  >();
+
   FATAL_EXPECT_SAME<
     build_type_map<int, bool, double, long, short, void>,
     type_map<>
@@ -411,24 +439,35 @@ TEST(type_map, insert) {
       ::insert<double, long>
       ::insert<short, void>
   >();
-
-  FATAL_EXPECT_SAME<
-    build_type_map<int, bool>,
-    type_map<>
-      ::insert<type_pair<int, bool>>
-  >();
-  FATAL_EXPECT_SAME<
-    build_type_map<int, bool, double, long>,
-    type_map<>
-      ::insert<type_pair<int, bool>>
-      ::insert<type_pair<double, long>>
-  >();
   FATAL_EXPECT_SAME<
     build_type_map<int, bool, double, long, short, void>,
+    type_map<>::insert<int, bool, double, long, short, void>
+  >();
+
+  FATAL_EXPECT_SAME<
+    build_type_map<type_pair<int, bool>, type_pair<double, long>>,
     type_map<>
-      ::insert<type_pair<int, bool>>
-      ::insert<type_pair<double, long>>
-      ::insert<type_pair<short, void>>
+      ::insert<type_pair<int, bool>, type_pair<double, long>>
+  >();
+
+  FATAL_EXPECT_SAME<
+    build_type_map<
+      type_pair<int, bool>, type_pair<double, long>,
+      type_pair<short, void>, type_pair<float, unsigned>
+    >,
+    type_map<>
+      ::insert<type_pair<int, bool>, type_pair<double, long>>
+      ::insert<type_pair<short, void>, type_pair<float, unsigned>>
+  >();
+  FATAL_EXPECT_SAME<
+    build_type_map<
+      type_pair<int, bool>, type_pair<double, long>,
+      type_pair<short, void>, type_pair<float, unsigned>
+    >,
+    type_map<>::insert<
+      type_pair<int, bool>, type_pair<double, long>,
+      type_pair<short, void>, type_pair<float, unsigned>
+    >
   >();
 }
 
