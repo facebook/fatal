@@ -45,6 +45,14 @@ public:
    */
   using char_type = typename as_sequence::type;
 
+  // TODO: DOCUMENT AND TEST
+  template <char_type... Prefix>
+  using push_front = type_string<char_type, Chars..., Prefix...>;
+
+  // TODO: DOCUMENT AND TEST
+  template <char_type... Suffix>
+  using push_back = type_string<char_type, Chars..., Suffix...>;
+
   /**
    * The `std::basic_string` type returned by the `string()` method.
    *
