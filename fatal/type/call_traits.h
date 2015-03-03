@@ -349,6 +349,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(rfind);
   FATAL_CALL_TRAITS_IMPL(rng);
   FATAL_CALL_TRAITS_IMPL(rotate);
+  FATAL_CALL_TRAITS_IMPL(run);
   FATAL_CALL_TRAITS_IMPL(search);
   FATAL_CALL_TRAITS_IMPL(select);
   FATAL_CALL_TRAITS_IMPL(serialize);
