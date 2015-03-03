@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,14 +10,16 @@
 #ifndef FATAL_INCLUDE_fatal_benchmark_driver_h
 #define FATAL_INCLUDE_fatal_benchmark_driver_h
 
-#include <folly/Benchmark.h>
+#include <fatal/benchmark/benchmark.h>
+
+#include <iostream>
 
 ////////////
 // DRIVER //
 ////////////
 
 int main(int argc, char **argv) {
-  folly::runBenchmarks();
+  fatal::run_benchmarks(std::cout);
 
   return 0;
 }
