@@ -1131,10 +1131,10 @@ struct transform_aggregator {
  * TODO: DOCUMENT AND TEST
  *
  *  TAggregator<
- *    transform_distributor<TTransforms...>::apply<Arg_0>,
- *    transform_distributor<TTransforms...>::apply<Arg_1>,
+ *    transform_sequence<TTransforms...>::apply<Arg_0>,
+ *    transform_sequence<TTransforms...>::apply<Arg_1>,
  *    ...
- *    transform_distributor<TTransforms...>::apply<Arg_n>
+ *    transform_sequence<TTransforms...>::apply<Arg_n>
  *  >
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
