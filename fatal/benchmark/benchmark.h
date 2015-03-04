@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_benchmark_benchmark_h
 #define FATAL_INCLUDE_fatal_benchmark_benchmark_h
 
+#include <fatal/container/optional.h>
 #include <fatal/preprocessor.h>
 #include <fatal/time/time.h>
 
@@ -23,8 +24,10 @@
 #include <vector>
 
 #include <cassert>
+#include <cstdint>
 
 namespace fatal {
+namespace benchmark {
 
 /**
  * TODO: DOCUMENT
@@ -42,18 +45,17 @@ namespace fatal {
       (FATAL_UID(iterations)) \
   )
 
-// TODO: bike-shed HasN
-#define FATAL_IMPL_BENCHMARK(Class, Group, Name, HasN, Iterations) \
+#define FATAL_IMPL_BENCHMARK(Class, Group, Name, UserLoop, Iterations) \
   class Class { \
-    using timer = ::fatal::detail::benchmark_registry::timer; \
+    using timer = ::fatal::benchmark::detail::registry::timer; \
     \
-    ::fatal::benchmark_controller<timer> benchmark; \
+    ::fatal::benchmark::controller<timer> benchmark; \
     \
   public: \
     Class(timer &result): benchmark(result) {} \
     \
-    void run(benchmark_iterations Iterations) \
-    FATAL_CONDITIONAL(HasN)(;)( \
+    void run(::fatal::benchmark::iterations Iterations) \
+    FATAL_CONDITIONAL(UserLoop)(;)( \
       { \
         while (Iterations--) { \
           run(); \
@@ -69,12 +71,14 @@ namespace fatal {
   \
   namespace { \
   static auto const FATAL_UID(FATAL_CAT(Class, FATAL_CAT(_, registry))) \
-    = ::fatal::detail::benchmark_registry::get().add<Class>(); \
+    = ::fatal::benchmark::detail::registry::get().add<Class>(); \
     \
   } \
   \
   \
-  void Class::run(FATAL_CONDITIONAL(HasN)(benchmark_iterations Iterations)())
+  void Class::run(FATAL_CONDITIONAL(UserLoop)( \
+    ::fatal::benchmark::iterations Iterations \
+  )())
 
 /**
  * TODO: DOCUMENT
@@ -87,25 +91,64 @@ namespace fatal {
 #define FATAL_IMPL_BENCHMARK_SUSPEND(Scope) \
   for (auto Scope = benchmark.suspend(); Scope; Scope.resume())
 
-using benchmark_clock = std::chrono::high_resolution_clock;
-using benchmark_duration = benchmark_clock::duration;
-using benchmark_iterations = std::uint_fast32_t;
+using clock = std::chrono::high_resolution_clock;
+using duration = clock::duration;
+using iterations = std::uint_fast32_t;
 
-using benchmark_result_entry = std::tuple<
-  benchmark_duration,
-  benchmark_iterations,
-  std::string
->;
+struct result_entry {
+  result_entry(
+    duration net_duration,
+    duration gross_duration,
+    iterations n,
+    std::string name
+  ):
+    net_duration_(net_duration),
+    gross_duration_(gross_duration),
+    n_(n),
+    period_(net_duration_ / n_),
+    name_(std::move(name))
+  {}
 
-using benchmark_results = std::unordered_map<
+  duration net_duration() const { return net_duration_; }
+  duration gross_duration() const { return gross_duration_; }
+  iterations n() const { return n_; }
+  duration period() const { return period_; }
+  std::string const &name() const { return name_; }
+
+  bool operator <(result_entry const &rhs) const {
+    auto lhs_period = period();
+    auto rhs_period = rhs.period();
+
+    return period_ < rhs.period_ || (
+      period_ == rhs.period_ && (
+        n_ > rhs.n_ || (
+          n_ == n_ && name_ < rhs.name_
+        )
+      )
+    );
+  }
+
+private:
+  duration net_duration_;
+  duration gross_duration_;
+  iterations n_;
+  duration period_;
+  std::string name_;
+};
+
+using duration_index = std::integral_constant<std::size_t, 0>;
+using iterations_index = std::integral_constant<std::size_t, 1>;
+using name_index = std::integral_constant<std::size_t, 2>;
+
+using results = std::unordered_map<
   std::string,
-  std::vector<benchmark_result_entry>
+  std::vector<result_entry>
 >;
 
 namespace detail {
 
-struct benchmark_registry {
-  using time_point = benchmark_clock::time_point;
+struct registry {
+  using time_point = clock::time_point;
 
   struct timer {
     timer():
@@ -116,28 +159,28 @@ struct benchmark_registry {
     void start() {
       assert(!running_);
       running_ = true;
-      start_ = benchmark_clock::now();
+      start_ = clock::now();
     }
 
     void stop() {
-      auto const end = benchmark_clock::now();
+      auto const end = clock::now();
       assert(running_);
       assert(start_ <= end);
       elapsed_ += end - start_;
       running_ = false;
     }
 
-    benchmark_duration elapsed() const { return elapsed_; }
+    duration elapsed() const { return elapsed_; }
 
   private:
     time_point start_;
-    benchmark_duration elapsed_;
+    duration elapsed_;
     bool running_;
   };
 
 private:
   struct entry {
-    virtual benchmark_duration run(benchmark_iterations) = 0;
+    virtual duration run(iterations) = 0;
     virtual char const *group() = 0;
     virtual char const *name() = 0;
   };
@@ -148,7 +191,7 @@ private:
   {
     using type = T;
 
-    benchmark_duration run(benchmark_iterations iterations) override {
+    duration run(iterations iterations) override {
       timer result;
       type benchmark(result);
 
@@ -163,25 +206,6 @@ private:
     char const *name() override { return type::name(); }
   };
 
-  struct comparer {
-    bool operator ()(
-      benchmark_result_entry const &lhs,
-      benchmark_result_entry const &rhs
-    ) const {
-      return std::get<0>(lhs) < std::get<0>(rhs)
-        || (
-          std::get<0>(lhs) == std::get<0>(rhs)
-          && (
-            std::get<1>(lhs) > std::get<1>(rhs)
-            || (
-              std::get<1>(lhs) == std::get<1>(rhs)
-              && std::get<2>(lhs) < std::get<2>(rhs)
-            )
-          )
-        );
-    }
-  };
-
 public:
   template <typename T>
   std::size_t add() {
@@ -190,54 +214,59 @@ public:
     return entries_.size();
   }
 
-  benchmark_results run() const {
-    benchmark_results result;
+  results run() const {
+    results result;
 
     for (auto const &i: entries_) {
       auto measured = measure(*i);
 
       result[i->group()].emplace_back(
-        measured.first, measured.second, i->name()
+        std::get<0>(measured),
+        std::get<1>(measured),
+        std::get<2>(measured),
+        i->name()
       );
     }
 
     for (auto &group: result) {
-      std::sort(group.second.begin(), group.second.end(), comparer());
+      std::sort(group.second.begin(), group.second.end());
     }
 
     return result;
   }
 
-  static benchmark_registry &get() {
-    static benchmark_registry instance;
+  static registry &get() {
+    static registry instance;
     return instance;
   }
 
 private:
-  std::pair<benchmark_duration, benchmark_iterations> measure(entry &i) const {
-    benchmark_iterations iterations = 1;
-    benchmark_duration elapsed(0);
+  std::tuple<duration, duration, iterations> measure(entry &i) const {
+    iterations iterations = 1;
+    duration net_duration(0);
+    duration gross_duration(0);
 
     for (std::size_t tries = 0; tries < tries_threshold_; ++tries) {
       if (tries) {
         iterations *= 2;
       }
 
-      elapsed = i.run(iterations);
+      net_duration = i.run(iterations);
+      gross_duration += net_duration;
 
-      if (elapsed >= duration_threshold_) {
+      if (net_duration >= duration_threshold_) {
         break;
       }
     }
 
-    return std::make_pair(elapsed, iterations);
+    return std::make_tuple(net_duration, gross_duration, iterations);
   }
 
   std::vector<std::unique_ptr<entry>> entries_;
   // TODO: MAKE IT CONFIGURABLE
   std::size_t tries_threshold_ = 10;
   // TODO: MAKE IT CONFIGURABLE
-  benchmark_duration duration_threshold_ = std::chrono::microseconds(1);
+  duration duration_threshold_ = std::chrono::milliseconds(1);
 };
 
 } // namespace detail {
@@ -248,10 +277,10 @@ private:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-struct benchmark_controller {
+struct controller {
   using type = T;
 
-  explicit benchmark_controller(type &run): run_(run) {}
+  explicit controller(type &run): run_(run) {}
 
   struct scoped_suspend {
     explicit scoped_suspend(type *run): run_(run) {}
@@ -288,29 +317,95 @@ private:
   type &run_;
 };
 
+struct default_printer {
+  template <typename TOut>
+  void operator ()(
+    TOut &out,
+    results const &result,
+    duration running_time
+  ) const {
+    for (auto const &group: result) {
+      out << "-- group: " << group.first << " --\n";
+
+      optional<duration> previous_period;
+
+      for (auto const &i: group.second) {
+        auto const period = i.period();
+        bool const inf = period.count() == 0;
+        auto const frequency = inf
+          ? 0
+          : decltype(period)(std::chrono::seconds(1)).count() / period.count();
+
+        out << i.name() << ": period = "
+          << period.count() << ' ' << time::suffix(period) << ", frequency = ";
+
+        if (inf) {
+          out << "inf";
+        } else {
+          out << frequency;
+        }
+
+        out << " Hz";
+
+        if (!previous_period.empty()) {
+          assert(*previous_period <= period);
+
+          out << ", diff = ";
+
+          if (previous_period->count()) {
+            auto const diff = period.count() * 10000 / previous_period->count();
+            assert(diff >= 10000);
+
+            out << (diff / 100) << '.' << (diff % 100) << '%';
+          } else {
+            out << (period.count() ? "inf" : "0.0%");
+          }
+        }
+
+        out << '\n';
+
+        previous_period = period;
+      }
+
+      out << '\n';
+    }
+
+    out << "total running time: " << running_time.count()
+      << time::suffix(running_time) << '\n';
+  }
+};
+
 /**
  * TODO: DOCUMENT
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename TOut>
-benchmark_results run_benchmarks(TOut &out) {
-  auto result = detail::benchmark_registry::get().run();
+template <typename TPrinter = default_printer, typename TOut>
+results run(TOut &out) {
+  auto const start = clock::now();
+  auto result = detail::registry::get().run();
+  auto const running_time = clock::now() - start;
 
-  for (auto const &group: result) {
-    out << "-- group: " << group.first << " --\n";
-
-    // TODO: PRETTY PRINT
-    // TODO: PRINT RELATIVE VALUES
-    for (auto const &i: group.second) {
-      out << std::get<2>(i) << ": " << std::get<1>(i) << " iterations in "
-        << std::get<0>(i).count() << time::suffix(std::get<0>(i)) << '\n';
-    }
-
-    out << '\n';
-  }
+  TPrinter printer;
+  printer(out, result, running_time);
 
   return result;
+}
+
+} // namespace benchmark {
+
+namespace detail {
+
+extern std::uintptr_t prevent_optimization = 0;
+
+} // namespace detail {
+
+// TODO: MOVE IT SOMEWHERE ELSE??
+template <typename T>
+inline void prevent_optimization(T &&what) {
+  detail::prevent_optimization |= reinterpret_cast<
+    decltype(detail::prevent_optimization)
+  >(std::addressof(what));
 }
 
 } // namespace fatal {

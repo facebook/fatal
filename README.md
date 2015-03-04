@@ -81,13 +81,13 @@ Provided that the dependencies are properly installed:
 ```sh
 $ clang++ -Wall -std=c++11 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
-  -lfolly -lfollybenchmark -ldouble-conversion -lglog
+  -lfolly -ldouble-conversion -lglog
 ```
 or
 ```sh
 $ g++ -Wall -std=c++11 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
-  -lfolly -lfollybenchmark -ldouble-conversion -lglog
+  -lfolly -ldouble-conversion -lglog
 ```
 
 

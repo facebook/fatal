@@ -7,9 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/benchmark/benchmark.h>
-
 #include <fatal/test/driver.h>
+
+#include <fatal/benchmark/benchmark.h>
 
 #include <chrono>
 #include <iostream>
@@ -20,9 +20,10 @@
 #include <cassert>
 
 namespace fatal {
+namespace benchmark {
 
-std::chrono::milliseconds const big_delay(300);
-std::chrono::milliseconds const small_delay(2);
+std::chrono::milliseconds const big_delay(5);
+std::chrono::microseconds const small_delay(50);
 
 FATAL_BENCHMARK(group_1, benchmark_1_1) {
   FATAL_BENCHMARK_SUSPEND {
@@ -57,6 +58,9 @@ FATAL_BENCHMARK(group_1, benchmark_1_4, n) {
   while (n--) {}
 }
 
+FATAL_BENCHMARK(group_1, benchmark_1_5) {
+}
+
 FATAL_BENCHMARK(group_2, benchmark_2_1, n) {
   auto token = benchmark.suspend();
 
@@ -76,16 +80,19 @@ FATAL_BENCHMARK(group_2, benchmark_2_3, n) {
   while (n--) {}
 }
 
-TEST(benchmark, sanity_check) {
-  std::map<std::string, std::map<std::string, benchmark_duration>> metrics;
+FATAL_BENCHMARK(group_2, benchmark_2_4) {
+}
 
-  for (auto const &i: run_benchmarks(std::cout)) {
+TEST(benchmark, sanity_check) {
+  std::map<std::string, std::map<std::string, duration>> metrics;
+
+  for (auto const &i: run(std::cout)) {
     auto &group = metrics[i.first];
 
     for (auto const &j: i.second) {
-      ASSERT_EQ(group.end(), group.find(std::get<2>(j)));
+      ASSERT_EQ(group.end(), group.find(j.name()));
 
-      group[std::get<2>(j)] = std::get<0>(j);
+      group[j.name()] = j.period();
     }
   }
 
@@ -99,14 +106,20 @@ TEST(benchmark, sanity_check) {
     return j->second;
   };
 
-  EXPECT_LT(get("group_1", "benchmark_1_1"), big_delay);
+  ASSERT_LT(small_delay, big_delay);
+
+  EXPECT_LT(get("group_1", "benchmark_1_1"), small_delay);
   EXPECT_GE(get("group_1", "benchmark_1_2"), big_delay);
-  EXPECT_LT(get("group_1", "benchmark_1_3"), big_delay);
+  EXPECT_LT(get("group_1", "benchmark_1_3"), small_delay);
   EXPECT_GE(get("group_1", "benchmark_1_4"), big_delay);
+  EXPECT_LT(get("group_1", "benchmark_1_5"), small_delay);
 
   EXPECT_LT(get("group_2", "benchmark_2_1"), big_delay);
-  EXPECT_LT(get("group_2", "benchmark_2_2"), big_delay);
+  EXPECT_GE(get("group_2", "benchmark_2_1"), small_delay);
+  EXPECT_LT(get("group_2", "benchmark_2_2"), small_delay);
   EXPECT_GE(get("group_2", "benchmark_2_3"), big_delay);
+  EXPECT_LT(get("group_2", "benchmark_2_4"), small_delay);
 }
 
+} // namespace benchmark {
 } // namespace fatal {

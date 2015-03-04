@@ -36,7 +36,7 @@ if [ "$NO_CLEAR" != "true" ]; then
   lclear.sh >&2
 fi
 
-CC_OPT="$CC_OPT -O2 -g -o $out_binary -lfolly -lfollybenchmark -ldouble-conversion -lgflags -lglog -pthread ../lib/$USE_CC/gtest.o"
+CC_OPT="$CC_OPT -O2 -g -o $out_binary -lfolly -ldouble-conversion -lgflags -lglog -pthread ../lib/$USE_CC/gtest.o"
 
 if [ "$PRE_PROC" = "true" ]; then
   CC_OPT="-E"

@@ -70,7 +70,8 @@ struct benchmark_impl {
     build_type_prefix_tree<>::template from
   >;
 
-  static void prefix_tree_benchmark() {
+  template <typename TController>
+  static void prefix_tree_benchmark(TController &benchmark) {
     unsigned count = 0;
 
     FATAL_BENCHMARK_SUSPEND {}
@@ -81,10 +82,11 @@ struct benchmark_impl {
       );
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void sequential_ifs_benchmark() {
+  template <typename TController>
+  static void sequential_ifs_benchmark(TController &benchmark) {
     unsigned count = 0;
 
     FATAL_BENCHMARK_SUSPEND {}
@@ -93,10 +95,11 @@ struct benchmark_impl {
       sequential_ifs_impl<TStrings...>::match(s, count);
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void sorted_std_array_benchmark() {
+  template <typename TController>
+  static void sorted_std_array_benchmark(TController &benchmark) {
     std::array<std::string, list::size> c = str;
     unsigned count = 0;
 
@@ -108,10 +111,11 @@ struct benchmark_impl {
       count += std::binary_search(c.begin(), c.end(), s);
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void sorted_std_vector_benchmark() {
+  template <typename TController>
+  static void sorted_std_vector_benchmark(TController &benchmark) {
     std::vector<std::string> c;
     unsigned count = 0;
 
@@ -127,10 +131,11 @@ struct benchmark_impl {
       count += std::binary_search(c.begin(), c.end(), s);
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void std_set_benchmark() {
+  template <typename TController>
+  static void std_set_benchmark(TController &benchmark) {
     std::set<std::string> c;
     unsigned count = 0;
 
@@ -145,10 +150,11 @@ struct benchmark_impl {
       count += i->size();
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void std_unordered_set_benchmark() {
+  template <typename TController>
+  static void std_unordered_set_benchmark(TController &benchmark) {
     std::unordered_set<std::string> c;
     unsigned count = 0;
 
@@ -163,7 +169,7 @@ struct benchmark_impl {
       count += i->size();
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 };
 
@@ -180,39 +186,39 @@ std::array<std::string, sizeof...(TStrings)> const benchmark_impl<
 // BENCHMARKS INSTANTIATION //
 //////////////////////////////
 
-#define CREATE_BENCHMARK(name, ...) \
-  typedef benchmark_impl<__VA_ARGS__> name##_impl; \
-  auto name##_warmup = []() { \
+#define CREATE_BENCHMARK(Name, ...) \
+  typedef benchmark_impl<__VA_ARGS__> Name##_impl; \
+  auto Name##_warmup = []() { \
     unsigned count = 0; \
-    for (auto const &i: name##_impl::str) { \
+    for (auto const &i: Name##_impl::str) { \
       count += i.size(); \
     } \
-    folly::doNotOptimizeAway(count); \
+    prevent_optimization(count); \
     return count; \
   }(); \
-  FATAL_BENCHMARK(name##_type_prefix_tree) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::prefix_tree_benchmark(); \
+  FATAL_BENCHMARK(Name, type_prefix_tree) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::prefix_tree_benchmark(benchmark); \
   } \
-  FATAL_BENCHMARK(name##_sorted_std_array) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::sorted_std_array_benchmark(); \
+  FATAL_BENCHMARK(Name, sorted_std_array) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::sorted_std_array_benchmark(benchmark); \
   } \
-  FATAL_BENCHMARK(name##_sorted_std_vector) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::sorted_std_vector_benchmark(); \
+  FATAL_BENCHMARK(Name, sorted_std_vector) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::sorted_std_vector_benchmark(benchmark); \
   } \
-  FATAL_BENCHMARK(name##_std_unordered_set) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::std_unordered_set_benchmark(); \
+  FATAL_BENCHMARK(Name, std_unordered_set) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::std_unordered_set_benchmark(benchmark); \
   } \
-  FATAL_BENCHMARK(name##_std_set) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::std_set_benchmark(); \
+  FATAL_BENCHMARK(Name, std_set) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::std_set_benchmark(benchmark); \
   } \
-  FATAL_BENCHMARK(name##_sequential_ifs) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::sequential_ifs_benchmark(); \
+  FATAL_BENCHMARK(Name, sequential_ifs) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::sequential_ifs_benchmark(benchmark); \
   }
 
 /////////////////////////

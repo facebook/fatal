@@ -19,7 +19,7 @@
 ////////////
 
 int main(int argc, char **argv) {
-  fatal::run_benchmarks(std::cout);
+  fatal::benchmark::run(std::cout);
 
   return 0;
 }
