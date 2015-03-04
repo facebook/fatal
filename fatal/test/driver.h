@@ -12,18 +12,12 @@
 
 #include <fatal/test/lib.h>
 
-#include <glog/logging.h>
-#include <gtest/gtest.h>
-
 ////////////
 // DRIVER //
 ////////////
 
 int main(int argc, char **argv) {
-  FLAGS_logtostderr = true;
-  google::InitGoogleLogging(argc > 0 ? argv[0] : "unknown");
   testing::InitGoogleTest(&argc, argv);
-  google::ParseCommandLineFlags(&argc, &argv, true);
 
   return RUN_ALL_TESTS();
 }

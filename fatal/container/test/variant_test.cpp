@@ -139,7 +139,7 @@ using test_vector = std::vector<
 ////////////////
 
 TEST(variant, is_variant) {
-  LOG(INFO) << "is_variant -> variant";
+  FATAL_LOG(INFO) << "is_variant -> variant";
   EXPECT_TRUE((is_variant<test_variant<>>::value));
   EXPECT_TRUE((is_variant<test_variant<bool>>::value));
   EXPECT_TRUE((is_variant<test_variant<int>>::value));
@@ -149,14 +149,14 @@ TEST(variant, is_variant) {
   EXPECT_TRUE((is_variant<test_variant<int, double, long>>::value));
   EXPECT_TRUE((is_variant<test_variant<int, double, test_string>>::value));
 
-  LOG(INFO) << "is_variant -> single types";
+  FATAL_LOG(INFO) << "is_variant -> single types";
   EXPECT_FALSE((is_variant<bool>::value));
   EXPECT_FALSE((is_variant<int>::value));
   EXPECT_FALSE((is_variant<double>::value));
   EXPECT_FALSE((is_variant<long>::value));
   EXPECT_FALSE((is_variant<test_string>::value));
 
-  LOG(INFO) << "is_variant -> tuple";
+  FATAL_LOG(INFO) << "is_variant -> tuple";
   EXPECT_FALSE((is_variant<std::tuple<>>::value));
   EXPECT_FALSE((is_variant<std::tuple<bool>>::value));
   EXPECT_FALSE((is_variant<std::tuple<int>>::value));
@@ -510,14 +510,14 @@ TEST(variant, swap) {
   test_variant<int, test_string> v(allocator, 10);
   test_variant<int, test_string> u(allocator, test_string("5.0", allocator));
   test_variant<int, test_string> e(allocator);
-  LOG(INFO) << "initial";
+  FATAL_LOG(INFO) << "initial";
   EXPECT_FALSE(v.empty());
   EXPECT_EQ(10, v.get<int>());
   EXPECT_FALSE(u.empty());
   EXPECT_EQ(test_string("5.0", allocator), u.get<test_string>());
   EXPECT_TRUE(e.empty());
 
-  LOG(INFO) << "v.swap(u);";
+  FATAL_LOG(INFO) << "v.swap(u);";
   v.swap(u);
   EXPECT_FALSE(u.empty());
   EXPECT_EQ(10, u.get<int>());
@@ -525,7 +525,7 @@ TEST(variant, swap) {
   EXPECT_EQ("5.0", v.get<test_string>());
   EXPECT_TRUE(e.empty());
 
-  LOG(INFO) << "v.swap(u);";
+  FATAL_LOG(INFO) << "v.swap(u);";
   v.swap(u);
   EXPECT_FALSE(v.empty());
   EXPECT_EQ(10, v.get<int>());
@@ -533,7 +533,7 @@ TEST(variant, swap) {
   EXPECT_EQ("5.0", u.get<test_string>());
   EXPECT_TRUE(e.empty());
 
-  LOG(INFO) << "u.swap(e);";
+  FATAL_LOG(INFO) << "u.swap(e);";
   u.swap(e);
   EXPECT_FALSE(v.empty());
   EXPECT_EQ(10, v.get<int>());
@@ -541,7 +541,7 @@ TEST(variant, swap) {
   EXPECT_EQ("5.0", e.get<test_string>());
   EXPECT_TRUE(u.empty());
 
-  LOG(INFO) << "e.swap(v);";
+  FATAL_LOG(INFO) << "e.swap(v);";
   e.swap(v);
   EXPECT_FALSE(e.empty());
   EXPECT_EQ(10, e.get<int>());
@@ -600,7 +600,7 @@ struct type_checker_visitor {
   template <typename U>
   struct comparer<U, false> {
     static void compare(T const &expected, U const &actual) {
-      LOG(INFO) << "visited \"" << actual << "\" ["
+      FATAL_LOG(INFO) << "visited \"" << actual << "\" ["
         << type_str<U>() << ", expecting \""
         << expected << "\" [" << type_str<T>() << ']';
       EXPECT_TRUE(false);
@@ -1159,7 +1159,7 @@ template <typename Expected, typename ...Args>
 void check_type_tag_size() {
   typedef variant<default_storage_policy<>, Args...> var;
   if(!std::is_same<Expected, typename var::type_tag>::value) {
-    LOG(INFO) << "expected \"" << type_str<Expected>()
+    FATAL_LOG(INFO) << "expected \"" << type_str<Expected>()
       << "\", got \"" << type_str<typename var::type_tag>()
       << "\" for " << sizeof...(Args) << " types";
     EXPECT_TRUE(false);
@@ -1358,7 +1358,7 @@ struct nested_visitor {
   nested_visitor(std::initializer_list<int> list): expected_(list) {}
 
   void operator ()(nested_vector const &v) {
-    LOG(INFO) << "push" << " expected.size() = " << expected_.size()
+    FATAL_LOG(INFO) << "push" << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
     ASSERT_NE(0, expected_.size());
     EXPECT_EQ(-1, expected_.front());
@@ -1368,7 +1368,7 @@ struct nested_visitor {
       i.visit(*this);
     }
 
-    LOG(INFO) << "pop" << " expected.size() = " << expected_.size()
+    FATAL_LOG(INFO) << "pop" << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
     ASSERT_NE(0, expected_.size());
     EXPECT_EQ(-2, expected_.front());
@@ -1376,7 +1376,7 @@ struct nested_visitor {
   }
 
   void operator ()(int i) {
-    LOG(INFO) << "int " << i << " expected.size() = " << expected_.size()
+    FATAL_LOG(INFO) << "int " << i << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
     ASSERT_NE(0, expected_.size());
     EXPECT_EQ(expected_.front(), i);
@@ -2005,7 +2005,7 @@ TEST(variant, set_difference) {
   );
 
   for(auto &i: diff) {
-    LOG(INFO) << "result: " << i.get<int>();
+    FATAL_LOG(INFO) << "result: " << i.get<int>();
   }
 
   VECTOR const expected({
@@ -2039,7 +2039,7 @@ TEST(variant, set_difference_inplace) {
   lhs.erase(end, lhs.end());
 
   for(auto &i: lhs) {
-    LOG(INFO) << "result: " << i.get<int>();
+    FATAL_LOG(INFO) << "result: " << i.get<int>();
   }
 
   VECTOR const expected({
@@ -2057,7 +2057,7 @@ TEST(variant, memory_leak) {
     ? freed - allocated
     : allocated - freed;
 
-  LOG(INFO) << "allocated: " << allocated
+  FATAL_LOG(INFO) << "allocated: " << allocated
     << " freed: " << freed
     << " balance: " << balance
     << (

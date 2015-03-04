@@ -251,7 +251,7 @@ TEST(numerics, smallest_least_unsigned_integral) {
 #undef SEL_TEST
 
 #define SMALLEST_FOR_VALUE_TEST(n, expected) \
-  VLOG(1) << "expected = " << #expected << ", actual = " \
+  FATAL_VLOG(1) << "expected = " << #expected << ", actual = " \
     << ::fatal::type_str<smallest_uint_for_value<n>>(); \
   EXPECT_TRUE((std::is_same<expected, smallest_uint_for_value<n>>::value))
 
@@ -531,7 +531,7 @@ void check_largest_mersenne_prime_under() {
   typedef mersenne_prime<nth_mersenne> expected;
   typedef largest_mersenne_prime_under<bits_size> actual;
 
-  VLOG(1) << "bits_size = " << bits_size
+  FATAL_VLOG(1) << "bits_size = " << bits_size
     << ", nth_mersenne = " << nth_mersenne;
 
   EXPECT_EQ(
@@ -611,7 +611,7 @@ void check_largest_mersenne_prime_for_type() {
   typedef mersenne_prime<nth_mersenne> expected;
   typedef largest_mersenne_prime_for_type<T, diff> actual;
 
-  VLOG(1) << "T = " << type_str<T>()
+  FATAL_VLOG(1) << "T = " << type_str<T>()
     << ", unsigned_bits_size = "
     << (data_bits<T>::value - std::is_signed<T>::value)
     << ", diff = " << diff << ", nth_mersenne = " << nth_mersenne;

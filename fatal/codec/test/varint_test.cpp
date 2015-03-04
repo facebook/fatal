@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <utility>
 
+#include <cassert>
 #include <cstdint>
 
 using count = std::integral_constant<std::uintmax_t, 1000000>;
@@ -59,7 +60,7 @@ public:
       typename codec::encoder e(value);
       auto const begin = out.begin();
       auto const end = out.end();
-      CHECK_EQ(std::distance(begin, end), out.size());
+      assert(std::distance(begin, end) == out.size());
       auto const i = e(begin, end);
       EXPECT_TRUE(e.done());
       return result(out, i);
@@ -114,7 +115,7 @@ struct signed_tester {
 
     auto const lower_limit = -static_cast<T>(upper_limit);
 
-    VLOG(1) << "[-count, 0): [" << static_cast<std::intmax_t>(lower_limit)
+    FATAL_VLOG(1) << "[-count, 0): [" << static_cast<std::intmax_t>(lower_limit)
       << ", 0)";
 
     for (T i = lower_limit; i < 0; ++i) {
@@ -126,7 +127,7 @@ struct signed_tester {
         static_cast<std::uintmax_t>(-(limit::min() - lower_limit)),
         count::value
       );
-      VLOG(1) << "[min, -count): ["
+      FATAL_VLOG(1) << "[min, -count): ["
         << static_cast<std::intmax_t>(limit::min()) << ", "
         << static_cast<std::intmax_t>(i) << ')';
 
@@ -165,15 +166,17 @@ struct tester {
     auto const upper_limit = std::min(max, count::value);
 
     T i = static_cast<T>(upper_limit);
-    VLOG(1) << "[0, count]: [0, " << static_cast<std::uintmax_t>(i) << ']';
+    FATAL_VLOG(1) << "[0, count]: [0, " << static_cast<std::uintmax_t>(i)
+      << ']';
+
     do {
       ASSERT_EQ(i, decoder(encoder(i)));
     } while (i--);
 
     if (upper_limit < max) {
       i = static_cast<T>(max - std::min(max - upper_limit, count::value));
-      VLOG(1) << "(count, max]: [" << static_cast<std::uintmax_t>(i) << ", "
-        << max << ']';
+      FATAL_VLOG(1) << "(count, max]: [" << static_cast<std::uintmax_t>(i)
+        << ", " << max << ']';
 
       while (i++ < limit::max()) {
         ASSERT_EQ(i, decoder(encoder(i)));

@@ -1154,8 +1154,8 @@ void check_merge_impl() {
   using expected = int_seq<Expected...> ;
 
   if (!std::is_same<expected, TActual>::value) {
-    VLOG(1) << "lhs: '" << type_str<TLHS>() << '\'';
-    VLOG(1) << "rhs: '" << type_str<TRHS>() << '\'';
+    FATAL_VLOG(1) << "lhs: '" << type_str<TLHS>() << '\'';
+    FATAL_VLOG(1) << "rhs: '" << type_str<TRHS>() << '\'';
   }
 
   FATAL_EXPECT_SAME<expected, TActual>();
@@ -1223,8 +1223,8 @@ void check_sort() {
   using actual = typename sorted::template apply_values<int, int_seq>;
 
   if (!is_sorted || !std::is_same<expected, actual>::value) {
-    VLOG(1) << "input: '" << type_str<input>() << '\'';
-    VLOG(1) << "result: '" << type_str<actual>() << '\'';
+    FATAL_VLOG(1) << "input: '" << type_str<input>() << '\'';
+    FATAL_VLOG(1) << "result: '" << type_str<actual>() << '\'';
   }
 
   EXPECT_TRUE(is_sorted);
@@ -1370,26 +1370,26 @@ void check_bs_exact() {
 TEST(binary_search, exact) {
   typedef chr_seq<> empty;
 
-  VLOG(1) << "empty";
+  FATAL_VLOG(1) << "empty";
   check_bs_exact<char, false, '-', empty::size, empty, '\0'>();
   check_bs_exact<int,  false, 3,   empty::size, empty, -1>();
 
   typedef chr_seq<'x'> one;
 
-  VLOG(1) << "one";
+  FATAL_VLOG(1) << "one";
   check_bs_exact<char, false, '-', one::size, one, '\0'>();
   check_bs_exact<char, true,  'x', 0, one, '\0'>();
 
   typedef chr_seq<'x', 'y'> two;
 
-  VLOG(1) << "two";
+  FATAL_VLOG(1) << "two";
   check_bs_exact<char, false, '-', two::size, two, '\0'>();
   check_bs_exact<char, true,  'x', 0, two, '\0'>();
   check_bs_exact<char, true,  'y', 1, two, '\0'>();
 
   typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
 
-  VLOG(1) << "aeiou";
+  FATAL_VLOG(1) << "aeiou";
   check_bs_exact<char, false, 'x', aeiou::size, aeiou, '\0'>();
 
   check_bs_exact<char, true, 'a', 0, aeiou, '\0'>();
@@ -1400,7 +1400,7 @@ TEST(binary_search, exact) {
 
   typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287, 2147483647> mp;
 
-  VLOG(1) << "mp";
+  FATAL_VLOG(1) << "mp";
   check_bs_exact<int, false, -1,         mp::size, mp, -1>();
   check_bs_exact<int, false, 0,          mp::size, mp, -1>();
   check_bs_exact<int, false, 63,         mp::size, mp, -1>();
@@ -1443,20 +1443,20 @@ void check_bs_lower_bound() {
 TEST(binary_search, lower_bound) {
   typedef chr_seq<> empty;
 
-  VLOG(1) << "empty";
+  FATAL_VLOG(1) << "empty";
   check_bs_lower_bound<char, false, '-', '\0', empty::size, empty, '\0'>();
   check_bs_lower_bound<int,  false, 3,   -1,   empty::size, empty, -1>();
 
   typedef chr_seq<'x'> one;
 
-  VLOG(1) << "one";
+  FATAL_VLOG(1) << "one";
   check_bs_lower_bound<char, false, 'w', '\0', one::size, one, '\0'>();
   check_bs_lower_bound<char, true,  'x', 'x',  0, one, '\0'>();
   check_bs_lower_bound<char, true,  'y', 'x',  0, one, '\0'>();
 
   typedef chr_seq<'x', 'y'> two;
 
-  VLOG(1) << "two";
+  FATAL_VLOG(1) << "two";
   check_bs_lower_bound<char, false, 'w', '\0', two::size, two, '\0'>();
   check_bs_lower_bound<char, true,  'x', 'x',  0, two, '\0'>();
   check_bs_lower_bound<char, true,  'y', 'y',  1, two, '\0'>();
@@ -1464,7 +1464,7 @@ TEST(binary_search, lower_bound) {
 
   typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
 
-  VLOG(1) << "aeiou";
+  FATAL_VLOG(1) << "aeiou";
   check_bs_lower_bound<char, false, 'a' - 1, '\0', aeiou::size, aeiou, '\0'>();
   check_bs_lower_bound<char, true,  'a',     'a',  0, aeiou, '\0'>();
   check_bs_lower_bound<char, true,  'e',     'e',  1, aeiou, '\0'>();
@@ -1475,7 +1475,7 @@ TEST(binary_search, lower_bound) {
 
   typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287> mp;
 
-  VLOG(1) << "mp";
+  FATAL_VLOG(1) << "mp";
   check_bs_lower_bound<int, false, -1,        -1,     mp::size, mp, -1>();
   check_bs_lower_bound<int, false, 0,         -1,     mp::size, mp, -1>();
   check_bs_lower_bound<int, false, 2,         -1,     mp::size, mp, -1>();
@@ -1529,20 +1529,20 @@ void check_bs_upper_bound() {
 TEST(binary_search, upper_bound) {
   typedef chr_seq<> empty;
 
-  VLOG(1) << "empty";
+  FATAL_VLOG(1) << "empty";
   check_bs_upper_bound<char, false, '-', '\0', empty::size, empty, '\0'>();
   check_bs_upper_bound<int,  false, 3,   -1,   empty::size, empty, -1>();
 
   typedef chr_seq<'x'> one;
 
-  VLOG(1) << "one";
+  FATAL_VLOG(1) << "one";
   check_bs_upper_bound<char, true,  'w', 'x',  0, one, '\0'>();
   check_bs_upper_bound<char, false, 'x', '\0', one::size, one, '\0'>();
   check_bs_upper_bound<char, false, 'y', '\0', one::size, one, '\0'>();
 
   typedef chr_seq<'x', 'y'> two;
 
-  VLOG(1) << "two";
+  FATAL_VLOG(1) << "two";
   check_bs_upper_bound<char, true,  'w', 'x',  0, two, '\0'>();
   check_bs_upper_bound<char, true,  'x', 'y',  1, two, '\0'>();
   check_bs_upper_bound<char, false, 'y', '\0', two::size, two, '\0'>();
@@ -1550,7 +1550,7 @@ TEST(binary_search, upper_bound) {
 
   typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
 
-  VLOG(1) << "aeiou";
+  FATAL_VLOG(1) << "aeiou";
   check_bs_upper_bound<char, true, 'a' - 1, 'a',  0, aeiou, '\0'>();
   check_bs_upper_bound<char, true, 'a',     'e',  1, aeiou, '\0'>();
   check_bs_upper_bound<char, true, 'e',     'i',  2, aeiou, '\0'>();
@@ -1560,7 +1560,7 @@ TEST(binary_search, upper_bound) {
 
   typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287> mp;
 
-  VLOG(1) << "mp";
+  FATAL_VLOG(1) << "mp";
   check_bs_upper_bound<int, true,  -1,         3,      0, mp, -1>();
   check_bs_upper_bound<int, true,  0,          3,      0, mp, -1>();
   check_bs_upper_bound<int, true,  2,          3,      0, mp, -1>();

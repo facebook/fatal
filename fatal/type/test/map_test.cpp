@@ -1070,26 +1070,26 @@ void check_bs_exact() {
 TEST(type_map, binary_search_exact) {
   typedef chr_map<> empty;
 
-  VLOG(1) << "empty";
+  FATAL_VLOG(1) << "empty";
   check_bs_exact<char, false, '-', '\0', empty::size, empty, '\0'>();
   check_bs_exact<int, false, 3, -1, empty::size, empty, -1>();
 
   typedef chr_map<'x', 'X'> one;
 
-  VLOG(1) << "one";
+  FATAL_VLOG(1) << "one";
   check_bs_exact<char, false, '-', '\0', one::size, one, '\0'>();
   check_bs_exact<char, true, 'x', 'X', 0, one, '\0'>();
 
   typedef chr_map<'x', 'X', 'y', 'Y'> two;
 
-  VLOG(1) << "two";
+  FATAL_VLOG(1) << "two";
   check_bs_exact<char, false, '-', '\0', two::size, two, '\0'>();
   check_bs_exact<char, true, 'x', 'X', 0, two, '\0'>();
   check_bs_exact<char, true, 'y', 'Y', 1, two, '\0'>();
 
   typedef chr_map<'a', 'A', 'e', 'E', 'i', 'I', 'o', 'O', 'u', 'U'> aeiou;
 
-  VLOG(1) << "aeiou";
+  FATAL_VLOG(1) << "aeiou";
   check_bs_exact<char, false, 'x', '\0', aeiou::size, aeiou, '\0'>();
 
   check_bs_exact<char, true, 'a', 'A', 0, aeiou, '\0'>();
@@ -1102,7 +1102,7 @@ TEST(type_map, binary_search_exact) {
     3, 2, 7, 3, 31, 5, 127, 7, 8191, 13, 131071, 17, 524287, 19, 2147483647, 31
   > mp;
 
-  VLOG(1) << "mp";
+  FATAL_VLOG(1) << "mp";
   check_bs_exact<int, false, -1, -1, mp::size, mp, -1>();
   check_bs_exact<int, false, 0, -1, mp::size, mp, -1>();
   check_bs_exact<int, false, 63, -1, mp::size, mp, -1>();
@@ -1149,7 +1149,7 @@ void check_bs_lower_bound() {
 TEST(type_map, binary_search_lower_bound) {
   typedef chr_map<> empty;
 
-  VLOG(1) << "empty";
+  FATAL_VLOG(1) << "empty";
   check_bs_lower_bound<char, false, '-', '\0', '\0', empty::size,
     empty, '\0'
   >();
@@ -1157,14 +1157,14 @@ TEST(type_map, binary_search_lower_bound) {
 
   typedef chr_map<'x', 'X'> one;
 
-  VLOG(1) << "one";
+  FATAL_VLOG(1) << "one";
   check_bs_lower_bound<char, false, 'w', '\0', '\0', one::size, one, '\0'>();
   check_bs_lower_bound<char, true,  'x', 'x',  'X',  0, one, '\0'>();
   check_bs_lower_bound<char, true,  'y', 'x',  'X',  0, one, '\0'>();
 
   typedef chr_map<'x', 'X', 'y', 'Y'> two;
 
-  VLOG(1) << "two";
+  FATAL_VLOG(1) << "two";
   check_bs_lower_bound<char, false, 'w', '\0', '\0', two::size, two, '\0'>();
   check_bs_lower_bound<char, true,  'x', 'x',  'X',  0, two, '\0'>();
   check_bs_lower_bound<char, true,  'y', 'y',  'Y',  1, two, '\0'>();
@@ -1172,7 +1172,7 @@ TEST(type_map, binary_search_lower_bound) {
 
   typedef chr_map<'a', 'A', 'e', 'E', 'i', 'I', 'o', 'O', 'u', 'U'> aeiou;
 
-  VLOG(1) << "aeiou";
+  FATAL_VLOG(1) << "aeiou";
   check_bs_lower_bound<char, false, 'a' - 1, '\0', '\0', aeiou::size,
     aeiou, '\0'
   >();
@@ -1187,7 +1187,7 @@ TEST(type_map, binary_search_lower_bound) {
     3, 2, 7, 3, 31, 5, 127, 7, 8191, 13, 131071, 17, 524287, 19
   > mp;
 
-  VLOG(1) << "mp";
+  FATAL_VLOG(1) << "mp";
   check_bs_lower_bound<int, false, -1,        -1,     -1, mp::size, mp, -1>();
   check_bs_lower_bound<int, false, 0,         -1,     -1, mp::size, mp, -1>();
   check_bs_lower_bound<int, false, 2,         -1,     -1, mp::size, mp, -1>();
@@ -1244,7 +1244,7 @@ void check_bs_upper_bound() {
 TEST(type_map, binary_search_upper_bound) {
   typedef chr_map<> empty;
 
-  VLOG(1) << "empty";
+  FATAL_VLOG(1) << "empty";
   check_bs_upper_bound<char, false, '-', '\0', '\0', empty::size,
     empty, '\0'
   >();
@@ -1252,14 +1252,14 @@ TEST(type_map, binary_search_upper_bound) {
 
   typedef chr_map<'x', 'X'> one;
 
-  VLOG(1) << "one";
+  FATAL_VLOG(1) << "one";
   check_bs_upper_bound<char, true,  'w', 'x',  'X',  0, one, '\0'>();
   check_bs_upper_bound<char, false, 'x', '\0', '\0', one::size, one, '\0'>();
   check_bs_upper_bound<char, false, 'y', '\0', '\0', one::size, one, '\0'>();
 
   typedef chr_map<'x', 'X', 'y', 'Y'> two;
 
-  VLOG(1) << "two";
+  FATAL_VLOG(1) << "two";
   check_bs_upper_bound<char, true,  'w', 'x',  'X',  0, two, '\0'>();
   check_bs_upper_bound<char, true,  'x', 'y',  'Y',  1, two, '\0'>();
   check_bs_upper_bound<char, false, 'y', '\0', '\0', two::size, two, '\0'>();
@@ -1267,7 +1267,7 @@ TEST(type_map, binary_search_upper_bound) {
 
   typedef chr_map<'a', 'A', 'e', 'E', 'i', 'I', 'o', 'O', 'u', 'U'> aeiou;
 
-  VLOG(1) << "aeiou";
+  FATAL_VLOG(1) << "aeiou";
   check_bs_upper_bound<char, true, 'a' - 1, 'a',  'A',  0, aeiou, '\0'>();
   check_bs_upper_bound<char, true, 'a',     'e',  'E',  1, aeiou, '\0'>();
   check_bs_upper_bound<char, true, 'e',     'i',  'I',  2, aeiou, '\0'>();
@@ -1281,7 +1281,7 @@ TEST(type_map, binary_search_upper_bound) {
     3, 2, 7, 3, 31, 5, 127, 7, 8191, 13, 131071, 17, 524287, 19
   > mp;
 
-  VLOG(1) << "mp";
+  FATAL_VLOG(1) << "mp";
   check_bs_upper_bound<int, true,  -1,         3,      2,  0, mp, -1>();
   check_bs_upper_bound<int, true,  0,          3,      2,  0, mp, -1>();
   check_bs_upper_bound<int, true,  2,          3,      2,  0, mp, -1>();

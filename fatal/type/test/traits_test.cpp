@@ -319,8 +319,8 @@ void check_is_template() {
   using checker = is_template<TTemplates...>;
   bool actual = checker::template type<T>::value;
   if (expected != actual) {
-    LOG(ERROR) << "checker: " << type_str<checker>();
-    LOG(ERROR) << "type: " << type_str<T>();
+    FATAL_LOG(ERROR) << "checker: " << type_str<checker>();
+    FATAL_LOG(ERROR) << "type: " << type_str<T>();
     EXPECT_EQ(expected, actual);
   }
 }
