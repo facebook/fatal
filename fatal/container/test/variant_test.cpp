@@ -13,13 +13,10 @@
 
 #include <fatal/container/optional.h>
 
-#include <folly/Arena.h>
-#include <folly/Memory.h>
-#include <folly/String.h>
-#include <folly/dynamic.h>
-
+#include <algorithm>
 #include <initializer_list>
 #include <map>
+#include <memory>
 #include <queue>
 #include <stdexcept>
 #include <string>
@@ -29,86 +26,177 @@
 #include <utility>
 #include <vector>
 
+#include <cassert>
+
 namespace fatal {
 
-using namespace folly;
+static std::uintmax_t allocated = 0;
+static std::uintmax_t freed = 0;
 
-static unsigned long long allocated = 0;
-static unsigned long long freed = 0;
+struct free_deleter {
+  void operator ()(void *p) const {
+    assert(p);
+    std::free(p);
+  }
+};
 
-template <typename Allocator, typename T>
-struct MemoryLeakCheckerAllocator {
-  typedef T value_type;
-  typedef value_type *pointer;
-  typedef value_type const *const_pointer;
-  typedef value_type &reference;
-  typedef value_type const *const_reference;
+template <typename T>
+struct test_allocator {
+  using value_type = T;
+  using pointer = value_type *;
+  using const_pointer = value_type const *;
+  using reference = value_type &;
+  using const_reference = value_type const *;
 
-  typedef std::ptrdiff_t difference_type;
-  typedef std::size_t size_type;
+  using difference_type = std::ptrdiff_t;
+  using size_type = std::ptrdiff_t;
+
+private:
+  using chunk_t = std::unique_ptr<void, free_deleter>;
+  using chunk_map = std::unordered_map<void *, chunk_t>;
+  using shared_chunk = std::shared_ptr<chunk_map>;
+
+public:
+  test_allocator(): chunks_(std::make_shared<chunk_map>()) {}
+
+  template <typename U>
+  explicit test_allocator(test_allocator<U> const &rhs):
+    chunks_(rhs.chunks())
+  {}
+
+  template <typename U>
+  explicit test_allocator(test_allocator<U> &&rhs):
+    chunks_(std::move(rhs.chunks()))
+  {}
+
+  pointer allocate(size_type n, void const * = nullptr) {
+    for (auto tries = 3; tries--; ) {
+      chunk_t buffer(std::malloc(sizeof(value_type) * n));
+      auto p = buffer.get();
+
+      // TODO: use std::align() when available
+      if (!p || reinterpret_cast<std::uintptr_t>(p) % alignof(value_type)) {
+        continue;
+      }
+
+      assert(chunks_->find(p) == chunks_->end());
+      (*chunks_)[p] = std::move(buffer);
+      return static_cast<pointer>(p);
+    }
+
+    return nullptr;
+  }
+
+  void deallocate(pointer p, size_type n) {
+    assert(chunks_->find(p) != chunks_->end());
+    chunks_->erase(p);
+  }
+
+  size_type max_size() const { return std::numeric_limits<size_type>::max(); }
+
+  template <typename... Args>
+  void construct(pointer p, Args &&...args) {
+    new (p) value_type(std::forward<Args>(args)...);
+  }
+
+  void destroy(pointer p) {
+    assert(p);
+    p->~value_type();
+  }
+
+  template <typename U>
+  struct rebind {
+    using other = test_allocator<U>;
+  };
+
+  bool operator !=(test_allocator const &rhs) const {
+    return chunks_ != rhs.chunks_;
+  }
+
+  bool operator ==(test_allocator const &rhs) const {
+    return chunks_ == rhs.chunks_;
+  }
+
+  shared_chunk const &chunks() const { return chunks_; }
+  shared_chunk &chunks() { return chunks_; }
+
+private:
+  shared_chunk chunks_;
+};
+
+template <
+  typename TAllocator,
+  typename T = typename std::allocator_traits<TAllocator>::value_type
+>
+struct checked_allocator {
+  using allocator_type = TAllocator;
+  using value_type = T;
+  using pointer = value_type *;
+  using const_pointer = value_type const *;
+  using reference = value_type &;
+  using const_reference = value_type const *;
+
+  using difference_type = std::ptrdiff_t;
+  using size_type = std::size_t;
 
   static_assert(
-    std::is_same<value_type, typename Allocator::value_type>::value,
+    std::is_same<value_type, typename allocator_type::value_type>::value,
     "wrapped allocator has a different value_type"
   );
 
-  explicit MemoryLeakCheckerAllocator() {}
+  checked_allocator() = default;
 
-  explicit MemoryLeakCheckerAllocator(Allocator allocator):
-    allocator_(allocator)
-  {}
+  explicit checked_allocator(allocator_type allocator): allocator_(allocator) {}
 
   template <typename UAllocator, typename U>
-  MemoryLeakCheckerAllocator(
-    MemoryLeakCheckerAllocator<UAllocator, U> const &other
-  ):
+  checked_allocator(checked_allocator<UAllocator, U> const &other):
     allocator_(other.allocator())
   {}
 
-  value_type* allocate(size_t n, const void* hint = nullptr) {
+  pointer allocate(size_type n, void const *hint = nullptr) {
     auto p = allocator_.allocate(n, hint);
     allocated += n * sizeof(value_type);
     return p;
   }
 
-  void deallocate(value_type* p, size_t n) {
+  void deallocate(pointer p, size_type n) {
     allocator_.deallocate(p, n);
     freed += n * sizeof(value_type);
   }
 
-  size_t max_size() const { return allocator_.max_size(); }
+  size_type max_size() const { return allocator_.max_size(); }
 
   template <typename... Args>
-  void construct(value_type* p, Args&&... args) {
+  void construct(pointer p, Args &&...args) {
     allocator_.construct(p, std::forward<Args>(args)...);
   }
 
-  void destroy(value_type* p) { allocator_.destroy(p); }
+  void destroy(pointer p) { allocator_.destroy(p); }
 
   template <typename U>
   struct rebind {
-    typedef MemoryLeakCheckerAllocator<
-      typename std::allocator_traits<Allocator>::template rebind_alloc<U>,
+    using other = checked_allocator<
+      typename std::allocator_traits<allocator_type>::template rebind_alloc<U>,
       U
-    > other;
+    >;
   };
 
-  Allocator const &allocator() const { return allocator_; }
+  allocator_type const &allocator() const { return allocator_; }
 
-  bool operator !=(MemoryLeakCheckerAllocator const &other) const {
+  bool operator !=(checked_allocator const &other) const {
     return allocator_ != other.allocator_;
   }
 
-  bool operator ==(MemoryLeakCheckerAllocator const &other) const {
+  bool operator ==(checked_allocator const &other) const {
     return allocator_ == other.allocator_;
   }
 
 private:
-  Allocator allocator_;
+  allocator_type allocator_;
 };
 
-MemoryLeakCheckerAllocator<
-  typename default_storage_policy<>::allocator_type::rebind<int>::other, int
+checked_allocator<
+  typename default_storage_policy<>::allocator_type::rebind<int>::other
 > allocator{
   typename default_storage_policy<>::allocator_type::rebind<int>::other()
 };
@@ -565,7 +653,7 @@ private:
 };
 
 template <typename T, typename TVariant, typename... Args>
-void check_visit_if(TVariant &&variant, Args &&...args) {
+void check_visit_if (TVariant &&variant, Args &&...args) {
   variant.template visit_if<transform_alias<std::is_same, T>::template apply>(
     visit_if_visitor<T>(std::forward<Args>(args)...)
   );
@@ -1158,7 +1246,7 @@ TEST(variant, operator_copy_assignment_heterogeneous_policy_rvref) {
 template <typename Expected, typename ...Args>
 void check_type_tag_size() {
   typedef variant<default_storage_policy<>, Args...> var;
-  if(!std::is_same<Expected, typename var::type_tag>::value) {
+  if (!std::is_same<Expected, typename var::type_tag>::value) {
     FATAL_LOG(INFO) << "expected \"" << type_str<Expected>()
       << "\", got \"" << type_str<typename var::type_tag>()
       << "\" for " << sizeof...(Args) << " types";
@@ -1260,10 +1348,8 @@ TEST(variant, id) {
 }
 
 TEST(variant, arena_allocator) {
-  SysArena arena;
-  MemoryLeakCheckerAllocator<StlAllocator<SysArena, int>, int> alloc{
-    StlAllocator<SysArena, int>(&arena)
-  };
+  test_allocator<int> arena;
+  checked_allocator<test_allocator<int>> alloc{arena};
 
   variant<
     default_storage_policy<decltype(alloc), dynamic_allocation_policy>,
@@ -1286,7 +1372,7 @@ TEST(variant, arena_allocator) {
   v = std::vector<int>{1, 2, 3, 4, 5};
   EXPECT_FALSE(v.empty());
   EXPECT_EQ(5, v.get<std::vector<int>>().size());
-  for(int i = 1; i <= 5; ++i) {
+  for (int i = 1; i <= 5; ++i) {
     EXPECT_EQ(i, v.get<std::vector<int>>()[i - 1]);
   }
 
@@ -1364,7 +1450,7 @@ struct nested_visitor {
     EXPECT_EQ(-1, expected_.front());
     expected_.pop();
 
-    for(auto &i: v) {
+    for (auto &i: v) {
       i.visit(*this);
     }
 
@@ -1528,14 +1614,13 @@ struct visitor_that_returns_type_tag {
 };
 
 TEST(variant, visitor_that_return_on_arena_variant) {
-  SysArena arena;
-  MemoryLeakCheckerAllocator<StlAllocator<SysArena, int>, int> allocator{
-    StlAllocator<SysArena, int>(&arena)
-  };
-  typedef variant<
+  test_allocator<int> arena;
+  checked_allocator<test_allocator<int>> alloc{arena};
+
+  using var = variant<
     default_storage_policy<decltype(allocator), dynamic_allocation_policy>,
     int, double, std::string
-  > var;
+  >;
   typedef visitor_that_returns_type_tag<var> visitor_type;
 
   var v(allocator);
@@ -1556,29 +1641,6 @@ TEST(variant, visitor_that_return_on_arena_variant) {
     (var::tag<std::string>()),
     (visit<var::type_tag>(v, visitor_type()))
   );
-}
-
-struct visitor_that_return_folly_dynamic {
-  template <typename U>
-  folly::dynamic operator()(U &&value) {
-    return folly::dynamic(value);
-  }
-};
-
-TEST(variant, visitor_that_return_folly_dynamic) {
-  typedef test_variant<int, double> var;
-  visitor_that_return_folly_dynamic visitor;
-  var v(allocator);
-
-  v = 10;
-  auto i = visit<folly::dynamic>(v, visitor);
-  EXPECT_TRUE(i.isInt());
-  EXPECT_EQ(10, i.asInt());
-
-  v = 5.6;
-  auto d = visit<folly::dynamic>(v, visitor);
-  EXPECT_TRUE(d.isDouble());
-  EXPECT_EQ(5.6, d.asDouble());
 }
 
 template <typename return_type>
@@ -1724,22 +1786,22 @@ TEST(variant, variant_map_as_value) {
 
   EXPECT_EQ(4, m.size());
 
-  FOR_EACH_KV(key, value, m) {
-    if(key == "int") {
-      EXPECT_TRUE(value.is_of<int>());
-      EXPECT_EQ(10, (value.get<int>()));
-    } else if(key == "double") {
-      EXPECT_TRUE(value.is_of<double>());
-      EXPECT_EQ(5.6, (value.get<double>()));
-    } else if(key == "string") {
-      EXPECT_TRUE(value.is_of<test_string>());
+  for (auto const &i: m) {
+    if (i.first == "int") {
+      EXPECT_TRUE(i.second.is_of<int>());
+      EXPECT_EQ(10, (i.second.get<int>()));
+    } else if (i.first == "double") {
+      EXPECT_TRUE(i.second.is_of<double>());
+      EXPECT_EQ(5.6, (i.second.get<double>()));
+    } else if (i.first == "string") {
+      EXPECT_TRUE(i.second.is_of<test_string>());
       EXPECT_EQ(
         test_string("HELLO, WORLD", allocator),
-        (value.get<test_string>())
+        (i.second.get<test_string>())
       );
-    } else if(key == "t") {
-      EXPECT_EQ(t.tag(), value.tag());
-      EXPECT_EQ((t.get<test_string>()), (value.get<test_string>()));
+    } else if (i.first == "t") {
+      EXPECT_EQ(t.tag(), i.second.tag());
+      EXPECT_EQ((t.get<test_string>()), (i.second.get<test_string>()));
     } else {
       EXPECT_TRUE(false);
     }
@@ -1759,21 +1821,21 @@ TEST(variant, variant_map_as_key_value) {
 
   EXPECT_EQ(2, m.size());
 
-  FOR_EACH_KV(key, value, m) {
-    switch(key.tag()) {
+  for (auto const &i: m) {
+    switch (i.first.tag()) {
       case var::tag<int>():
-        EXPECT_EQ(10, (key.get<int>()));
-        EXPECT_TRUE(value.is_of<double>());
-        EXPECT_EQ(5.6, (value.get<double>()));
+        EXPECT_EQ(10, (i.first.get<int>()));
+        EXPECT_TRUE(i.second.is_of<double>());
+        EXPECT_EQ(5.6, (i.second.get<double>()));
         break;
 
       case var::tag<test_string>():
         EXPECT_EQ(
           test_string("HELLO, WORLD", allocator),
-          (key.get<test_string>())
+          (i.first.get<test_string>())
         );
-        EXPECT_EQ(t.tag(), value.tag());
-        EXPECT_EQ((t.get<test_string>()), (value.get<test_string>()));
+        EXPECT_EQ(t.tag(), i.second.tag());
+        EXPECT_EQ((t.get<test_string>()), (i.second.get<test_string>()));
         break;
 
       default:
@@ -1800,24 +1862,24 @@ TEST(variant, variant_map_as_key_value) {
   );
   m[k2] = var(allocator, 456789);
 
-  FOR_EACH_KV(key, value, m) {
-    switch(key.tag()) {
+  for (auto const &i: m) {
+    switch (i.first.tag()) {
       case var::tag<int>():
-        EXPECT_EQ(10, (key.get<int>()));
-        EXPECT_TRUE(value.is_of<test_string>());
+        EXPECT_EQ(10, (i.first.get<int>()));
+        EXPECT_TRUE(i.second.is_of<test_string>());
         EXPECT_EQ(
           "so you didn't misspell cat prophet, my bad",
-          (value.get<test_string>())
+          (i.second.get<test_string>())
         );
         break;
 
       case var::tag<test_string>():
         EXPECT_EQ(
           test_string("HELLO, WORLD", allocator),
-          (key.get<test_string>())
+          (i.first.get<test_string>())
         );
-        EXPECT_TRUE(value.is_of<int>());
-        EXPECT_EQ(456789, (value.get<int>()));
+        EXPECT_TRUE(i.second.is_of<int>());
+        EXPECT_EQ(456789, (i.second.get<int>()));
         break;
 
       default:
@@ -1851,18 +1913,18 @@ TEST(variant, variant_unordered_map_as_key_value) {
 
   EXPECT_EQ(2, m.size());
 
-  FOR_EACH_KV(key, value, m) {
-    switch(key.tag()) {
+  for (auto const &i: m) {
+    switch (i.first.tag()) {
       case var::tag<int>():
-        EXPECT_EQ(10, (key.get<int>()));
-        EXPECT_TRUE(value.is_of<double>());
-        EXPECT_EQ(5.6, (value.get<double>()));
+        EXPECT_EQ(10, (i.first.get<int>()));
+        EXPECT_TRUE(i.second.is_of<double>());
+        EXPECT_EQ(5.6, (i.second.get<double>()));
         break;
 
       case var::tag<std::string>():
-        EXPECT_EQ(std::string("HELLO, WORLD"), (key.get<std::string>()));
-        EXPECT_EQ(t.tag(), value.tag());
-        EXPECT_EQ((t.get<std::string>()), (value.get<std::string>()));
+        EXPECT_EQ(std::string("HELLO, WORLD"), (i.first.get<std::string>()));
+        EXPECT_EQ(t.tag(), i.second.tag());
+        EXPECT_EQ((t.get<std::string>()), (i.second.get<std::string>()));
         break;
 
       default:
@@ -1889,21 +1951,21 @@ TEST(variant, variant_unordered_map_as_key_value) {
   );
   m[k2] = var(allocator, 456789);
 
-  FOR_EACH_KV(key, value, m) {
-    switch(key.tag()) {
+  for (auto const &i: m) {
+    switch (i.first.tag()) {
       case var::tag<int>():
-        EXPECT_EQ(10, (key.get<int>()));
-        EXPECT_TRUE(value.is_of<std::string>());
+        EXPECT_EQ(10, (i.first.get<int>()));
+        EXPECT_TRUE(i.second.is_of<std::string>());
         EXPECT_EQ(
           "so you didn't misspell cat prophet, my bad",
-          (value.get<std::string>())
+          (i.second.get<std::string>())
         );
         break;
 
       case var::tag<std::string>():
-        EXPECT_EQ(std::string("HELLO, WORLD"), (key.get<std::string>()));
-        EXPECT_TRUE(value.is_of<int>());
-        EXPECT_EQ(456789, (value.get<int>()));
+        EXPECT_EQ(std::string("HELLO, WORLD"), (i.first.get<std::string>()));
+        EXPECT_TRUE(i.second.is_of<int>());
+        EXPECT_EQ(456789, (i.second.get<int>()));
         break;
 
       default:
@@ -2004,7 +2066,7 @@ TEST(variant, set_difference) {
     std::back_inserter(diff)
   );
 
-  for(auto &i: diff) {
+  for (auto &i: diff) {
     FATAL_LOG(INFO) << "result: " << i.get<int>();
   }
 
@@ -2038,7 +2100,7 @@ TEST(variant, set_difference_inplace) {
   );
   lhs.erase(end, lhs.end());
 
-  for(auto &i: lhs) {
+  for (auto &i: lhs) {
     FATAL_LOG(INFO) << "result: " << i.get<int>();
   }
 

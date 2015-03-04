@@ -12,8 +12,6 @@
 
 #include <fatal/test/driver.h>
 
-#include <folly/Conv.h>
-
 namespace fatal {
 
 ///////////////
