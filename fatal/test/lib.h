@@ -12,10 +12,15 @@
 
 #include <gtest/gtest.h>
 
-#include <type_traits>
+#include <atomic>
+#include <chrono>
+#include <memory>
 #include <string>
+#include <type_traits>
 
 #include <iostream>
+
+#include <cassert>
 
 namespace fatal {
 
@@ -204,6 +209,182 @@ std::string to_string(Args &&...args) {
 }
 
 std::string to_string(std::string s) { return s; }
+
+// for internal tests only
+
+namespace log {
+namespace detail {
+
+template <typename TOut, typename TInfo>
+struct logger {
+  using info = TInfo;
+
+  struct writer {
+    explicit writer(TOut *out) noexcept: out_(out) {}
+
+    writer(writer const &) = delete;
+    writer(writer &&rhs) noexcept: out_(rhs.out_) { rhs.out_ = nullptr; }
+
+    template <typename T>
+    writer &operator <<(T &&value) & {
+      if (out_) {
+        *out_ << std::forward<T>(value);
+      }
+
+      return *this;
+    }
+
+    template <typename T>
+    writer &&operator <<(T &&value) && {
+      if (out_) {
+        *out_ << std::forward<T>(value);
+      }
+
+      return std::move(*this);
+    }
+
+    ~writer() {
+      if (out_) {
+        *out_ << '\n';
+      }
+    }
+
+  private:
+    TOut *out_;
+  };
+
+  explicit logger(TOut *out, char const *file, std::size_t line) noexcept:
+    writer_(out),
+    file_(file),
+    line_(line)
+  {
+    assert(file_);
+    for (auto i = file_; *i; ++i) {
+      if (*i == '/') {
+        file_ = i + 1;
+      }
+    }
+  }
+
+  logger(logger const &) = delete;
+  logger(logger &&rhs) = default;
+
+  template <typename T>
+  writer operator <<(T &&value) {
+    writer_ << info::signature::value;
+
+    if (info::show_level::value) {
+      writer_ << info::value;
+    }
+
+    // TODO: output date in a more useful format
+    writer_ << ' '
+      << std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+      ).count() << ' ' << file_ << ':' << line_ << " | "
+      << std::forward<T>(value);
+
+    return std::move(writer_);
+  }
+
+  ~logger() {
+    if (info::abort::value) {
+      std::abort();
+    }
+  }
+
+private:
+  writer writer_;
+  char const *file_;
+  std::size_t line_;
+};
+
+using level_t = unsigned;
+
+template <typename TCategory, level_t Level>
+struct log_level {
+  static void set(level_t level) {
+    value() = level;
+  }
+
+  static level_t get() {
+    return value();
+  }
+
+private:
+  static std::atomic<level_t> &value() {
+    static std::atomic<level_t> instance(Level);
+    return instance;
+  }
+};
+
+template <
+  typename TCategory,
+  level_t Level,
+  char Signature,
+  bool ShowLevel,
+  bool Abort = false
+>
+struct level_info:
+  std::integral_constant<level_t, Level>
+{
+  using category = TCategory;
+  using show_level = std::integral_constant<bool, ShowLevel>;
+  using signature = std::integral_constant<char, Signature>;
+  using abort = std::integral_constant<bool, Abort>;
+};
+
+struct log_tag {};
+struct verbose_tag {};
+
+using level_FATAL = level_info<log_tag, 0, 'F', false, true>;
+using level_CRITICAL = level_info<log_tag, 1, 'C', false>;
+using level_ERROR = level_info<log_tag, 2, 'E', false>;
+using level_INFO = level_info<log_tag, 3, 'I', false>;
+using level_DEBUG = level_info<log_tag, 4, 'D', false>;
+
+template <level_t Level>
+using level_verbose = level_info<verbose_tag, Level, 'V', true>;
+
+template <typename> struct by_category;
+
+template <>
+struct by_category<log_tag> {
+  using level = detail::log_level<detail::log_tag, detail::level_INFO::value>;
+};
+
+template <>
+struct by_category<verbose_tag> {
+  using level = detail::log_level<detail::verbose_tag, 0>;
+};
+
+} // namespace detail {
+
+using level = detail::by_category<detail::log_tag>::level;
+using v_level = detail::by_category<detail::verbose_tag>::level;
+
+template <typename TInfo>
+log::detail::logger<std::ostream, TInfo> log(
+  char const *file,
+  std::size_t line
+) {
+  return log::detail::logger<std::ostream, TInfo>(
+    TInfo::value <= detail::by_category<typename TInfo::category>::level::get()
+      ? std::addressof(std::cerr)
+      : nullptr,
+    file, line
+  );
+}
+
+} // namespace log {
+
+#define FATAL_LOG(Level) \
+  ::fatal::log::log<::fatal::log::detail::level_##Level>(__FILE__, __LINE__)
+
+#define FATAL_VLOG(Level) \
+  ::fatal::log::log<::fatal::log::detail::level_verbose<Level>>( \
+    __FILE__, __LINE__ \
+  )
 
 } // namespace fatal {
 
