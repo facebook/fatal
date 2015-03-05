@@ -19,7 +19,7 @@ done
 
 run_validation() {
   if [ "$NO_CLEAR" != "true" ]; then
-    lclear.sh >&2
+    ./lclear.sh >&2
   fi
 
   if [ "$skip_test" != "true" ]; then

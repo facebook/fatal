@@ -33,7 +33,7 @@ ln -s "$base_dir" "$link_dir"
 out_binary="$out_dir/`basename "$file_name" .cpp`"
 
 if [ "$NO_CLEAR" != "true" ]; then
-  lclear.sh >&2
+  ./lclear.sh >&2
 fi
 
 CC_OPT="$CC_OPT -O2 -g -o $out_binary -pthread"

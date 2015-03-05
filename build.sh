@@ -3,7 +3,7 @@
 set -e
 
 if [ "$NO_CLEAR" != "true" ]; then
-  lclear.sh >&2
+  ./lclear.sh >&2
 fi
 
 if [ -z "$USE_CC" ]; then
