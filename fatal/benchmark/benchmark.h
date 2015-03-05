@@ -120,13 +120,10 @@ struct result_entry {
   std::string const &name() const { return name_; }
 
   bool operator <(result_entry const &rhs) const {
-    auto lhs_period = period();
-    auto rhs_period = rhs.period();
-
     return period_ < rhs.period_ || (
       period_ == rhs.period_ && (
         n_ > rhs.n_ || (
-          n_ == n_ && name_ < rhs.name_
+          n_ == rhs.n_ && name_ < rhs.name_
         )
       )
     );
@@ -408,7 +405,7 @@ results run(TOut &out) {
 
 namespace detail {
 
-extern std::uintptr_t prevent_optimization = 0;
+std::uintptr_t prevent_optimization = 0;
 
 } // namespace detail {
 
