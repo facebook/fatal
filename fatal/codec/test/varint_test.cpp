@@ -42,7 +42,7 @@ class impl {
   template <typename TIterator>
   static encoded result(buffer &b, TIterator end) {
     auto const size = std::distance(b.begin(), end);
-    EXPECT_GT(size, 0);
+    FATAL_EXPECT_GT(size, 0);
     return encoded(b, size);
   }
 
@@ -62,7 +62,7 @@ public:
       auto const end = out.end();
       assert(std::distance(begin, end) == out.size());
       auto const i = e(begin, end);
-      EXPECT_TRUE(e.done());
+      FATAL_EXPECT_TRUE(e.done());
       return result(out, i);
     }
   };
@@ -72,7 +72,7 @@ public:
       auto const begin = data.first.begin();
       auto const end = std::next(begin, data.second);
       auto const value = codec::decode(begin, end);
-      EXPECT_TRUE(value.second);
+      FATAL_EXPECT_TRUE(value.second);
       return value.first;
     }
   };
@@ -82,8 +82,8 @@ public:
       auto begin = data.first.begin();
       auto const end = std::next(begin, data.second);
       auto const value = codec::tracking_decode(begin, end);
-      EXPECT_TRUE(value.second);
-      EXPECT_EQ(end, begin);
+      FATAL_EXPECT_TRUE(value.second);
+      FATAL_EXPECT_EQ(end, begin);
       return value.first;
     }
   };
@@ -93,8 +93,8 @@ public:
       auto const begin = data.first.begin();
       auto const end = std::next(begin, data.second);
       typename codec::decoder d;
-      EXPECT_EQ(end, d(begin, end));
-      EXPECT_TRUE(d.done());
+      FATAL_EXPECT_EQ(end, d(begin, end));
+      FATAL_EXPECT_TRUE(d.done());
       return d.value();
     }
   };
@@ -119,7 +119,7 @@ struct signed_tester {
       << ", 0)";
 
     for (T i = lower_limit; i < 0; ++i) {
-      ASSERT_EQ(i, decoder(encoder(i)));
+      FATAL_ASSERT_EQ(i, decoder(encoder(i)));
     }
 
     if (limit::min() < lower_limit) {
@@ -132,7 +132,7 @@ struct signed_tester {
         << static_cast<std::intmax_t>(i) << ')';
 
       while (i-- > limit::min()) {
-        ASSERT_EQ(i, decoder(encoder(i)));
+        FATAL_ASSERT_EQ(i, decoder(encoder(i)));
       }
     }
   }
@@ -152,15 +152,15 @@ template <
   template <typename> class TDecoder,
   typename T
 >
-struct tester {
+struct tester_impl {
   void operator ()() const {
     using limit = std::numeric_limits<T>;
 
     TEncoder<impl<T>> encoder;
     TDecoder<impl<T>> decoder;
 
-    ASSERT_EQ(limit::max(), decoder(encoder(limit::max())));
-    ASSERT_EQ(limit::min(), decoder(encoder(limit::min())));
+    FATAL_ASSERT_EQ(limit::max(), decoder(encoder(limit::max())));
+    FATAL_ASSERT_EQ(limit::min(), decoder(encoder(limit::min())));
 
     auto const max = static_cast<std::uintmax_t>(limit::max());
     auto const upper_limit = std::min(max, count::value);
@@ -170,7 +170,7 @@ struct tester {
       << ']';
 
     do {
-      ASSERT_EQ(i, decoder(encoder(i)));
+      FATAL_ASSERT_EQ(i, decoder(encoder(i)));
     } while (i--);
 
     if (upper_limit < max) {
@@ -179,7 +179,7 @@ struct tester {
         << ", " << max << ']';
 
       while (i++ < limit::max()) {
-        ASSERT_EQ(i, decoder(encoder(i)));
+        FATAL_ASSERT_EQ(i, decoder(encoder(i)));
       }
     }
 
@@ -193,13 +193,13 @@ template <
   template <typename> class TEncoder,
   template <typename> class TDecoder
 >
-struct tester<TEncoder, TDecoder, bool> {
+struct tester_impl<TEncoder, TDecoder, bool> {
   void operator ()() const {
     TEncoder<impl<bool>> encoder;
     TDecoder<impl<bool>> decoder;
 
-    ASSERT_FALSE(decoder(encoder(false)));
-    ASSERT_TRUE(decoder(encoder(true)));
+    FATAL_ASSERT_FALSE(decoder(encoder(false)));
+    FATAL_ASSERT_TRUE(decoder(encoder(true)));
   }
 };
 
@@ -208,86 +208,86 @@ template <
   template <typename> class TDecoder,
   typename T
 >
-void test() {
-  tester<TEncoder, TDecoder, T>()();
+void chk() {
+  tester_impl<TEncoder, TDecoder, T>()();
 }
 
-TEST(stuff, stuff) {
+FATAL_TEST(stuff, stuff) {
   {
     use::enc<impl<std::int64_t>> encoder;
     use::dec<impl<std::int64_t>> decoder;
-    ASSERT_EQ(-10000000, decoder(encoder(-10000000)));
+    FATAL_ASSERT_EQ(-10000000, decoder(encoder(-10000000)));
   }
   {
     use::enc<impl<std::int8_t>> encoder;
     use::dec<impl<std::int8_t>> decoder;
-    ASSERT_EQ(127, decoder(encoder(127)));
+    FATAL_ASSERT_EQ(127, decoder(encoder(127)));
   }
   {
     use::enc<impl<std::int16_t>> encoder;
     use::dec<impl<std::int16_t>> decoder;
-    ASSERT_EQ(32767, decoder(encoder(32767)));
+    FATAL_ASSERT_EQ(32767, decoder(encoder(32767)));
   }
 }
 
-TEST(encode, decode_i8) { test<use::enc, use::dec, std::int8_t>(); }
-TEST(encode, decode_i16) { test<use::enc, use::dec, std::int16_t>(); }
-TEST(encode, decode_i32) { test<use::enc, use::dec, std::int32_t>(); }
-TEST(encode, decode_i64) { test<use::enc, use::dec, std::int64_t>(); }
-TEST(encode, decode_bool) { test<use::enc, use::dec, bool>(); }
-TEST(encode, decode_u8) { test<use::enc, use::dec, std::uint8_t>(); }
-TEST(encode, decode_u16) { test<use::enc, use::dec, std::uint16_t>(); }
-TEST(encode, decode_u32) { test<use::enc, use::dec, std::uint32_t>(); }
-TEST(encode, decode_u64) { test<use::enc, use::dec, std::uint64_t>(); }
+FATAL_TEST(encode, decode_i8) { chk<use::enc, use::dec, std::int8_t>(); }
+FATAL_TEST(encode, decode_i16) { chk<use::enc, use::dec, std::int16_t>(); }
+FATAL_TEST(encode, decode_i32) { chk<use::enc, use::dec, std::int32_t>(); }
+FATAL_TEST(encode, decode_i64) { chk<use::enc, use::dec, std::int64_t>(); }
+FATAL_TEST(encode, decode_bool) { chk<use::enc, use::dec, bool>(); }
+FATAL_TEST(encode, decode_u8) { chk<use::enc, use::dec, std::uint8_t>(); }
+FATAL_TEST(encode, decode_u16) { chk<use::enc, use::dec, std::uint16_t>(); }
+FATAL_TEST(encode, decode_u32) { chk<use::enc, use::dec, std::uint32_t>(); }
+FATAL_TEST(encode, decode_u64) { chk<use::enc, use::dec, std::uint64_t>(); }
 
-TEST(encode, tdecode_i8) { test<use::enc, use::tdec, std::int8_t>(); }
-TEST(encode, tdecode_i16) { test<use::enc, use::tdec, std::int16_t>(); }
-TEST(encode, tdecode_i32) { test<use::enc, use::tdec, std::int32_t>(); }
-TEST(encode, tdecode_i64) { test<use::enc, use::tdec, std::int64_t>(); }
-TEST(encode, tdecode_bool) { test<use::enc, use::tdec, bool>(); }
-TEST(encode, tdecode_u8) { test<use::enc, use::tdec, std::uint8_t>(); }
-TEST(encode, tdecode_u16) { test<use::enc, use::tdec, std::uint16_t>(); }
-TEST(encode, tdecode_u32) { test<use::enc, use::tdec, std::uint32_t>(); }
-TEST(encode, tdecode_u64) { test<use::enc, use::tdec, std::uint64_t>(); }
+FATAL_TEST(encode, tdecode_i8) { chk<use::enc, use::tdec, std::int8_t>(); }
+FATAL_TEST(encode, tdecode_i16) { chk<use::enc, use::tdec, std::int16_t>(); }
+FATAL_TEST(encode, tdecode_i32) { chk<use::enc, use::tdec, std::int32_t>(); }
+FATAL_TEST(encode, tdecode_i64) { chk<use::enc, use::tdec, std::int64_t>(); }
+FATAL_TEST(encode, tdecode_bool) { chk<use::enc, use::tdec, bool>(); }
+FATAL_TEST(encode, tdecode_u8) { chk<use::enc, use::tdec, std::uint8_t>(); }
+FATAL_TEST(encode, tdecode_u16) { chk<use::enc, use::tdec, std::uint16_t>(); }
+FATAL_TEST(encode, tdecode_u32) { chk<use::enc, use::tdec, std::uint32_t>(); }
+FATAL_TEST(encode, tdecode_u64) { chk<use::enc, use::tdec, std::uint64_t>(); }
 
-TEST(encode, decoder_i8) { test<use::enc, use::decr, std::int8_t>(); }
-TEST(encode, decoder_i16) { test<use::enc, use::decr, std::int16_t>(); }
-TEST(encode, decoder_i32) { test<use::enc, use::decr, std::int32_t>(); }
-TEST(encode, decoder_i64) { test<use::enc, use::decr, std::int64_t>(); }
-TEST(encode, decoder_bool) { test<use::enc, use::decr, bool>(); }
-TEST(encode, decoder_u8) { test<use::enc, use::decr, std::uint8_t>(); }
-TEST(encode, decoder_u16) { test<use::enc, use::decr, std::uint16_t>(); }
-TEST(encode, decoder_u32) { test<use::enc, use::decr, std::uint32_t>(); }
-TEST(encode, decoder_u64) { test<use::enc, use::decr, std::uint64_t>(); }
+FATAL_TEST(encode, decoder_i8) { chk<use::enc, use::decr, std::int8_t>(); }
+FATAL_TEST(encode, decoder_i16) { chk<use::enc, use::decr, std::int16_t>(); }
+FATAL_TEST(encode, decoder_i32) { chk<use::enc, use::decr, std::int32_t>(); }
+FATAL_TEST(encode, decoder_i64) { chk<use::enc, use::decr, std::int64_t>(); }
+FATAL_TEST(encode, decoder_bool) { chk<use::enc, use::decr, bool>(); }
+FATAL_TEST(encode, decoder_u8) { chk<use::enc, use::decr, std::uint8_t>(); }
+FATAL_TEST(encode, decoder_u16) { chk<use::enc, use::decr, std::uint16_t>(); }
+FATAL_TEST(encode, decoder_u32) { chk<use::enc, use::decr, std::uint32_t>(); }
+FATAL_TEST(encode, decoder_u64) { chk<use::enc, use::decr, std::uint64_t>(); }
 
-TEST(encoder, decode_i8) { test<use::encr, use::dec, std::int8_t>(); }
-TEST(encoder, decode_i16) { test<use::encr, use::dec, std::int16_t>(); }
-TEST(encoder, decode_i32) { test<use::encr, use::dec, std::int32_t>(); }
-TEST(encoder, decode_i64) { test<use::encr, use::dec, std::int64_t>(); }
-TEST(encoder, decode_bool) { test<use::encr, use::dec, bool>(); }
-TEST(encoder, decode_u8) { test<use::encr, use::dec, std::uint8_t>(); }
-TEST(encoder, decode_u16) { test<use::encr, use::dec, std::uint16_t>(); }
-TEST(encoder, decode_u32) { test<use::encr, use::dec, std::uint32_t>(); }
-TEST(encoder, decode_u64) { test<use::encr, use::dec, std::uint64_t>(); }
+FATAL_TEST(encoder, decode_i8) { chk<use::encr, use::dec, std::int8_t>(); }
+FATAL_TEST(encoder, decode_i16) { chk<use::encr, use::dec, std::int16_t>(); }
+FATAL_TEST(encoder, decode_i32) { chk<use::encr, use::dec, std::int32_t>(); }
+FATAL_TEST(encoder, decode_i64) { chk<use::encr, use::dec, std::int64_t>(); }
+FATAL_TEST(encoder, decode_bool) { chk<use::encr, use::dec, bool>(); }
+FATAL_TEST(encoder, decode_u8) { chk<use::encr, use::dec, std::uint8_t>(); }
+FATAL_TEST(encoder, decode_u16) { chk<use::encr, use::dec, std::uint16_t>(); }
+FATAL_TEST(encoder, decode_u32) { chk<use::encr, use::dec, std::uint32_t>(); }
+FATAL_TEST(encoder, decode_u64) { chk<use::encr, use::dec, std::uint64_t>(); }
 
-TEST(encoder, tdecode_i8) { test<use::encr, use::tdec, std::int8_t>(); }
-TEST(encoder, tdecode_i16) { test<use::encr, use::tdec, std::int16_t>(); }
-TEST(encoder, tdecode_i32) { test<use::encr, use::tdec, std::int32_t>(); }
-TEST(encoder, tdecode_i64) { test<use::encr, use::tdec, std::int64_t>(); }
-TEST(encoder, tdecode_bool) { test<use::encr, use::tdec, bool>(); }
-TEST(encoder, tdecode_u8) { test<use::encr, use::tdec, std::uint8_t>(); }
-TEST(encoder, tdecode_u16) { test<use::encr, use::tdec, std::uint16_t>(); }
-TEST(encoder, tdecode_u32) { test<use::encr, use::tdec, std::uint32_t>(); }
-TEST(encoder, tdecode_u64) { test<use::encr, use::tdec, std::uint64_t>(); }
+FATAL_TEST(encoder, tdecode_i8) { chk<use::encr, use::tdec, std::int8_t>(); }
+FATAL_TEST(encoder, tdecode_i16) { chk<use::encr, use::tdec, std::int16_t>(); }
+FATAL_TEST(encoder, tdecode_i32) { chk<use::encr, use::tdec, std::int32_t>(); }
+FATAL_TEST(encoder, tdecode_i64) { chk<use::encr, use::tdec, std::int64_t>(); }
+FATAL_TEST(encoder, tdecode_bool) { chk<use::encr, use::tdec, bool>(); }
+FATAL_TEST(encoder, tdecode_u8) { chk<use::encr, use::tdec, std::uint8_t>(); }
+FATAL_TEST(encoder, tdecode_u16) { chk<use::encr, use::tdec, std::uint16_t>(); }
+FATAL_TEST(encoder, tdecode_u32) { chk<use::encr, use::tdec, std::uint32_t>(); }
+FATAL_TEST(encoder, tdecode_u64) { chk<use::encr, use::tdec, std::uint64_t>(); }
 
-TEST(encoder, decoder_i8) { test<use::encr, use::decr, std::int8_t>(); }
-TEST(encoder, decoder_i16) { test<use::encr, use::decr, std::int16_t>(); }
-TEST(encoder, decoder_i32) { test<use::encr, use::decr, std::int32_t>(); }
-TEST(encoder, decoder_i64) { test<use::encr, use::decr, std::int64_t>(); }
-TEST(encoder, decoder_bool) { test<use::encr, use::decr, bool>(); }
-TEST(encoder, decoder_u8) { test<use::encr, use::decr, std::uint8_t>(); }
-TEST(encoder, decoder_u16) { test<use::encr, use::decr, std::uint16_t>(); }
-TEST(encoder, decoder_u32) { test<use::encr, use::decr, std::uint32_t>(); }
-TEST(encoder, decoder_u64) { test<use::encr, use::decr, std::uint64_t>(); }
+FATAL_TEST(encoder, decoder_i8) { chk<use::encr, use::decr, std::int8_t>(); }
+FATAL_TEST(encoder, decoder_i16) { chk<use::encr, use::decr, std::int16_t>(); }
+FATAL_TEST(encoder, decoder_i32) { chk<use::encr, use::decr, std::int32_t>(); }
+FATAL_TEST(encoder, decoder_i64) { chk<use::encr, use::decr, std::int64_t>(); }
+FATAL_TEST(encoder, decoder_bool) { chk<use::encr, use::decr, bool>(); }
+FATAL_TEST(encoder, decoder_u8) { chk<use::encr, use::decr, std::uint8_t>(); }
+FATAL_TEST(encoder, decoder_u16) { chk<use::encr, use::decr, std::uint16_t>(); }
+FATAL_TEST(encoder, decoder_u32) { chk<use::encr, use::decr, std::uint32_t>(); }
+FATAL_TEST(encoder, decoder_u64) { chk<use::encr, use::decr, std::uint64_t>(); }
 
 } // namespace fatal {

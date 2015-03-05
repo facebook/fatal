@@ -34,6 +34,9 @@ template <typename...> struct is_S: public std::false_type {};
 template <int Value> struct is_S<S<Value>>: public std::true_type {};
 
 
+using vl = type_list<void>;
+using ivfl = type_list<int, void, float>;
+
 using el = type_list<>;
 using single = type_list<T0>;
 using tl = type_list<T0, T1, T2>;
@@ -66,29 +69,29 @@ struct xyz { int x; int y; int z; };
 // type_list::size //
 /////////////////////
 
-TEST(size, size) {
-  EXPECT_EQ(3, tl::size);
-  EXPECT_EQ(0, (el::size));
-  EXPECT_EQ(6, (tls::size));
-  EXPECT_EQ(5, (type_list<T0, T1, T2, P0, P1>::size));
+FATAL_TEST(size, size) {
+  FATAL_EXPECT_EQ(3, tl::size);
+  FATAL_EXPECT_EQ(0, (el::size));
+  FATAL_EXPECT_EQ(6, (tls::size));
+  FATAL_EXPECT_EQ(5, (type_list<T0, T1, T2, P0, P1>::size));
 }
 
 //////////////////////
 // type_list::empty //
 //////////////////////
 
-TEST(empty, empty) {
-  EXPECT_FALSE(tl::empty);
-  EXPECT_TRUE((el::empty));
-  EXPECT_FALSE((tls::empty));
-  EXPECT_FALSE((type_list<T0, T1, T2, P0, P1>::empty));
+FATAL_TEST(empty, empty) {
+  FATAL_EXPECT_FALSE(tl::empty);
+  FATAL_EXPECT_TRUE((el::empty));
+  FATAL_EXPECT_FALSE((tls::empty));
+  FATAL_EXPECT_FALSE((type_list<T0, T1, T2, P0, P1>::empty));
 }
 
 ///////////////////
 // type_list::at //
 ///////////////////
 
-TEST(at, at) {
+FATAL_TEST(at, at) {
   FATAL_EXPECT_SAME<T0, tl::at<0>>();
   FATAL_EXPECT_SAME<T1, tl::at<1>>();
   FATAL_EXPECT_SAME<T2, tl::at<2>>();
@@ -98,7 +101,7 @@ TEST(at, at) {
 // type_list::try_at //
 ///////////////////////
 
-TEST(try_at, try_at) {
+FATAL_TEST(try_at, try_at) {
   FATAL_EXPECT_SAME<el, el::try_at<0>>();
   FATAL_EXPECT_SAME<el, el::try_at<1>>();
   FATAL_EXPECT_SAME<el, el::try_at<2>>();
@@ -124,165 +127,165 @@ TEST(try_at, try_at) {
 // type_list::index_of //
 /////////////////////////
 
-TEST(index_of, index_of) {
-  EXPECT_EQ(el::size, el::index_of<T0>::value);
-  EXPECT_EQ(el::size, el::index_of<T1>::value);
-  EXPECT_EQ(el::size, el::index_of<T2>::value);
-  EXPECT_EQ(el::size, el::index_of<P0>::value);
-  EXPECT_EQ(el::size, el::index_of<P1>::value);
-  EXPECT_EQ(el::size, el::index_of<P2>::value);
-  EXPECT_EQ(el::size, el::index_of<S0>::value);
-  EXPECT_EQ(el::size, el::index_of<S1>::value);
-  EXPECT_EQ(el::size, el::index_of<S2>::value);
+FATAL_TEST(index_of, index_of) {
+  FATAL_EXPECT_EQ(el::size, el::index_of<T0>::value);
+  FATAL_EXPECT_EQ(el::size, el::index_of<T1>::value);
+  FATAL_EXPECT_EQ(el::size, el::index_of<T2>::value);
+  FATAL_EXPECT_EQ(el::size, el::index_of<P0>::value);
+  FATAL_EXPECT_EQ(el::size, el::index_of<P1>::value);
+  FATAL_EXPECT_EQ(el::size, el::index_of<P2>::value);
+  FATAL_EXPECT_EQ(el::size, el::index_of<S0>::value);
+  FATAL_EXPECT_EQ(el::size, el::index_of<S1>::value);
+  FATAL_EXPECT_EQ(el::size, el::index_of<S2>::value);
 
-  EXPECT_EQ(0, tl::index_of<T0>::value);
-  EXPECT_EQ(1, tl::index_of<T1>::value);
-  EXPECT_EQ(2, tl::index_of<T2>::value);
-  EXPECT_EQ(tl::size, tl::index_of<P0>::value);
-  EXPECT_EQ(tl::size, tl::index_of<P1>::value);
-  EXPECT_EQ(tl::size, tl::index_of<P2>::value);
-  EXPECT_EQ(tl::size, tl::index_of<S0>::value);
-  EXPECT_EQ(tl::size, tl::index_of<S1>::value);
-  EXPECT_EQ(tl::size, tl::index_of<S2>::value);
+  FATAL_EXPECT_EQ(0, tl::index_of<T0>::value);
+  FATAL_EXPECT_EQ(1, tl::index_of<T1>::value);
+  FATAL_EXPECT_EQ(2, tl::index_of<T2>::value);
+  FATAL_EXPECT_EQ(tl::size, tl::index_of<P0>::value);
+  FATAL_EXPECT_EQ(tl::size, tl::index_of<P1>::value);
+  FATAL_EXPECT_EQ(tl::size, tl::index_of<P2>::value);
+  FATAL_EXPECT_EQ(tl::size, tl::index_of<S0>::value);
+  FATAL_EXPECT_EQ(tl::size, tl::index_of<S1>::value);
+  FATAL_EXPECT_EQ(tl::size, tl::index_of<S2>::value);
 
-  EXPECT_EQ(0, tpl::index_of<P0>::value);
-  EXPECT_EQ(1, tpl::index_of<P1>::value);
-  EXPECT_EQ(2, tpl::index_of<P2>::value);
-  EXPECT_EQ(3, tpl::index_of<T0>::value);
-  EXPECT_EQ(4, tpl::index_of<T1>::value);
-  EXPECT_EQ(5, tpl::index_of<T2>::value);
-  EXPECT_EQ(tpl::size, tpl::index_of<S0>::value);
-  EXPECT_EQ(tpl::size, tpl::index_of<S1>::value);
-  EXPECT_EQ(tpl::size, tpl::index_of<S2>::value);
+  FATAL_EXPECT_EQ(0, tpl::index_of<P0>::value);
+  FATAL_EXPECT_EQ(1, tpl::index_of<P1>::value);
+  FATAL_EXPECT_EQ(2, tpl::index_of<P2>::value);
+  FATAL_EXPECT_EQ(3, tpl::index_of<T0>::value);
+  FATAL_EXPECT_EQ(4, tpl::index_of<T1>::value);
+  FATAL_EXPECT_EQ(5, tpl::index_of<T2>::value);
+  FATAL_EXPECT_EQ(tpl::size, tpl::index_of<S0>::value);
+  FATAL_EXPECT_EQ(tpl::size, tpl::index_of<S1>::value);
+  FATAL_EXPECT_EQ(tpl::size, tpl::index_of<S2>::value);
 
-  EXPECT_EQ(tls::size, tls::index_of<P0>::value);
-  EXPECT_EQ(tls::size, tls::index_of<P1>::value);
-  EXPECT_EQ(tls::size, tls::index_of<P2>::value);
-  EXPECT_EQ(0, tls::index_of<T0>::value);
-  EXPECT_EQ(1, tls::index_of<T1>::value);
-  EXPECT_EQ(2, tls::index_of<T2>::value);
-  EXPECT_EQ(3, tls::index_of<S0>::value);
-  EXPECT_EQ(4, tls::index_of<S1>::value);
-  EXPECT_EQ(5, tls::index_of<S2>::value);
+  FATAL_EXPECT_EQ(tls::size, tls::index_of<P0>::value);
+  FATAL_EXPECT_EQ(tls::size, tls::index_of<P1>::value);
+  FATAL_EXPECT_EQ(tls::size, tls::index_of<P2>::value);
+  FATAL_EXPECT_EQ(0, tls::index_of<T0>::value);
+  FATAL_EXPECT_EQ(1, tls::index_of<T1>::value);
+  FATAL_EXPECT_EQ(2, tls::index_of<T2>::value);
+  FATAL_EXPECT_EQ(3, tls::index_of<S0>::value);
+  FATAL_EXPECT_EQ(4, tls::index_of<S1>::value);
+  FATAL_EXPECT_EQ(5, tls::index_of<S2>::value);
 
-  EXPECT_EQ(0, tpls::index_of<P0>::value);
-  EXPECT_EQ(1, tpls::index_of<P1>::value);
-  EXPECT_EQ(2, tpls::index_of<P2>::value);
-  EXPECT_EQ(3, tpls::index_of<T0>::value);
-  EXPECT_EQ(4, tpls::index_of<T1>::value);
-  EXPECT_EQ(5, tpls::index_of<T2>::value);
-  EXPECT_EQ(6, tpls::index_of<S0>::value);
-  EXPECT_EQ(7, tpls::index_of<S1>::value);
-  EXPECT_EQ(8, tpls::index_of<S2>::value);
+  FATAL_EXPECT_EQ(0, tpls::index_of<P0>::value);
+  FATAL_EXPECT_EQ(1, tpls::index_of<P1>::value);
+  FATAL_EXPECT_EQ(2, tpls::index_of<P2>::value);
+  FATAL_EXPECT_EQ(3, tpls::index_of<T0>::value);
+  FATAL_EXPECT_EQ(4, tpls::index_of<T1>::value);
+  FATAL_EXPECT_EQ(5, tpls::index_of<T2>::value);
+  FATAL_EXPECT_EQ(6, tpls::index_of<S0>::value);
+  FATAL_EXPECT_EQ(7, tpls::index_of<S1>::value);
+  FATAL_EXPECT_EQ(8, tpls::index_of<S2>::value);
 }
 
 /////////////////////////////////
 // type_list::checked_index_of //
 /////////////////////////////////
 
-TEST(checked_index_of, checked_index_of) {
-  EXPECT_EQ(0, tl::checked_index_of<T0>::value);
-  EXPECT_EQ(1, tl::checked_index_of<T1>::value);
-  EXPECT_EQ(2, tl::checked_index_of<T2>::value);
+FATAL_TEST(checked_index_of, checked_index_of) {
+  FATAL_EXPECT_EQ(0, tl::checked_index_of<T0>::value);
+  FATAL_EXPECT_EQ(1, tl::checked_index_of<T1>::value);
+  FATAL_EXPECT_EQ(2, tl::checked_index_of<T2>::value);
 
-  EXPECT_EQ(0, tpl::checked_index_of<P0>::value);
-  EXPECT_EQ(1, tpl::checked_index_of<P1>::value);
-  EXPECT_EQ(2, tpl::checked_index_of<P2>::value);
-  EXPECT_EQ(3, tpl::checked_index_of<T0>::value);
-  EXPECT_EQ(4, tpl::checked_index_of<T1>::value);
-  EXPECT_EQ(5, tpl::checked_index_of<T2>::value);
+  FATAL_EXPECT_EQ(0, tpl::checked_index_of<P0>::value);
+  FATAL_EXPECT_EQ(1, tpl::checked_index_of<P1>::value);
+  FATAL_EXPECT_EQ(2, tpl::checked_index_of<P2>::value);
+  FATAL_EXPECT_EQ(3, tpl::checked_index_of<T0>::value);
+  FATAL_EXPECT_EQ(4, tpl::checked_index_of<T1>::value);
+  FATAL_EXPECT_EQ(5, tpl::checked_index_of<T2>::value);
 
-  EXPECT_EQ(0, tls::checked_index_of<T0>::value);
-  EXPECT_EQ(1, tls::checked_index_of<T1>::value);
-  EXPECT_EQ(2, tls::checked_index_of<T2>::value);
-  EXPECT_EQ(3, tls::checked_index_of<S0>::value);
-  EXPECT_EQ(4, tls::checked_index_of<S1>::value);
-  EXPECT_EQ(5, tls::checked_index_of<S2>::value);
+  FATAL_EXPECT_EQ(0, tls::checked_index_of<T0>::value);
+  FATAL_EXPECT_EQ(1, tls::checked_index_of<T1>::value);
+  FATAL_EXPECT_EQ(2, tls::checked_index_of<T2>::value);
+  FATAL_EXPECT_EQ(3, tls::checked_index_of<S0>::value);
+  FATAL_EXPECT_EQ(4, tls::checked_index_of<S1>::value);
+  FATAL_EXPECT_EQ(5, tls::checked_index_of<S2>::value);
 
-  EXPECT_EQ(0, tpls::checked_index_of<P0>::value);
-  EXPECT_EQ(1, tpls::checked_index_of<P1>::value);
-  EXPECT_EQ(2, tpls::checked_index_of<P2>::value);
-  EXPECT_EQ(3, tpls::checked_index_of<T0>::value);
-  EXPECT_EQ(4, tpls::checked_index_of<T1>::value);
-  EXPECT_EQ(5, tpls::checked_index_of<T2>::value);
-  EXPECT_EQ(6, tpls::checked_index_of<S0>::value);
-  EXPECT_EQ(7, tpls::checked_index_of<S1>::value);
-  EXPECT_EQ(8, tpls::checked_index_of<S2>::value);
+  FATAL_EXPECT_EQ(0, tpls::checked_index_of<P0>::value);
+  FATAL_EXPECT_EQ(1, tpls::checked_index_of<P1>::value);
+  FATAL_EXPECT_EQ(2, tpls::checked_index_of<P2>::value);
+  FATAL_EXPECT_EQ(3, tpls::checked_index_of<T0>::value);
+  FATAL_EXPECT_EQ(4, tpls::checked_index_of<T1>::value);
+  FATAL_EXPECT_EQ(5, tpls::checked_index_of<T2>::value);
+  FATAL_EXPECT_EQ(6, tpls::checked_index_of<S0>::value);
+  FATAL_EXPECT_EQ(7, tpls::checked_index_of<S1>::value);
+  FATAL_EXPECT_EQ(8, tpls::checked_index_of<S2>::value);
 }
 
 ////////////////////////
 // type_list::type_at //
 ////////////////////////
 
-TEST(type_at, type_at) {
-  EXPECT_EQ(typeid(P0), tp::type_at(0));
-  EXPECT_EQ(typeid(P1), tp::type_at(1));
-  EXPECT_EQ(typeid(P2), tp::type_at(2));
+FATAL_TEST(type_at, type_at) {
+  FATAL_EXPECT_EQ(typeid(P0), tp::type_at(0));
+  FATAL_EXPECT_EQ(typeid(P1), tp::type_at(1));
+  FATAL_EXPECT_EQ(typeid(P2), tp::type_at(2));
 
-  EXPECT_EQ(typeid(T0), tl::type_at(0));
-  EXPECT_EQ(typeid(T1), tl::type_at(1));
-  EXPECT_EQ(typeid(T2), tl::type_at(2));
+  FATAL_EXPECT_EQ(typeid(T0), tl::type_at(0));
+  FATAL_EXPECT_EQ(typeid(T1), tl::type_at(1));
+  FATAL_EXPECT_EQ(typeid(T2), tl::type_at(2));
 
-  EXPECT_EQ(typeid(S0), ts::type_at(0));
-  EXPECT_EQ(typeid(S1), ts::type_at(1));
-  EXPECT_EQ(typeid(S2), ts::type_at(2));
+  FATAL_EXPECT_EQ(typeid(S0), ts::type_at(0));
+  FATAL_EXPECT_EQ(typeid(S1), ts::type_at(1));
+  FATAL_EXPECT_EQ(typeid(S2), ts::type_at(2));
 
-  EXPECT_EQ(typeid(P0), tpl::type_at(0));
-  EXPECT_EQ(typeid(P1), tpl::type_at(1));
-  EXPECT_EQ(typeid(P2), tpl::type_at(2));
-  EXPECT_EQ(typeid(T0), tpl::type_at(3));
-  EXPECT_EQ(typeid(T1), tpl::type_at(4));
-  EXPECT_EQ(typeid(T2), tpl::type_at(5));
+  FATAL_EXPECT_EQ(typeid(P0), tpl::type_at(0));
+  FATAL_EXPECT_EQ(typeid(P1), tpl::type_at(1));
+  FATAL_EXPECT_EQ(typeid(P2), tpl::type_at(2));
+  FATAL_EXPECT_EQ(typeid(T0), tpl::type_at(3));
+  FATAL_EXPECT_EQ(typeid(T1), tpl::type_at(4));
+  FATAL_EXPECT_EQ(typeid(T2), tpl::type_at(5));
 
-  EXPECT_EQ(typeid(T0), tls::type_at(0));
-  EXPECT_EQ(typeid(T1), tls::type_at(1));
-  EXPECT_EQ(typeid(T2), tls::type_at(2));
-  EXPECT_EQ(typeid(S0), tls::type_at(3));
-  EXPECT_EQ(typeid(S1), tls::type_at(4));
-  EXPECT_EQ(typeid(S2), tls::type_at(5));
+  FATAL_EXPECT_EQ(typeid(T0), tls::type_at(0));
+  FATAL_EXPECT_EQ(typeid(T1), tls::type_at(1));
+  FATAL_EXPECT_EQ(typeid(T2), tls::type_at(2));
+  FATAL_EXPECT_EQ(typeid(S0), tls::type_at(3));
+  FATAL_EXPECT_EQ(typeid(S1), tls::type_at(4));
+  FATAL_EXPECT_EQ(typeid(S2), tls::type_at(5));
 
-  EXPECT_EQ(typeid(P0), tpls::type_at(0));
-  EXPECT_EQ(typeid(P1), tpls::type_at(1));
-  EXPECT_EQ(typeid(P2), tpls::type_at(2));
-  EXPECT_EQ(typeid(T0), tpls::type_at(3));
-  EXPECT_EQ(typeid(T1), tpls::type_at(4));
-  EXPECT_EQ(typeid(T2), tpls::type_at(5));
-  EXPECT_EQ(typeid(S0), tpls::type_at(6));
-  EXPECT_EQ(typeid(S1), tpls::type_at(7));
-  EXPECT_EQ(typeid(S2), tpls::type_at(8));
+  FATAL_EXPECT_EQ(typeid(P0), tpls::type_at(0));
+  FATAL_EXPECT_EQ(typeid(P1), tpls::type_at(1));
+  FATAL_EXPECT_EQ(typeid(P2), tpls::type_at(2));
+  FATAL_EXPECT_EQ(typeid(T0), tpls::type_at(3));
+  FATAL_EXPECT_EQ(typeid(T1), tpls::type_at(4));
+  FATAL_EXPECT_EQ(typeid(T2), tpls::type_at(5));
+  FATAL_EXPECT_EQ(typeid(S0), tpls::type_at(6));
+  FATAL_EXPECT_EQ(typeid(S1), tpls::type_at(7));
+  FATAL_EXPECT_EQ(typeid(S2), tpls::type_at(8));
 }
 
 /////////////////////////
 // type_list::contains //
 /////////////////////////
 
-TEST(contains, contains) {
-  EXPECT_FALSE(el::contains<T0>::value);
-  EXPECT_FALSE(el::contains<T1>::value);
-  EXPECT_FALSE(el::contains<T2>::value);
-  EXPECT_FALSE(el::contains<P0>::value);
-  EXPECT_FALSE(el::contains<P1>::value);
-  EXPECT_FALSE(el::contains<P2>::value);
-  EXPECT_FALSE(el::contains<S0>::value);
-  EXPECT_FALSE(el::contains<S1>::value);
-  EXPECT_FALSE(el::contains<S2>::value);
+FATAL_TEST(contains, contains) {
+  FATAL_EXPECT_FALSE(el::contains<T0>::value);
+  FATAL_EXPECT_FALSE(el::contains<T1>::value);
+  FATAL_EXPECT_FALSE(el::contains<T2>::value);
+  FATAL_EXPECT_FALSE(el::contains<P0>::value);
+  FATAL_EXPECT_FALSE(el::contains<P1>::value);
+  FATAL_EXPECT_FALSE(el::contains<P2>::value);
+  FATAL_EXPECT_FALSE(el::contains<S0>::value);
+  FATAL_EXPECT_FALSE(el::contains<S1>::value);
+  FATAL_EXPECT_FALSE(el::contains<S2>::value);
 
-  EXPECT_TRUE(tl::contains<T0>::value);
-  EXPECT_TRUE(tl::contains<T1>::value);
-  EXPECT_TRUE(tl::contains<T2>::value);
-  EXPECT_FALSE(tl::contains<P0>::value);
-  EXPECT_FALSE(tl::contains<P1>::value);
-  EXPECT_FALSE(tl::contains<P2>::value);
-  EXPECT_FALSE(tl::contains<S0>::value);
-  EXPECT_FALSE(tl::contains<S1>::value);
-  EXPECT_FALSE(tl::contains<S2>::value);
+  FATAL_EXPECT_TRUE(tl::contains<T0>::value);
+  FATAL_EXPECT_TRUE(tl::contains<T1>::value);
+  FATAL_EXPECT_TRUE(tl::contains<T2>::value);
+  FATAL_EXPECT_FALSE(tl::contains<P0>::value);
+  FATAL_EXPECT_FALSE(tl::contains<P1>::value);
+  FATAL_EXPECT_FALSE(tl::contains<P2>::value);
+  FATAL_EXPECT_FALSE(tl::contains<S0>::value);
+  FATAL_EXPECT_FALSE(tl::contains<S1>::value);
+  FATAL_EXPECT_FALSE(tl::contains<S2>::value);
 }
 
 //////////////////////////
 // type_list::push_back //
 //////////////////////////
 
-TEST(push_back, push_back) {
+FATAL_TEST(push_back, push_back) {
   FATAL_EXPECT_SAME<tl::push_back<>, tl>();
   FATAL_EXPECT_SAME<tl::push_back<S0, S1, S2>, tls>();
 }
@@ -291,7 +294,7 @@ TEST(push_back, push_back) {
 // type_list::push_front //
 ///////////////////////////
 
-TEST(push_front, push_front) {
+FATAL_TEST(push_front, push_front) {
   FATAL_EXPECT_SAME<tl::push_front<>, tl>();
   FATAL_EXPECT_SAME<tl::push_front<P0, P1, P2>, tpl>();
 }
@@ -300,7 +303,7 @@ TEST(push_front, push_front) {
 // type_list::concat //
 ///////////////////////
 
-TEST(concat, concat) {
+FATAL_TEST(concat, concat) {
   FATAL_EXPECT_SAME<tp::concat<tl>, tpl>();
   FATAL_EXPECT_SAME<tl::concat<ts>, tls>();
   FATAL_EXPECT_SAME<tl::concat<el>, tl>();
@@ -312,7 +315,7 @@ TEST(concat, concat) {
 // type_list::insert_sorted //
 //////////////////////////////
 
-TEST(insert_sorted, insert_sorted) {
+FATAL_TEST(insert_sorted, insert_sorted) {
   FATAL_EXPECT_SAME<
     type_list<int_val<0>>,
     el::insert_sorted<int_val<0>>
@@ -348,11 +351,68 @@ TEST(insert_sorted, insert_sorted) {
   >();
 }
 
+/////////////////////////
+// type_list::multiply //
+/////////////////////////
+
+FATAL_TEST(multiply, multiply) {
+  FATAL_EXPECT_SAME<el, el::multiply<0>>();
+  FATAL_EXPECT_SAME<el, el::multiply<1>>();
+  FATAL_EXPECT_SAME<el, el::multiply<2>>();
+  FATAL_EXPECT_SAME<el, el::multiply<3>>();
+  FATAL_EXPECT_SAME<el, el::multiply<4>>();
+  FATAL_EXPECT_SAME<el, el::multiply<5>>();
+
+  FATAL_EXPECT_SAME<el, vl::multiply<0>>();
+  FATAL_EXPECT_SAME<vl, vl::multiply<1>>();
+  FATAL_EXPECT_SAME<type_list<void, void>, vl::multiply<2>>();
+  FATAL_EXPECT_SAME<type_list<void, void, void>, vl::multiply<3>>();
+  FATAL_EXPECT_SAME<type_list<void, void, void, void>, vl::multiply<4>>();
+  FATAL_EXPECT_SAME<type_list<void, void, void, void, void>, vl::multiply<5>>();
+
+  FATAL_EXPECT_SAME<el, ivfl::multiply<0>>();
+  FATAL_EXPECT_SAME<ivfl, ivfl::multiply<1>>();
+  FATAL_EXPECT_SAME<
+    type_list<
+      int, void, float,
+      int, void, float
+    >,
+    ivfl::multiply<2>
+  >();
+  FATAL_EXPECT_SAME<
+    type_list<
+      int, void, float,
+      int, void, float,
+      int, void, float
+    >,
+    ivfl::multiply<3>
+  >();
+  FATAL_EXPECT_SAME<
+    type_list<
+      int, void, float,
+      int, void, float,
+      int, void, float,
+      int, void, float
+    >,
+    ivfl::multiply<4>
+  >();
+  FATAL_EXPECT_SAME<
+    type_list<
+      int, void, float,
+      int, void, float,
+      int, void, float,
+      int, void, float,
+      int, void, float
+    >,
+    ivfl::multiply<5>
+  >();
+}
+
 //////////////////////
 // type_list::apply //
 //////////////////////
 
-TEST(apply, apply) {
+FATAL_TEST(apply, apply) {
   FATAL_EXPECT_SAME<tl::apply<std::tuple>, std::tuple<T0, T1, T2>>();
 }
 
@@ -360,7 +420,7 @@ TEST(apply, apply) {
 // type_list::apply_back //
 ///////////////////////////
 
-TEST(apply_back, apply_back) {
+FATAL_TEST(apply_back, apply_back) {
   FATAL_EXPECT_SAME<
     tl::apply_back<std::tuple, S0, S1, S2>,
     std::tuple<T0, T1, T2, S0, S1, S2>
@@ -371,7 +431,7 @@ TEST(apply_back, apply_back) {
 // type_list::apply_front //
 ////////////////////////////
 
-TEST(apply_front, apply_front) {
+FATAL_TEST(apply_front, apply_front) {
   FATAL_EXPECT_SAME<
     tl::apply_front<std::tuple, P0, P1, P2>,
     std::tuple<P0, P1, P2, T0, T1, T2>
@@ -400,15 +460,15 @@ struct foreach_if_test_visitor {
   {}
 
   ~foreach_if_test_visitor() {
-    EXPECT_EQ(expected_.size(), index_);
+    FATAL_EXPECT_EQ(expected_.size(), index_);
   }
 
   template <int Id, std::size_t Index>
   void operator ()(indexed_type_tag<TTemplate<Id>, Index>) {
-    ASSERT_LE(index_, expected_.size());
+    FATAL_ASSERT_LE(index_, expected_.size());
     auto const &e = expected_[index_++];
-    EXPECT_EQ(e.first, Index);
-    EXPECT_EQ(e.second, Id);
+    FATAL_EXPECT_EQ(e.first, Index);
+    FATAL_EXPECT_EQ(e.second, Id);
   }
 
 private:
@@ -424,10 +484,10 @@ void check_foreach_if(foreach_if_expected expected) {
     foreach_if_predicate<TTemplate>::template apply
   >(visitor);
 
-  EXPECT_EQ(expected.size(), visited);
+  FATAL_EXPECT_EQ(expected.size(), visited);
 }
 
-TEST(foreach_if, foreach_if) {
+FATAL_TEST(foreach_if, foreach_if) {
   typedef type_list<
     //     1      2      3      4      5      6      7      8
     T<10>, P<22>, S<67>, T<41>, S<97>, P<83>, T<16>, P<32>, S<75>
@@ -462,13 +522,13 @@ void check_foreach() {
 
   TList::foreach(visitor);
 
-  EXPECT_EQ(TList::size, visitor.visited.size());
+  FATAL_EXPECT_EQ(TList::size, visitor.visited.size());
   for (auto i = visitor.visited.size(); i--; ) {
-    EXPECT_EQ(i, visitor.visited[i]);
+    FATAL_EXPECT_EQ(i, visitor.visited[i]);
   }
 }
 
-TEST(foreach, foreach) {
+FATAL_TEST(foreach, foreach) {
   check_foreach<el>();
   check_foreach<tl>();
   check_foreach<tp>();
@@ -486,10 +546,10 @@ template <typename TExpected>
 struct visit_test_visitor {
   template <typename T, std::size_t Index>
   void operator ()(indexed_type_tag<T, Index>, std::size_t expected_index) {
-    EXPECT_FALSE(visited_);
+    FATAL_EXPECT_FALSE(visited_);
     visited_ = true;
     FATAL_EXPECT_SAME<TExpected, T>();
-    EXPECT_EQ(expected_index, Index);
+    FATAL_EXPECT_EQ(expected_index, Index);
   }
 
 private:
@@ -499,28 +559,28 @@ private:
 struct visit_no_visit_test_visitor {
   template <typename T, std::size_t Index>
   void operator ()(indexed_type_tag<T, Index>, std::size_t) {
-    EXPECT_TRUE(false);
+    FATAL_EXPECT_TRUE(false);
   }
 };
 
-TEST(visit, visit) {
-  EXPECT_FALSE((el::visit(0, visit_no_visit_test_visitor())));
+FATAL_TEST(visit, visit) {
+  FATAL_EXPECT_FALSE((el::visit(0, visit_no_visit_test_visitor())));
 
   using list = type_list<double, float, long, bool, int>;
 
-  EXPECT_TRUE(list::visit(0, visit_test_visitor<double>(), 0));
-  EXPECT_TRUE(list::visit(1, visit_test_visitor<float>(), 1));
-  EXPECT_TRUE(list::visit(2, visit_test_visitor<long>(), 2));
-  EXPECT_TRUE(list::visit(3, visit_test_visitor<bool>(), 3));
-  EXPECT_TRUE(list::visit(4, visit_test_visitor<int>(), 4));
-  EXPECT_FALSE(list::visit(5, visit_no_visit_test_visitor(), 5));
+  FATAL_EXPECT_TRUE(list::visit(0, visit_test_visitor<double>(), 0));
+  FATAL_EXPECT_TRUE(list::visit(1, visit_test_visitor<float>(), 1));
+  FATAL_EXPECT_TRUE(list::visit(2, visit_test_visitor<long>(), 2));
+  FATAL_EXPECT_TRUE(list::visit(3, visit_test_visitor<bool>(), 3));
+  FATAL_EXPECT_TRUE(list::visit(4, visit_test_visitor<int>(), 4));
+  FATAL_EXPECT_FALSE(list::visit(5, visit_no_visit_test_visitor(), 5));
 }
 
 //////////////////////////
 // type_list::transform //
 //////////////////////////
 
-TEST(transform, transform) {
+FATAL_TEST(transform, transform) {
   FATAL_EXPECT_SAME<
     type_list<std::tuple<T0>, std::tuple<T1>, std::tuple<T2>>,
     tl::transform<std::tuple>
@@ -557,7 +617,7 @@ TEST(transform, transform) {
 template <typename T, std::size_t N>
 using indexed_transform_test_impl = indexed_type_tag<T, N>;
 
-TEST(indexed_transform, indexed_transform) {
+FATAL_TEST(indexed_transform, indexed_transform) {
   FATAL_EXPECT_SAME<
     type_list<
       indexed_type_tag<T0, 0>,
@@ -582,10 +642,10 @@ TEST(indexed_transform, indexed_transform) {
 // type_list::accumulate //
 ///////////////////////////
 
-TEST(accumulate, accumulate) {
+FATAL_TEST(accumulate, accumulate) {
 # define FATAL_TEST_IMPL(TExpected, TTransform, ...) \
   do { \
-    EXPECT_EQ( \
+    FATAL_EXPECT_EQ( \
       TExpected, \
       (int_seq<__VA_ARGS__>::accumulate<TTransform>::value) \
     ); \
@@ -604,7 +664,7 @@ TEST(accumulate, accumulate) {
 
 # define FATAL_TEST_IMPL(TExpected, TTransform, TSeed, ...) \
   do { \
-    EXPECT_EQ( \
+    FATAL_EXPECT_EQ( \
       TExpected, \
       (int_seq<__VA_ARGS__>::accumulate<TTransform, int_val<TSeed>>::value) \
     ); \
@@ -626,7 +686,7 @@ TEST(accumulate, accumulate) {
 // type_list::choose //
 ///////////////////////
 
-TEST(choose, choose) {
+FATAL_TEST(choose, choose) {
 # define FATAL_TEST_IMPL(TExpected, TPredicate, ...) \
   do { \
     FATAL_EXPECT_SAME< \
@@ -651,7 +711,7 @@ TEST(choose, choose) {
 // type_list::replace //
 ////////////////////////
 
-TEST(replace, replace) {
+FATAL_TEST(replace, replace) {
   FATAL_EXPECT_SAME<el, el::replace<int, double>>();
   FATAL_EXPECT_SAME<tl, tl::replace<int, double>>();
   FATAL_EXPECT_SAME<tl, tl::replace<T1, T1>>();
@@ -673,7 +733,7 @@ TEST(replace, replace) {
 // type_list::tail //
 /////////////////////
 
-TEST(tail, tail) {
+FATAL_TEST(tail, tail) {
   FATAL_EXPECT_SAME<tl, tl::tail<0>>();
   FATAL_EXPECT_SAME<type_list<T1, T2>, tl::tail<1>>();
   FATAL_EXPECT_SAME<type_list<T2>, tl::tail<2>>();
@@ -709,7 +769,7 @@ void check_split() {
   check_split_impl<list, list::size>();
 }
 
-TEST(split, split) {
+FATAL_TEST(split, split) {
   check_split<>();
   check_split<int>();
   check_split<int, bool>();
@@ -725,7 +785,7 @@ TEST(split, split) {
 // type_list::slice //
 //////////////////////
 
-TEST(slice, slice) {
+FATAL_TEST(slice, slice) {
   FATAL_EXPECT_SAME<el, tl::slice<0, 0>>();
 
   FATAL_EXPECT_SAME<type_list<T0>, tl::slice<0, 1>>();
@@ -745,7 +805,7 @@ TEST(slice, slice) {
 // type_list::left //
 /////////////////////
 
-TEST(left, left) {
+FATAL_TEST(left, left) {
   FATAL_EXPECT_SAME<el, tl::left<0>>();
   FATAL_EXPECT_SAME<type_list<T0>, tl::left<1>>();
   FATAL_EXPECT_SAME<type_list<T0, T1>, tl::left<2>>();
@@ -757,7 +817,7 @@ TEST(left, left) {
 // type_list::right //
 //////////////////////
 
-TEST(right, right) {
+FATAL_TEST(right, right) {
   FATAL_EXPECT_SAME<el, tl::right<0>>();
   FATAL_EXPECT_SAME<type_list<T2>, tl::right<1>>();
   FATAL_EXPECT_SAME<type_list<T1, T2>, tl::right<2>>();
@@ -781,7 +841,7 @@ void check_separate()  {
   FATAL_EXPECT_SAME<TExpectedSecond, typename actual::second>();
 };
 
-TEST(separate, separate) {
+FATAL_TEST(separate, separate) {
   check_separate<el, false_predicate, el, el>();
   check_separate<el, true_predicate, el, el>();
   check_separate<tl, false_predicate, el, tl>();
@@ -801,7 +861,7 @@ void check_filter()  {
   FATAL_EXPECT_SAME<TExpected, typename TList::template filter<TPredicate>>();
 };
 
-TEST(filter, filter) {
+FATAL_TEST(filter, filter) {
   check_filter<el, false_predicate, el>();
   check_filter<el, true_predicate, el>();
   check_filter<tl, false_predicate, el>();
@@ -824,7 +884,7 @@ void check_inverse_filter()  {
   >();
 };
 
-TEST(reject, reject) {
+FATAL_TEST(reject, reject) {
   check_inverse_filter<el, false_predicate, el>();
   check_inverse_filter<el, true_predicate, el>();
   check_inverse_filter<tl, false_predicate, tl>();
@@ -835,7 +895,7 @@ TEST(reject, reject) {
 // type_list::remove //
 ///////////////////////
 
-TEST(remove, remove) {
+FATAL_TEST(remove, remove) {
   FATAL_EXPECT_SAME<type_list<>, type_list<>::remove<>>();
   FATAL_EXPECT_SAME<type_list<>, type_list<int>::remove<int>>();
   FATAL_EXPECT_SAME<
@@ -873,7 +933,7 @@ void check_zip()  {
   FATAL_EXPECT_SAME<TExpected, actual>();
 };
 
-TEST(zip, zip) {
+FATAL_TEST(zip, zip) {
   check_zip<el, el, el>();
   check_zip<tl, el, tl>();
   check_zip<el, tl, tl>();
@@ -895,7 +955,7 @@ TEST(zip, zip) {
     FATAL_EXPECT_SAME<expected, actual>(); \
   } while (false)
 
-TEST(unzip, unzip) {
+FATAL_TEST(unzip, unzip) {
   CHECK_UNZIP(1, 0, single, single);
   CHECK_UNZIP(1, 1, single, el);
 
@@ -908,7 +968,7 @@ TEST(unzip, unzip) {
   CHECK_UNZIP(3, 2, tpls, type_list<P2, T2, S2>);
 }
 
-TEST(unzip, empty) {
+FATAL_TEST(unzip, empty) {
 # define CHECK_EMPTY_UNZIP(...) \
   do { \
     using elist = __VA_ARGS__; \
@@ -924,7 +984,7 @@ TEST(unzip, empty) {
 # undef CHECK_EMPTY_UNZIP
 }
 
-TEST(unzip, full) {
+FATAL_TEST(unzip, full) {
 # define CHECK_FULL_UNZIP(...) \
   do { \
     using flist = __VA_ARGS__; \
@@ -956,7 +1016,7 @@ void check_search() {
   FATAL_EXPECT_SAME<TExpected, actual>();
 }
 
-TEST(search, search) {
+FATAL_TEST(search, search) {
   typedef transform_alias<std::is_same, T0> same_as_t0;
   check_search<el, same_as_t0::template apply, void, void>();
   check_search<tl, same_as_t0::template apply, void, T0>();
@@ -1009,7 +1069,7 @@ struct check_combine {
   };
 };
 
-TEST(combine, combine) {
+FATAL_TEST(combine, combine) {
   check_combine<>::test<std::pair>::expect<>();
   check_combine<int>::test<std::pair, bool>::expect<std::pair<int, bool>>();
   check_combine<int, double>::test<std::pair, bool, long>::expect<
@@ -1034,7 +1094,7 @@ TEST(combine, combine) {
     FATAL_EXPECT_SAME<list, typename list::template flatten<3>>(); \
   } while (false)
 
-TEST(flatten, flatten) {
+FATAL_TEST(flatten, flatten) {
   CHECK_FLATTEN();
   CHECK_FLATTEN(void);
   CHECK_FLATTEN(int);
@@ -1043,12 +1103,12 @@ TEST(flatten, flatten) {
   CHECK_FLATTEN(int, void, bool, double);
 
   {
-    using list = type_list<type_list<type_list<type_list<type_list<void>>>>>;
+    using list = type_list<type_list<type_list<type_list<vl>>>>;
 
-    using expected1 = type_list<type_list<type_list<type_list<void>>>>;
-    using expected2 = type_list<type_list<type_list<void>>>;
-    using expected3 = type_list<type_list<void>>;
-    using expected_unlimited = type_list<void>;
+    using expected1 = type_list<type_list<type_list<vl>>>;
+    using expected2 = type_list<type_list<vl>>;
+    using expected3 = type_list<vl>;
+    using expected_unlimited = vl;
 
     FATAL_EXPECT_SAME<expected_unlimited, list::flatten<>>();
     FATAL_EXPECT_SAME<list, list::flatten<0>>();
@@ -1129,7 +1189,7 @@ TEST(flatten, flatten) {
     >(); \
   } while (false)
 
-TEST(is_sorted, is_sorted) {
+FATAL_TEST(is_sorted, is_sorted) {
   CHECK_IS_SORTED(true);
   CHECK_IS_SORTED(true, 0);
   CHECK_IS_SORTED(true, 0, 1);
@@ -1176,7 +1236,7 @@ void check_merge() {
   >();
 }
 
-TEST(merge, merge) {
+FATAL_TEST(merge, merge) {
   check_merge<int_seq<>, int_seq<>>();
   check_merge<int_seq<>, int_seq<1>, 1>();
   check_merge<int_seq<1>, int_seq<>, 1>();
@@ -1225,11 +1285,11 @@ void check_sort() {
     FATAL_VLOG(1) << "result: '" << type_str<actual>() << '\'';
   }
 
-  EXPECT_TRUE(is_sorted);
+  FATAL_EXPECT_TRUE(is_sorted);
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(sort, sort) {
+FATAL_TEST(sort, sort) {
   check_sort<int_seq<>>();
   check_sort<int_seq<1>, 1>();
 
@@ -1271,7 +1331,7 @@ TEST(sort, sort) {
 // type_list::unique //
 ///////////////////////
 
-TEST(unique, unique) {
+FATAL_TEST(unique, unique) {
   FATAL_EXPECT_SAME<
     type_list<int, double, bool, float>,
     type_list<int, double, double, int, bool, int, bool, float>::unique<>
@@ -1294,7 +1354,7 @@ TEST(unique, unique) {
 // type_list::is_unique //
 //////////////////////////
 
-TEST(is_unique, is_unique) {
+FATAL_TEST(is_unique, is_unique) {
   FATAL_EXPECT_SAME<
     std::false_type,
     type_list<int, double, double, int, float>::is_unique<>
@@ -1358,14 +1418,14 @@ void check_bs_exact() {
   );
 
   auto const expectedResult = Result;
-  EXPECT_EQ(expectedResult, result);
+  FATAL_EXPECT_EQ(expectedResult, result);
   auto const expectedValue = Result ? Needle : Empty;
-  EXPECT_EQ(expectedValue, actual);
+  FATAL_EXPECT_EQ(expectedValue, actual);
   auto const expectedIndex = ExpectedIndex;
-  EXPECT_EQ(expectedIndex, index);
+  FATAL_EXPECT_EQ(expectedIndex, index);
 }
 
-TEST(binary_search, exact) {
+FATAL_TEST(binary_search, exact) {
   typedef chr_seq<> empty;
 
   FATAL_VLOG(1) << "empty";
@@ -1431,14 +1491,14 @@ void check_bs_lower_bound() {
   );
 
   auto const expectedResult = Result;
-  EXPECT_EQ(expectedResult, result);
+  FATAL_EXPECT_EQ(expectedResult, result);
   auto const expectedValue = ExpectedValue;
-  EXPECT_EQ(expectedValue, actual);
+  FATAL_EXPECT_EQ(expectedValue, actual);
   auto const expectedIndex = ExpectedIndex;
-  EXPECT_EQ(expectedIndex, index);
+  FATAL_EXPECT_EQ(expectedIndex, index);
 }
 
-TEST(binary_search, lower_bound) {
+FATAL_TEST(binary_search, lower_bound) {
   typedef chr_seq<> empty;
 
   FATAL_VLOG(1) << "empty";
@@ -1517,14 +1577,14 @@ void check_bs_upper_bound() {
   );
 
   auto const expectedResult = Result;
-  EXPECT_EQ(expectedResult, result);
+  FATAL_EXPECT_EQ(expectedResult, result);
   auto const expectedValue = ExpectedValue;
-  EXPECT_EQ(expectedValue, actual);
+  FATAL_EXPECT_EQ(expectedValue, actual);
   auto const expectedIndex = ExpectedIndex;
-  EXPECT_EQ(expectedIndex, index);
+  FATAL_EXPECT_EQ(expectedIndex, index);
 }
 
-TEST(binary_search, upper_bound) {
+FATAL_TEST(binary_search, upper_bound) {
   typedef chr_seq<> empty;
 
   FATAL_VLOG(1) << "empty";
@@ -1607,7 +1667,7 @@ void check_type_get() {
   list::foreach(check_type_get_visitor<list>());
 }
 
-TEST(type_get, type_list) {
+FATAL_TEST(type_get, type_list) {
   check_type_get<>();
   check_type_get<void>();
   check_type_get<int, double>();
@@ -1623,13 +1683,10 @@ TEST(type_get, type_list) {
 // type_list_from::type //
 //////////////////////////
 
-TEST(type_list_from, type) {
+FATAL_TEST(type_list_from, type) {
   FATAL_EXPECT_SAME<type_list<>, type_list_from<>::type<void>>();
 
-  FATAL_EXPECT_SAME<
-    type_list<void>,
-    type_list_from<identity_transform>::type<void>
-  >();
+  FATAL_EXPECT_SAME<vl, type_list_from<identity_transform>::type<void>>();
 
   FATAL_EXPECT_SAME<
     type_list<double, std::string>,

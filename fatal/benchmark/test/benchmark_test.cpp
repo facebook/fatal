@@ -83,14 +83,14 @@ FATAL_BENCHMARK(group_2, benchmark_2_3, n) {
 FATAL_BENCHMARK(group_2, benchmark_2_4) {
 }
 
-TEST(benchmark, sanity_check) {
+FATAL_TEST(benchmark, sanity_check) {
   std::map<std::string, std::map<std::string, duration>> metrics;
 
   for (auto const &i: run(std::cout)) {
     auto &group = metrics[i.first];
 
     for (auto const &j: i.second) {
-      ASSERT_EQ(group.end(), group.find(j.name()));
+      FATAL_ASSERT_EQ(group.end(), group.find(j.name()));
 
       group[j.name()] = j.period();
     }
@@ -106,19 +106,19 @@ TEST(benchmark, sanity_check) {
     return j->second;
   };
 
-  ASSERT_LT(small_delay, big_delay);
+  FATAL_ASSERT_LT(small_delay, big_delay);
 
-  EXPECT_LT(get("group_1", "benchmark_1_1"), small_delay);
-  EXPECT_GE(get("group_1", "benchmark_1_2"), big_delay);
-  EXPECT_LT(get("group_1", "benchmark_1_3"), small_delay);
-  EXPECT_GE(get("group_1", "benchmark_1_4"), big_delay);
-  EXPECT_LT(get("group_1", "benchmark_1_5"), small_delay);
+  FATAL_EXPECT_LT(get("group_1", "benchmark_1_1"), small_delay);
+  FATAL_EXPECT_GE(get("group_1", "benchmark_1_2"), big_delay);
+  FATAL_EXPECT_LT(get("group_1", "benchmark_1_3"), small_delay);
+  FATAL_EXPECT_GE(get("group_1", "benchmark_1_4"), big_delay);
+  FATAL_EXPECT_LT(get("group_1", "benchmark_1_5"), small_delay);
 
-  EXPECT_LT(get("group_2", "benchmark_2_1"), big_delay);
-  EXPECT_GE(get("group_2", "benchmark_2_1"), small_delay);
-  EXPECT_LT(get("group_2", "benchmark_2_2"), small_delay);
-  EXPECT_GE(get("group_2", "benchmark_2_3"), big_delay);
-  EXPECT_LT(get("group_2", "benchmark_2_4"), small_delay);
+  FATAL_EXPECT_LT(get("group_2", "benchmark_2_1"), big_delay);
+  FATAL_EXPECT_GE(get("group_2", "benchmark_2_1"), small_delay);
+  FATAL_EXPECT_LT(get("group_2", "benchmark_2_2"), small_delay);
+  FATAL_EXPECT_GE(get("group_2", "benchmark_2_3"), big_delay);
+  FATAL_EXPECT_LT(get("group_2", "benchmark_2_4"), small_delay);
 }
 
 } // namespace benchmark {

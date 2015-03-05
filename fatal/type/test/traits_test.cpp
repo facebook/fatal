@@ -27,7 +27,7 @@ template <std::size_t> struct S {};
 // remove_rvalue_reference //
 /////////////////////////////
 
-TEST(traits, remove_rvalue_reference) {
+FATAL_TEST(traits, remove_rvalue_reference) {
 # define TEST_IMPL(Type, Expected) \
   do { \
     FATAL_EXPECT_SAME<Expected, remove_rvalue_reference<Type>::type>(); \
@@ -49,7 +49,7 @@ TEST(traits, remove_rvalue_reference) {
 # undef TEST_IMPL
 }
 
-TEST(traits, same_reference_as) {
+FATAL_TEST(traits, same_reference_as) {
 # define TEST_IMPL(From, T, ...) \
   FATAL_EXPECT_SAME< \
     __VA_ARGS__, \
@@ -116,7 +116,7 @@ TEST(traits, same_reference_as) {
 # undef TEST_IMPL
 }
 
-TEST(traits, add_reference_from) {
+FATAL_TEST(traits, add_reference_from) {
 # define TEST_IMPL(From, T, ...) \
   FATAL_EXPECT_SAME< \
     __VA_ARGS__, \
@@ -183,7 +183,7 @@ TEST(traits, add_reference_from) {
 # undef TEST_IMPL
 }
 
-TEST(traits, add_const_from) {
+FATAL_TEST(traits, add_const_from) {
 # define TEST_IMPL(From, T, ...) \
   FATAL_EXPECT_SAME< \
     __VA_ARGS__, \
@@ -231,7 +231,7 @@ TEST(traits, add_const_from) {
 # undef TEST_IMPL
 }
 
-TEST(traits, constify) {
+FATAL_TEST(traits, constify) {
 # define TEST_IMPL(T, ...) \
   FATAL_EXPECT_SAME< \
     __VA_ARGS__, \
@@ -261,7 +261,7 @@ TEST(traits, constify) {
 # undef TEST_IMPL
 }
 
-TEST(traits, constify_from) {
+FATAL_TEST(traits, constify_from) {
 # define TEST_IMPL(From, T, ...) \
   FATAL_EXPECT_SAME< \
     __VA_ARGS__, \
@@ -321,7 +321,7 @@ void check_is_template() {
   if (expected != actual) {
     FATAL_LOG(ERROR) << "checker: " << type_str<checker>();
     FATAL_LOG(ERROR) << "type: " << type_str<T>();
-    EXPECT_EQ(expected, actual);
+    FATAL_EXPECT_EQ(expected, actual);
   }
 }
 
@@ -330,7 +330,7 @@ template <typename, typename, typename...> struct X1 {};
 template <typename, typename, typename, typename...> struct X2 {};
 template <typename, typename, typename, typename, typename...> struct X3 {};
 
-TEST(traits, is_template) {
+FATAL_TEST(traits, is_template) {
   check_is_template<X0<void>, true, X0>();
   check_is_template<X0<void, int>, true, X0>();
   check_is_template<X0<void, int, bool>, true, X0>();
@@ -413,67 +413,67 @@ TEST(traits, is_template) {
 // fast_pass_by_value //
 ////////////////////////
 
-TEST(traits, fast_pass_by_value) {
-  EXPECT_TRUE(fast_pass_by_value<bool>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool &>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const &&>::value);
+FATAL_TEST(traits, fast_pass_by_value) {
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const &&>::value);
 
-  EXPECT_TRUE(fast_pass_by_value<bool *>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool *const &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *const &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *&&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *const &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *const &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *&&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *const &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *const &&>::value);
 
-  EXPECT_TRUE(fast_pass_by_value<int>::value);
-  EXPECT_TRUE(fast_pass_by_value<int &>::value);
-  EXPECT_TRUE(fast_pass_by_value<int &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int const>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int const &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int const &&>::value);
 
-  EXPECT_TRUE(fast_pass_by_value<int *>::value);
-  EXPECT_TRUE(fast_pass_by_value<int *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<int *const &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *const &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int *>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int *&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int *&&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int *const &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int *const &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *&&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *const &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *const &&>::value);
 
-  EXPECT_FALSE(fast_pass_by_value<std::string>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string &>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string &&>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string const>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string const &>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string const &&>::value);
+  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string>::value);
+  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string &>::value);
+  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string &&>::value);
+  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string const>::value);
+  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string const &>::value);
+  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string const &&>::value);
 
-  EXPECT_TRUE(fast_pass_by_value<std::string *>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string *const &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *const &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *&&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *const &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *const &&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *&&>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *const &>::value);
+  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *const &&>::value);
 }
 
 ///////////////
 // fast_pass //
 ///////////////
 
-TEST(traits, fast_pass) {
+FATAL_TEST(traits, fast_pass) {
   FATAL_EXPECT_SAME<bool const, fast_pass<bool>>();
   FATAL_EXPECT_SAME<bool const, fast_pass<bool &>>();
   FATAL_EXPECT_SAME<bool const, fast_pass<bool &&>>();
@@ -550,20 +550,20 @@ struct Derived: public Base {};
 struct Foo {};
 enum class ctor { def, copy, move, universal };
 
-TEST(traits, safe_overload) {
-  EXPECT_FALSE((safe_overload<Base, Base>::value));
-  EXPECT_FALSE((safe_overload<Base, Derived>::value));
-  EXPECT_TRUE((safe_overload<Base>::value));
-  EXPECT_TRUE((safe_overload<Base, int>::value));
-  EXPECT_TRUE((safe_overload<Base, void>::value));
-  EXPECT_TRUE((safe_overload<Base, Foo>::value));
-  EXPECT_TRUE((safe_overload<Base, int, int>::value));
-  EXPECT_TRUE((safe_overload<Base, void, void>::value));
-  EXPECT_TRUE((safe_overload<Base, Foo, Foo>::value));
-  EXPECT_TRUE((safe_overload<Base, int, int, int>::value));
-  EXPECT_TRUE((safe_overload<Base, void, void, void>::value));
-  EXPECT_TRUE((safe_overload<Base, Foo, Foo, Foo>::value));
-  EXPECT_TRUE((safe_overload<Base, int, void, Foo, bool>::value));
+FATAL_TEST(traits, safe_overload) {
+  FATAL_EXPECT_FALSE((safe_overload<Base, Base>::value));
+  FATAL_EXPECT_FALSE((safe_overload<Base, Derived>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, int>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, void>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, Foo>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, int, int>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, void, void>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, Foo, Foo>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, int, int, int>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, void, void, void>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, Foo, Foo, Foo>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, int, void, Foo, bool>::value));
 }
 
 struct overloading_test {
@@ -581,17 +581,17 @@ struct overloading_test {
   ctor type;
 };
 
-TEST(traits, safe_overload_nonvariadic) {
+FATAL_TEST(traits, safe_overload_nonvariadic) {
   overloading_test def;
-  EXPECT_EQ(ctor::def, def.type);
+  FATAL_EXPECT_EQ(ctor::def, def.type);
   overloading_test copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
+  FATAL_EXPECT_EQ(ctor::copy, copy.type);
   overloading_test move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
+  FATAL_EXPECT_EQ(ctor::move, move.type);
   overloading_test universal(0);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_EQ(ctor::universal, universal.type);
   overloading_test foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
+  FATAL_EXPECT_EQ(ctor::universal, foo.type);
 }
 
 struct variadic_overloading_test {
@@ -613,19 +613,19 @@ struct variadic_overloading_test {
   ctor type;
 };
 
-TEST(traits, safe_overload_variadic) {
+FATAL_TEST(traits, safe_overload_variadic) {
   variadic_overloading_test def;
-  EXPECT_EQ(ctor::def, def.type);
+  FATAL_EXPECT_EQ(ctor::def, def.type);
   variadic_overloading_test copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
+  FATAL_EXPECT_EQ(ctor::copy, copy.type);
   variadic_overloading_test move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
+  FATAL_EXPECT_EQ(ctor::move, move.type);
   variadic_overloading_test i(0);
-  EXPECT_EQ(ctor::universal, i.type);
+  FATAL_EXPECT_EQ(ctor::universal, i.type);
   variadic_overloading_test foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
+  FATAL_EXPECT_EQ(ctor::universal, foo.type);
   variadic_overloading_test universal(copy, move);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_EQ(ctor::universal, universal.type);
 }
 
 struct overloading_test_t {
@@ -640,17 +640,17 @@ struct overloading_test_t {
   ctor type;
 };
 
-TEST(traits, safe_overload_nonvariadic_t) {
+FATAL_TEST(traits, safe_overload_nonvariadic_t) {
   overloading_test_t def;
-  EXPECT_EQ(ctor::def, def.type);
+  FATAL_EXPECT_EQ(ctor::def, def.type);
   overloading_test_t copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
+  FATAL_EXPECT_EQ(ctor::copy, copy.type);
   overloading_test_t move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
+  FATAL_EXPECT_EQ(ctor::move, move.type);
   overloading_test_t universal(0);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_EQ(ctor::universal, universal.type);
   overloading_test_t foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
+  FATAL_EXPECT_EQ(ctor::universal, foo.type);
 }
 
 struct variadic_overloading_test_t {
@@ -669,19 +669,19 @@ struct variadic_overloading_test_t {
   ctor type;
 };
 
-TEST(traits, safe_overload_variadic_t) {
+FATAL_TEST(traits, safe_overload_variadic_t) {
   variadic_overloading_test_t def;
-  EXPECT_EQ(ctor::def, def.type);
+  FATAL_EXPECT_EQ(ctor::def, def.type);
   variadic_overloading_test_t copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
+  FATAL_EXPECT_EQ(ctor::copy, copy.type);
   variadic_overloading_test_t move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
+  FATAL_EXPECT_EQ(ctor::move, move.type);
   variadic_overloading_test_t i(0);
-  EXPECT_EQ(ctor::universal, i.type);
+  FATAL_EXPECT_EQ(ctor::universal, i.type);
   variadic_overloading_test_t foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
+  FATAL_EXPECT_EQ(ctor::universal, foo.type);
   variadic_overloading_test_t universal(copy, move);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_EQ(ctor::universal, universal.type);
 }
 
 /////////////////
@@ -696,36 +696,36 @@ struct foonctor {
 typedef void(*foonction)();
 typedef void(*foonction_is)(int, std::string);
 
-TEST(traits, is_callable) {
+FATAL_TEST(traits, is_callable) {
   auto const lambda = []() {};
   auto const lambda_is = [](int, std::string) {};
 
-  EXPECT_TRUE((is_callable<foonctor>::value));
-  EXPECT_FALSE((is_callable<foonctor, int>::value));
-  EXPECT_FALSE((is_callable<foonctor, int, double>::value));
-  EXPECT_TRUE((is_callable<foonctor, int, std::string>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonctor>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonctor, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonctor, int, double>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonctor, int, std::string>::value));
 
-  EXPECT_TRUE((is_callable<decltype(lambda)>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int, double>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int, std::string>::value));
+  FATAL_EXPECT_TRUE((is_callable<decltype(lambda)>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int, double>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int, std::string>::value));
 
-  EXPECT_FALSE((is_callable<decltype(lambda_is)>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda_is), int>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda_is), int, double>::value));
-  EXPECT_TRUE((
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is)>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is), int>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is), int, double>::value));
+  FATAL_EXPECT_TRUE((
     is_callable<decltype(lambda_is), int, std::string>::value
   ));
 
-  EXPECT_TRUE((is_callable<foonction>::value));
-  EXPECT_FALSE((is_callable<foonction, int>::value));
-  EXPECT_FALSE((is_callable<foonction, int, double>::value));
-  EXPECT_FALSE((is_callable<foonction, int, std::string>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonction>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int, double>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int, std::string>::value));
 
-  EXPECT_FALSE((is_callable<foonction_is>::value));
-  EXPECT_FALSE((is_callable<foonction_is, int>::value));
-  EXPECT_FALSE((is_callable<foonction_is, int, double>::value));
-  EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction_is>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction_is, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction_is, int, double>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
 }
 
 //////////////////////////////
@@ -740,7 +740,7 @@ namespace has_member_type_test {
   FATAL_HAS_MEMBER_TYPE(has_xyz, xyz);
 } // namespace has_member_type_test {
 
-TEST(traits, has_member_type) {
+FATAL_TEST(traits, has_member_type) {
   FATAL_EXPECT_SAME<
     std::true_type,
     has_member_type_test::has_xyz::check<has_member_type_test::foo>
@@ -797,7 +797,7 @@ struct getter {
 
 } // namespace data_member_getter_test {
 
-TEST(data_member_getter, type) {
+FATAL_TEST(data_member_getter, type) {
 # define TEST_IMPL(Field, ...) \
   do { \
     using getter = data_member_getter_test::getter::Field; \
@@ -902,7 +902,7 @@ TEST(data_member_getter, type) {
 # undef TEST_IMPL
 }
 
-TEST(data_member_getter, get_ptr) {
+FATAL_TEST(data_member_getter, get_ptr) {
   int i = 99;
   std::string const s("hello, world!");
   long l = 27;
@@ -914,30 +914,30 @@ TEST(data_member_getter, get_ptr) {
   data_member_getter_test::data x(i, s, std::move(l), d, b, v, std::move(f));
   auto const &y = x;
 
-  ASSERT_EQ(i, x.i);
-  ASSERT_EQ(s, x.s);
-  ASSERT_EQ(l, x.l);
-  ASSERT_EQ(d, x.d);
-  ASSERT_EQ(b, x.b);
-  ASSERT_EQ(v, x.v);
-  ASSERT_EQ(f, x.f);
+  FATAL_ASSERT_EQ(i, x.i);
+  FATAL_ASSERT_EQ(s, x.s);
+  FATAL_ASSERT_EQ(l, x.l);
+  FATAL_ASSERT_EQ(d, x.d);
+  FATAL_ASSERT_EQ(b, x.b);
+  FATAL_ASSERT_EQ(v, x.v);
+  FATAL_ASSERT_EQ(f, x.f);
 
 # define TEST_IMPL(Data, Field) \
   do { \
     using getter = data_member_getter_test::getter::Field; \
     \
-    EXPECT_EQ(Field, getter::Field::ref(Data)); \
-    EXPECT_EQ(Field, getter::Field::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Field, getter::Field::ref(Data)); \
+    FATAL_EXPECT_EQ(Field, getter::Field::ref_getter()(Data)); \
     \
-    EXPECT_EQ(Data.Field, getter::Field::ref(Data)); \
-    EXPECT_EQ(Data.Field, getter::Field::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Data.Field, getter::Field::ref(Data)); \
+    FATAL_EXPECT_EQ(Data.Field, getter::Field::ref_getter()(Data)); \
     \
-    EXPECT_EQ( \
+    FATAL_EXPECT_EQ( \
       std::addressof(Data.Field), \
       std::addressof(getter::Field::ref(Data)) \
     ); \
     \
-    EXPECT_EQ( \
+    FATAL_EXPECT_EQ( \
       std::addressof(Data.Field), \
       std::addressof(getter::Field::ref_getter()(Data)) \
     ); \
@@ -984,11 +984,14 @@ TEST(data_member_getter, get_ptr) {
   do { \
     using getter = data_member_getter_test::getter::Field; \
     \
-    EXPECT_EQ(Field, getter::Field::ref(std::move(Data))); \
-    EXPECT_EQ(Field, getter::Field::ref_getter()(std::move(Data))); \
+    FATAL_EXPECT_EQ(Field, getter::Field::ref(std::move(Data))); \
+    FATAL_EXPECT_EQ(Field, getter::Field::ref_getter()(std::move(Data))); \
     \
-    EXPECT_EQ(std::move(Data).Field, getter::Field::ref(std::move(Data))); \
-    EXPECT_EQ( \
+    FATAL_EXPECT_EQ( \
+      std::move(Data).Field, \
+      getter::Field::ref(std::move(Data)) \
+    ); \
+    FATAL_EXPECT_EQ( \
       std::move(Data).Field, \
       getter::Field::ref_getter()(std::move(Data)) \
     ); \
@@ -1035,8 +1038,11 @@ TEST(data_member_getter, get_ptr) {
   do { \
     using getter = data_member_getter_test::getter::Field; \
     \
-    EXPECT_EQ(std::addressof(Data.Field), getter::Field::ptr(Data)); \
-    EXPECT_EQ(std::addressof(Data.Field), getter::Field::ptr_getter()(Data)); \
+    FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::Field::ptr(Data)); \
+    FATAL_EXPECT_EQ( \
+      std::addressof(Data.Field), \
+      getter::Field::ptr_getter()(Data) \
+    ); \
     \
     FATAL_EXPECT_SAME< \
       constify_from< \

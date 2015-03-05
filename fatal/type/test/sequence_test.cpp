@@ -24,7 +24,7 @@ void check_type() {
   FATAL_EXPECT_SAME<TExpected, typename TSequence::type>();
 }
 
-TEST(constant_sequence, type) {
+FATAL_TEST(constant_sequence, type) {
   check_type<int, constant_sequence<int>>();
   check_type<int, constant_sequence<int, 1>>();
   check_type<int, constant_sequence<int, 1, 2, 3, 4, 5>>();
@@ -46,7 +46,7 @@ void check_list() {
   >();
 }
 
-TEST(constant_sequence, list) {
+FATAL_TEST(constant_sequence, list) {
   check_list<int>();
   check_list<int, 1>();
   check_list<int, 1, 2, 3, 4, 5>();
@@ -62,10 +62,10 @@ TEST(constant_sequence, list) {
 
 template <typename T, T... Values>
 void check_size() {
-  EXPECT_EQ(sizeof...(Values), (constant_sequence<T, Values...>::size));
+  FATAL_EXPECT_EQ(sizeof...(Values), (constant_sequence<T, Values...>::size));
 }
 
-TEST(constant_sequence, size) {
+FATAL_TEST(constant_sequence, size) {
   check_size<int>();
   check_size<int, 1>();
   check_size<int, 1, 2, 3, 4, 5>();
@@ -82,13 +82,13 @@ TEST(constant_sequence, size) {
 template <typename T, T... Values>
 void check_empty() {
   bool b = sizeof...(Values) == 0;
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(
     b,
     (constant_sequence<T, Values...>::empty)
   );
 }
 
-TEST(constant_sequence, empty) {
+FATAL_TEST(constant_sequence, empty) {
   check_empty<int>();
   check_empty<int, 1>();
   check_empty<int, 1, 2, 3, 4, 5>();
@@ -107,7 +107,7 @@ void check_push_front() {
   FATAL_EXPECT_SAME<TExpected, typename TSeq::template push_front<Values...>>();
 }
 
-TEST(constant_sequence, push_front) {
+FATAL_TEST(constant_sequence, push_front) {
   check_push_front<
     constant_sequence<int, 1>,
     constant_sequence<int>, 1
@@ -198,7 +198,7 @@ void check_push_back() {
   FATAL_EXPECT_SAME<TExpected, typename TSeq::template push_back<Values...>>();
 }
 
-TEST(constant_sequence, push_back) {
+FATAL_TEST(constant_sequence, push_back) {
   check_push_back<
     constant_sequence<int, 1>,
     constant_sequence<int>, 1
@@ -310,7 +310,7 @@ void check_apply() {
   >();
 }
 
-TEST(constant_sequence, apply) {
+FATAL_TEST(constant_sequence, apply) {
   check_apply<int>();
   check_apply<int, 1>();
   check_apply<int, 1, 2, 3, 4, 5>();
@@ -334,7 +334,7 @@ void check_typed_apply() {
   >();
 }
 
-TEST(constant_sequence, typed_apply) {
+FATAL_TEST(constant_sequence, typed_apply) {
   check_typed_apply<int>();
   check_typed_apply<int, 1>();
   check_typed_apply<int, 1, 2, 3, 4, 5>();
@@ -360,14 +360,14 @@ void check_array_data(TData data) {
 
   FATAL_EXPECT_SAME<typename as_array_t::type, typename array::type>();
 
-  EXPECT_EQ(as_array_t::get().empty(), array::empty);
-  EXPECT_EQ(as_array_t::get().size(), array::size);
+  FATAL_EXPECT_EQ(as_array_t::get().empty(), array::empty);
+  FATAL_EXPECT_EQ(as_array_t::get().size(), array::size);
 
-  EXPECT_EQ(as_array_t::get(), array::get);
+  FATAL_EXPECT_EQ(as_array_t::get(), array::get);
 
   for (std::size_t i = 0; i < as_array_t::get().size(); ++i) {
-    EXPECT_LT(i, array::size);
-    EXPECT_EQ(as_array_t::get().data()[i], array::data()[i]);
+    FATAL_EXPECT_LT(i, array::size);
+    FATAL_EXPECT_EQ(as_array_t::get().data()[i], array::data()[i]);
   }
 }
 
@@ -384,7 +384,7 @@ void check_array_data() {
   );
 }
 
-TEST(constant_sequence, array_data) {
+FATAL_TEST(constant_sequence, array_data) {
   check_array_data<int>();
   check_array_data<int, 1>();
   check_array_data<int, 1, 2, 3, 4, 5>();
@@ -430,7 +430,7 @@ void check_constant_range() {
   >();
 }
 
-TEST(constant_range, empty) {
+FATAL_TEST(constant_range, empty) {
   FATAL_EXPECT_SAME<constant_sequence<int>, constant_range<int, 0, 0>>();
   FATAL_EXPECT_SAME<constant_sequence<int>, constant_range<int, 0, 0, true>>();
 
@@ -441,7 +441,7 @@ TEST(constant_range, empty) {
   >();
 }
 
-TEST(constant_range, unitary) {
+FATAL_TEST(constant_range, unitary) {
   FATAL_EXPECT_SAME<constant_sequence<int, 0>, constant_range<int, 0, 1>>();
   FATAL_EXPECT_SAME<
     constant_sequence<int, 0>,
@@ -468,7 +468,7 @@ TEST(constant_range, unitary) {
   >();
 }
 
-TEST(constant_range, int) {
+FATAL_TEST(constant_range, int) {
   //check_constant_range<int, 1>();
   check_constant_range<int, 1, 2>();
   check_constant_range<int, 1, 2, 3>();
@@ -476,7 +476,7 @@ TEST(constant_range, int) {
   check_constant_range<int, 1, 2, 3, 4, 5>();
 }
 
-TEST(constant_range, char) {
+FATAL_TEST(constant_range, char) {
   //check_constant_range<char, '1'>();
   check_constant_range<char, '1', '2'>();
   check_constant_range<char, '1', '2', '3'>();

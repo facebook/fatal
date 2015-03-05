@@ -39,10 +39,10 @@ FATAL_STR(utf32_str, UTF32_STR);
 
 template <typename TString, std::size_t Expected>
 void check_size() {
-  EXPECT_EQ(TString::size, Expected);
+  FATAL_EXPECT_EQ(TString::size, Expected);
 }
 
-TEST(type_string, size) {
+FATAL_TEST(type_string, size) {
   check_size<a_str, 1>();
   check_size<z_str, 5>();
   check_size<empty_str, 0>();
@@ -68,7 +68,7 @@ void check_char_type(TChar const (&s)[Size]) {
   FATAL_EXPECT_SAME<TChar, typename TCSTR::char_type>();
 }
 
-TEST(type_string, char_type) {
+FATAL_TEST(type_string, char_type) {
   CREATE_TEST_CALLS(check_char_type);
 }
 
@@ -83,11 +83,11 @@ void check_string(TChar const (&s)[Size]) {
 
   auto const string = TCSTR::string();
 
-  EXPECT_EQ(size, string.size());
-  EXPECT_EQ(string_t(s, size), string);
+  FATAL_EXPECT_EQ(size, string.size());
+  FATAL_EXPECT_EQ(string_t(s, size), string);
 }
 
-TEST(type_string, string) {
+FATAL_TEST(type_string, string) {
   CREATE_TEST_CALLS(check_string);
 }
 

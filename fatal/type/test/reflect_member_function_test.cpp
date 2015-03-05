@@ -23,38 +23,40 @@ struct foo {
   void vc() volatile const;
 };
 
-TEST(reflect_member_function, cv_qualifier_bitwise_and) {
-  EXPECT_FALSE(cv_qualifier::none & cv_qualifier::none);
-  EXPECT_FALSE(cv_qualifier::none & cv_qualifier::c);
-  EXPECT_FALSE(cv_qualifier::none & cv_qualifier::v);
-  EXPECT_FALSE(cv_qualifier::none & cv_qualifier::cv);
+FATAL_TEST(reflect_member_function, cv_qualifier_bitwise_and) {
+  FATAL_EXPECT_FALSE(cv_qualifier::none & cv_qualifier::none);
+  FATAL_EXPECT_FALSE(cv_qualifier::none & cv_qualifier::c);
+  FATAL_EXPECT_FALSE(cv_qualifier::none & cv_qualifier::v);
+  FATAL_EXPECT_FALSE(cv_qualifier::none & cv_qualifier::cv);
 
-  EXPECT_FALSE(cv_qualifier::c & cv_qualifier::none);
-  EXPECT_TRUE(cv_qualifier::c & cv_qualifier::c);
-  EXPECT_FALSE(cv_qualifier::c & cv_qualifier::v);
-  EXPECT_TRUE(cv_qualifier::c & cv_qualifier::cv);
+  FATAL_EXPECT_FALSE(cv_qualifier::c & cv_qualifier::none);
+  FATAL_EXPECT_TRUE(cv_qualifier::c & cv_qualifier::c);
+  FATAL_EXPECT_FALSE(cv_qualifier::c & cv_qualifier::v);
+  FATAL_EXPECT_TRUE(cv_qualifier::c & cv_qualifier::cv);
 
-  EXPECT_FALSE(cv_qualifier::v & cv_qualifier::none);
-  EXPECT_FALSE(cv_qualifier::v & cv_qualifier::c);
-  EXPECT_TRUE(cv_qualifier::v & cv_qualifier::v);
-  EXPECT_TRUE(cv_qualifier::v & cv_qualifier::cv);
+  FATAL_EXPECT_FALSE(cv_qualifier::v & cv_qualifier::none);
+  FATAL_EXPECT_FALSE(cv_qualifier::v & cv_qualifier::c);
+  FATAL_EXPECT_TRUE(cv_qualifier::v & cv_qualifier::v);
+  FATAL_EXPECT_TRUE(cv_qualifier::v & cv_qualifier::cv);
 
-  EXPECT_FALSE(cv_qualifier::cv & cv_qualifier::none);
-  EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::c);
-  EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::v);
-  EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::cv);
+  FATAL_EXPECT_FALSE(cv_qualifier::cv & cv_qualifier::none);
+  FATAL_EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::c);
+  FATAL_EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::v);
+  FATAL_EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::cv);
 }
 
 #define CHECK_IS_NONCV(Expected, Member) \
   do { \
     if (Expected) { \
-      EXPECT_TRUE((is_noncv_member_function<decltype(&Member)>::value)); \
+      FATAL_EXPECT_TRUE((is_noncv_member_function<decltype(&Member)>::value)); \
     } else { \
-      EXPECT_FALSE((is_noncv_member_function<decltype(&Member)>::value)); \
+      FATAL_EXPECT_FALSE( \
+        (is_noncv_member_function<decltype(&Member)>::value) \
+      ); \
     } \
   } while (false)
 
-TEST(reflect_member_function, is_noncv_member_function) {
+FATAL_TEST(reflect_member_function, is_noncv_member_function) {
   CHECK_IS_NONCV(true, foo::noncv);
   CHECK_IS_NONCV(false, foo::c);
   CHECK_IS_NONCV(false, foo::v);
@@ -65,13 +67,15 @@ TEST(reflect_member_function, is_noncv_member_function) {
 #define CHECK_IS_CONST(Expected, Member) \
   do { \
     if (Expected) { \
-      EXPECT_TRUE((is_const_member_function<decltype(&Member)>::value)); \
+      FATAL_EXPECT_TRUE((is_const_member_function<decltype(&Member)>::value)); \
     } else { \
-      EXPECT_FALSE((is_const_member_function<decltype(&Member)>::value)); \
+      FATAL_EXPECT_FALSE( \
+        (is_const_member_function<decltype(&Member)>::value) \
+      ); \
     } \
   } while (false)
 
-TEST(reflect_member_function, is_const_member_function) {
+FATAL_TEST(reflect_member_function, is_const_member_function) {
   CHECK_IS_CONST(false, foo::noncv);
   CHECK_IS_CONST(true, foo::c);
   CHECK_IS_CONST(false, foo::v);
@@ -82,13 +86,17 @@ TEST(reflect_member_function, is_const_member_function) {
 #define CHECK_IS_VOLATILE(Expected, Member) \
   do { \
     if (Expected) { \
-      EXPECT_TRUE((is_volatile_member_function<decltype(&Member)>::value)); \
+      FATAL_EXPECT_TRUE( \
+        (is_volatile_member_function<decltype(&Member)>::value) \
+      ); \
     } else { \
-      EXPECT_FALSE((is_volatile_member_function<decltype(&Member)>::value)); \
+      FATAL_EXPECT_FALSE( \
+        (is_volatile_member_function<decltype(&Member)>::value) \
+      ); \
     } \
   } while (false)
 
-TEST(reflect_member_function, is_volatile_member_function) {
+FATAL_TEST(reflect_member_function, is_volatile_member_function) {
   CHECK_IS_VOLATILE(false, foo::noncv);
   CHECK_IS_VOLATILE(false, foo::c);
   CHECK_IS_VOLATILE(true, foo::v);
@@ -99,13 +107,13 @@ TEST(reflect_member_function, is_volatile_member_function) {
 #define CHECK_IS_CV(Expected, Member) \
   do { \
     if (Expected) { \
-      EXPECT_TRUE((is_cv_member_function<decltype(&Member)>::value)); \
+      FATAL_EXPECT_TRUE((is_cv_member_function<decltype(&Member)>::value)); \
     } else { \
-      EXPECT_FALSE((is_cv_member_function<decltype(&Member)>::value)); \
+      FATAL_EXPECT_FALSE((is_cv_member_function<decltype(&Member)>::value)); \
     } \
   } while (false)
 
-TEST(reflect_member_function, is_cv_member_function) {
+FATAL_TEST(reflect_member_function, is_cv_member_function) {
   CHECK_IS_CV(false, foo::noncv);
   CHECK_IS_CV(false, foo::c);
   CHECK_IS_CV(false, foo::v);
@@ -115,13 +123,13 @@ TEST(reflect_member_function, is_cv_member_function) {
 
 template <cv_qualifier Expected, typename T>
 void check_qualifier() {
-  EXPECT_EQ(Expected, (member_function_qualifier<T>::value));
+  FATAL_EXPECT_EQ(Expected, (member_function_qualifier<T>::value));
 }
 
 #define CHECK_QUALIFIER(Expected, Member) \
   check_qualifier<cv_qualifier::Expected, decltype(&Member)>();
 
-TEST(reflect_member_function, member_function_qualifier) {
+FATAL_TEST(reflect_member_function, member_function_qualifier) {
   CHECK_QUALIFIER(none, foo::noncv);
   CHECK_QUALIFIER(c, foo::c);
   CHECK_QUALIFIER(v, foo::v);
@@ -152,11 +160,11 @@ struct gaz {
     typedef reflect_member_function<decltype(&Class::Fn)> reflected; \
     FATAL_EXPECT_SAME<Class, reflected::owner>(); \
     FATAL_EXPECT_SAME<Result, reflected::result>(); \
-    EXPECT_EQ(cv_qualifier::Qualifier, reflected::cv::value); \
+    FATAL_EXPECT_EQ(cv_qualifier::Qualifier, reflected::cv::value); \
     FATAL_EXPECT_SAME<type_list<__VA_ARGS__>, reflected::args>(); \
   } while (false)
 
-TEST(reflect_member_function, reflect_member_function) {
+FATAL_TEST(reflect_member_function, reflect_member_function) {
   CHECK_REFLECT(foo, noncv, void, none);
   CHECK_REFLECT(foo, c, void, c);
   CHECK_REFLECT(foo, v, void, v);

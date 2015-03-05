@@ -21,13 +21,13 @@ struct Gaz {};
 template <std::size_t Id>
 using tag = std::integral_constant<std::size_t, Id>;
 
-TEST(tuple_tags, tags) {
+FATAL_TEST(tuple_tags, tags) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
 
   FATAL_EXPECT_SAME<type_list<Foo, Bar, Baz, Gaz>, tags::list>();
 }
 
-TEST(tuple_tags, map) {
+FATAL_TEST(tuple_tags, map) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   typedef std::tuple<int, double, bool, long> tuple;
 
@@ -42,17 +42,17 @@ TEST(tuple_tags, map) {
   >();
 }
 
-TEST(tuple_tags, index_of) {
+FATAL_TEST(tuple_tags, index_of) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   std::tuple<int, double, bool, long> tuple(10, 5.6, true, 999);
 
-  EXPECT_EQ(10, std::get<tags::index_of<Foo>::value>(tuple));
-  EXPECT_EQ(5.6, std::get<tags::index_of<Bar>::value>(tuple));
-  EXPECT_EQ(true, std::get<tags::index_of<Baz>::value>(tuple));
-  EXPECT_EQ(999, std::get<tags::index_of<Gaz>::value>(tuple));
+  FATAL_EXPECT_EQ(10, std::get<tags::index_of<Foo>::value>(tuple));
+  FATAL_EXPECT_EQ(5.6, std::get<tags::index_of<Bar>::value>(tuple));
+  FATAL_EXPECT_EQ(true, std::get<tags::index_of<Baz>::value>(tuple));
+  FATAL_EXPECT_EQ(999, std::get<tags::index_of<Gaz>::value>(tuple));
 }
 
-TEST(tuple_tags, type_of) {
+FATAL_TEST(tuple_tags, type_of) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   typedef std::tuple<int, double, bool, long> tuple;
 
@@ -62,14 +62,14 @@ TEST(tuple_tags, type_of) {
   FATAL_EXPECT_SAME<long, tags::type_of<Gaz, tuple>>();
 }
 
-TEST(tuple_tags, get) {
+FATAL_TEST(tuple_tags, get) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   std::tuple<int, double, bool, long> tuple(10, 5.6, true, 999);
 
-  EXPECT_EQ(10, tags::get<Foo>(tuple));
-  EXPECT_EQ(5.6, tags::get<Bar>(tuple));
-  EXPECT_EQ(true, tags::get<Baz>(tuple));
-  EXPECT_EQ(999, tags::get<Gaz>(tuple));
+  FATAL_EXPECT_EQ(10, tags::get<Foo>(tuple));
+  FATAL_EXPECT_EQ(5.6, tags::get<Bar>(tuple));
+  FATAL_EXPECT_EQ(true, tags::get<Baz>(tuple));
+  FATAL_EXPECT_EQ(999, tags::get<Gaz>(tuple));
 }
 
 struct foreach_visitor {
@@ -88,7 +88,7 @@ struct foreach_visitor {
 template <typename T>
 using is_even_predicate = std::integral_constant<bool, T::value % 2 == 0>;
 
-TEST(tuple_tags, foreach_if) {
+FATAL_TEST(tuple_tags, foreach_if) {
   using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
 
   auto tuple = std::make_tuple("hello", "world", "!");
@@ -96,18 +96,18 @@ TEST(tuple_tags, foreach_if) {
   std::vector<std::size_t> indexes;
   std::vector<std::string> elements;
 
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(
     2,
     tags::foreach_if<is_even_predicate>(
       tuple, foreach_visitor(), indexes, elements
     )
   );
 
-  EXPECT_EQ((std::vector<std::size_t>{0, 2}), indexes);
-  EXPECT_EQ((std::vector<std::string>{"hello", "!"}), elements);
+  FATAL_EXPECT_EQ((std::vector<std::size_t>{0, 2}), indexes);
+  FATAL_EXPECT_EQ((std::vector<std::string>{"hello", "!"}), elements);
 }
 
-TEST(tuple_tags, foreach) {
+FATAL_TEST(tuple_tags, foreach) {
   using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
 
   auto tuple = std::make_tuple("hello", "world", "!");
@@ -115,10 +115,10 @@ TEST(tuple_tags, foreach) {
   std::vector<std::size_t> indexes;
   std::vector<std::string> elements;
 
-  EXPECT_TRUE(tags::foreach(tuple, foreach_visitor(), indexes, elements));
+  FATAL_EXPECT_TRUE(tags::foreach(tuple, foreach_visitor(), indexes, elements));
 
-  EXPECT_EQ((std::vector<std::size_t>{0, 1, 2}), indexes);
-  EXPECT_EQ((std::vector<std::string>{"hello", "world", "!"}), elements);
+  FATAL_EXPECT_EQ((std::vector<std::size_t>{0, 1, 2}), indexes);
+  FATAL_EXPECT_EQ((std::vector<std::string>{"hello", "world", "!"}), elements);
 }
 
 } // namespace fatal {

@@ -14,6 +14,7 @@
 #include <fatal/type/string.h>
 
 #include <iostream>
+#include <sstream>
 #include <unordered_map>
 
 struct request_args {

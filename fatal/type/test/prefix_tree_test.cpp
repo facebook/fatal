@@ -49,7 +49,7 @@ template <char C> using chr = std::integral_constant<char, C>;
 // build_type_prefix_tree //
 ////////////////////////////
 
-TEST(type_prefix_tree, build_type_prefix_tree) {
+FATAL_TEST(type_prefix_tree, build_type_prefix_tree) {
   FATAL_EXPECT_SAME<
     type_prefix_tree<non_terminal_tag>,
     build_type_prefix_tree<>::from<>
@@ -261,15 +261,15 @@ struct check_match_exact_visitor {
     std::basic_string<TNeedleChar> const &needle,
     std::size_t &matches
   ) {
-    EXPECT_EQ(TString::string(), needle);
-    EXPECT_EQ(0, matches++);
+    FATAL_EXPECT_EQ(TString::string(), needle);
+    FATAL_EXPECT_EQ(0, matches++);
   }
 };
 
 template <> struct check_match_exact_visitor<false> {
   template <typename TString, typename... VArgs>
   void operator ()(type_tag<TString>, VArgs &&...) {
-    EXPECT_EQ(
+    FATAL_EXPECT_EQ(
       "no match expected",
       to_string("got '", TString::string(), '\'')
     );
@@ -284,11 +284,11 @@ struct check_match_prefixes_visitor {
     std::basic_string<TNeedleChar> const &needle,
     std::size_t &matches
   ) {
-    EXPECT_TRUE(TExpectedList::template contains<TString>::value);
-    EXPECT_LT(matches++, TExpectedList::size);
+    FATAL_EXPECT_TRUE(TExpectedList::template contains<TString>::value);
+    FATAL_EXPECT_LT(matches++, TExpectedList::size);
 
-    EXPECT_LE(TString::size, needle.size());
-    EXPECT_EQ(0, needle.compare(0, TString::size, TString::string()));
+    FATAL_EXPECT_LE(TString::size, needle.size());
+    FATAL_EXPECT_EQ(0, needle.compare(0, TString::size, TString::string()));
   }
 };
 
@@ -304,9 +304,9 @@ struct check_match {
     );
 
     auto const expectedResult = TExpectMatch;
-    EXPECT_EQ(expectedResult, result);
+    FATAL_EXPECT_EQ(expectedResult, result);
     auto const expectedMatches = TExpectMatch ? 1 : 0;
-    EXPECT_EQ(expectedMatches, matches);
+    FATAL_EXPECT_EQ(expectedMatches, matches);
   }
 
   template <typename TTree, typename... TExpected>
@@ -321,9 +321,9 @@ struct check_match {
     );
 
     auto const expectedResult = expected::size;
-    EXPECT_EQ(expectedResult, result);
+    FATAL_EXPECT_EQ(expectedResult, result);
     auto const expectedMatches = expected::size;
-    EXPECT_EQ(expectedMatches, matches);
+    FATAL_EXPECT_EQ(expectedMatches, matches);
   }
 };
 
@@ -331,123 +331,123 @@ struct check_match {
 // match_exact //
 /////////////////
 
-TEST(type_prefix_tree, match_exact_h_empty) {
+FATAL_TEST(type_prefix_tree, match_exact_h_empty) {
   check_match<>::exact<false, hs_tree>("");
 }
 
-TEST(type_prefix_tree, match_exact_h_h) {
+FATAL_TEST(type_prefix_tree, match_exact_h_h) {
   check_match<>::exact<true, hs_tree>("h");
 }
 
-TEST(type_prefix_tree, match_exact_h_H) {
+FATAL_TEST(type_prefix_tree, match_exact_h_H) {
   check_match<>::exact<false, hs_tree>("H");
 }
 
-TEST(type_prefix_tree, match_exact_h_ha) {
+FATAL_TEST(type_prefix_tree, match_exact_h_ha) {
   check_match<>::exact<true, hs_tree>("ha");
 }
 
-TEST(type_prefix_tree, match_exact_h_Ha) {
+FATAL_TEST(type_prefix_tree, match_exact_h_Ha) {
   check_match<>::exact<false, hs_tree>("Ha");
 }
 
-TEST(type_prefix_tree, match_exact_h_hA) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hA) {
   check_match<>::exact<false, hs_tree>("hA");
 }
 
-TEST(type_prefix_tree, match_exact_h_hat) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hat) {
   check_match<>::exact<true, hs_tree>("hat");
 }
 
-TEST(type_prefix_tree, match_exact_h_Hat) {
+FATAL_TEST(type_prefix_tree, match_exact_h_Hat) {
   check_match<>::exact<false, hs_tree>("Hat");
 }
 
-TEST(type_prefix_tree, match_exact_h_hAt) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hAt) {
   check_match<>::exact<false, hs_tree>("hAt");
 }
 
-TEST(type_prefix_tree, match_exact_h_haT) {
+FATAL_TEST(type_prefix_tree, match_exact_h_haT) {
   check_match<>::exact<false, hs_tree>("haT");
 }
 
-TEST(type_prefix_tree, match_exact_h_hi) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hi) {
   check_match<>::exact<true, hs_tree>("hi");
 }
 
-TEST(type_prefix_tree, match_exact_h_Hi) {
+FATAL_TEST(type_prefix_tree, match_exact_h_Hi) {
   check_match<>::exact<false, hs_tree>("Hi");
 }
 
-TEST(type_prefix_tree, match_exact_h_hI) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hI) {
   check_match<>::exact<false, hs_tree>("hI");
 }
 
-TEST(type_prefix_tree, match_exact_h_hint) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hint) {
   check_match<>::exact<true, hs_tree>("hint");
 }
 
-TEST(type_prefix_tree, match_exact_h_Hint) {
+FATAL_TEST(type_prefix_tree, match_exact_h_Hint) {
   check_match<>::exact<false, hs_tree>("Hint");
 }
 
-TEST(type_prefix_tree, match_exact_h_hInt) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hInt) {
   check_match<>::exact<false, hs_tree>("hInt");
 }
 
-TEST(type_prefix_tree, match_exact_h_hiNt) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hiNt) {
   check_match<>::exact<false, hs_tree>("hiNt");
 }
 
-TEST(type_prefix_tree, match_exact_h_hinT) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hinT) {
   check_match<>::exact<false, hs_tree>("hinT");
 }
 
-TEST(type_prefix_tree, match_exact_h_hit) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hit) {
   check_match<>::exact<true, hs_tree>("hit");
 }
 
-TEST(type_prefix_tree, match_exact_h_Hit) {
+FATAL_TEST(type_prefix_tree, match_exact_h_Hit) {
   check_match<>::exact<false, hs_tree>("Hit");
 }
 
-TEST(type_prefix_tree, match_exact_h_hIt) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hIt) {
   check_match<>::exact<false, hs_tree>("hIt");
 }
 
-TEST(type_prefix_tree, match_exact_h_hiT) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hiT) {
   check_match<>::exact<false, hs_tree>("hiT");
 }
 
-TEST(type_prefix_tree, match_exact_h_ho) {
+FATAL_TEST(type_prefix_tree, match_exact_h_ho) {
   check_match<>::exact<true, hs_tree>("ho");
 }
 
-TEST(type_prefix_tree, match_exact_h_Ho) {
+FATAL_TEST(type_prefix_tree, match_exact_h_Ho) {
   check_match<>::exact<false, hs_tree>("Ho");
 }
 
-TEST(type_prefix_tree, match_exact_h_hO) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hO) {
   check_match<>::exact<false, hs_tree>("hO");
 }
 
-TEST(type_prefix_tree, match_exact_h_hot) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hot) {
   check_match<>::exact<true, hs_tree>("hot");
 }
 
-TEST(type_prefix_tree, match_exact_h_Hot) {
+FATAL_TEST(type_prefix_tree, match_exact_h_Hot) {
   check_match<>::exact<false, hs_tree>("Hot");
 }
 
-TEST(type_prefix_tree, match_exact_h_hOt) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hOt) {
   check_match<>::exact<false, hs_tree>("hOt");
 }
 
-TEST(type_prefix_tree, match_exact_h_hoT) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hoT) {
   check_match<>::exact<false, hs_tree>("hoT");
 }
 
-TEST(type_prefix_tree, match_exact_h_hut) {
+FATAL_TEST(type_prefix_tree, match_exact_h_hut) {
   check_match<>::exact<false, hs_tree>("hut");
 }
 
@@ -455,71 +455,71 @@ TEST(type_prefix_tree, match_exact_h_hut) {
 // match_prefixes //
 ////////////////////
 
-TEST(type_prefix_tree, match_prefixes_h_empty) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_empty) {
   check_match<>::prefixes<hs_tree>("");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_h) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_h) {
   check_match<>::prefixes<hs_tree, h>("h");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_H) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_H) {
   check_match<>::prefixes<hs_tree>("H");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_hi) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_hi) {
   check_match<>::prefixes<hs_tree, h, hi>("hi");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_hI) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_hI) {
   check_match<>::prefixes<hs_tree, h>("hI");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_Hi) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_Hi) {
   check_match<>::prefixes<hs_tree>("Hi");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_hit) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_hit) {
   check_match<>::prefixes<hs_tree, h, hi, hit>("hit");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_hint) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_hint) {
   check_match<>::prefixes<hs_tree, h, hi, hint>("hint");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_hinter) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_hinter) {
   check_match<>::prefixes<hs_tree, h, hi, hint>("hinter");
 }
 
-TEST(type_prefix_tree, match_prefixes_h_hinTer) {
+FATAL_TEST(type_prefix_tree, match_prefixes_h_hinTer) {
   check_match<>::prefixes<hs_tree, h, hi>("hinTer");
 }
 
-TEST(type_prefix_tree, match_prefixes_abc_empty) {
+FATAL_TEST(type_prefix_tree, match_prefixes_abc_empty) {
   check_match<>::prefixes<abc_tree>("");
 }
 
-TEST(type_prefix_tree, match_prefixes_abc_abc) {
+FATAL_TEST(type_prefix_tree, match_prefixes_abc_abc) {
   check_match<>::prefixes<abc_tree, a, ab, abc>("abc");
 }
 
-TEST(type_prefix_tree, match_prefixes_abc_abcmno) {
+FATAL_TEST(type_prefix_tree, match_prefixes_abc_abcmno) {
   check_match<>::prefixes<abc_tree, a, ab, abc>("abcmno");
 }
 
-TEST(type_prefix_tree, match_prefixes_abc_abcdef) {
+FATAL_TEST(type_prefix_tree, match_prefixes_abc_abcdef) {
   check_match<>::prefixes<abc_tree, a, ab, abc, abcd, abcde, abcdef>("abcdef");
 }
 
-TEST(type_prefix_tree, match_prefixes_abc_abcdEF) {
+FATAL_TEST(type_prefix_tree, match_prefixes_abc_abcdEF) {
   check_match<>::prefixes<abc_tree, a, ab, abc, abcd>("abcdEF");
 }
 
-TEST(type_prefix_tree, match_prefixes_abc_abcxyz) {
+FATAL_TEST(type_prefix_tree, match_prefixes_abc_abcxyz) {
   check_match<>::prefixes<abc_tree, a, ab, abc, abcx, abcxy, abcxyz>("abcxyz");
 }
 
-TEST(type_prefix_tree, match_prefixes_abc_abcxYZ) {
+FATAL_TEST(type_prefix_tree, match_prefixes_abc_abcxYZ) {
   check_match<>::prefixes<abc_tree, a, ab, abc, abcx>("abcxYZ");
 }
 

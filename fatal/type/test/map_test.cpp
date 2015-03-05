@@ -61,7 +61,7 @@ struct not_found_type {};
 // build_type_map //
 ////////////////////
 
-TEST(type_map, build_type_map) {
+FATAL_TEST(type_map, build_type_map) {
   FATAL_EXPECT_SAME<type_map<>, build_type_map<>>();
 
   FATAL_EXPECT_SAME<
@@ -79,7 +79,7 @@ TEST(type_map, build_type_map) {
 // keys //
 //////////
 
-TEST(type_map, keys) {
+FATAL_TEST(type_map, keys) {
   FATAL_EXPECT_SAME<type_map<>::keys, type_list<>>();
 
   FATAL_EXPECT_SAME<
@@ -97,7 +97,7 @@ TEST(type_map, keys) {
 // mapped //
 ////////////
 
-TEST(type_map, mapped) {
+FATAL_TEST(type_map, mapped) {
   FATAL_EXPECT_SAME<type_map<>::mapped, type_list<>>();
 
   FATAL_EXPECT_SAME<
@@ -115,7 +115,7 @@ TEST(type_map, mapped) {
 // transform //
 ///////////////
 
-TEST(type_map, transform) {
+FATAL_TEST(type_map, transform) {
   FATAL_EXPECT_SAME<type_map<>, type_map<>::transform<add<10>::type>>();
 
   FATAL_EXPECT_SAME<
@@ -161,7 +161,7 @@ TEST(type_map, transform) {
 // transform_at //
 //////////////////
 
-TEST(type_map, transform_at) {
+FATAL_TEST(type_map, transform_at) {
   FATAL_EXPECT_SAME<
     type_map<>,
     type_map<>::transform_at<int_val<0>, add<10>::type>
@@ -244,7 +244,7 @@ TEST(type_map, transform_at) {
 // invert //
 ////////////
 
-TEST(type_map, invert) {
+FATAL_TEST(type_map, invert) {
   typedef type_map<
     type_pair<int, bool>,
     type_pair<float, long>
@@ -267,7 +267,7 @@ TEST(type_map, invert) {
 // find //
 //////////
 
-TEST(type_map, find) {
+FATAL_TEST(type_map, find) {
   FATAL_EXPECT_SAME<type_map<>::find<int, not_found_type>, not_found_type>();
   FATAL_EXPECT_SAME<type_map<>::find<int, float>, float>();
 
@@ -283,7 +283,7 @@ TEST(type_map, find) {
 // get //
 /////////
 
-TEST(type_map, get) {
+FATAL_TEST(type_map, get) {
   FATAL_EXPECT_SAME<ibdlsv_map::get<int>, bool>();
   FATAL_EXPECT_SAME<ibdlsv_map::get<double>, long>();
   FATAL_EXPECT_SAME<ibdlsv_map::get<short>, void>();
@@ -299,7 +299,7 @@ struct search_predicate {
   using apply = std::is_same<T, U>;
 };
 
-TEST(type_map, search) {
+FATAL_TEST(type_map, search) {
   FATAL_EXPECT_SAME<
     type_map<>::search<search_predicate<int>::apply, not_found_type>,
     not_found_type
@@ -330,19 +330,19 @@ TEST(type_map, search) {
 // contains //
 //////////////
 
-TEST(type_map, contains) {
-  EXPECT_FALSE((type_map<>::contains<int>::value));
-  EXPECT_TRUE((ibdlsv_map::contains<int>::value));
-  EXPECT_TRUE((ibdlsv_map::contains<double>::value));
-  EXPECT_TRUE((ibdlsv_map::contains<short>::value));
-  EXPECT_FALSE((ibdlsv_map::contains<bool>::value));
+FATAL_TEST(type_map, contains) {
+  FATAL_EXPECT_FALSE((type_map<>::contains<int>::value));
+  FATAL_EXPECT_TRUE((ibdlsv_map::contains<int>::value));
+  FATAL_EXPECT_TRUE((ibdlsv_map::contains<double>::value));
+  FATAL_EXPECT_TRUE((ibdlsv_map::contains<short>::value));
+  FATAL_EXPECT_FALSE((ibdlsv_map::contains<bool>::value));
 }
 
 ////////////////
 // push_front //
 ////////////////
 
-TEST(type_map, push_front) {
+FATAL_TEST(type_map, push_front) {
   using map = build_type_map<
     int, bool,
     float, double
@@ -378,7 +378,7 @@ TEST(type_map, push_front) {
 // push_back //
 ///////////////
 
-TEST(type_map, push_back) {
+FATAL_TEST(type_map, push_back) {
   using map = build_type_map<
     int, bool,
     float, double
@@ -414,7 +414,7 @@ TEST(type_map, push_back) {
 // insert //
 ////////////
 
-TEST(type_map, insert) {
+FATAL_TEST(type_map, insert) {
   FATAL_EXPECT_SAME<
     build_type_map<int, bool>,
     type_map<>
@@ -475,7 +475,7 @@ TEST(type_map, insert) {
 // insert_sorted //
 ///////////////////
 
-TEST(type_map, insert_sorted) {
+FATAL_TEST(type_map, insert_sorted) {
   FATAL_EXPECT_SAME<
     build_type_map<int_val<1>, void>,
     type_map<>::insert_sorted<int_val<1>, void>
@@ -582,7 +582,7 @@ TEST(type_map, insert_sorted) {
 // insert_pair_sorted //
 ////////////////////////
 
-TEST(type_map, insert_pair_sorted) {
+FATAL_TEST(type_map, insert_pair_sorted) {
   FATAL_EXPECT_SAME<
     build_type_map<int_val<1>, void>,
     type_map<>::insert_pair_sorted<type_pair<int_val<1>, void>>
@@ -701,7 +701,7 @@ TEST(type_map, insert_pair_sorted) {
 // replace //
 /////////////
 
-TEST(type_map, replace) {
+FATAL_TEST(type_map, replace) {
   FATAL_EXPECT_SAME<
     build_type_map<>,
     build_type_map<>::replace<int, double>
@@ -736,7 +736,7 @@ TEST(type_map, replace) {
 // remove //
 ////////////
 
-TEST(type_map, remove) {
+FATAL_TEST(type_map, remove) {
   FATAL_EXPECT_SAME<build_type_map<>, build_type_map<>::remove<>>();
   FATAL_EXPECT_SAME<build_type_map<>, build_type_map<>::remove<int>>();
   FATAL_EXPECT_SAME<build_type_map<>, build_type_map<>::remove<int, short>>();
@@ -793,7 +793,7 @@ TEST(type_map, remove) {
 // separate //
 //////////////
 
-TEST(type_map, separate) {
+FATAL_TEST(type_map, separate) {
   typedef type_map<
     type_pair<int, bool>,
     type_pair<int, float>,
@@ -822,7 +822,7 @@ TEST(type_map, separate) {
 // filter //
 ////////////
 
-TEST(type_map, filter) {
+FATAL_TEST(type_map, filter) {
   typedef type_map<
     type_pair<int, bool>,
     type_pair<int, float>,
@@ -845,7 +845,7 @@ TEST(type_map, filter) {
 // reject //
 ////////////
 
-TEST(type_map, reject) {
+FATAL_TEST(type_map, reject) {
   typedef type_map<
     type_pair<int, bool>,
     type_pair<int, float>,
@@ -867,7 +867,7 @@ TEST(type_map, reject) {
 // sort //
 //////////
 
-TEST(type_map, sort) {
+FATAL_TEST(type_map, sort) {
   typedef type_map<
     type_pair<int_val<0>, void>,
     type_pair<int_val<1>, short>,
@@ -910,7 +910,7 @@ TEST(type_map, sort) {
 // cluster //
 /////////////
 
-TEST(type_map, cluster) {
+FATAL_TEST(type_map, cluster) {
   FATAL_EXPECT_SAME<
     build_type_map<>::sort<>,
     build_type_map<>::cluster<>::sort<>
@@ -973,7 +973,7 @@ struct visit_test_visitor {
 
   template <typename T>
   void operator ()(T &&...) const {
-    EXPECT_TRUE(!"unexpected match");
+    FATAL_EXPECT_TRUE(!"unexpected match");
   }
 };
 
@@ -996,11 +996,11 @@ struct visit_test_visitor<TExpectedKey, TExpectedMapped> {
     using key = visitor::key; \
     auto const actual = map::template visit<key>(visitor()); \
     auto const expected = visitor::match::value; \
-    EXPECT_EQ(expected, actual); \
+    FATAL_EXPECT_EQ(expected, actual); \
   } while (false)
 
 
-TEST(type_map, visit) {
+FATAL_TEST(type_map, visit) {
   using map0 = build_type_map<
     int, bool,
     double, float,
@@ -1058,16 +1058,16 @@ void check_bs_exact() {
   );
 
   auto const expectedResult = Result;
-  EXPECT_EQ(expectedResult, result);
+  FATAL_EXPECT_EQ(expectedResult, result);
   auto const expectedKey = Result ? Needle : Empty;
-  EXPECT_EQ(expectedKey, key);
+  FATAL_EXPECT_EQ(expectedKey, key);
   auto const expectedMapped = Result ? ExpectedMapped : Empty;
-  EXPECT_EQ(expectedMapped, mapped);
+  FATAL_EXPECT_EQ(expectedMapped, mapped);
   auto const expectedIndex = ExpectedIndex;
-  EXPECT_EQ(expectedIndex, index);
+  FATAL_EXPECT_EQ(expectedIndex, index);
 }
 
-TEST(type_map, binary_search_exact) {
+FATAL_TEST(type_map, binary_search_exact) {
   typedef chr_map<> empty;
 
   FATAL_VLOG(1) << "empty";
@@ -1137,16 +1137,16 @@ void check_bs_lower_bound() {
   );
 
   auto const expectedResult = Result;
-  EXPECT_EQ(expectedResult, result);
+  FATAL_EXPECT_EQ(expectedResult, result);
   auto const expectedKey = ExpectedKey;
-  EXPECT_EQ(expectedKey, key);
+  FATAL_EXPECT_EQ(expectedKey, key);
   auto const expectedMapped = ExpectedMapped;
-  EXPECT_EQ(expectedMapped, mapped);
+  FATAL_EXPECT_EQ(expectedMapped, mapped);
   auto const expectedIndex = ExpectedIndex;
-  EXPECT_EQ(expectedIndex, index);
+  FATAL_EXPECT_EQ(expectedIndex, index);
 }
 
-TEST(type_map, binary_search_lower_bound) {
+FATAL_TEST(type_map, binary_search_lower_bound) {
   typedef chr_map<> empty;
 
   FATAL_VLOG(1) << "empty";
@@ -1232,16 +1232,16 @@ void check_bs_upper_bound() {
   );
 
   auto const expectedResult = Result;
-  EXPECT_EQ(expectedResult, result);
+  FATAL_EXPECT_EQ(expectedResult, result);
   auto const expectedKey = ExpectedKey;
-  EXPECT_EQ(expectedKey, key);
+  FATAL_EXPECT_EQ(expectedKey, key);
   auto const expectedMapped = ExpectedMapped;
-  EXPECT_EQ(expectedMapped, mapped);
+  FATAL_EXPECT_EQ(expectedMapped, mapped);
   auto const expectedIndex = ExpectedIndex;
-  EXPECT_EQ(expectedIndex, index);
+  FATAL_EXPECT_EQ(expectedIndex, index);
 }
 
-TEST(type_map, binary_search_upper_bound) {
+FATAL_TEST(type_map, binary_search_upper_bound) {
   typedef chr_map<> empty;
 
   FATAL_VLOG(1) << "empty";
@@ -1330,7 +1330,7 @@ void check_type_get() {
   map::contents::foreach(check_type_get_visitor<map>());
 }
 
-TEST(type_get, type_map) {
+FATAL_TEST(type_get, type_map) {
   check_type_get<>();
   check_type_get<void, void>();
   check_type_get<int, double>();
@@ -1347,7 +1347,7 @@ TEST(type_get, type_map) {
 // type_map_from::list //
 /////////////////////////
 
-TEST(type_map, type_map_from_list) {
+FATAL_TEST(type_map, type_map_from_list) {
   typedef type_list<int, bool, double> list;
 
   typedef type_map<
@@ -1403,7 +1403,7 @@ void check_clustered_index() {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(type_map, clustered_index) {
+FATAL_TEST(type_map, clustered_index) {
   check_clustered_index<type_list<>, type_map<>>();
 
   typedef clustered_index_metadata<w0, x0, y0, z0> d0;

@@ -32,7 +32,7 @@ void check_type_pair_types() {
   FATAL_EXPECT_SAME<TSecond, typename pair_t::second>();
 }
 
-TEST(type_pair, types) {
+FATAL_TEST(type_pair, types) {
   check_type_pair_types<int, double>();
   check_type_pair_types<int, int>();
   check_type_pair_types<void, long>();
@@ -53,7 +53,7 @@ void check_invert() {
   FATAL_EXPECT_SAME<expected, typename pair::invert>();
 }
 
-TEST(type_pair, invert) {
+FATAL_TEST(type_pair, invert) {
   check_invert<int, double>();
   check_invert<int, int>();
   check_invert<void, long>();
@@ -84,7 +84,7 @@ void check_transform() {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(type_pair, transform) {
+FATAL_TEST(type_pair, transform) {
   check_transform<int, double, int, double>();
   check_transform<int, double, T1<int>, double, T1>();
   check_transform<int, double, T1<int>, T2<double>, T1, T2>();
@@ -114,7 +114,7 @@ void check_type_pair_from() {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(type_pair_from, list) {
+FATAL_TEST(type_pair_from, list) {
   check_type_pair_from<int, int, int>();
   check_type_pair_from<int, T1<int>, int, T1>();
   check_type_pair_from<int, T1<int>, T2<int>, T1, T2>();
@@ -143,7 +143,7 @@ void check_type_get() {
   FATAL_EXPECT_SAME<typename pair_t::second, type_get_second<pair_t>>();
 }
 
-TEST(type_get, type_pair) {
+FATAL_TEST(type_get, type_pair) {
   check_type_get<int, double>();
   check_type_get<int, int>();
   check_type_get<void, long>();
@@ -176,20 +176,20 @@ public:
   >;
 };
 
-TEST(type_get, first_comparer) {
-  EXPECT_TRUE((
+FATAL_TEST(type_get, first_comparer) {
+  FATAL_EXPECT_TRUE((
     Foo<5, 99, 8, 1>::comparison<
       type_get_first_comparer<>::template compare
     >::value
   ));
 
-  EXPECT_TRUE((
+  FATAL_EXPECT_TRUE((
     Foo<5, 99, 8, 1>::comparison<
       type_get_first_comparer<comparison_transform::less_than>::template compare
     >::value
   ));
 
-  EXPECT_FALSE((
+  FATAL_EXPECT_FALSE((
     Foo<5, 99, 8, 1>::comparison<
       type_get_first_comparer<
         comparison_transform::greater_than
@@ -202,14 +202,14 @@ TEST(type_get, first_comparer) {
 // type_get_second_comparer //
 //////////////////////////////
 
-TEST(type_get, second_comparer) {
-  EXPECT_TRUE((
+FATAL_TEST(type_get, second_comparer) {
+  FATAL_EXPECT_TRUE((
     Foo<99, 5, 1, 8>::comparison<
       type_get_second_comparer<>::template compare
     >::value
   ));
 
-  EXPECT_TRUE((
+  FATAL_EXPECT_TRUE((
     Foo<99, 5, 1, 8>::comparison<
       type_get_second_comparer<
         comparison_transform::less_than
@@ -217,7 +217,7 @@ TEST(type_get, second_comparer) {
     >::value
   ));
 
-  EXPECT_FALSE((
+  FATAL_EXPECT_FALSE((
     Foo<99, 5, 1, 8>::comparison<
       type_get_second_comparer<
         comparison_transform::greater_than

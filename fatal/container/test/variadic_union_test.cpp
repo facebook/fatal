@@ -89,7 +89,9 @@ void check_default_ctor(...) {
     return std::addressof(v) != nullptr;
   };
 
-  EXPECT_NO_THROW(fn());
+  FATAL_EXPECT_NO_THROW {
+    fn();
+  };
 }
 
 #define FATAL_IMPL_CHECK_DEFAULT_CTOR(...) \
@@ -97,7 +99,7 @@ void check_default_ctor(...) {
     check_default_ctor<__VA_ARGS__>(); \
   } while (false)
 
-TEST(variadic_union, default_ctor) {
+FATAL_TEST(variadic_union, default_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_DEFAULT_CTOR);
 }
 
@@ -112,7 +114,7 @@ TEST(variadic_union, default_ctor) {
     FATAL_EXPECT_SAME<expected, typename type::list>(); \
   } while (false)
 
-TEST(variadic_union, list) {
+FATAL_TEST(variadic_union, list) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_LIST);
 }
 
@@ -150,10 +152,10 @@ struct check_supports {
 #define FATAL_IMPL_CHECK_SUPPORTS(...) \
   do { \
     using check = check_supports<__VA_ARGS__>; \
-    EXPECT_TRUE(check::result::value); \
+    FATAL_EXPECT_TRUE(check::result::value); \
   } while (false)
 
-TEST(variadic_union, supports) {
+FATAL_TEST(variadic_union, supports) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_SUPPORTS);
 }
 
@@ -181,10 +183,10 @@ struct check_size<> {
 #define FATAL_IMPL_CHECK_SIZE(...) \
   do { \
     using check = check_size<__VA_ARGS__>; \
-    EXPECT_TRUE(check::result::value); \
+    FATAL_EXPECT_TRUE(check::result::value); \
   } while (false)
 
-TEST(variadic_union, size) {
+FATAL_TEST(variadic_union, size) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_SIZE);
 }
 
@@ -231,23 +233,23 @@ struct reference_pointer_test<T, Args...> {
     {
       auto const value_0 = reference_pointer_value<T>::value(false);
       new (std::addressof(u.template ref<T>())) T(value_0);
-      EXPECT_EQ(value_0, u.template ref<T>());
-      EXPECT_EQ(value_0, c.template ref<T>());
+      FATAL_EXPECT_EQ(value_0, u.template ref<T>());
+      FATAL_EXPECT_EQ(value_0, c.template ref<T>());
       (u.template ref<T>()).~T();
     }
 
     {
       auto const value_1 = reference_pointer_value<T>::value(true);
       new (std::addressof(u.template ref<T>())) T(value_1);
-      EXPECT_EQ(value_1, u.template ref<T>());
-      EXPECT_EQ(value_1, c.template ref<T>());
+      FATAL_EXPECT_EQ(value_1, u.template ref<T>());
+      FATAL_EXPECT_EQ(value_1, c.template ref<T>());
       (u.template ref<T>()).~T();
     }
 
     {
       T const *p = reinterpret_cast<T *>(std::addressof(u));
-      EXPECT_EQ(p, std::addressof(u.template ref<T>()));
-      EXPECT_EQ(p, std::addressof(c.template ref<T>()));
+      FATAL_EXPECT_EQ(p, std::addressof(u.template ref<T>()));
+      FATAL_EXPECT_EQ(p, std::addressof(c.template ref<T>()));
     }
 
     return reference_pointer_test<Args...>::test_reference(
@@ -274,23 +276,23 @@ struct reference_pointer_test<T, Args...> {
     {
       auto const value_0 = reference_pointer_value<T>::value(false);
       new (u.template ptr<T>()) T(value_0);
-      EXPECT_EQ(value_0, *u.template ptr<T>());
-      EXPECT_EQ(value_0, *c.template ptr<T>());
+      FATAL_EXPECT_EQ(value_0, *u.template ptr<T>());
+      FATAL_EXPECT_EQ(value_0, *c.template ptr<T>());
       (u.template ptr<T>())->~T();
     }
 
     {
       auto const value_1 = reference_pointer_value<T>::value(true);
       new (u.template ptr<T>()) T(value_1);
-      EXPECT_EQ(value_1, *u.template ptr<T>());
-      EXPECT_EQ(value_1, *c.template ptr<T>());
+      FATAL_EXPECT_EQ(value_1, *u.template ptr<T>());
+      FATAL_EXPECT_EQ(value_1, *c.template ptr<T>());
       (u.template ptr<T>())->~T();
     }
 
     {
       T const *p = reinterpret_cast<T *>(std::addressof(u));
-      EXPECT_EQ(p, u.template ptr<T>());
-      EXPECT_EQ(p, c.template ptr<T>());
+      FATAL_EXPECT_EQ(p, u.template ptr<T>());
+      FATAL_EXPECT_EQ(p, c.template ptr<T>());
     }
 
     return reference_pointer_test<Args...>::test_pointer(
@@ -317,13 +319,13 @@ struct reference_pointer_test<> {
     variadic_union<__VA_ARGS__> v; \
     using list = type_list<__VA_ARGS__>; \
     auto const count = reference_pointer_test<__VA_ARGS__>::test_##Which(v); \
-    EXPECT_EQ(list::size, count); \
+    FATAL_EXPECT_EQ(list::size, count); \
   } while (false)
 
 #define FATAL_IMPL_CHECK_REFERENCE(...) \
   FATAL_IMPL_CHECK_REFERENCE_POINTER(reference, __VA_ARGS__)
 
-TEST(variadic_union, ref) {
+FATAL_TEST(variadic_union, ref) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_REFERENCE);
 }
 
@@ -334,7 +336,7 @@ TEST(variadic_union, ref) {
 #define FATAL_IMPL_CHECK_POINTER(...) \
   FATAL_IMPL_CHECK_REFERENCE_POINTER(pointer, __VA_ARGS__)
 
-TEST(variadic_union, ptr) {
+FATAL_TEST(variadic_union, ptr) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_POINTER);
 }
 
@@ -383,18 +385,18 @@ struct construct_destroy_test<> {
 
 #define FATAL_IMPL_CHECK_CONSTRUCT_DESTROY(Which, ...) \
   do { \
-    ASSERT_EQ(0, ref_counter::count()); \
+    FATAL_ASSERT_EQ(0, ref_counter::count()); \
     variadic_union_ctor_test<__VA_ARGS__> v; \
     using list = type_list<__VA_ARGS__>; \
     auto const count = construct_destroy_test<__VA_ARGS__>::test_##Which(v); \
-    EXPECT_EQ(list::size, count); \
-    EXPECT_EQ(0, ref_counter::count()); \
+    FATAL_EXPECT_EQ(list::size, count); \
+    FATAL_EXPECT_EQ(0, ref_counter::count()); \
   } while (false)
 
 #define FATAL_IMPL_CHECK_CONSTRUCT(...) \
   FATAL_IMPL_CHECK_CONSTRUCT_DESTROY(construct, __VA_ARGS__)
 
-TEST(variadic_union, construct) {
+FATAL_TEST(variadic_union, construct) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_CONSTRUCT);
 }
 
@@ -405,7 +407,7 @@ TEST(variadic_union, construct) {
 #define FATAL_IMPL_CHECK_DESTROY(...) \
   FATAL_IMPL_CHECK_CONSTRUCT_DESTROY(destroy, __VA_ARGS__)
 
-TEST(variadic_union, destroy) {
+FATAL_TEST(variadic_union, destroy) {
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_DESTROY);
 }
 

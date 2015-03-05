@@ -52,7 +52,7 @@ void check_tags(TData &&...) {
   >();
 }
 
-TEST(tuple, tags) {
+FATAL_TEST(tuple, tags) {
   CHECK_IMPL(check_tags);
 }
 
@@ -68,7 +68,7 @@ void check_type(TData &&...) {
   >();
 }
 
-TEST(tuple, type) {
+FATAL_TEST(tuple, type) {
   CHECK_IMPL(check_type);
 }
 
@@ -97,7 +97,7 @@ void check_type_of(TData &&...) {
   tags::foreach(check_type_of_visitor<types, actual>());
 }
 
-TEST(tuple, type_of) {
+FATAL_TEST(tuple, type_of) {
   CHECK_IMPL(check_type_of);
 }
 
@@ -109,14 +109,14 @@ void check_default_ctor(TData &&...) {
 
   tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual;
 
-  EXPECT_EQ(expected, actual.data());
+  FATAL_EXPECT_EQ(expected, actual.data());
 }
 
-TEST(tuple, default_ctor) {
+FATAL_TEST(tuple, default_ctor) {
   CHECK_IMPL(check_default_ctor);
 }
 
-TEST(tuple, ctor) {
+FATAL_TEST(tuple, ctor) {
   auto tuple = make_tuple<W, X, Y, Z>(
     std::string("hello"),
     10,
@@ -124,16 +124,16 @@ TEST(tuple, ctor) {
     std::vector<int>{9, 100}
   );
 
-  EXPECT_EQ("hello", tuple.get<W>());
+  FATAL_EXPECT_EQ("hello", tuple.get<W>());
 
-  EXPECT_EQ(10, tuple.get<X>());
+  FATAL_EXPECT_EQ(10, tuple.get<X>());
 
-  EXPECT_EQ(true, tuple.get<Y>().first);
-  EXPECT_EQ(5.6, tuple.get<Y>().second);
+  FATAL_EXPECT_EQ(true, tuple.get<Y>().first);
+  FATAL_EXPECT_EQ(5.6, tuple.get<Y>().second);
 
-  EXPECT_EQ(2, tuple.get<Z>().size());
-  EXPECT_EQ(9, tuple.get<Z>()[0]);
-  EXPECT_EQ(100, tuple.get<Z>()[1]);
+  FATAL_EXPECT_EQ(2, tuple.get<Z>().size());
+  FATAL_EXPECT_EQ(9, tuple.get<Z>()[0]);
+  FATAL_EXPECT_EQ(100, tuple.get<Z>()[1]);
 }
 
 template <typename... TTags, typename... TData>
@@ -146,10 +146,10 @@ void check_forwarding_ctor(TData &&...data) {
     std::forward<TData>(data)...
   );
 
-  EXPECT_EQ(expected, actual.data());
+  FATAL_EXPECT_EQ(expected, actual.data());
 }
 
-TEST(tuple, forwarding_ctor) {
+FATAL_TEST(tuple, forwarding_ctor) {
   CHECK_IMPL(check_forwarding_ctor);
 }
 
@@ -163,10 +163,10 @@ void check_forwarding_ctor_tuple(TData &&...data) {
     std::make_tuple(std::forward<TData>(data)...)
   );
 
-  EXPECT_EQ(expected, actual.data());
+  FATAL_EXPECT_EQ(expected, actual.data());
 }
 
-TEST(tuple, forwarding_ctor_tuple) {
+FATAL_TEST(tuple, forwarding_ctor_tuple) {
   CHECK_IMPL(check_forwarding_ctor_tuple);
 }
 
@@ -184,7 +184,7 @@ struct check_get_helper<T, Args...> {
       std::size_t, size::value - tail_size::value
     >;
 
-    EXPECT_EQ(std::get<index::value>(expected), actual.template get<T>());
+    FATAL_EXPECT_EQ(std::get<index::value>(expected), actual.template get<T>());
 
     check_get_helper<Args...>::check(
       std::forward<TExpected>(expected),
@@ -211,7 +211,7 @@ void check_get_const(TData &&...data) {
   check_get_helper<TTags...>::check(tuple, actual);
 }
 
-TEST(tuple, get_const) {
+FATAL_TEST(tuple, get_const) {
   CHECK_IMPL(check_get_const);
 }
 
@@ -227,7 +227,7 @@ void check_get(TData &&...data) {
   check_get_helper<TTags...>::check(tuple, actual);
 }
 
-TEST(tuple, get) {
+FATAL_TEST(tuple, get) {
   CHECK_IMPL(check_get);
 }
 
@@ -240,10 +240,10 @@ void check_tuple_const(TData &&...data) {
     type_pair<TTags, typename std::decay<TData>::type>...
   > const actual(std::forward<TData>(data)...);
 
-  EXPECT_EQ(tuple, actual.data());
+  FATAL_EXPECT_EQ(tuple, actual.data());
 }
 
-TEST(tuple, tuple_const) {
+FATAL_TEST(tuple, tuple_const) {
   CHECK_IMPL(check_tuple_const);
 }
 
@@ -256,10 +256,10 @@ void check_tuple(TData &&...data) {
     std::forward<TData>(data)...
   );
 
-  EXPECT_EQ(tuple, actual.data());
+  FATAL_EXPECT_EQ(tuple, actual.data());
 }
 
-TEST(tuple, tuple) {
+FATAL_TEST(tuple, tuple) {
   CHECK_IMPL(check_tuple);
 }
 
@@ -279,7 +279,7 @@ void check_paired_tuple(TData &&...) {
   >();
 }
 
-TEST(build_tuple, build_tuple) {
+FATAL_TEST(build_tuple, build_tuple) {
   CHECK_IMPL(check_paired_tuple);
 }
 
@@ -294,10 +294,10 @@ void check_make_tuple(TData &&...data) {
     typename std::decay<decltype(actual)>::type
   >();
 
-  EXPECT_EQ(tuple, actual.data());
+  FATAL_EXPECT_EQ(tuple, actual.data());
 }
 
-TEST(make_tuple, make_tuple) {
+FATAL_TEST(make_tuple, make_tuple) {
   CHECK_IMPL(check_make_tuple);
 }
 
@@ -312,10 +312,10 @@ void check_make_tuple_tuple(TData &&...data) {
     typename std::decay<decltype(actual)>::type
   >();
 
-  EXPECT_EQ(tuple, actual.data());
+  FATAL_EXPECT_EQ(tuple, actual.data());
 }
 
-TEST(make_tuple, make_tuple_tuple) {
+FATAL_TEST(make_tuple, make_tuple_tuple) {
   CHECK_IMPL(check_make_tuple_tuple);
 }
 

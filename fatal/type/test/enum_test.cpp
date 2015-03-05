@@ -27,31 +27,30 @@ FATAL_RICH_ENUM(
 // enums //
 ///////////
 
-TEST(enums, declare_enum) {
-  EXPECT_EQ(test_enum::state0, static_cast<test_enum>(0));
-  EXPECT_EQ(test_enum::state1, static_cast<test_enum>(4));
-  EXPECT_EQ(test_enum::state2, static_cast<test_enum>(97));
-  EXPECT_EQ(test_enum::state3, static_cast<test_enum>(98));
+FATAL_TEST(enums, declare_enum) {
+  FATAL_EXPECT_EQ(test_enum::state0, static_cast<test_enum>(0));
+  FATAL_EXPECT_EQ(test_enum::state1, static_cast<test_enum>(4));
+  FATAL_EXPECT_EQ(test_enum::state2, static_cast<test_enum>(97));
+  FATAL_EXPECT_EQ(test_enum::state3, static_cast<test_enum>(98));
 }
 
-TEST(enums, to_str) {
-  EXPECT_EQ(nullptr, str_class::to_str(static_cast<test_enum>(-1)));
-  EXPECT_EQ(FATAL_TO_STR(state0), str_class::to_str(test_enum::state0));
-  EXPECT_EQ(FATAL_TO_STR(state1), str_class::to_str(test_enum::state1));
-  EXPECT_EQ(FATAL_TO_STR(state2), str_class::to_str(test_enum::state2));
-  EXPECT_EQ(FATAL_TO_STR(state3), str_class::to_str(test_enum::state3));
+FATAL_TEST(enums, to_str) {
+  FATAL_EXPECT_EQ(nullptr, str_class::to_str(static_cast<test_enum>(-1)));
+  FATAL_EXPECT_EQ(FATAL_TO_STR(state0), str_class::to_str(test_enum::state0));
+  FATAL_EXPECT_EQ(FATAL_TO_STR(state1), str_class::to_str(test_enum::state1));
+  FATAL_EXPECT_EQ(FATAL_TO_STR(state2), str_class::to_str(test_enum::state2));
+  FATAL_EXPECT_EQ(FATAL_TO_STR(state3), str_class::to_str(test_enum::state3));
 }
 
-TEST(enums, parse) {
+FATAL_TEST(enums, parse) {
 # define CREATE_TEST(e, x) \
   do { \
     std::string const s(FATAL_TO_STR(x)); \
-    EXPECT_EQ(e::x, str_class::parse(s)); \
-    EXPECT_EQ(e::x, str_class::parse(s.begin(), s.end())); \
-    EXPECT_THROW( \
-      str_class::parse(s.begin(), s.begin()), \
-      std::invalid_argument \
-    ); \
+    FATAL_EXPECT_EQ(e::x, str_class::parse(s)); \
+    FATAL_EXPECT_EQ(e::x, str_class::parse(s.begin(), s.end())); \
+    FATAL_EXPECT_THROW(std::invalid_argument) { \
+      str_class::parse(s.begin(), s.begin()); \
+    }; \
   } while (false)
   CREATE_TEST(test_enum, state0);
   CREATE_TEST(test_enum, state1);
@@ -62,10 +61,9 @@ TEST(enums, parse) {
 # define CREATE_TEST(e, x) \
   do { \
     std::string const s(FATAL_TO_STR(x)); \
-    EXPECT_THROW( \
-      (str_class::parse(s.begin(), std::next(s.begin(), s.size() - 1))), \
-      std::invalid_argument \
-    ); \
+    FATAL_EXPECT_THROW(std::invalid_argument) { \
+      str_class::parse(s.begin(), std::next(s.begin(), s.size() - 1)); \
+    }; \
   } while (false)
   CREATE_TEST(test_enum, state0);
   CREATE_TEST(test_enum, state1);
@@ -76,7 +74,9 @@ TEST(enums, parse) {
 # define CREATE_TEST(e, x) \
   do { \
     std::string const s(FATAL_TO_STR(x) "invalid"); \
-    EXPECT_THROW(str_class::parse(s), std::invalid_argument); \
+    FATAL_EXPECT_THROW(std::invalid_argument) { \
+      str_class::parse(s); \
+    }; \
   } while (false)
   CREATE_TEST(test_enum, state0);
   CREATE_TEST(test_enum, state1);
@@ -87,7 +87,9 @@ TEST(enums, parse) {
 # define CREATE_TEST(e, x) \
   do { \
     std::string const s(FATAL_TO_STR(x) "invalid"); \
-    EXPECT_THROW(str_class::parse(s.begin(), s.end()), std::invalid_argument); \
+    FATAL_EXPECT_THROW(std::invalid_argument) { \
+      str_class::parse(s.begin(), s.end()); \
+    }; \
   } while (false)
   CREATE_TEST(test_enum, state0);
   CREATE_TEST(test_enum, state1);
@@ -95,34 +97,38 @@ TEST(enums, parse) {
   CREATE_TEST(test_enum, state3);
 # undef CREATE_TEST
 
-  EXPECT_THROW(str_class::parse(std::string()), std::invalid_argument);
-  EXPECT_THROW(str_class::parse(std::string("invalid")), std::invalid_argument);
+  FATAL_EXPECT_THROW(std::invalid_argument) {
+    str_class::parse(std::string());
+  };
+  FATAL_EXPECT_THROW(std::invalid_argument) {
+    str_class::parse(std::string("invalid"));
+  };
 }
 
-TEST(enums, try_parse) {
+FATAL_TEST(enums, try_parse) {
 # define CREATE_TEST(e, x) \
   do { \
     std::string const s(FATAL_TO_STR(x)); \
     e out = static_cast<e>(-1); \
-    EXPECT_TRUE(str_class::try_parse(out, s)); \
-    EXPECT_EQ(e::x, out); \
+    FATAL_EXPECT_TRUE(str_class::try_parse(out, s)); \
+    FATAL_EXPECT_EQ(e::x, out); \
     \
     out = static_cast<e>(-1); \
-    EXPECT_TRUE(str_class::try_parse(out, s.begin(), s.end())); \
-    EXPECT_EQ(e::x, out); \
+    FATAL_EXPECT_TRUE(str_class::try_parse(out, s.begin(), s.end())); \
+    FATAL_EXPECT_EQ(e::x, out); \
     \
     out = static_cast<e>(-1); \
-    EXPECT_FALSE(str_class::try_parse(out, s.begin(), s.begin())); \
-    EXPECT_EQ(static_cast<e>(-1), out); \
+    FATAL_EXPECT_FALSE(str_class::try_parse(out, s.begin(), s.begin())); \
+    FATAL_EXPECT_EQ(static_cast<e>(-1), out); \
     \
-    EXPECT_FALSE( \
+    FATAL_EXPECT_FALSE( \
       str_class::try_parse(out, s.begin(), std::next(s.begin(), s.size() - 1)) \
     ); \
-    EXPECT_EQ(static_cast<e>(-1), out); \
+    FATAL_EXPECT_EQ(static_cast<e>(-1), out); \
     \
     auto const i = s + "invalid"; \
-    EXPECT_FALSE((str_class::try_parse(out, i))); \
-    EXPECT_FALSE((str_class::try_parse(out, i.begin(), i.end()))); \
+    FATAL_EXPECT_FALSE((str_class::try_parse(out, i))); \
+    FATAL_EXPECT_FALSE((str_class::try_parse(out, i.begin(), i.end()))); \
   } while (false)
   CREATE_TEST(test_enum, state0);
   CREATE_TEST(test_enum, state1);
@@ -132,8 +138,8 @@ TEST(enums, try_parse) {
 
   do {
     test_enum out;
-    EXPECT_FALSE(str_class::try_parse(out, std::string()));
-    EXPECT_FALSE(str_class::try_parse(out, std::string("invalid")));
+    FATAL_EXPECT_FALSE(str_class::try_parse(out, std::string()));
+    FATAL_EXPECT_FALSE(str_class::try_parse(out, std::string("invalid")));
   } while (false);
 }
 

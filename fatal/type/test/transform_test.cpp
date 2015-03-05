@@ -15,6 +15,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -119,23 +120,23 @@ struct incomplete_type;
 // is_complete //
 /////////////////
 
-TEST(traits, is_complete) {
-  EXPECT_TRUE((is_complete<int>::value));
-  EXPECT_TRUE((is_complete<std::string>::value));
-  EXPECT_TRUE((is_complete<complete_type>::value));
-  EXPECT_FALSE((is_complete<incomplete_type>::value));
+FATAL_TEST(traits, is_complete) {
+  FATAL_EXPECT_TRUE((is_complete<int>::value));
+  FATAL_EXPECT_TRUE((is_complete<std::string>::value));
+  FATAL_EXPECT_TRUE((is_complete<complete_type>::value));
+  FATAL_EXPECT_FALSE((is_complete<incomplete_type>::value));
 
   using pair = std::pair<void, void>;
-  EXPECT_TRUE((is_complete<std::tuple_element<0, pair>>::value));
-  EXPECT_TRUE((is_complete<std::tuple_element<1, pair>>::value));
-  EXPECT_FALSE((is_complete<std::tuple_element<2, pair>>::value));
+  FATAL_EXPECT_TRUE((is_complete<std::tuple_element<0, pair>>::value));
+  FATAL_EXPECT_TRUE((is_complete<std::tuple_element<1, pair>>::value));
+  FATAL_EXPECT_FALSE((is_complete<std::tuple_element<2, pair>>::value));
 }
 
 ////////////////////////
 // identity_transform //
 ////////////////////////
 
-TEST(identity_transform, identity_transform) {
+FATAL_TEST(identity_transform, identity_transform) {
   FATAL_EXPECT_SAME <int, identity_transform<int>>();
   FATAL_EXPECT_SAME <std::string, identity_transform<std::string>>();
   FATAL_EXPECT_SAME <double, identity_transform<identity_transform<double>>>();
@@ -145,7 +146,7 @@ TEST(identity_transform, identity_transform) {
 // fixed_transform //
 /////////////////////
 
-TEST(fixed_transform, fixed_transform) {
+FATAL_TEST(fixed_transform, fixed_transform) {
   typedef fixed_transform<int> i;
   FATAL_EXPECT_SAME<int, i::apply<>>();
   FATAL_EXPECT_SAME<int, i::apply<bool>>();
@@ -169,26 +170,26 @@ TEST(fixed_transform, fixed_transform) {
 // constant_transform //
 ////////////////////////
 
-TEST(constant_transform, constant_transform) {
+FATAL_TEST(constant_transform, constant_transform) {
   constexpr int ic = 12345;
   typedef constant_transform<std::decay<decltype(ic)>::type, ic> i;
-  EXPECT_EQ(ic, (i::apply<>::value));
-  EXPECT_EQ(ic, (i::apply<bool>::value));
-  EXPECT_EQ(ic, (i::apply<int>::value));
-  EXPECT_EQ(ic, (i::apply<std::string>::value));
-  EXPECT_EQ(ic, (i::apply<double>::value));
-  EXPECT_EQ(ic, (i::apply<double, void>::value));
-  EXPECT_EQ(ic, (i::apply<identity_transform<double>>::value));
+  FATAL_EXPECT_EQ(ic, (i::apply<>::value));
+  FATAL_EXPECT_EQ(ic, (i::apply<bool>::value));
+  FATAL_EXPECT_EQ(ic, (i::apply<int>::value));
+  FATAL_EXPECT_EQ(ic, (i::apply<std::string>::value));
+  FATAL_EXPECT_EQ(ic, (i::apply<double>::value));
+  FATAL_EXPECT_EQ(ic, (i::apply<double, void>::value));
+  FATAL_EXPECT_EQ(ic, (i::apply<identity_transform<double>>::value));
 
   constexpr bool bc = true;
   typedef constant_transform<std::decay<decltype(bc)>::type, bc> b;
-  EXPECT_EQ(bc, (b::apply<>::value));
-  EXPECT_EQ(bc, (b::apply<bool>::value));
-  EXPECT_EQ(bc, (b::apply<int>::value));
-  EXPECT_EQ(bc, (b::apply<std::string>::value));
-  EXPECT_EQ(bc, (b::apply<double>::value));
-  EXPECT_EQ(bc, (b::apply<double, void>::value));
-  EXPECT_EQ(bc, (b::apply<identity_transform<double>>::value));
+  FATAL_EXPECT_EQ(bc, (b::apply<>::value));
+  FATAL_EXPECT_EQ(bc, (b::apply<bool>::value));
+  FATAL_EXPECT_EQ(bc, (b::apply<int>::value));
+  FATAL_EXPECT_EQ(bc, (b::apply<std::string>::value));
+  FATAL_EXPECT_EQ(bc, (b::apply<double>::value));
+  FATAL_EXPECT_EQ(bc, (b::apply<double, void>::value));
+  FATAL_EXPECT_EQ(bc, (b::apply<identity_transform<double>>::value));
 }
 
 ////////////////////////
@@ -200,7 +201,7 @@ void check_transform_sequence() {
   FATAL_EXPECT_SAME<TExpected, typename TNested::template apply<T>>();
 }
 
-TEST(transform_sequence, transform_sequence) {
+FATAL_TEST(transform_sequence, transform_sequence) {
   typedef transform_sequence<T1, T2, T3> ttt;
 
   check_transform_sequence<ttt, T3<T2<T1<int>>>, int>();
@@ -233,118 +234,118 @@ TEST(transform_sequence, transform_sequence) {
 template <int... Values>
 using test_add = transform_int<arithmetic_transform::add, Values...>;
 
-TEST(arithmetic_transform, add) {
-  EXPECT_EQ(0,    (test_add<0>::value));
-  EXPECT_EQ(1,    (test_add<1>::value));
-  EXPECT_EQ(2,    (test_add<2>::value));
-  EXPECT_EQ(56,   (test_add<56>::value));
-  EXPECT_EQ(100,  (test_add<100>::value));
+FATAL_TEST(arithmetic_transform, add) {
+  FATAL_EXPECT_EQ(0,    (test_add<0>::value));
+  FATAL_EXPECT_EQ(1,    (test_add<1>::value));
+  FATAL_EXPECT_EQ(2,    (test_add<2>::value));
+  FATAL_EXPECT_EQ(56,   (test_add<56>::value));
+  FATAL_EXPECT_EQ(100,  (test_add<100>::value));
 
-  EXPECT_EQ(200,  (test_add<100, 100>::value));
-  EXPECT_EQ(157,  (test_add<100, 57>::value));
-  EXPECT_EQ(102,  (test_add<100, 2>::value));
-  EXPECT_EQ(103,  (test_add<100, 3>::value));
-  EXPECT_EQ(102,  (test_add<2, 100>::value));
-  EXPECT_EQ(143,  (test_add<43, 100>::value));
+  FATAL_EXPECT_EQ(200,  (test_add<100, 100>::value));
+  FATAL_EXPECT_EQ(157,  (test_add<100, 57>::value));
+  FATAL_EXPECT_EQ(102,  (test_add<100, 2>::value));
+  FATAL_EXPECT_EQ(103,  (test_add<100, 3>::value));
+  FATAL_EXPECT_EQ(102,  (test_add<2, 100>::value));
+  FATAL_EXPECT_EQ(143,  (test_add<43, 100>::value));
 
-  EXPECT_EQ(400,  (test_add<100, 100, 100, 100>::value));
-  EXPECT_EQ(108,  (test_add<100, 5, 2, 1>::value));
-  EXPECT_EQ(125,  (test_add<100, 20, 5>::value));
-  EXPECT_EQ(121,  (test_add<100, 2, 19>::value));
-  EXPECT_EQ(109,  (test_add<100, 3, 6>::value));
-  EXPECT_EQ(110,  (test_add<100, 3, 1, 6>::value));
-  EXPECT_EQ(1102, (test_add<2, 100, 1000>::value));
-  EXPECT_EQ(1036, (test_add<1000, 32, 4>::value));
+  FATAL_EXPECT_EQ(400,  (test_add<100, 100, 100, 100>::value));
+  FATAL_EXPECT_EQ(108,  (test_add<100, 5, 2, 1>::value));
+  FATAL_EXPECT_EQ(125,  (test_add<100, 20, 5>::value));
+  FATAL_EXPECT_EQ(121,  (test_add<100, 2, 19>::value));
+  FATAL_EXPECT_EQ(109,  (test_add<100, 3, 6>::value));
+  FATAL_EXPECT_EQ(110,  (test_add<100, 3, 1, 6>::value));
+  FATAL_EXPECT_EQ(1102, (test_add<2, 100, 1000>::value));
+  FATAL_EXPECT_EQ(1036, (test_add<1000, 32, 4>::value));
 }
 
 template <int... Values>
 using test_subtract = transform_int<arithmetic_transform::subtract, Values...>;
 
-TEST(arithmetic_transform, subtract) {
-  EXPECT_EQ(0,     (test_subtract<100, 100>::value));
-  EXPECT_EQ(43,    (test_subtract<100, 57>::value));
-  EXPECT_EQ(98,    (test_subtract<100, 2>::value));
-  EXPECT_EQ(97,    (test_subtract<100, 3>::value));
-  EXPECT_EQ(-98,   (test_subtract<2, 100>::value));
-  EXPECT_EQ(-57,   (test_subtract<43, 100>::value));
+FATAL_TEST(arithmetic_transform, subtract) {
+  FATAL_EXPECT_EQ(0,     (test_subtract<100, 100>::value));
+  FATAL_EXPECT_EQ(43,    (test_subtract<100, 57>::value));
+  FATAL_EXPECT_EQ(98,    (test_subtract<100, 2>::value));
+  FATAL_EXPECT_EQ(97,    (test_subtract<100, 3>::value));
+  FATAL_EXPECT_EQ(-98,   (test_subtract<2, 100>::value));
+  FATAL_EXPECT_EQ(-57,   (test_subtract<43, 100>::value));
 
-  EXPECT_EQ(-200,  (test_subtract<100, 100, 100, 100>::value));
-  EXPECT_EQ(92,    (test_subtract<100, 5, 2, 1>::value));
-  EXPECT_EQ(75,    (test_subtract<100, 20, 5>::value));
-  EXPECT_EQ(79,    (test_subtract<100, 2, 19>::value));
-  EXPECT_EQ(91,    (test_subtract<100, 3, 6>::value));
-  EXPECT_EQ(90,    (test_subtract<100, 3, 1, 6>::value));
-  EXPECT_EQ(-1098, (test_subtract<2, 100, 1000>::value));
-  EXPECT_EQ(964,   (test_subtract<1000, 32, 4>::value));
+  FATAL_EXPECT_EQ(-200,  (test_subtract<100, 100, 100, 100>::value));
+  FATAL_EXPECT_EQ(92,    (test_subtract<100, 5, 2, 1>::value));
+  FATAL_EXPECT_EQ(75,    (test_subtract<100, 20, 5>::value));
+  FATAL_EXPECT_EQ(79,    (test_subtract<100, 2, 19>::value));
+  FATAL_EXPECT_EQ(91,    (test_subtract<100, 3, 6>::value));
+  FATAL_EXPECT_EQ(90,    (test_subtract<100, 3, 1, 6>::value));
+  FATAL_EXPECT_EQ(-1098, (test_subtract<2, 100, 1000>::value));
+  FATAL_EXPECT_EQ(964,   (test_subtract<1000, 32, 4>::value));
 }
 
 template <int... Values>
 using test_multiply = transform_int<arithmetic_transform::multiply, Values...>;
 
-TEST(arithmetic_transform, multiply) {
-  EXPECT_EQ(0,         (test_multiply<0>::value));
-  EXPECT_EQ(1,         (test_multiply<1>::value));
-  EXPECT_EQ(2,         (test_multiply<2>::value));
-  EXPECT_EQ(56,        (test_multiply<56>::value));
-  EXPECT_EQ(100,       (test_multiply<100>::value));
+FATAL_TEST(arithmetic_transform, multiply) {
+  FATAL_EXPECT_EQ(0,         (test_multiply<0>::value));
+  FATAL_EXPECT_EQ(1,         (test_multiply<1>::value));
+  FATAL_EXPECT_EQ(2,         (test_multiply<2>::value));
+  FATAL_EXPECT_EQ(56,        (test_multiply<56>::value));
+  FATAL_EXPECT_EQ(100,       (test_multiply<100>::value));
 
-  EXPECT_EQ(10000,     (test_multiply<100, 100>::value));
-  EXPECT_EQ(5700,      (test_multiply<100, 57>::value));
-  EXPECT_EQ(200,       (test_multiply<100, 2>::value));
-  EXPECT_EQ(300,       (test_multiply<100, 3>::value));
-  EXPECT_EQ(200,       (test_multiply<2, 100>::value));
-  EXPECT_EQ(4300,      (test_multiply<43, 100>::value));
+  FATAL_EXPECT_EQ(10000,     (test_multiply<100, 100>::value));
+  FATAL_EXPECT_EQ(5700,      (test_multiply<100, 57>::value));
+  FATAL_EXPECT_EQ(200,       (test_multiply<100, 2>::value));
+  FATAL_EXPECT_EQ(300,       (test_multiply<100, 3>::value));
+  FATAL_EXPECT_EQ(200,       (test_multiply<2, 100>::value));
+  FATAL_EXPECT_EQ(4300,      (test_multiply<43, 100>::value));
 
-  EXPECT_EQ(100000000, (test_multiply<100, 100, 100, 100>::value));
-  EXPECT_EQ(1000,      (test_multiply<100, 5, 2, 1>::value));
-  EXPECT_EQ(10000,     (test_multiply<100, 20, 5>::value));
-  EXPECT_EQ(3800,      (test_multiply<100, 2, 19>::value));
-  EXPECT_EQ(1800,      (test_multiply<100, 3, 6>::value));
-  EXPECT_EQ(1800,      (test_multiply<100, 3, 1, 6>::value));
-  EXPECT_EQ(200000,    (test_multiply<2, 100, 1000>::value));
-  EXPECT_EQ(128000,    (test_multiply<1000, 32, 4>::value));
+  FATAL_EXPECT_EQ(100000000, (test_multiply<100, 100, 100, 100>::value));
+  FATAL_EXPECT_EQ(1000,      (test_multiply<100, 5, 2, 1>::value));
+  FATAL_EXPECT_EQ(10000,     (test_multiply<100, 20, 5>::value));
+  FATAL_EXPECT_EQ(3800,      (test_multiply<100, 2, 19>::value));
+  FATAL_EXPECT_EQ(1800,      (test_multiply<100, 3, 6>::value));
+  FATAL_EXPECT_EQ(1800,      (test_multiply<100, 3, 1, 6>::value));
+  FATAL_EXPECT_EQ(200000,    (test_multiply<2, 100, 1000>::value));
+  FATAL_EXPECT_EQ(128000,    (test_multiply<1000, 32, 4>::value));
 }
 
 template <int... Values>
 using test_divide = transform_int<arithmetic_transform::divide, Values...>;
 
-TEST(arithmetic_transform, divide) {
-  EXPECT_EQ(1,   (test_divide<100, 100>::value));
-  EXPECT_EQ(1,   (test_divide<100, 57>::value));
-  EXPECT_EQ(50,  (test_divide<100, 2>::value));
-  EXPECT_EQ(33,  (test_divide<100, 3>::value));
-  EXPECT_EQ(0,   (test_divide<2, 100>::value));
-  EXPECT_EQ(0,   (test_divide<43, 100>::value));
+FATAL_TEST(arithmetic_transform, divide) {
+  FATAL_EXPECT_EQ(1,   (test_divide<100, 100>::value));
+  FATAL_EXPECT_EQ(1,   (test_divide<100, 57>::value));
+  FATAL_EXPECT_EQ(50,  (test_divide<100, 2>::value));
+  FATAL_EXPECT_EQ(33,  (test_divide<100, 3>::value));
+  FATAL_EXPECT_EQ(0,   (test_divide<2, 100>::value));
+  FATAL_EXPECT_EQ(0,   (test_divide<43, 100>::value));
 
-  EXPECT_EQ(0,   (test_divide<100, 100, 100, 100>::value));
-  EXPECT_EQ(10,  (test_divide<100, 5, 2, 1>::value));
-  EXPECT_EQ(1,   (test_divide<100, 20, 5>::value));
-  EXPECT_EQ(2,   (test_divide<100, 2, 19>::value));
-  EXPECT_EQ(5,   (test_divide<100, 3, 6>::value));
-  EXPECT_EQ(5,   (test_divide<100, 3, 1, 6>::value));
-  EXPECT_EQ(0,   (test_divide<2, 100, 1000>::value));
-  EXPECT_EQ(7,   (test_divide<1000, 32, 4>::value));
+  FATAL_EXPECT_EQ(0,   (test_divide<100, 100, 100, 100>::value));
+  FATAL_EXPECT_EQ(10,  (test_divide<100, 5, 2, 1>::value));
+  FATAL_EXPECT_EQ(1,   (test_divide<100, 20, 5>::value));
+  FATAL_EXPECT_EQ(2,   (test_divide<100, 2, 19>::value));
+  FATAL_EXPECT_EQ(5,   (test_divide<100, 3, 6>::value));
+  FATAL_EXPECT_EQ(5,   (test_divide<100, 3, 1, 6>::value));
+  FATAL_EXPECT_EQ(0,   (test_divide<2, 100, 1000>::value));
+  FATAL_EXPECT_EQ(7,   (test_divide<1000, 32, 4>::value));
 }
 
 template <int... Values>
 using test_modulo = transform_int<arithmetic_transform::modulo, Values...>;
 
-TEST(arithmetic_transform, modulo) {
-  EXPECT_EQ(0,   (test_modulo<100, 100>::value));
-  EXPECT_EQ(43,  (test_modulo<100, 57>::value));
-  EXPECT_EQ(0,   (test_modulo<100, 2>::value));
-  EXPECT_EQ(1,   (test_modulo<100, 3>::value));
-  EXPECT_EQ(2,   (test_modulo<2, 100>::value));
-  EXPECT_EQ(43,  (test_modulo<43, 100>::value));
+FATAL_TEST(arithmetic_transform, modulo) {
+  FATAL_EXPECT_EQ(0,   (test_modulo<100, 100>::value));
+  FATAL_EXPECT_EQ(43,  (test_modulo<100, 57>::value));
+  FATAL_EXPECT_EQ(0,   (test_modulo<100, 2>::value));
+  FATAL_EXPECT_EQ(1,   (test_modulo<100, 3>::value));
+  FATAL_EXPECT_EQ(2,   (test_modulo<2, 100>::value));
+  FATAL_EXPECT_EQ(43,  (test_modulo<43, 100>::value));
 
-  EXPECT_EQ(0,   (test_modulo<100, 100, 100, 100>::value));
-  EXPECT_EQ(0,   (test_modulo<100, 57, 100, 1>::value));
-  EXPECT_EQ(3,   (test_modulo<100, 57, 5>::value));
-  EXPECT_EQ(0,   (test_modulo<100, 2, 99>::value));
-  EXPECT_EQ(1,   (test_modulo<100, 3, 6>::value));
-  EXPECT_EQ(0,   (test_modulo<100, 3, 1, 6>::value));
-  EXPECT_EQ(2,   (test_modulo<2, 100, 1000>::value));
-  EXPECT_EQ(43,  (test_modulo<43, 1000, 100>::value));
+  FATAL_EXPECT_EQ(0,   (test_modulo<100, 100, 100, 100>::value));
+  FATAL_EXPECT_EQ(0,   (test_modulo<100, 57, 100, 1>::value));
+  FATAL_EXPECT_EQ(3,   (test_modulo<100, 57, 5>::value));
+  FATAL_EXPECT_EQ(0,   (test_modulo<100, 2, 99>::value));
+  FATAL_EXPECT_EQ(1,   (test_modulo<100, 3, 6>::value));
+  FATAL_EXPECT_EQ(0,   (test_modulo<100, 3, 1, 6>::value));
+  FATAL_EXPECT_EQ(2,   (test_modulo<2, 100, 1000>::value));
+  FATAL_EXPECT_EQ(43,  (test_modulo<43, 1000, 100>::value));
 }
 
 ///////////////////////
@@ -357,10 +358,10 @@ TEST(arithmetic_transform, modulo) {
       logical_transform::TTransform \
     >::value; \
     bool expected = Expected; \
-    EXPECT_EQ(expected, actual); \
+    FATAL_EXPECT_EQ(expected, actual); \
   } while (false)
 
-TEST(logical_transform, all) {
+FATAL_TEST(logical_transform, all) {
   FATAL_TEST_IMPL(all, true, true);
   FATAL_TEST_IMPL(all, false, false);
 
@@ -396,7 +397,7 @@ TEST(logical_transform, all) {
   FATAL_TEST_IMPL(all, false, false, false, false, false);
 }
 
-TEST(logical_transform, any) {
+FATAL_TEST(logical_transform, any) {
   FATAL_TEST_IMPL(any, true, true);
   FATAL_TEST_IMPL(any, false, false);
 
@@ -434,9 +435,9 @@ TEST(logical_transform, any) {
 
 #undef FATAL_TEST_IMPL
 
-TEST(logical_transform, negate) {
-  EXPECT_TRUE(logical_transform::negate<std::false_type>::value);
-  EXPECT_FALSE(logical_transform::negate<std::true_type>::value);
+FATAL_TEST(logical_transform, negate) {
+  FATAL_EXPECT_TRUE(logical_transform::negate<std::false_type>::value);
+  FATAL_EXPECT_FALSE(logical_transform::negate<std::true_type>::value);
 }
 
 ///////////////////////
@@ -448,11 +449,11 @@ using all_test_impl = bitwise_transform::all<
   std::integral_constant<int, Args>...
 >;
 
-TEST(bitwise_transform, all) {
-  EXPECT_EQ(99, (all_test_impl<99>::value));
-  EXPECT_EQ(0, (all_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(3, (all_test_impl<7, 11>::value));
-  EXPECT_EQ(8 & 9 & 57, (all_test_impl<8, 9, 57>::value));
+FATAL_TEST(bitwise_transform, all) {
+  FATAL_EXPECT_EQ(99, (all_test_impl<99>::value));
+  FATAL_EXPECT_EQ(0, (all_test_impl<1, 2, 4>::value));
+  FATAL_EXPECT_EQ(3, (all_test_impl<7, 11>::value));
+  FATAL_EXPECT_EQ(8 & 9 & 57, (all_test_impl<8, 9, 57>::value));
 }
 
 template <int... Args>
@@ -460,10 +461,10 @@ using any_test_impl = bitwise_transform::any<
   std::integral_constant<int, Args>...
 >;
 
-TEST(bitwise_transform, any) {
-  EXPECT_EQ(99, (any_test_impl<99>::value));
-  EXPECT_EQ(7, (any_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(8 | 9 | 57, (any_test_impl<8, 9, 57>::value));
+FATAL_TEST(bitwise_transform, any) {
+  FATAL_EXPECT_EQ(99, (any_test_impl<99>::value));
+  FATAL_EXPECT_EQ(7, (any_test_impl<1, 2, 4>::value));
+  FATAL_EXPECT_EQ(8 | 9 | 57, (any_test_impl<8, 9, 57>::value));
 }
 
 template <int... Args>
@@ -471,18 +472,18 @@ using diff_test_impl = bitwise_transform::diff<
   std::integral_constant<int, Args>...
 >;
 
-TEST(bitwise_transform, diff) {
-  EXPECT_EQ(99, (diff_test_impl<99>::value));
-  EXPECT_EQ(3, (diff_test_impl<1, 2>::value));
-  EXPECT_EQ(12, (diff_test_impl<7, 11>::value));
-  EXPECT_EQ(1 ^ 2 ^ 4, (diff_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(8 ^ 9 ^ 57, (diff_test_impl<8, 9, 57>::value));
+FATAL_TEST(bitwise_transform, diff) {
+  FATAL_EXPECT_EQ(99, (diff_test_impl<99>::value));
+  FATAL_EXPECT_EQ(3, (diff_test_impl<1, 2>::value));
+  FATAL_EXPECT_EQ(12, (diff_test_impl<7, 11>::value));
+  FATAL_EXPECT_EQ(1 ^ 2 ^ 4, (diff_test_impl<1, 2, 4>::value));
+  FATAL_EXPECT_EQ(8 ^ 9 ^ 57, (diff_test_impl<8, 9, 57>::value));
 }
 
-TEST(bitwise_transform, complement) {
+FATAL_TEST(bitwise_transform, complement) {
 # define FATAL_TEST_IMPL(x) \
   do { \
-    EXPECT_EQ( \
+    FATAL_EXPECT_EQ( \
       ~static_cast<unsigned>(x), \
       (bitwise_transform::complement< \
         std::integral_constant<unsigned, (x)> \
@@ -495,7 +496,7 @@ TEST(bitwise_transform, complement) {
   FATAL_TEST_IMPL(3);
   FATAL_TEST_IMPL(99);
 
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(
     static_cast<uint8_t>(0xf0),
     (bitwise_transform::complement<std::integral_constant<uint8_t, 0xf>>::value)
   );
@@ -507,58 +508,58 @@ TEST(bitwise_transform, complement) {
 // comparison_transform //
 //////////////////////////
 
-TEST(comparison_transform, equal) {
+FATAL_TEST(comparison_transform, equal) {
   typedef std::integral_constant<int, 10> A;
   typedef std::integral_constant<int, 20> B;
 
-  EXPECT_FALSE((comparison_transform::equal<A, B>::value));
-  EXPECT_FALSE((comparison_transform::equal<B, A>::value));
-  EXPECT_TRUE((comparison_transform::equal<A, A>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::equal<A, B>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::equal<B, A>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::equal<A, A>::value));
 }
 
-TEST(comparison_transform, not_equal) {
+FATAL_TEST(comparison_transform, not_equal) {
   typedef std::integral_constant<int, 10> A;
   typedef std::integral_constant<int, 20> B;
 
-  EXPECT_TRUE((comparison_transform::not_equal<A, B>::value));
-  EXPECT_TRUE((comparison_transform::not_equal<B, A>::value));
-  EXPECT_FALSE((comparison_transform::not_equal<A, A>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::not_equal<A, B>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::not_equal<B, A>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::not_equal<A, A>::value));
 }
 
-TEST(comparison_transform, less_than) {
+FATAL_TEST(comparison_transform, less_than) {
   typedef std::integral_constant<int, 10> A;
   typedef std::integral_constant<int, 20> B;
 
-  EXPECT_TRUE((comparison_transform::less_than<A, B>::value));
-  EXPECT_FALSE((comparison_transform::less_than<B, A>::value));
-  EXPECT_FALSE((comparison_transform::less_than<A, A>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::less_than<A, B>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::less_than<B, A>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::less_than<A, A>::value));
 }
 
-TEST(comparison_transform, less_than_equal) {
+FATAL_TEST(comparison_transform, less_than_equal) {
   typedef std::integral_constant<int, 10> A;
   typedef std::integral_constant<int, 20> B;
 
-  EXPECT_TRUE((comparison_transform::less_than_equal<A, B>::value));
-  EXPECT_FALSE((comparison_transform::less_than_equal<B, A>::value));
-  EXPECT_TRUE((comparison_transform::less_than_equal<A, A>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::less_than_equal<A, B>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::less_than_equal<B, A>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::less_than_equal<A, A>::value));
 }
 
-TEST(comparison_transform, greater_than) {
+FATAL_TEST(comparison_transform, greater_than) {
   typedef std::integral_constant<int, 10> A;
   typedef std::integral_constant<int, 20> B;
 
-  EXPECT_FALSE((comparison_transform::greater_than<A, B>::value));
-  EXPECT_TRUE((comparison_transform::greater_than<B, A>::value));
-  EXPECT_FALSE((comparison_transform::greater_than<A, A>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::greater_than<A, B>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::greater_than<B, A>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::greater_than<A, A>::value));
 }
 
-TEST(comparison_transform, greater_than_equal) {
+FATAL_TEST(comparison_transform, greater_than_equal) {
   typedef std::integral_constant<int, 10> A;
   typedef std::integral_constant<int, 20> B;
 
-  EXPECT_FALSE((comparison_transform::greater_than_equal<A, B>::value));
-  EXPECT_TRUE((comparison_transform::greater_than_equal<B, A>::value));
-  EXPECT_TRUE((comparison_transform::greater_than_equal<A, A>::value));
+  FATAL_EXPECT_FALSE((comparison_transform::greater_than_equal<A, B>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::greater_than_equal<B, A>::value));
+  FATAL_EXPECT_TRUE((comparison_transform::greater_than_equal<A, A>::value));
 }
 
 /////////////////////
@@ -583,7 +584,7 @@ struct get_member_type_test {
   using flag = std::true_type;
 };
 
-TEST(get_member_type, get_member_type) {
+FATAL_TEST(get_member_type, get_member_type) {
 # define CREATE_TEST(Member, Type) \
   do { \
     FATAL_EXPECT_SAME<Type::Member, get_member_type::Member<Type>>(); \
@@ -647,13 +648,13 @@ TEST(get_member_type, get_member_type) {
 // conditional_transform //
 ///////////////////////////
 
-TEST(conditional_transform, when_true) {
+FATAL_TEST(conditional_transform, when_true) {
   using transform = conditional_transform<std::is_integral, T1>;
   FATAL_EXPECT_SAME<T1<long>, transform::apply<long>>();
   FATAL_EXPECT_SAME<std::string, transform::apply<std::string>>();
 }
 
-TEST(conditional_transform, ternary) {
+FATAL_TEST(conditional_transform, ternary) {
   using transform = conditional_transform<std::is_integral, T1, T2>;
   FATAL_EXPECT_SAME<T1<long>, transform::apply<long>>();
   FATAL_EXPECT_SAME<T2<std::string>, transform::apply<std::string>>();
@@ -663,7 +664,7 @@ TEST(conditional_transform, ternary) {
 // transform_traits //
 //////////////////////
 
-TEST(transform_traits, supports) {
+FATAL_TEST(transform_traits, supports) {
 # define CHECK_SUPPORTS(Expected, T, ...) \
   do { \
     using expected = std::FATAL_CAT(Expected, _type); \
@@ -690,7 +691,7 @@ TEST(transform_traits, supports) {
 // try_transform //
 ///////////////////
 
-TEST(try_transform, try_transform) {
+FATAL_TEST(try_transform, try_transform) {
 # define CHECK_TRY_TRANSFORM(T, TTransform, TFallback, ...) \
   do { \
     using expected = __VA_ARGS__; \
@@ -710,35 +711,35 @@ TEST(try_transform, try_transform) {
 // transform_aggregator //
 //////////////////////////
 
-TEST(transform_aggregator, decay) {
+FATAL_TEST(transform_aggregator, decay) {
   FATAL_EXPECT_SAME<
     std::decay<T0<int>>,
     transform_aggregator<std::decay, T0>::apply<int>
   >();
 }
 
-TEST(transform_aggregator, is_same) {
+FATAL_TEST(transform_aggregator, is_same) {
   FATAL_EXPECT_SAME<
     std::is_same<T0<int>, T1<int>>,
     transform_aggregator<std::is_same, T0, T1>::apply<int>
   >();
 }
 
-TEST(transform_aggregator, pair) {
+FATAL_TEST(transform_aggregator, pair) {
   FATAL_EXPECT_SAME<
     std::pair<T0<int>, T1<int>>,
     transform_aggregator<std::pair, T0, T1>::apply<int>
   >();
 }
 
-TEST(transform_aggregator, triplet) {
+FATAL_TEST(transform_aggregator, triplet) {
   FATAL_EXPECT_SAME<
     test_triplet<T0<int>, T1<int>, T2<int>>,
     transform_aggregator<test_triplet, T0, T1, T2>::apply<int>
   >();
 }
 
-TEST(transform_aggregator, tuple) {
+FATAL_TEST(transform_aggregator, tuple) {
   FATAL_EXPECT_SAME<
     std::tuple<>,
     transform_aggregator<std::tuple>::apply<int>
@@ -760,7 +761,7 @@ TEST(transform_aggregator, tuple) {
   >();
 }
 
-TEST(transform_aggregator, type_list) {
+FATAL_TEST(transform_aggregator, type_list) {
   FATAL_EXPECT_SAME<
     test_list<>,
     transform_aggregator<test_list>::apply<int>
@@ -798,7 +799,7 @@ struct check_variadic_transform {
 
   template <typename TExpected, typename... Args>
   static void check_value() {
-    EXPECT_EQ(TExpected::value, actual<Args...>::value);
+    FATAL_EXPECT_EQ(TExpected::value, actual<Args...>::value);
   }
 
   template <typename... TExpected>
@@ -812,12 +813,12 @@ struct check_variadic_transform {
 
     template <typename... Args>
     static void check_value() {
-      EXPECT_EQ(expected::value, actual<Args...>::value);
+      FATAL_EXPECT_EQ(expected::value, actual<Args...>::value);
     }
   };
 };
 
-TEST(variadic_transform, types) {
+FATAL_TEST(variadic_transform, types) {
   check_variadic_transform<test_list>::expect<>::check_type<>();
 
   check_variadic_transform<test_list, T0>::expect<T0<X0>>::check_type<X0>();
@@ -847,7 +848,7 @@ TEST(variadic_transform, types) {
   >();
 }
 
-TEST(variadic_transform, arithmetic_transform) {
+FATAL_TEST(variadic_transform, arithmetic_transform) {
   check_variadic_transform<
     arithmetic_transform::add,
     op<5>::mul, op<3>::mul, op<1>::mul, op<0>::mul, op<2>::mul
@@ -858,7 +859,7 @@ TEST(variadic_transform, arithmetic_transform) {
   >();
 }
 
-TEST(variadic_transform, comparison_transform) {
+FATAL_TEST(variadic_transform, comparison_transform) {
   check_variadic_transform<
     comparison_transform::less_than,
     identity_transform, identity_transform
@@ -920,7 +921,7 @@ void check_type_member_transform() {
   >();
 }
 
-TEST(type_member_transform, type_member_transform) {
+FATAL_TEST(type_member_transform, type_member_transform) {
   check_type_member_transform<std::add_const, int>();
   check_type_member_transform<std::add_const, bool>();
   check_type_member_transform<std::add_const, double>();
@@ -943,7 +944,7 @@ TEST(type_member_transform, type_member_transform) {
 // transform_alias::apply //
 ////////////////////////////
 
-TEST(transform_alias, apply) {
+FATAL_TEST(transform_alias, apply) {
   typedef transform_alias<std::tuple, int, double> c1;
 
   FATAL_EXPECT_SAME<
@@ -961,7 +962,7 @@ TEST(transform_alias, apply) {
 // transform_alias::type //
 ///////////////////////////
 
-TEST(transform_alias, type) {
+FATAL_TEST(transform_alias, type) {
   typedef transform_alias<std::tuple, int, double> c1;
 
   FATAL_EXPECT_SAME<
@@ -979,7 +980,7 @@ TEST(transform_alias, type) {
 // transform_alias::curry //
 ////////////////////////////
 
-TEST(transform_alias, curry) {
+FATAL_TEST(transform_alias, curry) {
   typedef transform_alias<std::tuple, int, double> c1;
   typedef c1::curry<long, std::string> c2;
 
@@ -998,7 +999,7 @@ TEST(transform_alias, curry) {
 // transform_alias::rebind //
 /////////////////////////////
 
-TEST(transform_alias, rebind) {
+FATAL_TEST(transform_alias, rebind) {
   typedef transform_alias<std::tuple, int, double> c1;
   typedef c1::rebind<long, std::string> c2;
 
@@ -1017,7 +1018,7 @@ TEST(transform_alias, rebind) {
 // transform_alias::uncurry //
 //////////////////////////////
 
-TEST(transform_alias, uncurry) {
+FATAL_TEST(transform_alias, uncurry) {
   typedef transform_alias<std::tuple, int, double> c1;
 
   FATAL_EXPECT_SAME<
@@ -1042,7 +1043,7 @@ TEST(transform_alias, uncurry) {
 // transform_alias::rebind_args //
 //////////////////////////////////
 
-TEST(transform_alias, rebind_args) {
+FATAL_TEST(transform_alias, rebind_args) {
   typedef transform_alias<std::tuple, int, double> c1;
 
   FATAL_EXPECT_SAME<
@@ -1060,7 +1061,7 @@ TEST(transform_alias, rebind_args) {
 // transform_alias::apply_args //
 /////////////////////////////////
 
-TEST(transform_alias, apply_args) {
+FATAL_TEST(transform_alias, apply_args) {
   typedef transform_alias<std::tuple, int, double> c1;
 
   FATAL_EXPECT_SAME<
@@ -1078,19 +1079,19 @@ TEST(transform_alias, apply_args) {
 // transform_switch //
 //////////////////////
 
-TEST(transform_switch, empty_identity) {
+FATAL_TEST(transform_switch, empty_identity) {
   using transform = identity_transform_switch<>;
 
   FATAL_EXPECT_SAME<int, transform::apply<int>>();
 }
 
-TEST(transform_switch, empty_T1) {
+FATAL_TEST(transform_switch, empty_T1) {
   using transform = transform_switch<T1>;
 
   FATAL_EXPECT_SAME<T1<int>, transform::apply<int>>();
 }
 
-TEST(transform_switch, identity) {
+FATAL_TEST(transform_switch, identity) {
   using transform = identity_transform_switch<
     is_tuple, type_member_transform<tuple_as_list>::template apply,
     is_vector, get_value_type,
@@ -1115,7 +1116,7 @@ TEST(transform_switch, identity) {
   >();
 }
 
-TEST(transform_switch, T1) {
+FATAL_TEST(transform_switch, T1) {
   using transform = transform_switch<
     T1,
     is_tuple, type_member_transform<tuple_as_list>::template apply,
@@ -1145,7 +1146,7 @@ TEST(transform_switch, T1) {
 // member_transformer //
 ////////////////////////
 
-TEST(member_transformer, transform) {
+FATAL_TEST(member_transformer, transform) {
 # define TEST_IMPL(TTransform, ...) \
   do { \
     using input = test_list<__VA_ARGS__>; \
@@ -1197,7 +1198,7 @@ struct member_transformer_test_va_args_proxy_bind {
   using apply = TMemberTransform<TTransform, Args...>;
 };
 
-TEST(member_transformer, apply_with_args) {
+FATAL_TEST(member_transformer, apply_with_args) {
 # define TEST_IMPL(TTransform, ...) \
   do { \
     using input = test_list<__VA_ARGS__>; \
@@ -1236,7 +1237,7 @@ TEST(member_transformer, apply_with_args) {
 // member_transformer_stack //
 //////////////////////////////
 
-TEST(member_transformer_stack, use) {
+FATAL_TEST(member_transformer_stack, use) {
   using input = test_list<
     int, double, unsigned long, unsigned short, float, void
   >;
@@ -1255,7 +1256,7 @@ TEST(member_transformer_stack, use) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, pre) {
+FATAL_TEST(member_transformer_stack, pre) {
   using input = T1<
     test_list<
       int, double, unsigned long, unsigned short, float, void
@@ -1275,7 +1276,7 @@ TEST(member_transformer_stack, pre) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, multi_pre) {
+FATAL_TEST(member_transformer_stack, multi_pre) {
   using input = T1<
     T2<
       T3<
@@ -1299,7 +1300,7 @@ TEST(member_transformer_stack, multi_pre) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, post) {
+FATAL_TEST(member_transformer_stack, post) {
   using input = test_list<
     int, double, unsigned long, unsigned short, float, void
   >;
@@ -1319,7 +1320,7 @@ TEST(member_transformer_stack, post) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, multi_post) {
+FATAL_TEST(member_transformer_stack, multi_post) {
   using input = test_list<
     int, double, unsigned long, unsigned short, float, void
   >;
@@ -1343,7 +1344,7 @@ TEST(member_transformer_stack, multi_post) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, pre_post) {
+FATAL_TEST(member_transformer_stack, pre_post) {
   using input = T1<
     test_list<
       int, double, unsigned long, unsigned short, float, void
@@ -1366,7 +1367,7 @@ TEST(member_transformer_stack, pre_post) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, multi_pre_post) {
+FATAL_TEST(member_transformer_stack, multi_pre_post) {
   using input = T1<
     T2<
       T3<
@@ -1393,7 +1394,7 @@ TEST(member_transformer_stack, multi_pre_post) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, pre_multi_post) {
+FATAL_TEST(member_transformer_stack, pre_multi_post) {
   using input = T1<
     test_list<
       int, double, unsigned long, unsigned short, float, void
@@ -1420,7 +1421,7 @@ TEST(member_transformer_stack, pre_multi_post) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, multi_pre_multi_post) {
+FATAL_TEST(member_transformer_stack, multi_pre_multi_post) {
   using input = T1<
     T2<
       T3<
@@ -1451,7 +1452,7 @@ TEST(member_transformer_stack, multi_pre_multi_post) {
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(member_transformer_stack, ad_hoc_stack_0) {
+FATAL_TEST(member_transformer_stack, ad_hoc_stack_0) {
   using input = T1<
     T2<
       test_list<
@@ -1521,7 +1522,7 @@ void check_recursive_list_transform() {
   >();
 }
 
-TEST(recursive_transform, identity) {
+FATAL_TEST(recursive_transform, identity) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1569,7 +1570,7 @@ TEST(recursive_transform, identity) {
   >();
 }
 
-TEST(recursive_transform, identity_0) {
+FATAL_TEST(recursive_transform, identity_0) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1617,7 +1618,7 @@ TEST(recursive_transform, identity_0) {
   >();
 }
 
-TEST(recursive_transform, identity_1) {
+FATAL_TEST(recursive_transform, identity_1) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1665,7 +1666,7 @@ TEST(recursive_transform, identity_1) {
   >();
 }
 
-TEST(recursive_transform, identity_2) {
+FATAL_TEST(recursive_transform, identity_2) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1713,7 +1714,7 @@ TEST(recursive_transform, identity_2) {
   >();
 }
 
-TEST(recursive_transform, identity_3) {
+FATAL_TEST(recursive_transform, identity_3) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1761,7 +1762,7 @@ TEST(recursive_transform, identity_3) {
   >();
 }
 
-TEST(recursive_transform, foo) {
+FATAL_TEST(recursive_transform, foo) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1811,7 +1812,7 @@ TEST(recursive_transform, foo) {
   >();
 }
 
-TEST(recursive_transform, foo_0) {
+FATAL_TEST(recursive_transform, foo_0) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1859,7 +1860,7 @@ TEST(recursive_transform, foo_0) {
   >();
 }
 
-TEST(recursive_transform, foo_1) {
+FATAL_TEST(recursive_transform, foo_1) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1907,7 +1908,7 @@ TEST(recursive_transform, foo_1) {
   >();
 }
 
-TEST(recursive_transform, foo_2) {
+FATAL_TEST(recursive_transform, foo_2) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -1957,7 +1958,7 @@ TEST(recursive_transform, foo_2) {
   >();
 }
 
-TEST(recursive_transform, foo_3) {
+FATAL_TEST(recursive_transform, foo_3) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
@@ -2007,7 +2008,7 @@ TEST(recursive_transform, foo_3) {
   >();
 }
 
-TEST(recursive_transform, pre_post_identity) {
+FATAL_TEST(recursive_transform, pre_post_identity) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2064,7 +2065,7 @@ TEST(recursive_transform, pre_post_identity) {
   >();
 }
 
-TEST(recursive_transform, pre_post_identity_0) {
+FATAL_TEST(recursive_transform, pre_post_identity_0) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2112,7 +2113,7 @@ TEST(recursive_transform, pre_post_identity_0) {
   >();
 }
 
-TEST(recursive_transform, pre_post_identity_1) {
+FATAL_TEST(recursive_transform, pre_post_identity_1) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2160,7 +2161,7 @@ TEST(recursive_transform, pre_post_identity_1) {
   >();
 }
 
-TEST(recursive_transform, pre_post_identity_2) {
+FATAL_TEST(recursive_transform, pre_post_identity_2) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2208,7 +2209,7 @@ TEST(recursive_transform, pre_post_identity_2) {
   >();
 }
 
-TEST(recursive_transform, pre_post_identity_3) {
+FATAL_TEST(recursive_transform, pre_post_identity_3) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2256,7 +2257,7 @@ TEST(recursive_transform, pre_post_identity_3) {
   >();
 }
 
-TEST(recursive_transform, pre_post_foo) {
+FATAL_TEST(recursive_transform, pre_post_foo) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2310,7 +2311,7 @@ TEST(recursive_transform, pre_post_foo) {
   >();
 }
 
-TEST(recursive_transform, pre_post_foo_0) {
+FATAL_TEST(recursive_transform, pre_post_foo_0) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2358,7 +2359,7 @@ TEST(recursive_transform, pre_post_foo_0) {
   >();
 }
 
-TEST(recursive_transform, pre_post_foo_1) {
+FATAL_TEST(recursive_transform, pre_post_foo_1) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2408,7 +2409,7 @@ TEST(recursive_transform, pre_post_foo_1) {
   >();
 }
 
-TEST(recursive_transform, pre_post_foo_2) {
+FATAL_TEST(recursive_transform, pre_post_foo_2) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2464,7 +2465,7 @@ TEST(recursive_transform, pre_post_foo_2) {
   >();
 }
 
-TEST(recursive_transform, pre_post_foo_3) {
+FATAL_TEST(recursive_transform, pre_post_foo_3) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
@@ -2543,7 +2544,7 @@ void check_type_get_std_pair() {
   check_type_get_impl<std::pair<Args...>, 0, Args...>::check();
 }
 
-TEST(type_get, std_pair) {
+FATAL_TEST(type_get, std_pair) {
   check_type_get_std_pair<bool, bool>();
   check_type_get_std_pair<bool, int>();
   check_type_get_std_pair<int, double>();
@@ -2558,7 +2559,7 @@ void check_type_get_std_tuple() {
   check_type_get_impl<std::tuple<Args...>, 0, Args...>::check();
 }
 
-TEST(type_get, std_tuple) {
+FATAL_TEST(type_get, std_tuple) {
   check_type_get_std_tuple<>();
   check_type_get_std_tuple<bool>();
   check_type_get_std_tuple<int, double>();
@@ -2582,14 +2583,14 @@ public:
   >;
 };
 
-TEST(type_get, first_comparer) {
-  EXPECT_TRUE((
+FATAL_TEST(type_get, first_comparer) {
+  FATAL_EXPECT_TRUE((
     type_get_first_comparer_test<5, 8>
       ::comparison<type_get_first_comparer<>::compare>
       ::value
   ));
 
-  EXPECT_FALSE((
+  FATAL_EXPECT_FALSE((
     type_get_first_comparer_test<5, 8>::comparison<
       type_get_first_comparer<comparison_transform::greater_than>::compare
     >::value
@@ -2608,14 +2609,14 @@ public:
   >;
 };
 
-TEST(type_get, second_comparer) {
-  EXPECT_TRUE((
+FATAL_TEST(type_get, second_comparer) {
+  FATAL_EXPECT_TRUE((
     type_get_second_comparer_test<5, 8>
       ::comparison<type_get_second_comparer<>::compare>
       ::value
   ));
 
-  EXPECT_FALSE((
+  FATAL_EXPECT_FALSE((
     type_get_second_comparer_test<5, 8>::comparison<
       type_get_second_comparer<comparison_transform::greater_than>::compare
     >::value

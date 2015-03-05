@@ -23,7 +23,9 @@ The `dev` branch is considered the development version of the library and experi
 
 
 ## Requirements
-There are no external dependencies in order to use Fatal as a library.
+A compliant C++11 compiler. Currently tested under GCC 4.8, GCC 4.9, Clang 3.4 and Clang 3.5.
+
+There are no other external dependencies.
 
 
 ## Building Fatal
@@ -44,14 +46,10 @@ A demo program is also available under the `demo/` directory.
 
 
 ## Requirements for Demos
-In order to build and run Fatal's demos, you'll need:
-
-- a compliant C++14 compiler. Currently tested under GCC 4.9 and Clang 3.4.
+A compliant C++14 compiler. Currently tested under GCC 4.9, Clang 3.4 and Clang 3.5.
 
 
 ## Building Demos
-Provided that the dependencies are properly installed:
-
 ```sh
 $ clang++ -Wall -std=c++1y -I path/to/fatal \
   -o path/to/output/binary path/to/demo.cpp
@@ -63,27 +61,15 @@ $ g++ -Wall -std=c++1y -I path/to/fatal \
 ```
 
 
-## Requirements for Benchmarks and Tests
-In order to build and run Fatal's benchmarks and unit tests, you'll need:
-
-- GTest: Google C++ Testing Framework (https://code.google.com/p/googletest/)
-- GLog: Google Logging Library for C++ (https://code.google.com/p/google-glog/)
-- a compliant C++11 compiler. Currently tested under GCC 4.8, GCC 4.9 and Clang 3.4.
-
-
 ## Building Benchmarks and Unit Tests
-Provided that the dependencies are properly installed:
-
 ```sh
 $ clang++ -Wall -std=c++11 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
-  -lglog
 ```
 or
 ```sh
 $ g++ -Wall -std=c++11 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
-  -lglog
 ```
 
 

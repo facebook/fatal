@@ -25,14 +25,14 @@ void check_empty() {
 
   using empty_list_array = typename factory::template from_list<type_list<>>;
   FATAL_EXPECT_SAME<T, typename decltype(empty_list_array::get)::value_type>();
-  EXPECT_EQ(0, empty_list_array::get.size());
+  FATAL_EXPECT_EQ(0, empty_list_array::get.size());
 
   using empty_args_array = typename factory::template from_args<>;
   FATAL_EXPECT_SAME<T, typename decltype(empty_args_array::get)::value_type>();
-  EXPECT_EQ(0, empty_args_array::get.size());
+  FATAL_EXPECT_EQ(0, empty_args_array::get.size());
 }
 
-TEST(static_array, empty) {
+FATAL_TEST(static_array, empty) {
   check_empty<int>();
   check_empty<abc>();
 }
@@ -40,14 +40,14 @@ TEST(static_array, empty) {
 struct check_array_visitor {
   template <typename TTag, typename U>
   void operator ()(TTag, U const &array) {
-    ASSERT_LT(TTag::index, array.size());
-    EXPECT_EQ(TTag::type::value, array[TTag::index]);
+    FATAL_ASSERT_LT(TTag::index, array.size());
+    FATAL_EXPECT_EQ(TTag::type::value, array[TTag::index]);
   }
 };
 
 template <typename TExpectedList, typename TArray>
 void check_array() {
-  EXPECT_EQ(TExpectedList::size, TArray::get.size());
+  FATAL_EXPECT_EQ(TExpectedList::size, TArray::get.size());
   TExpectedList::foreach(check_array_visitor(), TArray::get);
 }
 
@@ -68,7 +68,7 @@ void check_int() {
   >();
 }
 
-TEST(static_array, int) {
+FATAL_TEST(static_array, int) {
   check_int<0>();
   check_int<1>();
   check_int<2>();
@@ -83,10 +83,10 @@ TEST(static_array, int) {
 struct check_abc_visitor {
   template <typename T, std::size_t Index, typename U>
   void operator ()(indexed_type_tag<T, Index>, U const &array) const {
-    ASSERT_LT(Index, array.size());
-    EXPECT_EQ(T::first::first::value, array[Index].x);
-    EXPECT_EQ(T::first::second::value, array[Index].y);
-    EXPECT_EQ(T::second::value, array[Index].z);
+    FATAL_ASSERT_LT(Index, array.size());
+    FATAL_EXPECT_EQ(T::first::first::value, array[Index].x);
+    FATAL_EXPECT_EQ(T::first::second::value, array[Index].y);
+    FATAL_EXPECT_EQ(T::second::value, array[Index].z);
   }
 };
 
@@ -122,7 +122,7 @@ void check_abc() {
   check_abc_array<list, typename factory::template type<abc>>();
 }
 
-TEST(static_array, struct) {
+FATAL_TEST(static_array, struct) {
   check_abc<0, 0, 0>();
   check_abc<0, 1, 2>();
   check_abc<99, 56, 43>();
