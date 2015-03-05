@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -xe
+set -e
 
 if [ "$NO_CLEAR" != "true" ]; then
   lclear.sh >&2

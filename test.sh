@@ -7,7 +7,6 @@ if [ "$NO_CLEAR" != "true" ]; then
 fi
 
 if [ -z "$1" ]; then
-  set -x
   if [ -z "$USE_CC" ]; then
     for cc in clang++-3.5 g++-4.8 g++-4.9 clang++-3.4; do
       for f in `find . -name \*_test.cpp`; do
@@ -16,7 +15,7 @@ if [ -z "$1" ]; then
     done
   else
     for f in `find . -name \*_test.cpp`; do
-      USE_CC="$cc" NO_CLEAR=true "$0" "$f" "$@"
+      USE_CC="$USE_CC" NO_CLEAR=true "$0" "$f" "$@"
     done
   fi
 elif [ -z "$2" ] && [ -e "$1" ]; then

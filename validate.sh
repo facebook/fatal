@@ -17,22 +17,32 @@ while [ "$1" ]; do
   shift
 done
 
-for cc in clang++-3.5 g++-4.8 g++-4.9 clang++-3.4; do
+run_validation() {
   if [ "$NO_CLEAR" != "true" ]; then
     lclear.sh >&2
   fi
 
   if [ "$skip_test" != "true" ]; then
-    USE_CC="$cc" NO_CLEAR=true ./test.sh
+    USE_CC="$1" NO_CLEAR=true ./test.sh
   fi
 
   if [ "$skip_build" != "true" ]; then
-    USE_CC="$cc" NO_CLEAR=true ./build.sh
+    USE_CC="$1" NO_CLEAR=true ./build.sh
   fi
+
+  cc="$1"
 
   if [ "$skip_demo" != "true" ] && [ "$cc" != "g++-4.8" ]; then
     for demo in ytse_jam; do
       echo -n | USE_CC="$cc" NO_CLEAR=true ./demo.sh $demo
     done
   fi
-done
+}
+
+if [ "$USE_CC" ]; then
+  run_validation "$USE_CC"
+else
+  for cc in clang++-3.5 g++-4.8 g++-4.9 clang++-3.4; do
+    run_validation "$cc"
+  done
+fi
