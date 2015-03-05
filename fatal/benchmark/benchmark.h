@@ -54,29 +54,33 @@ namespace benchmark {
   public: \
     Class(timer &result): benchmark(result) {} \
     \
-    void run(::fatal::benchmark::iterations Iterations) \
+    void operator ()(::fatal::benchmark::iterations Iterations) \
     FATAL_CONDITIONAL(UserLoop)(;)( \
       { \
         while (Iterations--) { \
-          run(); \
+          (*this)(); \
         } \
       } \
       \
-      void run(); \
+      void operator ()(); \
     ) \
-    \
-    static char const *group() { return FATAL_TO_STR(Group); } \
-    static char const *name() { return FATAL_TO_STR(Name); } \
   }; \
   \
   namespace { \
-  static auto const FATAL_UID(FATAL_CAT(Class, FATAL_CAT(_, registry))) \
-    = ::fatal::benchmark::detail::registry::get().add<Class>(); \
-    \
+  static auto const FATAL_UID( \
+    FATAL_CAT(Class, FATAL_CAT(_, benchmark_registry)) \
+  ) = ::fatal::benchmark::detail::registry::get().add<Class>(); \
   } \
   \
+  char const *operator <<(::fatal::benchmark::detail::group_tag, Class *) { \
+    return FATAL_TO_STR(Group); \
+  } \
   \
-  void Class::run(FATAL_CONDITIONAL(UserLoop)( \
+  char const *operator <<(::fatal::benchmark::detail::name_tag, Class *) { \
+    return FATAL_TO_STR(Name); \
+  } \
+  \
+  void Class::operator ()(FATAL_CONDITIONAL(UserLoop)( \
     ::fatal::benchmark::iterations Iterations \
   )())
 
@@ -147,6 +151,9 @@ using results = std::unordered_map<
 
 namespace detail {
 
+struct group_tag {};
+struct name_tag {};
+
 struct registry {
   using time_point = clock::time_point;
 
@@ -187,7 +194,7 @@ private:
 
   template <typename T>
   struct entry_impl:
-    entry
+    public entry
   {
     using type = T;
 
@@ -196,22 +203,27 @@ private:
       type benchmark(result);
 
       result.start();
-      benchmark.run(iterations);
+      benchmark(iterations);
       result.stop();
 
       return result.elapsed();
     }
 
-    char const *group() override { return type::group(); }
-    char const *name() override { return type::name(); }
+    char const *group() override {
+      return group_tag() << static_cast<type *>(nullptr);
+    }
+
+    char const *name() override {
+      return name_tag() << static_cast<type *>(nullptr);
+    }
   };
 
 public:
   template <typename T>
-  std::size_t add() {
+  bool add() {
     entries_.emplace_back(new entry_impl<T>());
 
-    return entries_.size();
+    return entries_.empty();
   }
 
   results run() const {
