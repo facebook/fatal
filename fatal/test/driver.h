@@ -12,14 +12,14 @@
 
 #include <fatal/test/lib.h>
 
+#include <iostream>
+
 ////////////
 // DRIVER //
 ////////////
 
-int main(int argc, char **argv) {
-  testing::InitGoogleTest(&argc, argv);
-
-  return RUN_ALL_TESTS();
+int main() {
+  return fatal::test::run(std::cerr);
 }
 
 #endif // FATAL_INCLUDE_fatal_test_driver_h
