@@ -1,0 +1,20 @@
+language: cpp
+
+before_script:
+  - echo $LANG
+  - echo $LC_ALL
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install -y bash coreutils ncurses-bin g++-4.8 g++-4.9 clang-3.4 clang-3.5; fi
+
+script: ./validate.sh
+
+branches:
+  only:
+    - dev
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
+
+os:
+  - linux
