@@ -696,14 +696,16 @@ struct insert_sorted<TLessComparer, T, THead, TTail...> {
 // multiply //
 //////////////
 
-template <std::size_t Multiplier, typename TResult, typename... Args>
+template <std::size_t Multiplier, typename... Args>
 struct multiply {
-  using type = typename TResult::template push_back<Args...>;
+  static_assert(Multiplier > 0, "out of bounds");
+  using type = typename multiply<Multiplier - 1, Args...>::type
+    ::template push_back<Args...>;
 };
 
-template <typename TResult, typename... Args>
-struct multiply<0, TResult, Args...> {
-  using type = TResult;
+template <typename... Args>
+struct multiply<0, Args...> {
+  using type = type_list<>;
 };
 
 //////////
@@ -1316,10 +1318,10 @@ struct type_list {
     TLessComparer, T, Args...
   >::type;
 
-  // TODO: DOCUMENT AND TEST
+  // TODO: DOCUMENT
   template <std::size_t Multiplier>
   using multiply = typename detail::type_list_impl::multiply<
-    Multiplier, type_list<>, Args...
+    Multiplier, Args...
   >::type;
 
   /**
