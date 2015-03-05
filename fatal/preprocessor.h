@@ -21,7 +21,16 @@ namespace fatal {
 
 struct source_info {
   source_info(char const *file, unsigned long line):
-    file_(file),
+    file_(
+      [](char const *p) {
+        for (auto i = p; *i; ++i) {
+          if (*i == '/') {
+            p = i + 1;
+          }
+        }
+        return p;
+      }(file)
+    ),
     line_(line)
   {}
 
