@@ -13,6 +13,27 @@
 namespace fatal {
 
 /////////////////
+// source_info //
+/////////////////
+
+#define FATAL_SOURCE_INFO() \
+  ::fatal::source_info(__FILE__, __LINE__)
+
+struct source_info {
+  source_info(char const *file, unsigned long line):
+    file_(file),
+    line_(line)
+  {}
+
+  char const *file() const { return file_; }
+  unsigned long line() const { return line_; }
+
+private:
+  char const *const file_;
+  unsigned long const line_;
+};
+
+/////////////////
 // FATAL_EMPTY //
 /////////////////
 
