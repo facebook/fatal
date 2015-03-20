@@ -3,9 +3,9 @@ language: cpp
 before_script:
   - echo $LANG
   - echo $LC_ALL
-  - if [ $TRAVIS_OS_NAME == linux ]; then lsb_release -a; uname -a; sudo apt-get update && sudo apt-get install -y bash coreutils ncurses-bin clang-3.4; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then lsb_release -a; uname -a; sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ utopic universe multiverse" && sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ utopic-updates universe multiverse" && sudo apt-get update && sudo apt-get install -y bash coreutils ncurses-bin g++-4.8 g++-4.9 clang-3.4 clang-3.5; fi
 
-script: USE_CC=clang++-3.4 ./validate.sh
+script: pwd && ls && ./validate.sh
 
 branches:
   only:
