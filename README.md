@@ -9,6 +9,8 @@ Bleeding edge: https://github.com/facebook/fatal/tree/dev/
 
 Discussions group: https://www.facebook.com/groups/libfatal/
 
+[Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell): http://abel.web.elte.hu/shell/metashell
+
 
 ## Examples
 Demonstration applications can be found under the `demo/` directory.
