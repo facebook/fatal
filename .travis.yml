@@ -3,7 +3,7 @@ language: cpp
 before_script:
   - echo $LANG
   - echo $LC_ALL
-  - if [ $TRAVIS_OS_NAME == linux ]; then lsb_release -a; uname -a; && sudo apt-get update && apt-cache search '^g\+\+|^clang' && sudo apt-get install -y bash coreutils ncurses-bin clang-3.4; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then lsb_release -a; echo; uname -a; sudo apt-get update && apt-cache search '^g\+\+|^clang' && sudo apt-get install -y bash coreutils ncurses-bin clang-3.4; fi
 
 script: bash -c 'pwd && ls && USE_CC=clang++-3.4 ./validate.sh'
 
