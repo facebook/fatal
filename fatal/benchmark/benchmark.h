@@ -336,7 +336,8 @@ struct default_printer {
     for (auto const &group: result) {
       out << "-- group: " << group.first << " --\n";
 
-      optional<duration> previous_period;
+      bool first = true;
+      duration previous_period(0);
 
       for (auto const &i: group.second) {
         auto const period = i.period();
@@ -356,13 +357,15 @@ struct default_printer {
 
         out << " Hz";
 
-        if (!previous_period.empty()) {
-          assert(*previous_period <= period);
+        if (first) {
+          first = false;
+        } else {
+          assert(previous_period <= period);
 
           out << ", diff = ";
 
-          if (previous_period->count()) {
-            auto const diff = period.count() * 10000 / previous_period->count();
+          if (previous_period.count()) {
+            auto const diff = period.count() * 10000 / previous_period.count();
             assert(diff >= 10000);
 
             out << (diff / 100) << '.' << (diff % 100) << '%';
