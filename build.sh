@@ -8,7 +8,9 @@ fi
 
 if [ -z "$USE_CC" ]; then
   for cc in clang++-3.5 g++-4.8 g++-4.9 clang++-3.4; do
-    USE_CC="$cc" NO_CLEAR=true "$0" "$@"
+    if which $cc; then
+      USE_CC="$cc" NO_CLEAR=true "$0" "$@"
+    fi
   done
 else
   for f in `find ./fatal -name \*.cpp`; do
