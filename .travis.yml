@@ -1,11 +1,32 @@
 language: cpp
 
+os:
+  - linux
+
+compiler:
+  - gcc
+  - clang
+
+before_install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+
+install:
+  - sudo apt-get install -y bash coreutils clang-3.4
+
 before_script:
   - echo $LANG
   - echo $LC_ALL
-  - if [ $TRAVIS_OS_NAME == linux ]; then lsb_release -a; echo; uname -a; sudo apt-get update && apt-cache search '^g\+\+|^clang' && sudo apt-get install -y bash coreutils clang-3.4; fi
+  - lsb_release -a
+  - uname -a
+  - apt-cache search '^g\+\+|^clang'
+  - which g++-4.8
+  - which g++-4.9
+  - which clang++-3.4
+  - which clang++-3.5
 
-script: USE_CC=clang++-3.4 NO_CLEAR=true ./validate.sh
+script:
+  - USE_CC=clang++-3.4 NO_CLEAR=true ./validate.sh
 
 branches:
   only:
@@ -15,6 +36,3 @@ notifications:
   email:
     on_success: change
     on_failure: always
-
-os:
-  - linux
