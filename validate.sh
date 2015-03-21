@@ -1,6 +1,6 @@
 #/bin/sh
 
-set -e
+set -xe
 
 skip_test=false
 skip_build=false

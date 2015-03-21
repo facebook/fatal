@@ -36,7 +36,7 @@ if [ "$NO_CLEAR" != "true" ]; then
   ./lclear.sh >&2
 fi
 
-CC_OPT="$CC_OPT -O2 -g -o $out_binary -pthread"
+CC_OPT="-o $out_binary $CC_OPT -O2 -g -pthread"
 
 if [ "$PRE_PROC" = "true" ]; then
   CC_OPT="-E"
@@ -44,7 +44,7 @@ fi
 
 echo -n "started: "; date
 set -x
-"$USE_CC" -Wall -Werror $CC_OPT "-std=$USE_STD" -I . "$file_name" 2>&1
+"$USE_CC" $CC_OPT -Wall -Werror "-std=$USE_STD" -I . "$file_name" 2>&1
 set +x
 echo -n "finished: "; date
 
