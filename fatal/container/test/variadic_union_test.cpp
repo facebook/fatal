@@ -18,6 +18,28 @@
 
 namespace fatal {
 
+FATAL_TEST(variadic_union, sanity_check) {
+  variadic_union<int, double, bool> v;
+
+  v.construct<int>(5);
+  FATAL_EXPECT_EQ(5, v.ref<int>());
+  v.ref<int>() = 10;
+  FATAL_EXPECT_EQ(10, v.ref<int>());
+  v.destroy<int>();
+
+  v.construct<double>(5.6);
+  FATAL_EXPECT_EQ(5.6, v.ref<double>());
+  v.ref<double>() = 7.2;
+  FATAL_EXPECT_EQ(7.2, v.ref<double>());
+  v.destroy<double>();
+
+  v.construct<bool>(true);
+  FATAL_EXPECT_EQ(true, v.ref<bool>());
+  v.ref<bool>() = false;
+  FATAL_EXPECT_EQ(false, v.ref<bool>());
+  v.destroy<bool>();
+}
+
 template <typename> struct X {};
 
 #define FATAL_IMPL_CALL(Fn) \
@@ -347,39 +369,27 @@ FATAL_TEST(variadic_union, ptr) {
 template <typename... Args>
 using variadic_union_ctor_test = variadic_union<ref_counter::global<Args>...>;
 
-template <typename...> struct construct_destroy_test;
-
-template <typename T, typename... Args>
-struct construct_destroy_test<T, Args...> {
-  template <typename U>
-  static std::size_t test_construct(U &u) {
+struct construct_test {
+  template <typename T, std::size_t Index, typename V>
+  void operator ()(indexed_type_tag<T, Index>, V &&v) const {
+    FATAL_ASSERT_EQ(0, ref_counter::count());
     using type = ref_counter::global<T>;
-    u.template construct<type>();
-    auto const count = construct_destroy_test<Args...>::test_construct(u);
-    u.template ref<type>().~type();
-    return count;
-  }
-
-  template <typename U>
-  static std::size_t test_destroy(U &u) {
-    using type = ref_counter::global<T>;
-    new (u.template ptr<type>()) type();
-    auto const count = construct_destroy_test<Args...>::test_destroy(u);
-    u.template destroy<type>();
-    return count;
+    new (v.template ptr<type>()) type();
+    FATAL_EXPECT_EQ(1, ref_counter::count());
+    v.template ref<type>().~type();
+    FATAL_EXPECT_EQ(0, ref_counter::count());
   }
 };
 
-template <>
-struct construct_destroy_test<> {
-  template <typename U>
-  static std::size_t test_construct(U &) {
-    return ref_counter::count();
-  }
-
-  template <typename U>
-  static std::size_t test_destroy(U &) {
-    return ref_counter::count();
+struct destroy_test {
+  template <typename T, std::size_t Index, typename V>
+  void operator ()(indexed_type_tag<T, Index>, V &&v) const {
+    FATAL_ASSERT_EQ(0, ref_counter::count());
+    using type = ref_counter::global<T>;
+    v.template construct<type>();
+    FATAL_EXPECT_EQ(1, ref_counter::count());
+    v.template destroy<type>();
+    FATAL_EXPECT_EQ(0, ref_counter::count());
   }
 };
 
@@ -388,8 +398,7 @@ struct construct_destroy_test<> {
     FATAL_ASSERT_EQ(0, ref_counter::count()); \
     variadic_union_ctor_test<__VA_ARGS__> v; \
     using list = type_list<__VA_ARGS__>; \
-    auto const count = construct_destroy_test<__VA_ARGS__>::test_##Which(v); \
-    FATAL_EXPECT_EQ(list::size, count); \
+    list::foreach(Which##_test(), v); \
     FATAL_EXPECT_EQ(0, ref_counter::count()); \
   } while (false)
 
