@@ -6,4 +6,4 @@ fi
 
 file_name="demo/$1.cpp"
 
-./compile.sh "$file_name" && rlwrap "/tmp/_bin/demo/$1" "$@"
+./compile.sh "$file_name" && "/tmp/_bin/demo/$1" "$@"
