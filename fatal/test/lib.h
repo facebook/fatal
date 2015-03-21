@@ -760,6 +760,25 @@ struct assertion {
 
 namespace predicates {
 
+template <typename TLHS, typename TRHS>
+using both_integral = std::integral_constant<
+  bool,
+  std::is_integral<typename std::decay<TLHS>::type>::value
+    && std::is_integral<typename std::decay<TRHS>::type>::value
+>;
+
+template <typename T, typename TLHS, typename TRHS, bool Expected>
+using if_both_integral = typename std::enable_if<
+  both_integral<TLHS, TRHS>::value == Expected,
+  T
+>::type;
+
+template <typename TLHS, typename TRHS>
+using common = typename std::common_type<
+  typename std::decay<TLHS>::type,
+  typename std::decay<TRHS>::type
+>::type;
+
 struct is_true {
   template <typename T>
   bool operator ()(T &&what) const { return static_cast<bool>(what); }
@@ -786,37 +805,103 @@ struct not_null {
 
 struct is_equal {
   template <typename TLHS, typename TRHS>
-  bool operator ()(TLHS &&lhs, TRHS &&rhs) const { return lhs == rhs; }
+  if_both_integral<bool, TLHS, TRHS, false> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const { return lhs == rhs; }
+
+  template <typename TLHS, typename TRHS>
+  if_both_integral<bool, TLHS, TRHS, true> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const {
+    using type = common<TLHS, TRHS>;
+    return static_cast<type>(lhs) == static_cast<type>(rhs);
+  }
+
   char const *text() const { return "is equal to"; }
 };
 
 struct not_equal {
   template <typename TLHS, typename TRHS>
-  bool operator ()(TLHS &&lhs, TRHS &&rhs) const { return lhs != rhs; }
+  if_both_integral<bool, TLHS, TRHS, false> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const { return lhs != rhs; }
+
+  template <typename TLHS, typename TRHS>
+  if_both_integral<bool, TLHS, TRHS, true> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const {
+    using type = common<TLHS, TRHS>;
+    return static_cast<type>(lhs) != static_cast<type>(rhs);
+  }
+
   char const *text() const { return "is not equal to"; }
 };
 
 struct less_than {
   template <typename TLHS, typename TRHS>
-  bool operator ()(TLHS &&lhs, TRHS &&rhs) const { return lhs < rhs; }
+  if_both_integral<bool, TLHS, TRHS, false> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const { return lhs < rhs; }
+
+  template <typename TLHS, typename TRHS>
+  if_both_integral<bool, TLHS, TRHS, true> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const {
+    using type = common<TLHS, TRHS>;
+    return static_cast<type>(lhs) < static_cast<type>(rhs);
+  }
+
   char const *text() const { return "is less than"; }
 };
 
 struct less_equal {
   template <typename TLHS, typename TRHS>
-  bool operator ()(TLHS &&lhs, TRHS &&rhs) const { return lhs <= rhs; }
+  if_both_integral<bool, TLHS, TRHS, false> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const { return lhs <= rhs; }
+
+  template <typename TLHS, typename TRHS>
+  if_both_integral<bool, TLHS, TRHS, true> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const {
+    using type = common<TLHS, TRHS>;
+    return static_cast<type>(lhs) <= static_cast<type>(rhs);
+  }
+
   char const *text() const { return "is less than or equal to"; }
 };
 
 struct greater_than {
   template <typename TLHS, typename TRHS>
-  bool operator ()(TLHS &&lhs, TRHS &&rhs) const { return lhs > rhs; }
+  if_both_integral<bool, TLHS, TRHS, false> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const { return lhs > rhs; }
+
+  template <typename TLHS, typename TRHS>
+  if_both_integral<bool, TLHS, TRHS, true> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const {
+    using type = common<TLHS, TRHS>;
+    return static_cast<type>(lhs) > static_cast<type>(rhs);
+  }
+
   char const *text() const { return "is greater than"; }
 };
 
 struct greater_equal {
   template <typename TLHS, typename TRHS>
-  bool operator ()(TLHS &&lhs, TRHS &&rhs) const { return lhs >= rhs; }
+  if_both_integral<bool, TLHS, TRHS, false> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const { return lhs >= rhs; }
+
+  template <typename TLHS, typename TRHS>
+  if_both_integral<bool, TLHS, TRHS, true> operator ()(
+    TLHS &&lhs, TRHS &&rhs
+  ) const {
+    using type = common<TLHS, TRHS>;
+    return static_cast<type>(lhs) >= static_cast<type>(rhs);
+  }
+
   char const *text() const { return "is greater than or equal to"; }
 };
 
@@ -1034,7 +1119,8 @@ struct default_printer {
   void end_run(
     TOut &out, std::size_t passed, std::size_t total, duration time
   ) {
-    out << "\nresult: passed " << passed << '/' << total << " after "
+    out << '\n' << (passed == total ? "succeeded" : "FAILED")
+      << ": passed " << passed << '/' << total << " after "
       << time.count() << ' ' << time::suffix(time) << "\n\n";
   }
 
