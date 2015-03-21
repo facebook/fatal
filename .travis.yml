@@ -21,7 +21,8 @@ before_script:
   - apt-cache search '^g\+\+|^clang'
 
 script:
-  - for cc in g++ g++-4.8 g++-4.9 clang++ clang++-3.4 clang++-3.5; do if which $cc; then $cc --version; USE_CC=$cc NO_CLEAR=true ./validate.sh; else echo "no $cc installed"; fi; done
+  - for cc in g++ g++-4.8 g++-4.9; do if which $cc; then $cc --version; USE_CC=$cc NO_CLEAR=true ./validate.sh nobuild; else echo "no $cc installed, skipping validation"; fi; done
+  - for cc in clang++ clang++-3.4 clang++-3.5; do if which $cc; then $cc --version; USE_CC=$cc NO_CLEAR=true ./validate.sh; else echo "no $cc installed, skipping validation"; fi; done
 
 branches:
   only:
