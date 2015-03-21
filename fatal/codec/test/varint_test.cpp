@@ -212,7 +212,7 @@ void chk() {
   tester_impl<TEncoder, TDecoder, T>()();
 }
 
-FATAL_TEST(stuff, stuff) {
+FATAL_TEST(codec, sanity_check) {
   {
     use::enc<impl<std::int64_t>> encoder;
     use::dec<impl<std::int64_t>> decoder;
