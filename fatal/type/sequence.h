@@ -16,24 +16,23 @@
 #include <type_traits>
 
 namespace fatal {
+namespace detail {
+namespace constant_sequence_impl {
 
-/**
- * A compile-time sequence of values for template metaprogramming.
- *
- * Most operations, unless noted otherwise, are compile-time evaluated.
- *
- * Compile-time operations have no side-effects. I.e.: Operations that would
- * mutate the sequence upon which they are performed actually create a new
- * sequence.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T, T... Values>
+template <template <typename U, U...> class TSequence, typename T, T... Values>
 struct constant_sequence {
   /**
    * The type of this sequence's values.
    */
   using type = T;
+
+  /**
+   * TODO: DOCUMENT AND TEST
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <type Value>
+  using constant = std::integral_constant<type, Value>;
 
   /**
    * This sequence as a type_list of std::integral_constant.
@@ -51,7 +50,7 @@ struct constant_sequence {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using list = type_list<std::integral_constant<type, Values>...>;
+  using list = type_list<constant<Values>...>;
 
   /**
    * Tells how many values this sequence has.
@@ -69,19 +68,30 @@ struct constant_sequence {
   static constexpr bool empty = size == 0;
 
   /**
-   * Adds values to the beginning of this sequence.
-   *
-   * Example:
-   *
-   *  using seq = constant_sequence<int, 1, 2, 3>;
-   *
-   *  // yields `constant_sequence<int, 9, 1, 2, 3>`
-   *  using result = seq::push_front<9>;
+   * TODO: document and test
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <type... UValues>
-  using push_front = constant_sequence<type, UValues..., Values...>;
+  template <type Needle>
+  using index_of = typename list::template index_of<constant<Needle>>;
+
+  /**
+   * TODO: document and test
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <type Needle>
+  using checked_index_of = typename list::template checked_index_of<
+    constant<Needle>
+  >;
+
+  /**
+   * TODO: document and test
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <type Needle>
+  using contains = typename list::template contains<constant<Needle>>;
 
   /**
    * Adds values to the end of this sequence.
@@ -96,7 +106,82 @@ struct constant_sequence {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... UValues>
-  using push_back = constant_sequence<type, Values..., UValues...>;
+  using push_back = TSequence<type, Values..., UValues...>;
+
+  /**
+   * Adds values to the beginning of this sequence.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 1, 2, 3>;
+   *
+   *  // yields `constant_sequence<int, 9, 1, 2, 3>`
+   *  using result = seq::push_front<9>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <type... UValues>
+  using push_front = TSequence<type, UValues..., Values...>;
+
+  /**
+   * TODO: document and test
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Args>
+  using concat = typename type_list<Args...>::template apply<
+    list::template concat,
+    get_member_type::list
+  >::template apply_typed_values<type, TSequence>;
+
+  /**
+   * TODO: document and test
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <std::size_t Offset>
+  using tail = typename list::template tail<Offset>
+    ::template apply_typed_values<type, TSequence>;
+
+  /**
+   * TODO: document and test
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <std::size_t Index = (size / 2)>
+  using split = type_pair<
+    typename list::template split<Index>::first
+      ::template apply_typed_values<type, TSequence>,
+    typename list::template split<Index>::second
+      ::template apply_typed_values<type, TSequence>
+  >;
+
+  /**
+   * TODO: document and test
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <std::size_t Begin, std::size_t End>
+  using slice = typename list::template slice<Begin, End>
+    ::template apply_typed_values<type, TSequence>;
+
+  /**
+   * TODO: document and test
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <std::size_t Size>
+  using left = typename list::template left<Size>
+    ::template apply_typed_values<type, TSequence>;
+
+  /**
+   * TODO: document and test
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <std::size_t Size>
+  using right = typename list::template right<Size>
+    ::template apply_typed_values<type, TSequence>;
 
   /**
    * Applies the values of this sequence to the given template.
@@ -145,7 +230,7 @@ struct constant_sequence {
   template <type... Suffix>
   using array = constant_array<type, Values..., Suffix...>;
 
-  // TODO: DOCUMENT AND TEST
+  // TODO: DOCUMENT
   template <type... Suffix>
   static constexpr type const *data() { return array<>::data(); }
 
@@ -170,7 +255,7 @@ struct constant_sequence {
     type, Values..., Suffix..., static_cast<type>(0)
   >;
 
-  // TODO: DOCUMENT AND TEST
+  // TODO: DOCUMENT
   template <type... Suffix>
   static constexpr type const *z_data() { return z_array<>::data(); }
 
@@ -180,6 +265,38 @@ struct constant_sequence {
     return U{Values..., std::forward<UArgs>(args)...};
   }
 };
+
+///////////////////////////////
+// STATIC MEMBERS DEFINITION //
+///////////////////////////////
+
+template <template <typename U, U...> class TSequence, typename T, T... Values>
+constexpr std::size_t constant_sequence<TSequence, T, Values...>::size;
+
+template <template <typename U, U...> class TSequence, typename T, T... Values>
+constexpr bool constant_sequence<TSequence, T, Values...>::empty;
+
+} // namespace constant_sequence_impl {
+} // namespace detail {
+
+/**
+ * A compile-time sequence of values for template metaprogramming.
+ *
+ * Most operations, unless noted otherwise, are compile-time evaluated.
+ *
+ * Compile-time operations have no side-effects. I.e.: Operations that would
+ * mutate the sequence upon which they are performed actually create a new
+ * sequence.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, T... Values>
+struct constant_sequence:
+  public detail::constant_sequence_impl::constant_sequence<
+    constant_sequence, T, Values...
+  >
+{};
+
 ////////////////////////////////////////
 // IMPLEMENTATION DETAILS DECLARATION //
 ////////////////////////////////////////
@@ -215,16 +332,6 @@ template <typename T, T Begin, T End, bool OpenEnd = true>
 using constant_range = typename detail::range_builder_impl::build<
   false, OpenEnd, T, Begin, End
 >::type;
-
-///////////////////////////////
-// STATIC MEMBERS DEFINITION //
-///////////////////////////////
-
-template <typename T, T... Values>
-constexpr std::size_t constant_sequence<T, Values...>::size;
-
-template <typename T, T... Values>
-constexpr bool constant_sequence<T, Values...>::empty;
 
 ///////////////////////////////////////
 // IMPLEMENTATION DETAILS DEFINITION //

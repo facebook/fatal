@@ -37,6 +37,8 @@ FATAL_STR(utf8_str, UTF8_STR);
 FATAL_STR(utf16_str, UTF16_STR);
 FATAL_STR(utf32_str, UTF32_STR);
 
+// TODO: ADD TESTS FOR OTHER OPERATIONS INHERITED FROM CONSTANT_SEQUENCE
+
 template <typename TString, std::size_t Expected>
 void check_size() {
   FATAL_EXPECT_EQ(TString::size, Expected);

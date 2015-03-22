@@ -1236,6 +1236,8 @@ struct type_list {
   template <typename T>
   using contains = typename detail::type_list_impl::contains<T, Args...>::type;
 
+  // TODO: implement find (sublist)
+
   /**
    * Appends the types `Suffix...` to the end of this list.
    *

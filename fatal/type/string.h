@@ -30,7 +30,9 @@ namespace fatal {
  */
 template <typename T, T... Chars>
 class type_string:
-  public constant_sequence<T, Chars...>
+  public detail::constant_sequence_impl::constant_sequence<
+    type_string, T, Chars...
+  >
 {
   using as_sequence = constant_sequence<T, Chars...>;
 
@@ -44,14 +46,6 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   using char_type = typename as_sequence::type;
-
-  // TODO: DOCUMENT AND TEST
-  template <char_type... Prefix>
-  using push_front = type_string<char_type, Chars..., Prefix...>;
-
-  // TODO: DOCUMENT AND TEST
-  template <char_type... Suffix>
-  using push_back = type_string<char_type, Chars..., Suffix...>;
 
   /**
    * The `std::basic_string` type returned by the `string()` method.
