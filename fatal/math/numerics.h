@@ -17,7 +17,6 @@
 #include <limits>
 #include <stdexcept>
 
-#include <cstddef>
 #include <cstdint>
 #include <climits>
 
