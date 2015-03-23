@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_list_h
 #define FATAL_INCLUDE_fatal_type_list_h
 
+#include <fatal/type/operation.h>
 #include <fatal/type/pair.h>
 #include <fatal/type/tag.h>
 #include <fatal/type/transform.h>
@@ -617,40 +618,41 @@ struct search<TPredicate, TDefault, U, UArgs...> {
   >::type;
 };
 
-/////////////
-// flatten //
-/////////////
+//////////////////
+// deep_flatten //
+//////////////////
 
 template <std::size_t Depth, std::size_t MaxDepth, typename... Args>
-struct flatten;
+struct deep_flatten;
 
+// max depth reached - base case
 template <std::size_t MaxDepth, typename T, typename... Args>
-struct flatten<MaxDepth, MaxDepth, T, Args...> {
+struct deep_flatten<MaxDepth, MaxDepth, T, Args...> {
   using type = type_list<T, Args...>;
 };
 
 template <std::size_t Depth, std::size_t MaxDepth, typename T, typename... Args>
-struct flatten<Depth, MaxDepth, T, Args...> {
-  using type = typename flatten<Depth, MaxDepth, Args...>::type
+struct deep_flatten<Depth, MaxDepth, T, Args...> {
+  using type = typename deep_flatten<Depth, MaxDepth, Args...>::type
     ::template push_front<T>;
 };
 
 template <std::size_t Depth, std::size_t MaxDepth>
-struct flatten<Depth, MaxDepth> {
+struct deep_flatten<Depth, MaxDepth> {
   using type = type_list<>;
 };
 
 template <std::size_t MaxDepth, typename... Args, typename... UArgs>
-struct flatten<MaxDepth, MaxDepth, type_list<Args...>, UArgs...> {
+struct deep_flatten<MaxDepth, MaxDepth, type_list<Args...>, UArgs...> {
   using type = type_list<type_list<Args...>, UArgs...>;
 };
 
 template <
   std::size_t Depth, std::size_t MaxDepth, typename... Args, typename... UArgs
 >
-struct flatten<Depth, MaxDepth, type_list<Args...>, UArgs...> {
-  using type = typename flatten<Depth + 1, MaxDepth, Args...>::type
-    ::template concat<typename flatten<Depth, MaxDepth, UArgs...>::type>;
+struct deep_flatten<Depth, MaxDepth, type_list<Args...>, UArgs...> {
+  using type = typename deep_flatten<Depth + 1, MaxDepth, Args...>::type
+    ::template concat<typename deep_flatten<Depth, MaxDepth, UArgs...>::type>;
 };
 
 ////////////
@@ -2040,6 +2042,52 @@ struct type_list {
   /**
    * Flattens elements from sublists into a single, topmost list.
    *
+   * The topmost list can be customized with the template template parameter
+   * `TList`. when omitted, it defaults to `fatal::type_list`.
+   *
+   * Only a single level will be flattened. For recursive flattening,
+   * use deep_flatten.
+   *
+   * This is equivalent to `fatal::flatten` or `deep_flatten<1>`.
+   *
+   * Example:
+   *
+   *  using list = type_list<
+   *    int,
+   *    type_list<
+   *      double,
+   *      float,
+   *      type_list<short>
+   *    >,
+   *    bool
+   *  >;
+   *
+   *  // yields `type_list<
+   *  //   int,
+   *  //   double,
+   *  //   float,
+   *  //   type_list<short>,
+   *  //   bool
+   *  // >`
+   *  using result1 = list::flatten<>;
+   *
+   *  // yields `std::tuple<
+   *  //   int,
+   *  //   double,
+   *  //   float,
+   *  //   type_list<short>,
+   *  //   bool
+   *  // >`
+   *  using result2 = list::flatten<std::tuple>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class TList = fatal::type_list>
+  using flatten = typename fatal::flatten<TList, fatal::type_list, Args...>;
+
+  /**
+   * Recursively flattens elements from sublists into a single, topmost list.
+   *
    * The topmost list's elements will be layed out as if traversing using a
    * recursive iterator on the lists.
    *
@@ -2070,10 +2118,10 @@ struct type_list {
    *  //   short
    *  //   bool
    *  // >`
-   *  using result = list::flatten<>;
+   *  using result = list::deep_flatten<>;
    *
    *  // yields the same as `list`
-   *  using result0 = list::flatten<0>;
+   *  using result0 = list::deep_flatten<0>;
    *
    *  // yields `type_list<
    *  //   int,
@@ -2086,7 +2134,7 @@ struct type_list {
    *  //   >,
    *  //   bool
    *  // >`
-   *  using result1 = list::flatten<1>;
+   *  using result1 = list::deep_flatten<1>;
    *
    *  // yields `type_list<
    *  //   int,
@@ -2097,7 +2145,7 @@ struct type_list {
    *  //   short
    *  //   bool
    *  // >`
-   *  using result2 = list::flatten<2>;
+   *  using result2 = list::deep_flatten<2>;
    *
    *  // yields `type_list<
    *  //   int,
@@ -2108,12 +2156,12 @@ struct type_list {
    *  //   short
    *  //   bool
    *  // >`
-   *  using result2 = list::flatten<2>;
+   *  using result2 = list::deep_flatten<2>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <std::size_t Depth = std::numeric_limits<std::size_t>::max()>
-  using flatten = typename detail::type_list_impl::flatten<
+  using deep_flatten = typename detail::type_list_impl::deep_flatten<
     0, Depth, Args...
   >::type;
 
@@ -2514,6 +2562,6 @@ struct type_list {
 template <typename... Args> constexpr std::size_t type_list<Args...>::size;
 template <typename... Args> constexpr bool type_list<Args...>::empty;
 
-} // namespace fatal
+} // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_list_h

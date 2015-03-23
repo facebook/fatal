@@ -1084,17 +1084,57 @@ FATAL_TEST(combine, combine) {
 // flatten //
 /////////////
 
+FATAL_TEST(flatten, flatten) {
+  using list = type_list<
+    int,
+    type_list<
+      double,
+      float,
+      type_list<short>
+    >,
+    bool
+  >;
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      int,
+      double,
+      float,
+      type_list<short>,
+      bool
+    >,
+    list::flatten<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::tuple<
+      int,
+      double,
+      float,
+      type_list<short>,
+      bool
+    >,
+    list::flatten<std::tuple>
+  >();
+
+  // TODO: ADD MORE TESTS
+}
+
+//////////////////
+// deep_flatten //
+//////////////////
+
 #define CHECK_FLATTEN(Expected, ...) \
   do { \
     typedef type_list<__VA_ARGS__> list; \
-    FATAL_EXPECT_SAME<list, typename list::template flatten<>>(); \
-    FATAL_EXPECT_SAME<list, typename list::template flatten<0>>(); \
-    FATAL_EXPECT_SAME<list, typename list::template flatten<1>>(); \
-    FATAL_EXPECT_SAME<list, typename list::template flatten<2>>(); \
-    FATAL_EXPECT_SAME<list, typename list::template flatten<3>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template deep_flatten<>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template deep_flatten<0>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template deep_flatten<1>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template deep_flatten<2>>(); \
+    FATAL_EXPECT_SAME<list, typename list::template deep_flatten<3>>(); \
   } while (false)
 
-FATAL_TEST(flatten, flatten) {
+FATAL_TEST(deep_flatten, deep_flatten) {
   CHECK_FLATTEN();
   CHECK_FLATTEN(void);
   CHECK_FLATTEN(int);
@@ -1110,13 +1150,13 @@ FATAL_TEST(flatten, flatten) {
     using expected3 = type_list<vl>;
     using expected_unlimited = vl;
 
-    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<>>();
-    FATAL_EXPECT_SAME<list, list::flatten<0>>();
-    FATAL_EXPECT_SAME<expected1, list::flatten<1>>();
-    FATAL_EXPECT_SAME<expected2, list::flatten<2>>();
-    FATAL_EXPECT_SAME<expected3, list::flatten<3>>();
-    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<4>>();
-    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<5>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::deep_flatten<>>();
+    FATAL_EXPECT_SAME<list, list::deep_flatten<0>>();
+    FATAL_EXPECT_SAME<expected1, list::deep_flatten<1>>();
+    FATAL_EXPECT_SAME<expected2, list::deep_flatten<2>>();
+    FATAL_EXPECT_SAME<expected3, list::deep_flatten<3>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::deep_flatten<4>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::deep_flatten<5>>();
   }
 
   {
@@ -1165,13 +1205,13 @@ FATAL_TEST(flatten, flatten) {
       std::vector<int>, std::wstring, short
     >;
 
-    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<>>();
-    FATAL_EXPECT_SAME<list, list::flatten<0>>();
-    FATAL_EXPECT_SAME<expected1, list::flatten<1>>();
-    FATAL_EXPECT_SAME<expected2, list::flatten<2>>();
-    FATAL_EXPECT_SAME<expected3, list::flatten<3>>();
-    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<4>>();
-    FATAL_EXPECT_SAME<expected_unlimited, list::flatten<5>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::deep_flatten<>>();
+    FATAL_EXPECT_SAME<list, list::deep_flatten<0>>();
+    FATAL_EXPECT_SAME<expected1, list::deep_flatten<1>>();
+    FATAL_EXPECT_SAME<expected2, list::deep_flatten<2>>();
+    FATAL_EXPECT_SAME<expected3, list::deep_flatten<3>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::deep_flatten<4>>();
+    FATAL_EXPECT_SAME<expected_unlimited, list::deep_flatten<5>>();
   }
 }
 

@@ -166,7 +166,7 @@ using known = fatal::type_list<
 
 struct ytse_jam {
   using supported = metadata::known;
-  using op_list = supported::transform<metadata::to_operation_command_list>::flatten<1>;
+  using op_list = supported::transform<metadata::to_operation_command_list>::flatten<>;
   using instance_t = supported::transform<fatal::get_member_type::type>::apply<fatal::auto_variant>;
   using result_t = op_list::transform<get_member::result>::reject<fatal::transform_alias<std::is_same, void>::apply>
     ::unique<>::apply<fatal::auto_variant>;
