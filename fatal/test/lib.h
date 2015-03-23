@@ -26,11 +26,32 @@
 
 #include <cassert>
 
+// for test purposes only
+#ifdef FATAL_USE_CXXABI
+# include <cxxabi.h>
+#endif // FATAL_USE_CXXABI
+
 namespace fatal {
 
 std::string type_str(std::type_info const &type) {
-  // TODO: de-mangle
+  // for test purposes only
+# ifdef FATAL_USE_CXXABI
+  std::string result;
+
+  int status;
+  auto name = abi::__cxa_demangle(type.name(), 0, 0, &status);
+
+  if (name) {
+    result = name;
+    std::free(name);
+  } else {
+    result = type.name();
+  }
+
+  return result;
+# else
   return type.name();
+# endif // FATAL_USE_CXXABI
 }
 
 template <typename T>
