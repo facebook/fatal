@@ -65,6 +65,32 @@ FATAL_TEST(type_string, size) {
   Fn<utf16_str>(UTF16_STR); \
   Fn<utf32_str>(UTF32_STR)
 
+FATAL_STR(u0, "0");
+FATAL_STR(u1, "1");
+FATAL_STR(u42, "42");
+FATAL_STR(s_56, "-56");
+
+FATAL_STR(wu0, L"0");
+FATAL_STR(wu1, L"1");
+FATAL_STR(wu42, L"42");
+FATAL_STR(ws_56, L"-56");
+
+// TODO: ADD EDGE CASES
+#define CREATE_PARSE_TEST_CALLS(Fn) \
+  Fn(u0, unsigned, 0); \
+  Fn(u1, short, 1); \
+  Fn(u42, std::size_t, 42); \
+  Fn(s_56, int, -56); \
+  \
+  Fn(wu0, unsigned, 0); \
+  Fn(wu1, short, 1); \
+  Fn(wu42, std::size_t, 42); \
+  Fn(ws_56, int, -56)
+
+///////////////
+// char_type //
+///////////////
+
 template <typename TCSTR, typename TChar, std::size_t Size>
 void check_char_type(TChar const (&s)[Size]) {
   FATAL_EXPECT_SAME<TChar, typename TCSTR::char_type>();
@@ -73,6 +99,10 @@ void check_char_type(TChar const (&s)[Size]) {
 FATAL_TEST(type_string, char_type) {
   CREATE_TEST_CALLS(check_char_type);
 }
+
+////////////
+// string //
+////////////
 
 template <typename TCSTR, typename TChar, std::size_t Size>
 void check_string(TChar const (&s)[Size]) {
@@ -93,53 +123,52 @@ FATAL_TEST(type_string, string) {
   CREATE_TEST_CALLS(check_string);
 }
 
-FATAL_TEST(to_type_string, char) {
-  FATAL_EXPECT_SAME<
-    type_string<char, '0'>,
-    to_type_string<unsigned, 0>
-  >();
+////////////////////
+// to_type_string //
+////////////////////
 
-  FATAL_EXPECT_SAME<
-    type_string<char, '1'>,
-    to_type_string<short, 1>
-  >();
+#define TEST_IMPL(Str, T, Value) \
+  do { \
+    FATAL_EXPECT_SAME< \
+      Str, \
+      to_type_string<T, Value, Str::char_type> \
+    >(); \
+  } while (false)
 
-  FATAL_EXPECT_SAME<
-    type_string<char, '4', '2'>,
-    to_type_string<std::size_t, 42>
-  >();
-
-  FATAL_EXPECT_SAME<
-    type_string<char, '-', '5', '6'>,
-    to_type_string<int, -56>
-  >();
+FATAL_TEST(to_type_string, sanity_check) {
+  CREATE_PARSE_TEST_CALLS(TEST_IMPL);
 }
 
-FATAL_TEST(to_type_string, wchar_t) {
-  FATAL_EXPECT_SAME<
-    type_string<wchar_t, L'0'>,
-    to_type_string<unsigned, 0, wchar_t>
-  >();
+#undef TEST_IMPL
 
-  FATAL_EXPECT_SAME<
-    type_string<wchar_t, L'1'>,
-    to_type_string<short, 1, wchar_t>
-  >();
+///////////////////////
+// parse_type_string //
+///////////////////////
 
-  FATAL_EXPECT_SAME<
-    type_string<wchar_t, L'4', L'2'>,
-    to_type_string<std::size_t, 42, wchar_t>
-  >();
+#define TEST_IMPL(Str, T, Value) \
+  do { \
+    using expected = std::integral_constant<T, Value>; \
+    \
+    FATAL_EXPECT_SAME< \
+      expected, \
+      Str::apply<parse_type_string<T>::bind<Str::char_type>::apply> \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      expected, \
+      Str::typed_apply<parse_type_string<T>::apply> \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      expected, \
+      parse_type_string<T>::from<Str> \
+    >(); \
+  } while (false)
 
-  FATAL_EXPECT_SAME<
-    type_string<wchar_t, L'4', L'2'>,
-    to_type_string<std::size_t, 42, wchar_t>
-  >();
-
-  FATAL_EXPECT_SAME<
-    type_string<wchar_t, L'-', L'5', L'6'>,
-    to_type_string<int, -56, wchar_t>
-  >();
+FATAL_TEST(parse_type_string, sanity_check) {
+  CREATE_PARSE_TEST_CALLS(TEST_IMPL);
 }
+
+#undef TEST_IMPL
 
 } // namespace fatal {
