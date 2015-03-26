@@ -1672,7 +1672,7 @@ struct type_list {
    *
    * Example:
    *
-   *  template <typenam, std::size_t> struct T {};
+   *  template <typename, std::size_t> struct T {};
    *  typedef type_list<A, B, C> types;
    *
    *  // yields `type_list<T<A, 0>, T<B, 1>, T<C, 2>>`

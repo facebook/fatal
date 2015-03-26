@@ -15,6 +15,10 @@
 
 namespace fatal {
 
+/////////////////
+// type_string //
+/////////////////
+
 /**
  * A compile-time string for template metaprogramming. This class inherits
  * from `constant_sequence` so all the functionality provided by the latter
@@ -83,9 +87,45 @@ public:
   }
 };
 
-/////////////////////
-// SUPPORT LIBRARY //
-/////////////////////
+////////////////////
+// to_type_string //
+////////////////////
+
+namespace detail {
+namespace type_string_impl {
+
+template <typename, typename T, T> class to_type_string;
+
+} // namespace type_string_impl {
+} // namespace detail {
+
+/**
+ * Converts an integral value to its string representation, as a type string.
+ *
+ * Arguments:
+ *
+ *  - T: the type of the integral value
+ *  - Value: the value to be converted
+ *  - TChar: the type of the string's character. Defaults to `char`.
+ *
+ * Example:
+ *
+ *  // yields `type_string<char, '4', '2'>`
+ *  using result1 = to_type_string<std::size_t, 42>;
+ *
+ *  // yields `type_string<wchar_t, L'-', L'5', L'6'>`
+ *  using result2 = to_type_string<int, -56, wchar_t>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, T Value, typename TChar = char>
+using to_type_string = typename detail::type_string_impl::to_type_string<
+  TChar, T, Value
+>::type;
+
+///////////////
+// FATAL_STR //
+///////////////
 
 /**
  * Instantiates a `type_string` class template out of a regular string.
@@ -110,12 +150,46 @@ public:
     FATAL_UID(Indexes) \
   )
 
-///////////////////////////////////////
-// IMPLEMENTATION DETAILS DEFINITION //
-///////////////////////////////////////
+////////////////////////////
+// IMPLEMENTATION DETAILS //
+////////////////////////////
 
 namespace detail {
 namespace type_string_impl {
+
+////////////////////
+// to_type_string //
+////////////////////
+
+template <typename TChar, typename T, T Value, bool Done = (Value == 0)>
+struct to_string {
+  template <TChar... Suffix>
+  using apply = typename to_string<TChar, T, Value / 10>::template apply<
+    static_cast<TChar>("9876543210123456789"[(Value % 10) + 9]), Suffix...
+  >;
+};
+
+template <typename TChar, typename T, T Value>
+struct to_string<TChar, T, Value, true> {
+  template <TChar... Chars>
+  using apply = type_string<TChar, Chars...>;
+};
+
+template <typename TChar, typename T, T Value>
+class to_type_string {
+  using str = typename to_string<TChar, T, Value>::template apply<>;
+
+public:
+  using type = typename std::conditional<
+    Value == 0,
+    type_string<TChar, static_cast<TChar>('0')>,
+    typename std::conditional<
+      (Value < 0),
+      typename str::template push_front<static_cast<TChar>('-')>,
+      str
+    >::type
+  >::type;
+};
 
 ///////////////
 // FATAL_STR //

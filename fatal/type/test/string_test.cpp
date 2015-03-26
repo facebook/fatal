@@ -93,4 +93,53 @@ FATAL_TEST(type_string, string) {
   CREATE_TEST_CALLS(check_string);
 }
 
+FATAL_TEST(to_type_string, char) {
+  FATAL_EXPECT_SAME<
+    type_string<char, '0'>,
+    to_type_string<unsigned, 0>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_string<char, '1'>,
+    to_type_string<short, 1>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_string<char, '4', '2'>,
+    to_type_string<std::size_t, 42>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_string<char, '-', '5', '6'>,
+    to_type_string<int, -56>
+  >();
+}
+
+FATAL_TEST(to_type_string, wchar_t) {
+  FATAL_EXPECT_SAME<
+    type_string<wchar_t, L'0'>,
+    to_type_string<unsigned, 0, wchar_t>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_string<wchar_t, L'1'>,
+    to_type_string<short, 1, wchar_t>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_string<wchar_t, L'4', L'2'>,
+    to_type_string<std::size_t, 42, wchar_t>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_string<wchar_t, L'4', L'2'>,
+    to_type_string<std::size_t, 42, wchar_t>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_string<wchar_t, L'-', L'5', L'6'>,
+    to_type_string<int, -56, wchar_t>
+  >();
+}
+
 } // namespace fatal {
