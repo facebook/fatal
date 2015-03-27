@@ -489,14 +489,15 @@ FATAL_TEST(variant, self_assignment) {
   typedef test_variant<int, double, test_string> VAR;
 
   VAR v1(allocator, 10);
+  auto p = std::addressof(v1);
   FATAL_EXPECT_TRUE(v1.is_of<int>());
   FATAL_EXPECT_EQ(10, (v1.get<int>()));
 
-  v1 = v1;
+  *p = v1;
   FATAL_EXPECT_TRUE(v1.is_of<int>());
   FATAL_EXPECT_EQ(10, (v1.get<int>()));
 
-  v1 = std::move(v1);
+  *p = std::move(v1);
   FATAL_EXPECT_TRUE(v1.is_of<int>());
   FATAL_EXPECT_EQ(10, (v1.get<int>()));
 }
