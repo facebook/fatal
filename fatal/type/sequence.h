@@ -27,7 +27,15 @@ struct constant_sequence {
   using type = T;
 
   /**
-   * TODO: DOCUMENT AND TEST
+   * Gets a `std::integral_constant` for the given value,
+   * with the same type as this sequence's elements.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 1, 2, 3>;
+   *
+   *  // yields `std::integral_constant<int, 4>`
+   *  using result = seq::constant<4>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -68,7 +76,20 @@ struct constant_sequence {
   static constexpr bool empty = size == 0;
 
   /**
-   * TODO: document and test
+   * Gets the index of the given element in this sequence
+   * as a `std::integral_constant` of `std::size_t`.
+   *
+   * Returns the size of the sequence when not found.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 10, 20, 30>;
+   *
+   *  // yields `std::integral_constant<int, 1>`
+   *  using result1 = seq::index_of<20>;
+   *
+   *  // yields `std::integral_constant<int, 3>`
+   *  using result2 = seq::index_of<40>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -76,7 +97,20 @@ struct constant_sequence {
   using index_of = typename list::template index_of<constant<Needle>>;
 
   /**
-   * TODO: document and test
+   * Gets the index of the given element in this sequence
+   * as a `std::integral_constant` of `std::size_t`.
+   *
+   * Results in a compilation error when not found.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 10, 20, 30>;
+   *
+   *  // yields `std::integral_constant<int, 1>`
+   *  using result1 = seq::index_of<20>;
+   *
+   *  // fails to compile
+   *  using result2 = seq::index_of<40>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -86,7 +120,18 @@ struct constant_sequence {
   >;
 
   /**
-   * TODO: document and test
+   * Returns a `std::integral_constant` of type `bool` telling
+   * whether the given element is contained in this sequence or not.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 10, 20, 30>;
+   *
+   *  // yields `std::true_type`
+   *  using result1 = seq::index_of<20>;
+   *
+   *  // yields `std::false_type`
+   *  using result2 = seq::index_of<40>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -124,7 +169,20 @@ struct constant_sequence {
   using push_front = TSequence<type, UValues..., Values...>;
 
   /**
-   * TODO: document and test
+   * Appends the elements of the given sequences, in
+   * the order given, to the end of this sequence.
+   *
+   * Example:
+   *
+   *  using a = constant_sequence<int, 1, 2, 3>;
+   *  using b = constant_sequence<int, 4, 5, 6>;
+   *  using c = constant_sequence<int, 7, 8, 9>;
+   *
+   *  // yields `constant_sequence<int, 1, 2, 3, 4, 5, 6>
+   *  using result1 = a::concat<b>;
+   *
+   *  // yields `constant_sequence<int, 1, 2, 3, 4, 5, 6, 7, 8, 9>
+   *  using result2 = a::concat<b, c>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -135,7 +193,22 @@ struct constant_sequence {
   >::template apply_typed_values<type, TSequence>;
 
   /**
-   * TODO: document and test
+   * Gets a sequence with all the elements positioned in the
+   * range `[Offset, Size)`, where `Size` is the size of this
+   * sequence.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  // yields `constant_sequence<int, 4, 5, 6>`
+   *  using result1 = seq::tail<0>;
+   *
+   *  // yields `constant_sequence<int, 5, 6>`
+   *  using result2 = seq::tail<1>;
+   *
+   *  // yields `constant_sequence<int>`
+   *  using result3 = seq::tail<3>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -144,7 +217,33 @@ struct constant_sequence {
     ::template apply_typed_values<type, TSequence>;
 
   /**
-   * TODO: document and test
+   * Gets a pair of sequences where the first one contains
+   * the elements positioned in the range `[0, Index)`, and
+   * the second one contains the elements positioned in the
+   * range `[Index, Size)`, where `Size` is the size of this
+   * sequence.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  // yields `type_pair<
+   *  //   constant_sequence<int>,
+   *  //   constant_sequence<int, 4, 5, 6>
+   *  // >`
+   *  using result1 = seq::split<0>;
+   *
+   *  // yields `type_pair<
+   *  //   constant_sequence<int, 4>,
+   *  //   constant_sequence<int, 5, 6>
+   *  // >`
+   *  using result2 = seq::split<1>;
+   *
+   *  // yields `type_pair<
+   *  //   constant_sequence<int, 4, 5, 6>,
+   *  //   constant_sequence<int>
+   *  // >`
+   *  using result3 = seq::split<3>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -157,7 +256,21 @@ struct constant_sequence {
   >;
 
   /**
-   * TODO: document and test
+   * Gets a sequence with all the elements positioned in the
+   * range `[Begin, End)`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  // yields `constant_sequence<int, 4, 5, 6>`
+   *  using result1 = seq::slice<0, 3>;
+   *
+   *  // yields `constant_sequence<int, 5, 6>`
+   *  using result2 = seq::slice<1, 3>;
+   *
+   *  // yields `constant_sequence<int>`
+   *  using result3 = seq::slice<2, 2>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -166,21 +279,47 @@ struct constant_sequence {
     ::template apply_typed_values<type, TSequence>;
 
   /**
-   * TODO: document and test
+   * Gets a sequence with the leftmost `N` elements of this sequence.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  // yields `constant_sequence<int, 4, 5, 6>`
+   *  using result1 = seq::left<3>;
+   *
+   *  // yields `constant_sequence<int, 4, 5>`
+   *  using result2 = seq::left<2>;
+   *
+   *  // yields `constant_sequence<int>`
+   *  using result3 = seq::left<0>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <std::size_t Size>
-  using left = typename list::template left<Size>
+  template <std::size_t N>
+  using left = typename list::template left<N>
     ::template apply_typed_values<type, TSequence>;
 
   /**
-   * TODO: document and test
+   * Gets a sequence with the rightmost `N` elements of this sequence.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  // yields `constant_sequence<int, 4, 5, 6>`
+   *  using result1 = seq::right<3>;
+   *
+   *  // yields `constant_sequence<int, 5, 6>`
+   *  using result2 = seq::right<2>;
+   *
+   *  // yields `constant_sequence<int>`
+   *  using result3 = seq::right<0>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <std::size_t Size>
-  using right = typename list::template right<Size>
+  template <std::size_t N>
+  using right = typename list::template right<N>
     ::template apply_typed_values<type, TSequence>;
 
   /**
@@ -216,6 +355,27 @@ struct constant_sequence {
   using typed_apply = U<type, Values...>;
 
   /**
+   * Parses the integral value represented by this sequence.
+   *
+   * Parameters:
+   *
+   *  - TIntegral: the type of the integral value that will be parsed.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<char, '-', '5', '6'>;
+   *
+   *  // yields `std::integral_constant<int, -56>`
+   *  using result = seq::parse<int>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TIntegral>
+  using parse = typename parse_sequence<TIntegral>::template apply<
+    T, Values...
+  >;
+
+  /**
    * Gets a constexpr array with the values from this sequence.
    *
    * Example:
@@ -230,7 +390,24 @@ struct constant_sequence {
   template <type... Suffix>
   using array = constant_array<type, Values..., Suffix...>;
 
-  // TODO: DOCUMENT
+  /**
+   * Gets a pointer to a statically allocated version of this sequence.
+   *
+   * An optional suffix can be provided as well, resulting in the sequence,
+   * followed by the suffix.
+   *
+   * Example:
+   *
+   *  using str = constant_sequence<char, 'h', 'e', 'l', 'l', 'o'>;
+   *
+   *  // prints `hello`
+   *  std::cout << std::string(str::data(), std::size) << std::endl;
+   *
+   *  // prints `hello`
+   *  std::cout << str::data<'\0'>() << std::endl;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
   template <type... Suffix>
   static constexpr type const *data() { return array<>::data(); }
 
@@ -255,11 +432,45 @@ struct constant_sequence {
     type, Values..., Suffix..., static_cast<type>(0)
   >;
 
-  // TODO: DOCUMENT
+  /**
+   * Gets a pointer to a statically allocated version of this sequence,
+   * with a trailing null terminator.
+   *
+   * An optional suffix can be provided as well, resulting in the sequence,
+   * followed by the suffix, followed by the null terminator.
+   *
+   * Example:
+   *
+   *  using str = constant_sequence<char, 'h', 'e', 'l', 'l', 'o'>;
+   *
+   *  // prints `hello`
+   *  std::cout << str::z_data() << std::endl;
+   *
+   *  // prints `hello world`
+   *  std::cout << str::z_data<' ', 'w', 'o', 'r', 'l', 'd'>() << std::endl;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
   template <type... Suffix>
   static constexpr type const *z_data() { return z_array<>::data(); }
 
-  // TODO: DOCUMENT AND TEST (std::vector)
+  /**
+   * Constructs the type `U`, passing the elements of
+   * this sequence as the arguments to the constructor,
+   * followed by a perfect forwardind of `args`.
+   *
+   * Example:
+   *
+   *  using str = constant_sequence<char, 'h', 'e', 'l', 'l', 'o'>;
+   *
+   *  // yields `std::vector<char>{'h', 'e', 'l', 'l', 'o'}`
+   *  auto v = str::init<std::vector<char>>();
+   *
+   *  auto s = str::init<std::vector<char>>('\0');
+   *
+   *  // prints `hello`
+   *  std::cout << s.data() << std::endl;
+   */
   template <typename U, typename... UArgs>
   static constexpr U init(UArgs &&...args) {
     return U{Values..., std::forward<UArgs>(args)...};
@@ -314,17 +525,24 @@ template <bool, bool, typename T, T, T> struct build;
 /////////////////////
 
 /**
- * TODO: DOCUMENT AND TEST OpenEnd
+ * Builds a constant_sequence with elements in the range `[Begin, End)`,
+ * when `OpenEnd` is `true`, or in the range `[Begin, End]` otherwise.
  *
- * Builds a constant_sequence with elements in the range `[Begin, End)`.
+ * The default value for `OpenEnd` is `true`.
  *
  * Example:
  *
  * // yields `constant_sequence<int, 1, 2, 3, 4>`
- * typedef constant_range<int, 1, 5> result1;
+ * using result1 = constant_range<int, 1, 5>;
  *
  * // yields `constant_sequence<int, 1, 2>`
- * typedef constant_range<int, 1, 3> result2;
+ * using result2 = constant_range<int, 1, 3, true>;
+ *
+ * // yields `constant_sequence<int, 1, 2, 3, 4, 5>`
+ * using result3 = constant_range<int, 1, 5, false>;
+ *
+ * // yields `constant_sequence<int, 1, 2, 3>`
+ * using result4 = constant_range<int, 1, 3, false>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */

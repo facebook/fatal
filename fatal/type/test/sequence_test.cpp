@@ -12,6 +12,7 @@
 #include <fatal/test/driver.h>
 
 #include <fatal/preprocessor.h>
+#include <fatal/type/test/parse_sequence_input.h>
 
 #include <iterator>
 
@@ -709,6 +710,26 @@ FATAL_TEST(constant_sequence, typed_apply) {
   check_typed_apply<char>();
   check_typed_apply<char, '1'>();
   check_typed_apply<char, '1', '2', '3', '4', '5'>();
+}
+
+//////////////////////////////
+// constant_sequence::parse //
+//////////////////////////////
+
+FATAL_TEST(constant_sequence, parse) {
+# define TEST_IMPL(T, Value, TChar, ...) \
+  do { \
+    using seq = constant_sequence<TChar, __VA_ARGS__>; \
+    \
+    FATAL_EXPECT_SAME< \
+      std::integral_constant<T, Value>, \
+      seq::parse<T> \
+    >(); \
+  } while (false)
+
+  FATAL_IMPLT_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
+
+# undef TEST_IMPL
 }
 
 ////////////////////////////////////////////////////
