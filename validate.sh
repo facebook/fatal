@@ -42,7 +42,7 @@ run_validation() {
 if [ "$USE_CC" ]; then
   run_validation "$USE_CC"
 else
-  for cc in clang++-3.5 g++-4.8 g++-4.9 clang++-3.4; do
+  for cc in clang++-3.7 g++-4.8 g++-4.9 clang++-3.4 clang++-3.5 clang++-3.6; do
     if which $cc; then
       run_validation "$cc"
     fi
