@@ -11,6 +11,8 @@
 
 #include <fatal/test/driver.h>
 
+#include <fatal/type/test/parse_sequence_input.h>
+
 #include <type_traits>
 
 namespace fatal {
@@ -127,48 +129,18 @@ FATAL_TEST(type_string, string) {
 // to_type_string //
 ////////////////////
 
-#define TEST_IMPL(Str, T, Value) \
-  do { \
-    FATAL_EXPECT_SAME< \
-      Str, \
-      to_type_string<T, Value, Str::char_type> \
-    >(); \
-  } while (false)
-
 FATAL_TEST(to_type_string, sanity_check) {
-  CREATE_PARSE_TEST_CALLS(TEST_IMPL);
-}
-
-#undef TEST_IMPL
-
-///////////////////////
-// parse_type_string //
-///////////////////////
-
-#define TEST_IMPL(Str, T, Value) \
+# define TEST_IMPL(T, Value, TChar, ...) \
   do { \
-    using expected = std::integral_constant<T, Value>; \
-    \
     FATAL_EXPECT_SAME< \
-      expected, \
-      Str::apply<parse_type_string<T>::bind<Str::char_type>::apply> \
-    >(); \
-    \
-    FATAL_EXPECT_SAME< \
-      expected, \
-      Str::typed_apply<parse_type_string<T>::apply> \
-    >(); \
-    \
-    FATAL_EXPECT_SAME< \
-      expected, \
-      parse_type_string<T>::from<Str> \
+      type_string<TChar, __VA_ARGS__>, \
+      to_type_string<T, Value, TChar> \
     >(); \
   } while (false)
 
-FATAL_TEST(parse_type_string, sanity_check) {
-  CREATE_PARSE_TEST_CALLS(TEST_IMPL);
-}
+  FATAL_IMPLT_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
 
-#undef TEST_IMPL
+# undef TEST_IMPL
+}
 
 } // namespace fatal {

@@ -12,11 +12,13 @@
 #include <fatal/test/driver.h>
 
 #include <fatal/preprocessor.h>
+#include <fatal/type/test/parse_sequence_input.h>
 
 namespace fatal {
 
 template <typename, typename> struct dummy_pair {};
 template <typename...> struct dummy_list {};
+template <typename T, T...> struct dummy_sequence {};
 
 ///////////////////////
 // cartesian_product //
@@ -154,6 +156,54 @@ FATAL_TEST(operation, flatten) {
   >();
 
   // TODO: ADD MORE TESTS
+}
+
+/////////////////
+// to_sequence //
+/////////////////
+
+FATAL_TEST(operation, to_sequence) {
+# define TEST_IMPL(T, Value, TChar, ...) \
+  do { \
+    FATAL_EXPECT_SAME< \
+      dummy_sequence<TChar, __VA_ARGS__>, \
+      to_sequence<T, Value, dummy_sequence, TChar> \
+    >(); \
+  } while (false)
+
+  FATAL_IMPLT_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
+
+# undef TEST_IMPL
+}
+
+////////////////////
+// parse_sequence //
+////////////////////
+
+FATAL_TEST(operation, parse_sequence) {
+# define TEST_IMPL(T, Value, TChar, ...) \
+  do { \
+    using expected = std::integral_constant<T, Value>; \
+    \
+    FATAL_EXPECT_SAME< \
+      expected, \
+      parse_sequence<T>::bind<TChar>::apply<__VA_ARGS__> \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      expected, \
+      parse_sequence<T>::apply<TChar, __VA_ARGS__> \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      expected, \
+      parse_sequence<T>::from<dummy_sequence<TChar, __VA_ARGS__>> \
+    >(); \
+  } while (false)
+
+  FATAL_IMPLT_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
+
+# undef TEST_IMPL
 }
 
 } // namespace fatal {
