@@ -8,7 +8,8 @@
  */
 
 #include <fatal/container/variant.h>
-#include <fatal/test/lib.h>
+#include <fatal/test/string.h>
+#include <fatal/test/type.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
 #include <fatal/type/string.h>
@@ -16,6 +17,7 @@
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
+#include <vector>
 
 struct request_args {
   explicit request_args(std::string const &s): offset_(0) {
