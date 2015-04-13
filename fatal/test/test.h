@@ -40,20 +40,26 @@ namespace test {
     FATAL_UID(fatal_test_case_impl), \
     FATAL_TO_STR(FATAL_UNPARENTHESIZE(Case)), \
     FATAL_TO_STR(FATAL_UNPARENTHESIZE(Name)), \
-    FATAL_UID(fatal_test_case_results_impl) \
+    FATAL_UID(fatal_test_case_results_impl), \
+    FATAL_UID(fatal_test_case_test_registry_placeholder_impl) \
   )
 
-#define FATAL_IMPL_TEST_CASE(Class, Case, Name, Results) \
+#define FATAL_IMPL_TEST_CASE(Class, Case, Name, Results, RegistryPlaceholder) \
   struct Class { \
     void operator ()(); \
     \
     ::fatal::test::results Results; \
   }; \
   \
-  namespace { \
-  static auto const FATAL_UID(FATAL_CAT(Class, FATAL_CAT(_, test_registry))) \
+  static auto const RegistryPlaceholder \
     = ::fatal::test::detail::test_impl::registry::get().add<Class>(); \
-  }; \
+  \
+  std::size_t operator <<( \
+    ::fatal::test::detail::test_impl::registry_index_tag, \
+    Class * \
+  ) { \
+    return RegistryPlaceholder; \
+  } \
   \
   char const *operator <<( \
     ::fatal::test::detail::test_impl::group_tag, \
@@ -336,6 +342,7 @@ private:
 namespace detail {
 namespace test_impl {
 
+struct registry_index_tag {};
 struct group_tag {};
 struct name_tag {};
 struct source_tag {};
