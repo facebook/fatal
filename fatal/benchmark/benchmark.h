@@ -346,8 +346,8 @@ struct default_printer {
           ? 0
           : decltype(period)(std::chrono::seconds(1)).count() / period.count();
 
-        out << i.name() << ": period = "
-          << period.count() << ' ' << time::suffix(period) << ", frequency = ";
+        out << i.name() << ": period = " << period.count()
+          << ' ' << time::suffix(period) << ", frequency = ";
 
         if (inf) {
           out << "inf";
@@ -383,7 +383,7 @@ struct default_printer {
     }
 
     out << "total running time: " << running_time.count()
-      << time::suffix(running_time) << '\n';
+      << ' ' << time::suffix(running_time) << '\n';
   }
 };
 
