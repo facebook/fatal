@@ -342,7 +342,10 @@ struct foreach_if<TPredicate, Index, U, UArgs...> {
 // visit //
 ///////////
 
-template <std::size_t Index, typename... Args> struct visit;
+// TODO: binary search for the given index
+// TODO: switch statement optimization
+
+template <std::size_t, typename...> struct visit;
 
 template <std::size_t Index, typename T, typename... Args>
 struct visit<Index, T, Args...> {
