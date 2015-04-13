@@ -23,18 +23,18 @@ run_validation() {
   fi
 
   if [ "$skip_test" != "true" ]; then
-    USE_CC="$1" NO_CLEAR=true ./test.sh
+    CC_OPT="-O0" USE_CC="$1" NO_CLEAR=true ./test.sh
   fi
 
   if [ "$skip_build" != "true" ]; then
-    USE_CC="$1" NO_CLEAR=true ./build.sh
+    CC_OPT="-O0" USE_CC="$1" NO_CLEAR=true ./build.sh
   fi
 
   cc="$1"
 
   if [ "$skip_demo" != "true" ] && [ "$cc" != "g++-4.8" ]; then
     for demo in ytse_jam; do
-      echo -n | USE_CC="$cc" NO_CLEAR=true ./demo.sh $demo
+      echo -n | CC_OPT="-O0" USE_CC="$cc" NO_CLEAR=true ./demo.sh $demo
     done
   fi
 }

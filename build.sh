@@ -14,6 +14,6 @@ if [ -z "$USE_CC" ]; then
   done
 else
   for f in `find ./fatal -name \*.cpp`; do
-    USE_CC="$USE_CC" NO_CLEAR=true ./compile.sh "$f" "$@"
+    CC_OPT="-O0" USE_CC="$USE_CC" NO_CLEAR=true ./compile.sh "$f" "$@"
   done
 fi
