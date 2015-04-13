@@ -10,7 +10,11 @@
 #ifndef FATAL_INCLUDE_fatal_test_driver_h
 #define FATAL_INCLUDE_fatal_test_driver_h
 
-#include <fatal/test/lib.h>
+#include <fatal/log/log.h>
+#include <fatal/test/random_data.h>
+#include <fatal/test/string.h>
+#include <fatal/test/test.h>
+#include <fatal/test/type.h>
 
 #include <iostream>
 
