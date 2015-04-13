@@ -42,6 +42,17 @@ struct uninitialized {
   const_pointer ptr() const noexcept { return std::addressof(data_.value); }
   pointer ptr() noexcept { return std::addressof(data_.value); }
 
+  void steal(uninitialized &&other)
+    noexcept(
+      noexcept(
+        std::declval<uninitialized>().construct(std::move(other.data_.value))
+      )
+    )
+  {
+    construct(std::move(other.data_.value));
+    other.destroy();
+  }
+
   template <typename... Args>
   reference construct(Args &&...args)
     noexcept(noexcept(type(std::forward<Args>(args)...)))
