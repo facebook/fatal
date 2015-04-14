@@ -330,7 +330,7 @@ private:
  * not owned, but rather referenced, by the rope. This means that such
  * pieces must outlive the rope instance for the latter to remain valid.
  *
- * There are three types of peices that can be stored in a rope:
+ * There are three types of pieces that can be stored in a rope:
  *
  * 1. string_ref: a reference to a portion of an existing string.
  *    Results from appending a string literal, an lvalue of type
@@ -348,6 +348,73 @@ private:
  *    to storing references to existing strings. Avoid calling
  *    append passing a single character as a parameter. The
  *    contents of this piece are owned by the rope.
+ *
+ * Example 1:
+ *
+ *  ephemeral_rope<> rope;
+ *
+ *  // the string literal "hello" will be referenced by the rope
+ *  rope.append("hello");
+ *
+ *  // the character ',' will be owned by the rope
+ *  rope.append(',');
+ *
+ *  // the character ' ' will be owned by the rope
+ *  rope.push_back(' ');
+ *
+ *  // the string temporary "world!" will be owned by the rope
+ *  rope.append(std::string("world!"));
+ *
+ *  std::string s1(" this is");
+ *  // the string `s1` will be referenced by the rope
+ *  rope.append(s1);
+ *
+ *  std::string s2(" a test.");
+ *  // the contents of `s2` will be owned by the rope
+ *  rope.append(std::move(s2));
+ *
+ *  // prints "hello, world! this is a test."
+ *  std::cout << rope << std::endl;
+ *
+ * Example 2:
+ *
+ *  ephemeral_rope<> rope;
+ *
+ *  // the string literal "hello" will be referenced by the rope
+ *  rope.append("hello");
+ *
+ *  // the character ',' will be owned by the rope
+ *  // the character ' ' will be owned by the rope
+ *  // the string temporary "world!" will be owned by the rope
+ *  rope.multi_append(',', ' ', std::string("world!"));
+ *
+ *  std::string s1(" this is");
+ *  std::string s2(" a test.");
+ *  // the string `s1` will be referenced by the rope
+ *  // the contents of `s2` will be owned by the rope
+ *  rope.multi_append(s1, std::move(s2));
+ *
+ *  // prints "hello, world! this is a test."
+ *  std::cout << rope << std::endl;
+ *
+ * Example 3:
+ *
+ *  std::string s1(" this is");
+ *  std::string s2(" a test.");
+ *
+ *  // the string literal "hello" will be referenced by the rope
+ *  // the character ',' will be owned by the rope
+ *  // the character ' ' will be owned by the rope
+ *  // the string temporary "world!" will be owned by the rope
+ *  // the string `s1` will be referenced by the rope
+ *  // the contents of `s2` will be owned by the rope
+ *
+ *  ephemeral_rope<> rope(
+ *    "hello", ',', ' ', std::string("world!"), s1, std::move(s2)
+ *  );
+ *
+ *  // prints "hello, world! this is a test."
+ *  std::cout << rope << std::endl;
  *
  * @author: Marcelo Juchem
  */
