@@ -244,20 +244,6 @@ public:
           ) \
         ); \
     }; \
-    \
-    struct free_function { \
-      constexpr free_function() {} \
-      \
-      template <typename... UArgs> \
-      constexpr static auto call(UArgs &&...args) \
-        -> decltype(__VA_ARGS__(::std::forward<UArgs>(args)...)) \
-      { return __VA_ARGS__(::std::forward<UArgs>(args)...); } \
-      \
-      template <typename... UArgs> \
-      constexpr auto operator ()(UArgs &&...args) const \
-        -> decltype(call(::std::forward<UArgs>(args)...)) \
-      { return call(::std::forward<UArgs>(args)...); } \
-    }; \
   }
 
 struct call_traits {
@@ -380,6 +366,21 @@ struct call_traits {
 
 # undef FATAL_CALL_TRAITS_IMPL
 };
+
+#define FATAL_FREE_FUNCTION_CALL_TRAITS(Name, ...) \
+  struct Name { \
+    constexpr Name() {} \
+    \
+    template <typename... UArgs> \
+    constexpr static auto call(UArgs &&...args) \
+      -> decltype(__VA_ARGS__(::std::forward<UArgs>(args)...)) \
+    { return __VA_ARGS__(::std::forward<UArgs>(args)...); } \
+    \
+    template <typename... UArgs> \
+    constexpr auto operator ()(UArgs &&...args) const \
+      -> decltype(call(::std::forward<UArgs>(args)...)) \
+    { return call(::std::forward<UArgs>(args)...); } \
+  }; \
 
 } // namespace fatal {
 

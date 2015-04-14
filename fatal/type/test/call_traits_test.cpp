@@ -25,6 +25,12 @@ struct dummy_member_function { void test_fn(int); };
 struct dummy_none {};
 struct dummy_member_type { using test_fn = void; };
 
+FATAL_CALL_TRAITS(test_fn_traits, test_fn);
+
+/////////////////////
+// member_function //
+/////////////////////
+
 struct member_fn {
   constexpr member_fn(): d_(3.1415926) {}
 
@@ -60,59 +66,9 @@ private:
   double d_;
 };
 
-struct static_fn {
-  static void test_fn(long, double, int, char const *) {
-    throw std::exception();
-  }
-
-  static int test_fn(int x) { return x; }
-
-  static std::size_t test_fn(
-    std::string s1,
-    char const *s2,
-    std::string const &s3,
-    std::string &s4,
-    std::string &out
-  ) {
-    out = std::move(s1);
-    out.append(s2);
-    out.append(s3);
-    out.append(s4);
-    return out.size();
-  }
-
-  static long test_fn(int x, bool b) { return b ? x : -x; }
-
-  static constexpr int test_fn(int a, int b, int c) { return a + b + c; }
-};
-
-void test_fn(long, double, int, char const *) { throw std::exception(); }
-
-int test_fn(int x) { return x; }
-
-std::size_t test_fn(
-  std::string s1,
-  char const *s2,
-  std::string const &s3,
-  std::string &s4,
-  std::string &out
-) {
-  out = std::move(s1);
-  out.append(s2);
-  out.append(s3);
-  out.append(s4);
-  return out.size();
-}
-
-long test_fn(int x, bool b) { return b ? x : -x; }
-
-constexpr int test_fn(int a, int b, int c) { return a + b + c; }
-
-FATAL_CALL_TRAITS(test_fn_traits, test_fn);
-
-////////////////////////////////////////
-// call_traits::member_function::call //
-////////////////////////////////////////
+/////////////////////////////
+// member_function -> call //
+/////////////////////////////
 
 FATAL_TEST(member_function, call_const_this_ref) {
   member_fn const f;
@@ -183,9 +139,9 @@ FATAL_TEST(member_function, call_non_const_this_ref) {
   FATAL_EXPECT_EQ(-57, test_fn_traits::member_function::call(f, 57, false));
 }
 
-///////////////////////////////////////////////////
-// call_traits::member_function::function_object //
-///////////////////////////////////////////////////
+////////////////////////////////////////
+// member_function -> function_object //
+////////////////////////////////////////
 
 FATAL_TEST(member_function, function_object_const_this_ref) {
   member_fn const f;
@@ -256,9 +212,9 @@ FATAL_TEST(member_function, function_object_non_const_this_ref) {
   FATAL_EXPECT_EQ(-57, function_object(f, 57, false));
 }
 
-////////////////////////////////////////////
-// call_traits::member_function::supports //
-////////////////////////////////////////////
+/////////////////////////////////
+// member_function -> supports //
+/////////////////////////////////
 
 struct dummy_ctmfs {
   void test_fn() const {}
@@ -320,9 +276,39 @@ FATAL_TEST(member_function, supports) {
 # undef CHECK_MEMBER_FUNCTION_SUPPORTS
 }
 
-//////////////////////////////////////
-// call_traits::static_member::call //
-//////////////////////////////////////
+///////////////////
+// static member //
+///////////////////
+
+struct static_fn {
+  static void test_fn(long, double, int, char const *) {
+    throw std::exception();
+  }
+
+  static int test_fn(int x) { return x; }
+
+  static std::size_t test_fn(
+    std::string s1,
+    char const *s2,
+    std::string const &s3,
+    std::string &s4,
+    std::string &out
+  ) {
+    out = std::move(s1);
+    out.append(s2);
+    out.append(s3);
+    out.append(s4);
+    return out.size();
+  }
+
+  static long test_fn(int x, bool b) { return b ? x : -x; }
+
+  static constexpr int test_fn(int a, int b, int c) { return a + b + c; }
+};
+
+///////////////////////////
+// static_member -> call //
+///////////////////////////
 
 FATAL_TEST(static_member, call_static_member) {
   FATAL_EXPECT_THROW(std::exception) {
@@ -359,9 +345,9 @@ FATAL_TEST(static_member, call_static_member) {
   );
 }
 
-/////////////////////////////////////////////////
-// call_traits::static_member::function_object //
-/////////////////////////////////////////////////
+//////////////////////////////////////
+// static_member -> function_object //
+//////////////////////////////////////
 
 FATAL_TEST(static_member, function_object_static_member) {
   test_fn_traits::static_member::bind<static_fn> function_object;
@@ -392,9 +378,9 @@ FATAL_TEST(static_member, function_object_static_member) {
   FATAL_EXPECT_EQ(-57, function_object(57, false));
 }
 
-//////////////////////////////////////////
-// call_traits::static_member::supports //
-//////////////////////////////////////////
+///////////////////////////////
+// static_member -> supports //
+///////////////////////////////
 
 struct dummy_ctsms {
   static void test_fn() {}
@@ -447,13 +433,41 @@ FATAL_TEST(static_member, supports) {
 # undef CHECK_STATIC_MEMBER_SUPPORTS
 }
 
-//////////////////////////////////////
-// call_traits::free_function::call //
-//////////////////////////////////////
+///////////////////
+// free function //
+///////////////////
+
+void test_fn(long, double, int, char const *) { throw std::exception(); }
+
+int test_fn(int x) { return x; }
+
+std::size_t test_fn(
+  std::string s1,
+  char const *s2,
+  std::string const &s3,
+  std::string &s4,
+  std::string &out
+) {
+  out = std::move(s1);
+  out.append(s2);
+  out.append(s3);
+  out.append(s4);
+  return out.size();
+}
+
+long test_fn(int x, bool b) { return b ? x : -x; }
+
+constexpr int test_fn(int a, int b, int c) { return a + b + c; }
+
+FATAL_FREE_FUNCTION_CALL_TRAITS(test_free_fn_traits, test_fn);
+
+///////////////////////////
+// free_function -> call //
+///////////////////////////
 
 FATAL_TEST(free_function, call_free_function) {
   FATAL_EXPECT_THROW(std::exception) {
-    test_fn_traits::free_function::call(0l, 0.0, 0, "");
+    test_free_fn_traits::call(0l, 0.0, 0, "");
   };
 
   std::string s1("hello");
@@ -462,30 +476,30 @@ FATAL_TEST(free_function, call_free_function) {
   std::string s4("!");
   std::string out("some test string");
 
-  FATAL_EXPECT_EQ(17, test_fn_traits::free_function::call(17));
+  FATAL_EXPECT_EQ(17, test_free_fn_traits::call(17));
 
   FATAL_EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    test_fn_traits::free_function::call(s1, s2, s3, s4, out)
+    test_free_fn_traits::call(s1, s2, s3, s4, out)
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
   typedef std::integral_constant<
-    int, test_fn_traits::free_function::call(2, 3, 5)
+    int, test_free_fn_traits::call(2, 3, 5)
   > c;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
-  FATAL_EXPECT_EQ(57, test_fn_traits::free_function::call(57, true));
-  FATAL_EXPECT_EQ(-57, test_fn_traits::free_function::call(57, false));
+  FATAL_EXPECT_EQ(57, test_free_fn_traits::call(57, true));
+  FATAL_EXPECT_EQ(-57, test_free_fn_traits::call(57, false));
 }
 
-/////////////////////////////////////////////////
-// call_traits::free_function::function_object //
-/////////////////////////////////////////////////
+//////////////////////////////////////
+// free_function -> function_object //
+//////////////////////////////////////
 
 FATAL_TEST(free_function, function_object_free_function) {
-  test_fn_traits::free_function function_object;
+  test_free_fn_traits function_object;
 
   FATAL_EXPECT_THROW(std::exception) {
     function_object(0l, 0.0, 0, "");
@@ -513,9 +527,9 @@ FATAL_TEST(free_function, function_object_free_function) {
   FATAL_EXPECT_EQ(-57, function_object(57, false));
 }
 
-/////////////////////////
+//////////////////////////
 // call_operator_traits //
-/////////////////////////
+//////////////////////////
 
 struct member_op {
   constexpr member_op(): d_(3.1415926) {}
@@ -551,6 +565,10 @@ struct member_op {
 private:
   double d_;
 };
+
+//////////////////////////////////
+// call_operator_traits -> call //
+//////////////////////////////////
 
 FATAL_TEST(call_operator_traits, const_this_ref) {
   member_op const f;
@@ -650,6 +668,10 @@ FATAL_TEST(call_operator_traits, non_const_this_ref) {
   FATAL_EXPECT_EQ(-57, call_operator_traits::call(f, 57, false));
 }
 
+/////////////////////////////////////////////
+// call_operator_traits -> function_object //
+/////////////////////////////////////////////
+
 FATAL_TEST(call_operator_traits, non_const_this_ref_function_object) {
   member_op f;
   member_op const &cf = f;
@@ -685,6 +707,10 @@ FATAL_TEST(call_operator_traits, non_const_this_ref_function_object) {
   FATAL_EXPECT_EQ(57, function_object(f, 57, true));
   FATAL_EXPECT_EQ(-57, function_object(f, 57, false));
 }
+
+//////////////////////////////////////
+// call_operator_traits -> supports //
+//////////////////////////////////////
 
 struct foonctor {
   void operator ()() {}
