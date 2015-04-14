@@ -36,9 +36,9 @@ namespace fatal {
 namespace detail {
 namespace ephemeral_rope_impl {
 
-/////////////
-// variant //
-/////////////
+////////////////////////////
+// IMPLEMENTATION DETAILS //
+////////////////////////////
 
 // optimized for ephemeral_rope
 template <typename TData>
@@ -227,10 +227,6 @@ private:
   id_type which_;
 };
 
-////////////
-// vector //
-////////////
-
 // optimized for ephemeral_rope
 template <typename T, std::size_t SmallBufferSize = 8>
 struct vector {
@@ -320,11 +316,70 @@ private:
 // ephemeral_rope //
 ////////////////////
 
+/**
+ * A class used to represent a rope, that is, a sequence of string pieces
+ * that together represent a string.
+ *
+ * Provides an interface very similar to that of `std::string`.
+ *
+ * This is an alternative to regular strings for append-heavy use-cases
+ * since appending to a rope doesn't incur copying the contents of the
+ * string piece being appended.
+ *
+ * The downside of this optimization is that some types of pieces are
+ * not owned, but rather referenced, by the rope. This means that such
+ * pieces must outlive the rope instance for the latter to remain valid.
+ *
+ * There are three types of peices that can be stored in a rope:
+ *
+ * 1. string_ref: a reference to a portion of an existing string.
+ *    Results from appending a string literal, an lvalue of type
+ *    `std::string` or any container that stores elements of type
+ *    `char` and provides the member functions `data()` and
+ *    `size()`. Examples of such containers are `std::string`,
+ *    `std::vector` and `std::array`.
+ *
+ * 2. std::string: stores a regular string as one piece of this rope.
+ *    Results from appending a temporary / rvalue of type `std::string`.
+ *    The contents of this piece are owned by the rope.
+ *
+ * 3. char: stores a single character. Results from appending
+ *    a value of type `char`. This is suboptimal when compared
+ *    to storing references to existing strings. Avoid calling
+ *    append passing a single character as a parameter. The
+ *    contents of this piece are owned by the rope.
+ *
+ * @author: Marcelo Juchem
+ */
+
 template <std::size_t SmallBufferSize = 8>
 struct ephemeral_rope {
+  // TODO: switch `char` piece with array+size, taking up the same space as the
+  // other pieces
+
   // TODO: REPLACE char FOR value_type EVERYWHERE
+
+  /**
+   * The type used to represent the characters contained
+   * in the string represented by this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   using value_type = char;
+
+  /**
+   * The type used to represent the number of characters
+   * contained in the string represented by this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   using size_type = std::size_t;
+
+  /**
+   * The type used to represent the difference between two iterators.
+   *
+   * @author: Marcelo Juchem
+   */
   using difference_type = typename std::make_signed<size_type>::type;
 
 private:
@@ -335,10 +390,48 @@ private:
   using small_buffer_size = typename container_type::small_buffer_size;
 
 public:
+  /**
+   * Default constructor. Constructs an empty rope.
+   *
+   * @author: Marcelo Juchem
+   */
   ephemeral_rope() = default;
+
+  /**
+   * There is no copy constructor defined for this rope.
+   *
+   * The reason there's no copy constructor is to avoid confusion
+   * with the semantics of copying a string. Since this rope class
+   * doesn't own its pieces most of the time, a copy constructor
+   * would silently allow ropes to outlive its pieces.
+   *
+   * Refer to the `mimic()` function for a way to obtain another
+   * rope instance representing the same string.
+   *
+   * @author: Marcelo Juchem
+   */
   ephemeral_rope(ephemeral_rope const &) = delete;
+
+  /**
+   * Move constructor. Commandeers the pieces contained in the given rope.
+   *
+   * @author: Marcelo Juchem
+   */
   ephemeral_rope(ephemeral_rope &&) = default;
 
+  /**
+   * Constructs a rope ouf of the given pieces.
+   *
+   * This is equivalent to constructing an empty rope using
+   * the default constructor, then calling `append()` on
+   * each piece given.
+   *
+   * Example:
+   *
+   *  ephemeral_rope<> hello("hello, ", std::string("world"), '!');
+   *
+   * @author: Marcelo Juchem
+   */
   template <
     typename... Args,
     typename = safe_overload_t<ephemeral_rope, Args...>
@@ -347,12 +440,140 @@ public:
     multi_append(std::forward<Args>(args)...);
   }
 
+  /**
+   * The type used to represent the number of pieces stored in this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   using piece_index = typename container_type::size_type;
+
+  ///////////////
+  // accessors //
+  ///////////////
+
+  /**
+   * Returns a reference to the `i-th' piece contained in this rope.
+   *
+   * Using `piece()` / `pieces()` is the prefered way to iterate over
+   * the characters of this rope, as opposed to using iterators, for
+   * optimal efficiency.
+   *
+   * Example:
+   *
+   *  std::string s;
+   *  s.reserve(rope.size());
+   *
+   *  for (decltype(rope)::piece_index i = 0; i < rope.pieces(); ++i) {
+   *    auto piece = rope.piece(i);
+   *    s.append(piece.begin(), piece.end());
+   *  }
+   *
+   * @author: Marcelo Juchem
+   */
+  string_ref piece(piece_index i) const {
+    assert(i < pieces_.size());
+    return pieces_[i].ref();
+  }
+
+  /**
+   * The number of pieces contained in this rope.
+   *
+   * Using `piece()` / `pieces()` is the prefered way to iterate over
+   * the characters of this rope, as opposed to using iterators, for
+   * optimal efficiency.
+   *
+   * Example:
+   *
+   *  std::string s;
+   *  s.reserve(rope.size());
+   *
+   *  for (decltype(rope)::piece_index i = 0; i < rope.pieces(); ++i) {
+   *    auto piece = rope.piece(i);
+   *    s.append(piece.begin(), piece.end());
+   *  }
+   *
+   * @author: Marcelo Juchem
+   */
+  piece_index pieces() const {
+    assert(size_ || pieces_.empty());
+    return pieces_.size();
+  }
+
+  /**
+   * Returns the first character of the string represented by this rope.
+   *
+   * No bounds checking is performed. It is up to the user to make sure
+   * this rope does not represent an empty string.
+   *
+   * @author: Marcelo Juchem
+   */
+  value_type front() const {
+    assert(!pieces_.empty());
+    return *pieces_[0].data();
+  }
+
+  /**
+   * Returns the last character of the string represented by this rope.
+   *
+   * No bounds checking is performed. It is up to the user to make sure
+   * this rope does not represent an empty string.
+   *
+   * @author: Marcelo Juchem
+   */
+  value_type back() const {
+    assert(!pieces_.empty());
+    auto const &last = pieces_[pieces_.size() - 1];
+
+    assert(last.size());
+    return last.data()[last.size() - 1];
+  }
+
+  /**
+   * Returns the `i-th` character of the string represented by this rope.
+   *
+   * Throws `std::out_of_range` if `i` represents an invalid index.
+   *
+   * Bear in mind that using `piece()` / `pieces()` is the prefered way
+   * to iterate over the characters of this rope.
+   *
+   * @author: Marcelo Juchem
+   */
+  value_type at(size_type i) const {
+    auto offset = pinpoint(i);
+
+    if (!offset.piece()) {
+      throw std::out_of_range("at(): index out of bounds");
+    }
+
+    return *offset;
+  }
+
+  /**
+   * Returns the `i-th` character of the string represented by this rope.
+   *
+   * No bounds checking is performed. It is up to the user to make sure
+   * `i` represents a valid index.
+   *
+   * Bear in mind that using `piece()` / `pieces()` is the prefered way
+   * to iterate over the characters of this rope.
+   *
+   * @author: Marcelo Juchem
+   */
+  value_type operator [](size_type i) const {
+    assert(i < size_);
+    return *pinpoint(i);
+  }
 
   ////////////////////
   // const_iterator //
   ////////////////////
 
+  /**
+   * The class used to represent an iterator for the characters
+   * contained in the string represented by this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   struct const_iterator:
     public std::iterator<
       std::bidirectional_iterator_tag,
@@ -516,34 +737,105 @@ public:
     size_type offset_;
   };
 
-  // TODO: add a remark saying that iterating over every character using
-  // const_iterator is very inneficient. One should use piece()/pieces()
-  // instead.
-
   ///////////////
   // iterators //
   ///////////////
 
+  /**
+   * An iterator to the first element of this rope.
+   *
+   * The interval `[cbegin, cend)` contains the sequence of characters
+   * represented by this rope.
+   *
+   * Bear in mind that iterating over every character of a rope
+   * using iterators is more inneficient than iterating over the
+   * characters of a regular string.
+   *
+   * It is advised that `piece()` / `pieces()` should be used instead
+   * for optimal efficiency.
+   *
+   * @author: Marcelo Juchem
+   */
   const_iterator cbegin() const {
     return const_iterator(
       this, pieces_.empty() ? nullptr : std::addressof(pieces_[0]), 0, 0
     );
   }
 
+  /**
+   * An iterator to the first element of this rope.
+   *
+   * The interval `[begin, end)` contains the sequence of characters
+   * represented by this rope.
+   *
+   * Bear in mind that iterating over every character of a rope
+   * using iterators is more inneficient than iterating over the
+   * characters of a regular string.
+   *
+   * It is advised that `piece()` / `pieces()` should be used instead
+   * for optimal efficiency.
+   *
+   * @author: Marcelo Juchem
+   */
   const_iterator begin() const { return cbegin(); }
 
+  /**
+   * An iterator to the end of this rope, past the last element.
+   *
+   * The interval `[cbegin, cend)` contains the sequence of characters
+   * represented by this rope.
+   *
+   * Bear in mind that iterating over every character of a rope
+   * using iterators is more inneficient than iterating over the
+   * characters of a regular string.
+   *
+   * It is advised that `piece()` / `pieces()` should be used instead
+   * for optimal efficiency.
+   *
+   * @author: Marcelo Juchem
+   */
   const_iterator cend() const {
     return const_iterator(this, nullptr, pieces_.size(), 0);
   }
 
+  /**
+   * An iterator to the end of this rope, past the last element.
+   *
+   * The interval `[begin, end)` contains the sequence of characters
+   * represented by this rope.
+   *
+   * Bear in mind that iterating over every character of a rope
+   * using iterators is more inneficient than iterating over the
+   * characters of a regular string.
+   *
+   * It is advised that `piece()` / `pieces()` should be used instead
+   * for optimal efficiency.
+   *
+   * @author: Marcelo Juchem
+   */
   const_iterator end() const { return cend(); }
 
   ///////////
   // mimic //
   ///////////
 
-  // TODO: ADD REMARKS ON WHY NOT COPY CONSTRUCTIBLE
-  // TODO: BIKE-SHED
+  /**
+   * Returns another rope that references the contents
+   * of this rope.
+   *
+   * The returned rope doesn't own any of the pieces.
+   *
+   * This is what the copy constructor of the rope would look like.
+   *
+   * The reason there's no copy constructor is to avoid confusion
+   * with the semantics of copying a string. Since this rope class
+   * doesn't own its pieces most of the time, a copy constructor
+   * would silently allow ropes to outlive its pieces.
+   *
+   * @author: Marcelo Juchem
+   *
+   * TODO: BIKE-SHED
+   */
   ephemeral_rope mimic() const {
     ephemeral_rope result;
 
@@ -562,6 +854,13 @@ public:
   // push_back //
   ///////////////
 
+  /**
+   * Appends the given character to the end of this rope.
+   *
+   * The character will be copied, not referenced.
+   *
+   * @author: Marcelo Juchem
+   */
   void push_back(char c) {
     pieces_.emplace_back(c, size_);
     ++size_;
@@ -571,6 +870,19 @@ public:
   // append //
   ////////////
 
+  /**
+   * Appends the given string to the end of this rope.
+   *
+   * Since the string is taken as an r-value reference,
+   * it will be moved into and owned by this rope, rather
+   * than simply referenced by it.
+   *
+   * L-value references to a string are handled by another
+   * overload of `append()` that simply references the
+   * string.
+   *
+   * @author: Marcelo Juchem
+   */
   void append(std::string &&s) {
     auto const size = s.size();
 
@@ -582,6 +894,12 @@ public:
     size_ += size;
   }
 
+  /**
+   * Appends a reference to the string represented by the
+   * given `string_ref` to the end of this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   void append(string_ref s) {
     auto const size = s.size();
 
@@ -593,10 +911,25 @@ public:
     size_ += size;
   }
 
+  /**
+   * Appends the given character to the end of this rope.
+   *
+   * The character will be copied, not referenced.
+   *
+   * This is equivalent to calling `push_back(c)`.
+   *
+   * @author: Marcelo Juchem
+   */
   void append(char c) {
     push_back(c);
   }
 
+  /**
+   * Constructs a `string_ref` out of the given arguments, then
+   * adds it to the end of this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   template <
     typename... Args,
     typename = safe_overload_t<ephemeral_rope, Args...>
@@ -617,6 +950,13 @@ public:
   // multi_append //
   //////////////////
 
+  /**
+   * Appends each of the given pieces to the end of this rope.
+   *
+   * This is the same as calling `append()` for each of the parameters.
+   *
+   * @author: Marcelo Juchem
+   */
   template <typename... Args>
   void multi_append(Args &&...args) {
     reserve(sizeof...(args), true);
@@ -627,16 +967,34 @@ public:
   // concat //
   ////////////
 
+  /**
+   * Concatenates the pieces of the given rope to the end of this rope.
+   *
+   * The pieces of `rhs` are only referenced by this rope, even those
+   * owned by `rhs`.
+   *
+   * @author: Marcelo Juchem
+   */
   void concat(ephemeral_rope const &rhs) {
     auto const pieces = rhs.pieces_.size();
 
     reserve(pieces, true);
 
+    // TODO: copy pieces which are single characters
     for (piece_index i = 0; i < pieces; ++i) {
       append(rhs.pieces_[i].ref());
     }
   }
 
+  /**
+   * Concatenates the pieces of the given rope to the end of this rope.
+   *
+   * The pieces are moved from `rhs` into this rope.
+   *
+   * After this function returns, `rhs` will be empty.
+   *
+   * @author: Marcelo Juchem
+   */
   void concat(ephemeral_rope &&rhs) {
     auto const pieces = rhs.pieces_.size();
 
@@ -655,48 +1013,6 @@ public:
     size_ += rhs.size_;
 
     rhs.clear();
-  }
-
-  ///////////////
-  // accessors //
-  ///////////////
-
-  char front() const {
-    assert(!pieces_.empty());
-    return *pieces_[0].data();
-  }
-
-  char back() const {
-    assert(!pieces_.empty());
-    auto const &last = pieces_[pieces_.size() - 1];
-
-    assert(last.size());
-    return last.data()[last.size() - 1];
-  }
-
-  char at(size_type i) const {
-    auto offset = pinpoint(i);
-
-    if (!offset.piece()) {
-      throw std::out_of_range("at(): index out of bounds");
-    }
-
-    return *offset;
-  }
-
-  char operator [](size_type i) const {
-    assert(i < size_);
-    return *pinpoint(i);
-  }
-
-  string_ref piece(piece_index i) const {
-    assert(i < pieces_.size());
-    return pieces_[i].ref();
-  }
-
-  piece_index pieces() const {
-    assert(size_ || pieces_.empty());
-    return pieces_.size();
   }
 
   //////////
@@ -796,6 +1112,13 @@ public:
   // string //
   ////////////
 
+  /**
+   * Returns a copy of this rope's contents as an instance of `std:string`.
+   *
+   * A custom allocator can be provided to allocate the output string.
+   *
+   * @author: Marcelo Juchem
+   */
   template <
     typename Traits = std::char_traits<char>,
     typename Allocator = std::allocator<char>
@@ -808,6 +1131,15 @@ public:
     return s;
   }
 
+  /**
+   * Appends the contents of this rope to the given string.
+   *
+   * Uses the member function `append()` from `out` passing
+   * a pair of iterators `begin` and `end` to each of the
+   * pieces contained in this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   template <typename String>
   String &append_to(String &out) const {
     out.reserve(out.size() + size_);
@@ -824,6 +1156,15 @@ public:
   // reserve //
   /////////////
 
+  /**
+   * Pre-allocates space for the given number of `pieces`.
+   *
+   * The `additional` parameter tells whether the given number of pieces
+   * is absolute, or should be allocated in addition to the number of
+   * pieces already stored in this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   void reserve(piece_index pieces, bool additional = false) {
     pieces_.reserve(additional ? pieces_.size() + pieces : pieces);
   }
@@ -832,24 +1173,46 @@ public:
   // capacity //
   //////////////
 
+  /**
+   * Returns the capacity, in number of pieces, allocated for this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   size_type capacity() const { return pieces_.capacity(); }
 
   //////////
   // size //
   //////////
 
+  /**
+   * Returns the total number of characters contained
+   * in the string represented by this rope.
+   *
+   * @author: Marcelo Juchem
+   */
   size_type size() const { return size_; }
 
   ///////////
   // empty //
   ///////////
 
+  /**
+   * Tells whether this rope is empty or not.
+   *
+   * @author: Marcelo Juchem
+   */
   bool empty() const { return !size_; }
 
   ///////////
   // clear //
   ///////////
 
+  /**
+   * Clears the contents of this rope. This rope
+   * will be empty after this function is called.
+   *
+   * @author: Marcelo Juchem
+   */
   void clear() {
     pieces_.clear();
     size_ = 0;
@@ -859,6 +1222,15 @@ public:
   // compare //
   /////////////
 
+  /**
+   * Lexicographically compares the string represented by `rhs` to
+   * the string represented by this rope. Returns a negative integer
+   * when this rope is lexicographically smaller than `rhs`, a positive
+   * integer when this rope is lexicographically greater than `rhs`
+   * or 0 when this rope represents the same string as `rhs`.
+   *
+   * @author: Marcelo Juchem
+   */
   int compare(char const *rhs) const {
     for (piece_index i = 0, pieces = pieces_.size(); i < pieces; ++i) {
       if (!*rhs) {
@@ -884,6 +1256,15 @@ public:
     return -static_cast<bool>(*rhs);
   }
 
+  /**
+   * Lexicographically compares the string represented by `rhs` to
+   * the string represented by this rope. Returns a negative integer
+   * when this rope is lexicographically smaller than `rhs`, a positive
+   * integer when this rope is lexicographically greater than `rhs`
+   * or 0 when this rope represents the same string as `rhs`.
+   *
+   * @author: Marcelo Juchem
+   */
   int compare(string_ref rhs) const {
     for (piece_index i = 0, pieces = pieces_.size(); i < pieces; ++i) {
       if (!rhs) {
@@ -911,6 +1292,15 @@ public:
     return -!rhs.empty();
   }
 
+  /**
+   * Lexicographically compares the string represented by `rhs` to
+   * the string represented by this rope. Returns a negative integer
+   * when this rope is lexicographically smaller than `rhs`, a positive
+   * integer when this rope is lexicographically greater than `rhs`
+   * or 0 when this rope represents the same string as `rhs`.
+   *
+   * @author: Marcelo Juchem
+   */
   int compare(ephemeral_rope const &rhs) const {
     if (!size_) {
       return rhs.size_ ? -1 : 0;
@@ -961,6 +1351,15 @@ public:
     return 1;
   }
 
+  /**
+   * Lexicographically compares the string represented by `rhs` to
+   * the string represented by this rope. Returns a negative integer
+   * when this rope is lexicographically smaller than `rhs`, a positive
+   * integer when this rope is lexicographically greater than `rhs`
+   * or 0 when this rope represents the same string as `rhs`.
+   *
+   * @author: Marcelo Juchem
+   */
   template <typename T, typename = safe_overload_t<ephemeral_rope, T>>
   int compare(T &&rhs) const {
     return compare(string_ref(std::forward<T>(rhs)));
@@ -970,6 +1369,12 @@ public:
   // find //
   //////////
 
+  /**
+   * Returns an iterator to the first occurence of the
+   * character `c` or `end()` if not found.
+   *
+   * @author: Marcelo Juchem
+   */
   const_iterator find(char c) const {
     for (piece_index i = 0, pieces = pieces_.size(); i < pieces; ++i) {
       auto &piece = pieces_[i];
@@ -987,10 +1392,24 @@ public:
     return cend();
   }
 
+  /**
+   * Returns an iterator to the first occurence of the character `c`
+   * or `end()` if not found. Beginst searching at `offset` instead
+   * of searching from the beginning of the rope.
+   *
+   * @author: Marcelo Juchem
+   */
   const_iterator find(char c, size_type offset) const {
     return find(c, pinpoint(offset));
   }
 
+  /**
+   * Returns an iterator to the first occurence of the character `c`
+   * or `end()` if not found. Beginst searching at `offset` instead
+   * of searching from the beginning of the rope.
+   *
+   * @author: Marcelo Juchem
+   */
   const_iterator find(char c, const_iterator offset) const {
     if (offset == cend()) {
       return offset;
@@ -1019,155 +1438,36 @@ public:
     return cend();
   }
 
-/* TODO: IMPLEMENT
-  const_iterator find(string_ref s) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator find(string_ref s, size_type offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator find(string_ref s, const_iterator offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-  */
-
   ///////////
   // rfind //
   ///////////
-
-/*
-  const_iterator rfind(string_ref s) const {
-    return rfind(s, size_);
-  }
-
-  const_iterator rfind(string_ref s, size_type offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator rfind(string_ref s, const_iterator offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator rfind(char c) const {
-    return rfind(c, size_);
-  }
-
-  const_iterator rfind(char c, size_type offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator rfind(char c, const_iterator offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-*/
 
   ///////////////////
   // find_first_of //
   ///////////////////
 
-/*
-  const_iterator find_first_of(string_ref s, size_type offset = 0) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator find_first_of(string_ref s, const_iterator offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-*/
-
   ///////////////////////
   // find_first_not_of //
   ///////////////////////
-
-/*
-  const_iterator find_first_not_of(string_ref s, size_type offset = 0) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator find_first_not_of(string_ref s, const_iterator offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-  const_iterator find_first_not_of(char c, size_type offset = 0) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator find_first_not_of(char c, const_iterator offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-  */
 
   //////////////////
   // find_last_of //
   //////////////////
 
-/*
-  const_iterator find_last_of(string_ref s) const {
-    return find_last_of(s, size_);
-  }
-
-  const_iterator find_last_of(string_ref s, size_type offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator find_last_of(string_ref s, size_type const_iterator) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-  */
-
   //////////////////////
   // find_last_not_of //
   //////////////////////
-
-/*
-  const_iterator find_last_not_of(string_ref s) const {
-    return find_last_not_of(s, size_);
-  }
-
-  const_iterator find_last_not_of(string_ref s, size_type offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator find_last_not_of(string_ref s, const_iterator offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-  const_iterator find_last_not_of(char c) const {
-    return find_last_not_of(c, size_);
-  }
-
-  const_iterator find_last_not_of(char c, size_type offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-
-  const_iterator find_last_not_of(char c, const_iterator offset) const {
-    // TODO: implement
-    throw std::runtime_error("not implemented");
-  }
-*/
 
   /////////////////
   // operator == //
   /////////////////
 
+  /**
+   * Returns true if the string represented by `rhs` is equal to
+   * the string represented by this rope, or false otherwise.
+   *
+   * @author: Marcelo Juchem
+   */
   bool operator ==(char const *rhs) const {
     //* TODO: REMOVE WHEN compare() GETS OPTIMIZED
     for (piece_index i = 0, pieces = pieces_.size(); i < pieces; ++i) {
@@ -1192,6 +1492,12 @@ public:
     //*/
   }
 
+  /**
+   * Returns true if the string represented by `rhs` is equal to
+   * the string represented by this rope, or false otherwise.
+   *
+   * @author: Marcelo Juchem
+   */
   template <std::size_t Size>
   bool operator ==(char const (&rhs)[Size]) const {
     return size_ < Size
@@ -1199,10 +1505,22 @@ public:
       : false;
   }
 
+  /**
+   * Returns true if the string represented by `rhs` is equal to
+   * the string represented by this rope, or false otherwise.
+   *
+   * @author: Marcelo Juchem
+   */
   bool operator ==(string_ref rhs) const {
     return size_ == rhs.size() && !compare(rhs);
   }
 
+  /**
+   * Returns true if the string represented by `rhs` is equal to
+   * the string represented by this rope, or false otherwise.
+   *
+   * @author: Marcelo Juchem
+   */
   bool operator ==(ephemeral_rope const &rhs) const {
     if (size_ != rhs.size_) {
       return false;
@@ -1211,6 +1529,12 @@ public:
     return !compare(rhs);
   }
 
+  /**
+   * Returns true if the string represented by `rhs` is equal to
+   * the string represented by this rope, or false otherwise.
+   *
+   * @author: Marcelo Juchem
+   */
   template <typename T, typename = safe_overload_t<ephemeral_rope, T>>
   bool operator ==(T &&rhs) const {
     return *this == string_ref(std::forward<T>(rhs));
@@ -1220,6 +1544,12 @@ public:
   // operator < //
   ////////////////
 
+  /**
+   * Returns true if the string represented by `rhs` is lexicographically
+   * less than the string represented by this rope, or false otherwise.
+   *
+   * @author: Marcelo Juchem
+   */
   template <typename T>
   bool operator <(T &&rhs) const {
     return compare(std::forward<T>(rhs)) < 0;
@@ -1229,6 +1559,12 @@ public:
   // operator > //
   ////////////////
 
+  /**
+   * Returns true if the string represented by `rhs` is lexicographically
+   * greater than the string represented by this rope, or false otherwise.
+   *
+   * @author: Marcelo Juchem
+   */
   template <typename T>
   bool operator >(T &&rhs) const {
     return compare(std::forward<T>(rhs)) > 0;
