@@ -18,18 +18,6 @@
 #include <cassert>
 
 namespace fatal {
-namespace detail {
-namespace random_data_impl {
-
-// TODO: REMOVE DEFAULT ALPHABET
-static auto const alphabet = "0123456789"
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  "abcdefghijklmnopqrstuvwxyz";
-
-static auto const alphabet_size = sizeof(alphabet) / sizeof(*alphabet);
-
-} // namespace random_data_impl {
-} // namespace detail {
 
 struct random_data {
   random_data(): rng_([] { std::random_device r; return r(); }()) {}
@@ -51,16 +39,6 @@ struct random_data {
     }
   }
 
-  template <typename Iterator>
-  void string(Iterator begin, Iterator end) {
-    string(
-      begin,
-      end,
-      detail::random_data_impl::alphabet,
-      detail::random_data_impl::alphabet_size
-    );
-  }
-
   std::string string(
     std::size_t size,
     char const *alphabet,
@@ -72,12 +50,6 @@ struct random_data {
     return result;
   }
 
-  std::string string(std::size_t size) {
-    std::string result(size, '\0');
-    string(result.begin(), result.end());
-    return result;
-  }
-  
   template <typename T>
   std::size_t chop(std::size_t size, T &&fn) {
     std::size_t chunks = 0;

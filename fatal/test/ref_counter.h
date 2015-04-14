@@ -34,7 +34,7 @@ struct ref_counter {
       }
     }
 
-    global(global &&rhs):
+    global(global &&rhs) noexcept:
       valid_(rhs.valid_)
     {
       ++count();
@@ -42,7 +42,7 @@ struct ref_counter {
     }
 
     template <typename... Args>
-    global(Args &&...):
+    explicit global(Args &&...):
       valid_(true)
     {
       ++count();

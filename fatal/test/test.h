@@ -814,6 +814,8 @@ class registry {
   struct entry {
     using issue_sink = std::function<void(test_issue const &)>;
 
+    virtual ~entry() {}
+
     virtual results run(issue_sink sink) = 0;
 
     virtual char const *group() = 0;

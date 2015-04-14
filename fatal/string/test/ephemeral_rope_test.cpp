@@ -7,9 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-// TODO: REMOVE
-#include <fatal/test/driver.h>
-
 #include <fatal/string/ephemeral_rope.h>
 
 #include <fatal/test/driver.h>
@@ -333,7 +330,7 @@ FATAL_TEST(comparison, not_equal) {
           v.push_back('\0');
           auto c = v.data();
           std::string s(rstr);
-         
+
           TEST_IMPL_COMPARE(r1, r2, expected_less);
           TEST_IMPL_COMPARE(r1, ref, expected_less);
           TEST_IMPL_COMPARE(r1, cstr, expected_less);
@@ -349,7 +346,7 @@ FATAL_TEST(comparison, not_equal) {
           v.push_back('\0');
           auto const c = v.data();
           std::string const s(rstr);
-         
+
           TEST_IMPL_COMPARE(r1, r2, expected_less);
           TEST_IMPL_COMPARE(r1, ref, expected_less);
           TEST_IMPL_COMPARE(r1, cstr, expected_less);
@@ -365,7 +362,7 @@ FATAL_TEST(comparison, not_equal) {
           v.push_back('\0');
           auto c = v.data();
           std::string s(rstr);
-         
+
           TEST_IMPL_COMPARE(std::move(r1), std::move(r2), expected_less);
           TEST_IMPL_COMPARE(std::move(r1), std::move(ref), expected_less);
           TEST_IMPL_COMPARE(std::move(r1), std::move(cstr), expected_less);
@@ -376,7 +373,7 @@ FATAL_TEST(comparison, not_equal) {
           auto &r1 = lhs;
           std::vector<char> v(rstr.cbegin(), rstr.cend());
           v.push_back('\0');
-         
+
           TEST_IMPL_COMPARE(r1, string_ref(rstr), expected_less);
           TEST_IMPL_COMPARE(r1, rstr.c_str(), expected_less);
           TEST_IMPL_COMPARE(r1, v.data(), expected_less);

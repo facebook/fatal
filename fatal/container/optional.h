@@ -34,7 +34,7 @@ public:
   optional() noexcept: empty_(true){};
 
   template <typename... Args, typename = safe_overload_t<optional, Args...>>
-  optional(Args &&...args)
+  explicit optional(Args &&...args)
     noexcept(
       noexcept(
         std::declval<data>().construct(std::forward<Args>(args)...)

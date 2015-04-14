@@ -184,6 +184,8 @@ struct registry {
 
 private:
   struct entry {
+    virtual ~entry() {}
+
     virtual duration run(iterations) = 0;
     virtual char const *group() = 0;
     virtual char const *name() = 0;
@@ -295,7 +297,11 @@ struct controller {
     explicit scoped_suspend(type *run): run_(run) {}
 
     scoped_suspend(scoped_suspend const &) = delete;
-    scoped_suspend(scoped_suspend &&rhs): run_(rhs.run_) { rhs.run_ = nullptr; }
+    scoped_suspend(scoped_suspend &&rhs) noexcept:
+      run_(rhs.run_)
+    {
+      rhs.run_ = nullptr;
+    }
 
     ~scoped_suspend() {
       if (run_) {

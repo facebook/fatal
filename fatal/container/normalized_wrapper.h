@@ -41,7 +41,7 @@ struct normalized_wrapper {
 
   normalized_wrapper(normalized_wrapper const &rhs): wrapped_(rhs.wrapped_) {}
 
-  normalized_wrapper(normalized_wrapper &&rhs):
+  normalized_wrapper(normalized_wrapper &&rhs)
     wrapped_(std::forward<type>(rhs.wrapped_))
   {}
 
@@ -96,71 +96,75 @@ struct normalized_wrapper<T *> {
     wrapped_(std::addressof(wrapped))
   {}
 
-  explicit normalized_wrapper(pointer wrapped): wrapped_(wrapped) {}
+  explicit normalized_wrapper(pointer wrapped) noexcept:
+    wrapped_(wrapped)
+  {}
 
-  normalized_wrapper(normalized_wrapper const &rhs): wrapped_(rhs.wrapped_) {}
+  normalized_wrapper(normalized_wrapper const &rhs) noexcept:
+    wrapped_(rhs.wrapped_)
+  {}
 
-  normalized_wrapper(normalized_wrapper &&rhs):
+  normalized_wrapper(normalized_wrapper &&rhs) noexcept:
     wrapped_(rhs.wrapped_)
   {
     rhs.wrapped_ = nullptr;
   }
 
-  fast_pass<type> get() const { return wrapped_; }
-  type &get() { return wrapped_; }
+  fast_pass<type> get() noexcept const { return wrapped_; }
+  type &get() noexcept { return wrapped_; }
 
-  const_reference cref() const {
+  const_reference cref() noexcept const {
     assert(wrapped_);
     return *wrapped_;
   }
 
-  const_reference ref() const {
+  const_reference ref() noexcept const {
     assert(wrapped_);
     return *wrapped_;
   }
 
-  reference ref() {
+  reference ref() noexcept {
     assert(wrapped_);
     return *wrapped_;
   }
 
-  const_pointer cptr() const {
+  const_pointer cptr() noexcept const {
     assert(wrapped_);
     return wrapped_;
   }
 
-  const_pointer ptr() const {
+  const_pointer ptr() noexcept const {
     assert(wrapped_);
     return wrapped_;
   }
 
-  pointer ptr() {
+  pointer ptr() noexcept {
     assert(wrapped_);
     return wrapped_;
   }
 
-  const_reference operator *() const { return ref(); }
-  reference operator *() { return ref(); }
+  const_reference operator *() noexcept const { return ref(); }
+  reference operator *() noexcept { return ref(); }
 
-  const_pointer operator ->() const { return ptr(); }
-  pointer operator ->() { return ptr(); }
+  const_pointer operator ->() noexcept const { return ptr(); }
+  pointer operator ->() noexcept { return ptr(); }
 
-  normalized_wrapper &operator =(normalized_wrapper const &rhs) {
+  normalized_wrapper &operator =(normalized_wrapper const &rhs) noexcept {
     wrapped_ = rhs.wrapped_;
     return *this;
   }
 
-  normalized_wrapper &operator =(normalized_wrapper &&rhs) {
+  normalized_wrapper &operator =(normalized_wrapper &&rhs) noexcept {
     wrapped_ = rhs.wrapped_;
     rhs.wrapped_ = nullptr;
     return *this;
   }
 
-  bool operator ==(normalized_wrapper const &rhs) const {
+  bool operator ==(normalized_wrapper const &rhs) const noexcept {
     return wrapped_ == rhs.wrapped_;
   }
 
-  bool operator !=(normalized_wrapper const &rhs) const {
+  bool operator !=(normalized_wrapper const &rhs) const noexcept {
     return wrapped_ != rhs.wrapped_;
   }
 

@@ -11,7 +11,7 @@
 #define FATAL_INCLUDE_fatal_string_ephemeral_rope_h
 
 #include <fatal/container/uninitialized.h>
-#include <fatal/log/log.h> // TODO: REMOVE
+#include <fatal/math/hash.h>
 #include <fatal/string/string_ref.h>
 #include <fatal/type/map.h>
 #include <fatal/type/tag.h>
@@ -1413,9 +1413,6 @@ std::ostream &operator <<(
 ///////////////
 // std::hash //
 ///////////////
-
-#include <fatal/math/hash.h>
-#include <functional>
 
 namespace std {
 

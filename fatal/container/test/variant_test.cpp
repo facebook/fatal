@@ -648,7 +648,7 @@ FATAL_TEST(variant, swap) {
 template <typename T>
 struct visit_if_visitor {
   visit_if_visitor() = default;
-  visit_if_visitor(T expected): expected_(std::move(expected)) {}
+  explicit visit_if_visitor(T expected): expected_(std::move(expected)) {}
 
   void operator ()(T const &actual) const {
     FATAL_ASSERT_FALSE(expected_.empty());

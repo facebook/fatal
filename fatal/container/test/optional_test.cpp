@@ -986,7 +986,6 @@ FATAL_TEST(optional, value_assignment) {
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
     \
-    FATAL_EXPECT_FALSE(empty == o1); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
@@ -1000,7 +999,6 @@ FATAL_TEST(optional, value_assignment) {
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
     \
-    FATAL_EXPECT_FALSE(empty == o2); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
@@ -1067,14 +1065,12 @@ FATAL_TEST(optional, operator_equals) {
   do { \
     optional<Type> empty; \
     FATAL_EXPECT_TRUE(empty.empty()); \
-    FATAL_EXPECT_FALSE(empty == Value1); \
-    FATAL_EXPECT_FALSE(empty == Value2); \
     \
     optional<Type> o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_EQ(Value1, *o); \
-    FATAL_EXPECT_TRUE(o == Value1); \
-    FATAL_EXPECT_FALSE(o == Value2); \
+    FATAL_EXPECT_TRUE(*o == Value1); \
+    FATAL_EXPECT_FALSE(*o == Value2); \
   } while (false)
 
 FATAL_TEST(optional, operator_equals_value) {
@@ -1094,7 +1090,6 @@ FATAL_TEST(optional, operator_equals_value) {
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
     \
-    FATAL_EXPECT_TRUE(empty != o1); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
@@ -1108,7 +1103,6 @@ FATAL_TEST(optional, operator_equals_value) {
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
     \
-    FATAL_EXPECT_TRUE(empty != o2); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
@@ -1175,14 +1169,12 @@ FATAL_TEST(optional, operator_not_equals) {
   do { \
     optional<Type> empty; \
     FATAL_EXPECT_TRUE(empty.empty()); \
-    FATAL_EXPECT_TRUE(empty != Value1); \
-    FATAL_EXPECT_TRUE(empty != Value2); \
     \
     optional<Type> o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_EQ(Value1, *o); \
-    FATAL_EXPECT_FALSE(o != Value1); \
-    FATAL_EXPECT_TRUE(o != Value2); \
+    FATAL_EXPECT_FALSE(*o != Value1); \
+    FATAL_EXPECT_TRUE(*o != Value2); \
   } while (false)
 
 FATAL_TEST(optional, operator_not_equals_value) {

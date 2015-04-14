@@ -685,7 +685,7 @@ FATAL_TEST(preprocessor, fatal_to_str) {
 ///////////////
 
 struct uid_tester {
-  uid_tester(int &x): x_(x) { ++x_; }
+  explicit uid_tester(int &x): x_(x) { ++x_; }
   ~uid_tester() { --x_; }
 
 private:

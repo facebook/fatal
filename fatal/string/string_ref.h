@@ -36,14 +36,14 @@ struct string_ref {
     assert(begin_ <= end_);
   }
 
-  string_ref(char *s):
+  explicit string_ref(char *s):
     begin_(s),
     end_(std::next(s, std::strlen(s)))
   {
     assert(begin_ <= end_);
   }
 
-  string_ref(char const *s):
+  explicit string_ref(char const *s):
     begin_(s),
     end_(std::next(s, std::strlen(s)))
   {
