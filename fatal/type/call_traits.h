@@ -249,6 +249,7 @@ public:
 struct call_traits {
 # define FATAL_CALL_TRAITS_IMPL(Name) FATAL_CALL_TRAITS(Name, Name)
 
+  FATAL_CALL_TRAITS_IMPL(add);
   FATAL_CALL_TRAITS_IMPL(append);
   FATAL_CALL_TRAITS_IMPL(assign);
   FATAL_CALL_TRAITS_IMPL(at);
