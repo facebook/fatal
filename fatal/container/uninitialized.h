@@ -34,13 +34,17 @@ struct uninitialized {
   uninitialized(uninitialized const &) = delete;
   uninitialized(uninitialized &&) = delete;
 
-  const_reference cref() const noexcept { return data_.value; }
-  const_reference ref() const noexcept { return data_.value; }
-  reference ref() noexcept { return data_.value; }
+  template <typename... Args>
+  reference construct(Args &&...args)
+    noexcept(noexcept(type(std::forward<Args>(args)...)))
+  {
+    return *new (ptr()) type(std::forward<Args>(args)...);
+  }
 
-  const_pointer cptr() const noexcept { return std::addressof(data_.value); }
-  const_pointer ptr() const noexcept { return std::addressof(data_.value); }
-  pointer ptr() noexcept { return std::addressof(data_.value); }
+  pointer destroy() noexcept {
+    ref().~type();
+    return ptr();
+  }
 
   void steal(uninitialized &&other)
     noexcept(
@@ -53,17 +57,13 @@ struct uninitialized {
     other.destroy();
   }
 
-  template <typename... Args>
-  reference construct(Args &&...args)
-    noexcept(noexcept(type(std::forward<Args>(args)...)))
-  {
-    return *new (ptr()) type(std::forward<Args>(args)...);
-  }
+  const_reference cref() const noexcept { return data_.value; }
+  const_reference ref() const noexcept { return data_.value; }
+  reference ref() noexcept { return data_.value; }
 
-  pointer destroy() noexcept {
-    ref().~type();
-    return ptr();
-  }
+  const_pointer cptr() const noexcept { return std::addressof(data_.value); }
+  const_pointer ptr() const noexcept { return std::addressof(data_.value); }
+  pointer ptr() noexcept { return std::addressof(data_.value); }
 
   const_reference operator *() const noexcept { return data_.value; }
 
