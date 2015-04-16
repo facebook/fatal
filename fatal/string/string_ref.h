@@ -11,6 +11,8 @@
 #define FATAL_INCLUDE_fatal_string_string_ref_h
 
 #include <fatal/math/hash.h>
+#include <fatal/type/call_traits.h>
+#include <fatal/type/traits.h>
 
 #include <algorithm>
 #include <iterator>
@@ -19,6 +21,29 @@
 #include <cstring>
 
 namespace fatal {
+namespace detail {
+
+template <typename U>
+using convertible = std::integral_constant<
+  bool,
+  std::is_pointer<U>::value
+    || std::is_array<U>::value
+    || std::is_integral<typename std::decay<U>::type>::value
+    || (
+      call_traits::data::member_function::supports<U>::value
+        && call_traits::size::member_function::supports<U>::value
+    )
+>;
+
+template <typename U>
+using convertible_t = typename std::enable_if<convertible<U>::value>::type;
+
+template <typename T, typename U>
+using safe_overload_t = typename std::enable_if<
+  safe_overload<T, U>::value && convertible<U>::value
+>::type;
+
+} // namespace detail {
 
 struct string_ref {
   using value_type = char;
@@ -196,12 +221,18 @@ struct string_ref {
     return size() == rhs.size() && !std::strncmp(begin_, rhs.begin_, size());
   }
 
-  template <typename U, typename = safe_overload_t<string_ref, U>>
+  template <
+    typename U,
+    typename = detail::safe_overload_t<string_ref, typename std::decay<U>::type>
+  >
   bool operator ==(U &&rhs) const {
     return *this == string_ref(std::forward<U>(rhs));
   }
 
-  template <typename U>
+  template <
+    typename U,
+    typename = detail::safe_overload_t<string_ref, typename std::decay<U>::type>
+  >
   bool operator !=(U &&rhs) const { return !(*this == std::forward<U>(rhs)); }
 
   bool operator <(string_ref rhs) const {
@@ -212,14 +243,20 @@ struct string_ref {
     return result < 0 || (!result && size() < rhs.size());
   }
 
-  template <typename U, typename = safe_overload_t<string_ref, U>>
+  template <
+    typename U,
+    typename = detail::safe_overload_t<string_ref, typename std::decay<U>::type>
+  >
   bool operator <(U &&rhs) const {
     return *this < string_ref(std::forward<U>(rhs));
   }
 
   bool operator >(string_ref rhs) const { return rhs < *this; }
 
-  template <typename U, typename = safe_overload_t<string_ref, U>>
+  template <
+    typename U,
+    typename = detail::safe_overload_t<string_ref, typename std::decay<U>::type>
+  >
   bool operator >(U &&rhs) const {
     return *this > string_ref(std::forward<U>(rhs));
   }
@@ -237,51 +274,51 @@ private:
 // operator == //
 /////////////////
 
-template <typename T, typename = safe_overload_t<string_ref, T>>
+template <typename T, typename = detail::safe_overload_t<string_ref, T>>
 bool operator ==(T const &lhs, string_ref rhs) { return rhs == lhs; }
 
 ////////////////
 // operator < //
 ////////////////
 
-template <typename T, typename = safe_overload_t<string_ref, T>>
+template <typename T, typename = detail::safe_overload_t<string_ref, T>>
 bool operator <(T const &lhs, string_ref rhs) { return rhs > lhs; }
 
 ////////////////
 // operator > //
 ////////////////
 
-template <typename T, typename = safe_overload_t<string_ref, T>>
+template <typename T, typename = detail::safe_overload_t<string_ref, T>>
 bool operator >(T const &lhs, string_ref rhs) { return rhs < lhs; }
 
 /////////////////
 // operator != //
 /////////////////
 
-template <typename T>
+template <typename T, typename = detail::convertible_t<T>>
 bool operator !=(string_ref lhs, T const &rhs) { return !(lhs == rhs); }
 
-template <typename T, typename = safe_overload_t<string_ref, T>>
+template <typename T, typename = detail::safe_overload_t<string_ref, T>>
 bool operator !=(T const &lhs, string_ref rhs) { return !(rhs == lhs); }
 
 /////////////////
 // operator <= //
 /////////////////
 
-template <typename T>
+template <typename T, typename = detail::convertible_t<T>>
 bool operator <=(string_ref lhs, T const &rhs) { return !(lhs > rhs); }
 
-template <typename T, typename = safe_overload_t<string_ref, T>>
+template <typename T, typename = detail::safe_overload_t<string_ref, T>>
 bool operator <=(T const &lhs, string_ref rhs) { return !(rhs < lhs); }
 
 /////////////////
 // operator >= //
 /////////////////
 
-template <typename T>
+template <typename T, typename = detail::convertible_t<T>>
 bool operator >=(string_ref lhs, T const &rhs) { return !(lhs < rhs); }
 
-template <typename T, typename = safe_overload_t<string_ref, T>>
+template <typename T, typename = detail::safe_overload_t<string_ref, T>>
 bool operator >=(T const &lhs, string_ref rhs) { return !(rhs > lhs); }
 
 ///////////////////////////////
