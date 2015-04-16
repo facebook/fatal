@@ -359,6 +359,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(try_set);
   FATAL_CALL_TRAITS_IMPL(try_to);
   FATAL_CALL_TRAITS_IMPL(unique);
+  FATAL_CALL_TRAITS_IMPL(update);
   FATAL_CALL_TRAITS_IMPL(upper_bound);
   FATAL_CALL_TRAITS_IMPL(value);
   FATAL_CALL_TRAITS_IMPL(visit);
