@@ -127,9 +127,15 @@ struct string_ref {
     return result;
   }
 
-  void advance_to(const_iterator i) {
+  void reset(const_iterator begin) {
     assert(begin_ <= i);
     begin_ = i;
+    assert(begin_ <= end_);
+  }
+
+  void reset(const_iterator begin, const_iterator end) {
+    begin_ = begin;
+    end_ = end;
     assert(begin_ <= end_);
   }
 
