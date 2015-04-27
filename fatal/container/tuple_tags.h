@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#ifndef FATAL_INCLUDE_fatal_type_tuple_tags_h
-#define FATAL_INCLUDE_fatal_type_tuple_tags_h
+#ifndef FATAL_INCLUDE_fatal_container_tuple_tags_h
+#define FATAL_INCLUDE_fatal_container_tuple_tags_h
 
 #include <fatal/type/list.h>
 #include <fatal/type/map.h>
@@ -267,4 +267,4 @@ struct tuple_tags {
 
 } // namespace fatal {
 
-#endif // FATAL_INCLUDE_fatal_type_tuple_tags_h
+#endif // FATAL_INCLUDE_fatal_container_tuple_tags_h
