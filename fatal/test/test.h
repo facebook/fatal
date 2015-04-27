@@ -238,11 +238,11 @@ using timestamp = clock::time_point;
 // TODO: ISSUE SHOULD NOT BUILD AN INTERNAL STRING BUT RATHER A HIERARCHICAL MAP
 //       TO ALLOW PRETTY PRINTERS TO CHOOSE THE FORMATTING
 struct test_issue {
-  enum class severity { warning, error, fatal };
+  enum class severity_t { warning, error, fatal };
 
   template <typename... Args>
   test_issue(
-    severity severity,
+    severity_t severity,
     timestamp timestamp,
     source_info source,
     Args &&...args
@@ -254,36 +254,32 @@ struct test_issue {
     append_to_string(message_, std::forward<Args>(args)...);
   }
 
-  template <typename TOut>
-  void print(TOut &out) const {
-    // TODO: output date in a more useful format
-    out << severity_signature()
-      << " [" << source_.file() << ':' << source_.line() << "] at "
-      << timestamp_.time_since_epoch().count()
-      << ":\n  " << message_;
-  }
-
   template <typename... Args>
   std::string const &append(Args &&...args) {
     return append_to_string(message_, std::forward<Args>(args)...);
   }
 
-private:
-  severity const severity_;
-  timestamp const timestamp_;
-  source_info const source_;
-  std::string message_;
+  severity_t severity() const { return severity_; }
+  timestamp timestamp() const { return timestamp_; }
+  source_info const &source() const { return source_; }
+  std::string const &message() const { return message_; }
 
   char severity_signature() const {
     switch (severity_) {
-      case severity::warning: return 'W';
-      case severity::error: return 'E';
-      case severity::fatal: return 'F';
+      case severity_t::warning: return 'W';
+      case severity_t::error: return 'E';
+      case severity_t::fatal: return 'F';
       default:
         assert(false);
         return '\0';
     }
   }
+
+private:
+  severity_t const severity_;
+  test::timestamp const timestamp_;
+  source_info const source_;
+  std::string message_;
 };
 
 class results {
@@ -496,7 +492,7 @@ public:
 
     controller::add_issue(std::move(issue));
 
-    if (category::severity() == test_issue::severity::fatal) {
+    if (category::severity() == test_issue::severity_t::fatal) {
       throw abort_test_run_exception();
     }
   }
@@ -565,19 +561,23 @@ check_wrapper<
 namespace categories {
 
 struct warning {
-  static test_issue::severity severity() {
-    return test_issue::severity::warning;
+  static test_issue::severity_t severity() {
+    return test_issue::severity_t::warning;
   }
   static char const *name() { return "warning"; }
 };
 
 struct expectation {
-  static test_issue::severity severity() { return test_issue::severity::error; }
+  static test_issue::severity_t severity() {
+    return test_issue::severity_t::error;
+  }
   static char const *name() { return "expectation"; }
 };
 
 struct assertion {
-  static test_issue::severity severity() { return test_issue::severity::fatal; }
+  static test_issue::severity_t severity() {
+    return test_issue::severity_t::fatal;
+  }
   static char const *name() { return "assertion"; }
 };
 
@@ -846,7 +846,7 @@ class registry {
       } catch (abort_test_run_exception const &) {
         // test run aborted
       } catch (...) {
-        test_issue issue(test_issue::severity::error, clock::now(), source());
+        test_issue issue(test_issue::severity_t::error, clock::now(), source());
         issue.append("test case aborted by unexpected exception ");
         handle_exception(issue);
         result.add(std::move(issue));
@@ -907,7 +907,7 @@ public:
 
     TPrinter printer;
 
-    printer.start_run(out, size_, groups_.size());
+    printer.start_run(out, size_, groups_.size(), clock::now());
 
     duration running_time(0);
     size_type passed = 0;
@@ -921,10 +921,10 @@ public:
 
       duration group_time(0);
 
-      printer.start_group(out, g->first);
+      printer.start_group(out, g->first, clock::now());
 
       for (auto const &i: group) {
-        printer.start_test(out, i->name(), i->source());
+        printer.start_test(out, i->name(), i->source(), clock::now());
 
         std::size_t issues = 0;
         auto result = i->run(
@@ -976,19 +976,36 @@ private:
 
 struct default_printer {
   template <typename TOut>
-  void start_run(TOut &out, std::size_t total, std::size_t groups) {
+  void start_run(
+    TOut &out, std::size_t total, std::size_t groups, timestamp start
+  ) {
+    // TODO: pretty print test run start time??
     out << "running " << total << " tests from " << groups << " test cases\n";
+    run_start_ = start;
   }
 
   template <typename TOut, typename TGroup>
-  void start_group(TOut &out, TGroup const &group) {
-    out << "\n== test case: '" << group << "' ==\n";
+  void start_group(TOut &out, TGroup const &group, timestamp start) {
+    auto const time = start - run_start_;
+
+    // TODO: pretty print test group start time
+    out << "\n== test case: '" << group << "' at "
+      << time.count() << time::suffix(time) << " ==\n";
+
+    group_start_ = start;
   }
 
   template <typename TOut, typename TName>
-  void start_test(TOut &out, TName const &name, source_info const &source) {
+  void start_test(
+    TOut &out, TName const &name, source_info const &source, timestamp start
+  ) {
+    auto const time = start - group_start_;
+
+    // TODO: pretty print unit test start time
     out << ">> test '" << name << "' (" << source.file() << ':' << source.line()
-      << "):\n";
+      << ") at " << time.count() << time::suffix(time) << ":\n";
+
+    test_start_ = start;
   }
 
   template <typename TOut, typename TName>
@@ -1000,8 +1017,11 @@ struct default_printer {
       out << '\n';
     }
 
-    i.print(out);
-    out << '\n';
+    auto const time = i.timestamp() - test_start_;
+
+    out << i.severity_signature()
+      << " [" << i.source().file() << ':' << i.source().line() << "] at "
+      << time.count() << time::suffix(time) << ":\n  " << i.message() << '\n';
   }
 
   template <typename TOut, typename TName>
@@ -1026,6 +1046,11 @@ struct default_printer {
       << ": passed " << passed << '/' << total << " after "
       << time.count() << ' ' << time::suffix(time) << "\n\n";
   }
+
+private:
+  timestamp run_start_;
+  timestamp group_start_;
+  timestamp test_start_;
 };
 
 template <typename TPrinter = default_printer, typename TOut>
