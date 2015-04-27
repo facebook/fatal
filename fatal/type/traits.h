@@ -19,6 +19,10 @@
 
 namespace fatal {
 
+/////////////////////////////
+// remove_rvalue_reference //
+/////////////////////////////
+
 /**
  * Removes any r-value references from a given type.
  * L-value references remain untouched.
@@ -47,6 +51,10 @@ struct remove_rvalue_reference { using type = T; };
 
 template <typename T>
 struct remove_rvalue_reference<T &&> { using type = T; };
+
+///////////////////////
+// same_reference_as //
+///////////////////////
 
 /**
  * Given types `T` and `U`:
@@ -97,6 +105,10 @@ struct same_reference_as<T, TFrom &&> {
   >::type;
 };
 
+////////////////////////
+// add_reference_from //
+////////////////////////
+
 /**
  * Given types `T` and `U`:
  * - if `U` is not a reference, yield `T`
@@ -142,6 +154,10 @@ struct add_reference_from<T, TFrom &&> {
   using type = typename std::add_rvalue_reference<T>::type;
 };
 
+////////////////////
+// add_const_from //
+////////////////////
+
 /**
  * Applies `std::add_const` to a type iff some other type is const.
  *
@@ -169,6 +185,10 @@ template <typename T, typename TFrom>
 struct add_const_from<T, TFrom const> {
   using type = typename std::add_const<T>::type;
 };
+
+//////////////
+// constify //
+//////////////
 
 /**
  * Adds the const qualifier to a type.
@@ -202,6 +222,10 @@ struct constify {
     T
   >::type;
 };
+
+///////////////////
+// constify_from //
+///////////////////
 
 /**
  * Applies `constify` to a type iff some other type is const.
@@ -237,6 +261,14 @@ struct constify_from<T, TFrom const> {
   using type = typename constify<T>::type;
 };
 
+/////////////////
+// is_template //
+/////////////////
+
+namespace detail {
+template <template <typename...> class, typename> struct is_template_impl;
+} // namespace detail {
+
 /**
  * Checks whether a given type is an instantiation of at least one of a list of
  * class templates.
@@ -266,16 +298,6 @@ struct constify_from<T, TFrom const> {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace detail {
-
-template <template <typename...> class, typename>
-struct is_template_impl;
-
-template <template <typename...> class T, typename... Args>
-struct is_template_impl<T, T<Args...>> {};
-
-} // namespace detail {
-
 template <template <typename...> class... TTemplates>
 class is_template {
   template <template <typename...> class TTemplate, typename T>
@@ -286,8 +308,72 @@ public:
   using type = logical_transform::any<impl<TTemplates, T>...>;
 };
 
+/////////////////
+// integral_of //
+/////////////////
+
+namespace detail {
+template <typename T, bool = std::is_enum<T>::value> struct integral_of_impl;
+} // namespace detail {
+
 /**
- * fast_pass_by_value: tells if pass-by-value is the fastest way of passing a
+ * Gets the integral representation of a type that provides it.
+ *
+ * This is a convenient way to transparently treat enum classes as integrals.
+ *
+ * Example:
+ *
+ *  // yields `short`
+ *  using result1 = integral_of<short>;
+ *
+ *  enum class foo: int { a, b, c };
+ *
+ *  // yields `int`
+ *  using result2 = integral_of<foo>;
+ *
+ *  // yields `bool`
+ *  using result3 = integral_of<std::true_type>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using integral_of = typename detail::integral_of_impl<T>::type;
+
+/////////////////
+// as_integral //
+/////////////////
+
+/**
+ * Converts a value to its integral representation, for types that provide it.
+ *
+ * This is a convenient way to transparently treat enum classes as integrals.
+ *
+ * Example:
+ *
+ *  // yields an `int` with value `10`
+ *  auto result1 = as_integral(10);
+ *
+ *  enum class foo: int { a = 5, b = 7, c = 9 };
+ *
+ *  // yields an `int` with value `5`
+ *  auto result2 = as_integral(foo::a);
+ *
+ *  // yields a `bool` with value `true`
+ *  auto result3 = as_integral(std::true_type());
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+integral_of<typename std::decay<T>::type> as_integral(T value) noexcept {
+  return detail::integral_of_impl<typename std::decay<T>::type>::convert(value);
+}
+
+//////////////////
+// is_fast_pass //
+//////////////////
+
+/**
+ * is_fast_pass: tells if pass-by-value is the fastest way of passing a
  * given type as a read-only argument or return value.
  *
  * Pointers, integers and whatnot are passed by value while user defined
@@ -296,21 +382,25 @@ public:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using fast_pass_by_value = std::integral_constant<
+using is_fast_pass = std::integral_constant<
   bool, std::is_scalar<typename std::decay<T>::type>::value
 >;
+
+///////////////
+// fast_pass //
+///////////////
 
 /**
  * fast_pass: resolves to the fastest way of passing a given type as a read-only
  * argument or return value.
  *
- * See fast_pass_by_value for details.
+ * See is_fast_pass for details.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
 using fast_pass = typename std::conditional<
-  fast_pass_by_value<
+  is_fast_pass<
     typename std::decay<T>::type
   >::value,
   typename std::add_const<
@@ -322,6 +412,10 @@ using fast_pass = typename std::conditional<
     >::type
   >::type
 >::type;
+
+///////////////////
+// safe_overload //
+///////////////////
 
 /**
  * Type traits to prevent the universal constructor from overloading
@@ -386,6 +480,10 @@ struct safe_overload<Class, T>:
   >
 {};
 
+/////////////////////
+// safe_overload_t //
+/////////////////////
+
 /**
  * Template alias for safe_overload above.
  *
@@ -412,6 +510,14 @@ template <typename Class, typename... Args>
 using safe_overload_t = typename std::enable_if<
   safe_overload<Class, Args...>::value
 >::type;
+
+/////////////////
+// is_callable //
+/////////////////
+
+namespace detail {
+template <typename...> class is_callable_impl;
+} // namespace detail {
 
 /**
  * Tells whether an instance of a given type supports the
@@ -452,35 +558,13 @@ using safe_overload_t = typename std::enable_if<
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace detail {
-
-template <typename... Args>
-class is_callable_impl {
-  struct impl {
-    template <
-      typename T,
-      typename = decltype(
-        std::declval<T>()(
-          std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
-        )
-      )
-    >
-    static std::true_type sfinae(T *);
-
-    template <typename = void>
-    static std::false_type sfinae(...);
-  };
-
-public:
-  template <typename T>
-  using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
-};
-
-} // namespace detail {
-
 template <typename T, typename... Args>
 using is_callable = typename detail::is_callable_impl<Args...>
   ::template type<T>;
+
+///////////////////////////
+// FATAL_HAS_MEMBER_TYPE //
+///////////////////////////
 
 /**
  * This macro creates a class named `Class` that can check whether some
@@ -523,6 +607,10 @@ using is_callable = typename detail::is_callable_impl<Args...>
     template <typename T> \
     using check = decltype(sfinae<T>(nullptr)); \
   }
+
+/////////////////////
+// has_member_type //
+/////////////////////
 
 struct has_member_type {
 # define FATAL_IMPL_HAS_MEMBER_TYPE_DECL(Class, Name) \
@@ -617,6 +705,10 @@ struct has_member_type {
 # undef FATAL_IMPL_HAS_MEMBER_TYPE_DECL
 };
 
+//////////////////////////////
+// FATAL_DATA_MEMBER_GETTER //
+//////////////////////////////
+
 /**
  * TODO: DOCUMENT
  *
@@ -668,6 +760,10 @@ struct has_member_type {
       } \
     }; \
   }
+
+////////////////////////
+// data_member_getter //
+////////////////////////
 
 /**
  * Instantiations of FATAL_DATA_MEMBER_GETTER
@@ -751,6 +847,66 @@ struct data_member_getter {
 # undef FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL
 };
 
+////////////////////////////
+// IMPLEMENTATION DETAILS //
+////////////////////////////
+
+namespace detail {
+
+template <template <typename...> class T, typename... Args>
+struct is_template_impl<T, T<Args...>> {};
+
+template <typename T, bool IsEnum>
+struct integral_of_impl {
+  static_assert(IsEnum, "wrong specialization");
+
+  using type = typename std::underlying_type<T>::type;
+
+  static type convert(T value) { return static_cast<type>(value); }
+};
+
+template <typename T, T Value>
+struct integral_of_impl<std::integral_constant<T, Value>, false> {
+  using type = T;
+
+  static type convert(T) { return Value; }
+};
+
+template <typename T>
+struct integral_of_impl<T, false> {
+  static_assert(
+    std::is_integral<T>::value,
+    "type does not represent an integral"
+  );
+
+  using type = T;
+
+  static type convert(T value) { return value; }
+};
+
+template <typename... Args>
+class is_callable_impl {
+  struct impl {
+    template <
+      typename T,
+      typename = decltype(
+        std::declval<T>()(
+          std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
+        )
+      )
+    >
+    static std::true_type sfinae(T *);
+
+    template <typename = void>
+    static std::false_type sfinae(...);
+  };
+
+public:
+  template <typename T>
+  using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
+};
+
+} // namespace detail {
 } // namespace fatal
 
 #endif // FATAL_INCLUDE_fatal_type_traits_h

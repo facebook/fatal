@@ -22,6 +22,7 @@ namespace fatal {
 
 template <std::size_t> struct T {};
 template <std::size_t> struct S {};
+enum class Ell: long long { a = 5, b = 7, c = 9 };
 
 /////////////////////////////
 // remove_rvalue_reference //
@@ -409,64 +410,173 @@ FATAL_TEST(traits, is_template) {
   >();
 }
 
-////////////////////////
-// fast_pass_by_value //
-////////////////////////
+/////////////////
+// integral_of //
+/////////////////
 
-FATAL_TEST(traits, fast_pass_by_value) {
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool &&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const &&>::value);
+FATAL_TEST(traits, integral_of) {
+  FATAL_EXPECT_SAME<bool, integral_of<bool>>();
+  FATAL_EXPECT_SAME<char, integral_of<char>>();
+  FATAL_EXPECT_SAME<short, integral_of<short>>();
+  FATAL_EXPECT_SAME<unsigned, integral_of<unsigned>>();
+  FATAL_EXPECT_SAME<std::underlying_type<Ell>::type, integral_of<Ell>>();
+  FATAL_EXPECT_SAME<std::true_type::value_type, integral_of<std::true_type>>();
+}
 
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *&&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *const &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool *const &&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *&&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *const &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<bool const *const &&>::value);
+/////////////////
+// as_integral //
+/////////////////
 
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int &&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int const>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int const &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int const &&>::value);
+template <typename T, T... Values>
+struct as_integral_constant_test {
+  static_assert(sizeof...(Values) == 0, "wrong specialization");
 
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int *>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int *&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int *&&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int *const &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int *const &&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *&&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *const &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<int const *const &&>::value);
+  as_integral_constant_test() {
+    {
+      using type = std::integral_constant<T, std::numeric_limits<T>::min()>;
+      FATAL_EXPECT_SAME<T, decltype(as_integral(type()))>();
+      FATAL_EXPECT_EQ(type::value, as_integral(type()));
+    }
+    {
+      using type = std::integral_constant<T, std::numeric_limits<T>::max()>;
+      FATAL_EXPECT_SAME<T, decltype(as_integral(type()))>();
+      FATAL_EXPECT_EQ(type::value, as_integral(type()));
+    }
+  }
+};
 
-  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string>::value);
-  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string &>::value);
-  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string &&>::value);
-  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string const>::value);
-  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string const &>::value);
-  FATAL_EXPECT_FALSE(fast_pass_by_value<std::string const &&>::value);
+template <typename T, T Value, T... Values>
+struct as_integral_constant_test<T, Value, Values...> {
+  as_integral_constant_test() {
+    using type = std::integral_constant<T, Value>;
+    FATAL_EXPECT_SAME<T, decltype(as_integral(type()))>();
+    FATAL_EXPECT_EQ(Value, as_integral(type()));
+  }
 
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *&&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *const &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string *const &&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *&&>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *const &>::value);
-  FATAL_EXPECT_TRUE(fast_pass_by_value<std::string const *const &&>::value);
+private:
+  as_integral_constant_test<T, Values...> tail_;
+};
+
+FATAL_TEST(traits, as_integral) {
+# define TEST_IMPL(ExpectedValue, ExpectedType, Value) \
+  do { \
+    FATAL_EXPECT_SAME<ExpectedType, decltype(as_integral(Value))>(); \
+    FATAL_EXPECT_EQ(ExpectedValue, as_integral(Value)); \
+  } while (false)
+
+  {
+    int v = 10;
+    TEST_IMPL(10, int, v);
+
+    int const c = 10;
+    TEST_IMPL(10, int, c);
+  }
+
+  {
+    long long v = 20;
+    TEST_IMPL(20, long long, v);
+
+    long long const c = 20;
+    TEST_IMPL(20, long long, c);
+  }
+
+  TEST_IMPL(5, std::underlying_type<Ell>::type, Ell::a);
+
+# undef TEST_IMPL
+
+  as_integral_constant_test<bool, true, false>();
+
+  as_integral_constant_test<char, ' ', 'h', 'e', 'l', 'o'>(); 
+  as_integral_constant_test<unsigned char, ' ', 'h', 'e', 'l', 'o'>(); 
+
+  as_integral_constant_test<std::size_t, 0, 1, 2, 3, 5, 8, 13, 21, 1000>(); 
+  as_integral_constant_test<unsigned short, 0, 1, 2, 3, 5, 8, 13, 21, 1000>(); 
+  as_integral_constant_test<unsigned, 0, 1, 2, 3, 5, 8, 13, 21, 1000>(); 
+  as_integral_constant_test<unsigned long, 0, 1, 2, 3, 5, 8, 13, 21, 1000>(); 
+  as_integral_constant_test<
+    unsigned long long, 0, 1, 2, 3, 5, 8, 13, 21, 1000
+  >(); 
+
+  as_integral_constant_test<
+    short,
+    0, 1, 2, 3, 5, 8, 13, 21, 1000,
+    -1, -2, -3, -5, -8, -13, -21, -1000
+  >(); 
+  as_integral_constant_test<
+    int,
+    0, 1, 2, 3, 5, 8, 13, 21, 1000,
+    -1, -2, -3, -5, -8, -13, -21, -1000
+  >(); 
+  as_integral_constant_test<
+    long,
+    0, 1, 2, 3, 5, 8, 13, 21, 1000,
+    -1, -2, -3, -5, -8, -13, -21, -1000
+  >(); 
+  as_integral_constant_test<
+    long long,
+    0, 1, 2, 3, 5, 8, 13, 21, 1000,
+    -1, -2, -3, -5, -8, -13, -21, -1000
+  >(); 
+}
+
+//////////////////
+// is_fast_pass //
+//////////////////
+
+FATAL_TEST(traits, is_fast_pass) {
+  FATAL_EXPECT_TRUE(is_fast_pass<bool>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool &&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool const>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool const &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool const &&>::value);
+
+  FATAL_EXPECT_TRUE(is_fast_pass<bool *>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool *&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool *&&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool *const &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool *const &&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool const *>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool const *&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool const *&&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool const *const &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<bool const *const &&>::value);
+
+  FATAL_EXPECT_TRUE(is_fast_pass<int>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int &&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int const>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int const &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int const &&>::value);
+
+  FATAL_EXPECT_TRUE(is_fast_pass<int *>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int *&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int *&&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int *const &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int *const &&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int const *>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int const *&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int const *&&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int const *const &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<int const *const &&>::value);
+
+  FATAL_EXPECT_FALSE(is_fast_pass<std::string>::value);
+  FATAL_EXPECT_FALSE(is_fast_pass<std::string &>::value);
+  FATAL_EXPECT_FALSE(is_fast_pass<std::string &&>::value);
+  FATAL_EXPECT_FALSE(is_fast_pass<std::string const>::value);
+  FATAL_EXPECT_FALSE(is_fast_pass<std::string const &>::value);
+  FATAL_EXPECT_FALSE(is_fast_pass<std::string const &&>::value);
+
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string *>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string *&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string *&&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string *const &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string *const &&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string const *>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string const *&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string const *&&>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string const *const &>::value);
+  FATAL_EXPECT_TRUE(is_fast_pass<std::string const *const &&>::value);
 }
 
 ///////////////
