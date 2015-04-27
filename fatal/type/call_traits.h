@@ -10,15 +10,26 @@
 #ifndef FATAL_INCLUDE_fatal_type_call_traits_h
 #define FATAL_INCLUDE_fatal_type_call_traits_h
 
+#include <fatal/type/transform.h>
+
 #include <utility>
 
 namespace fatal {
 namespace detail {
+namespace call_traits_impl {
 
-template <typename T> T call_traits_arg_impl();
+template <typename T> T arg();
 
+template <bool> struct call_if;
+
+} // namespace call_traits_impl {
 } // namespace detail {
 
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
 struct ctor_call_traits {
   template <typename T>
   struct automatic {
@@ -72,14 +83,19 @@ struct ctor_call_traits {
   };
 };
 
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
 class call_operator_traits {
   template <typename... Args>
   struct is_impl {
     template <
       typename T,
       typename = decltype(
-        detail::call_traits_arg_impl<T>()(
-          detail::call_traits_arg_impl<Args>()...
+        detail::call_traits_impl::arg<T>()(
+          detail::call_traits_impl::arg<Args>()...
         )
       )
     >
@@ -145,6 +161,11 @@ public:
   );
 };
 
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
 #define FATAL_CALL_TRAITS(Name, ...) \
   class Name { \
     template <typename... UArgs> \
@@ -152,8 +173,8 @@ public:
       template < \
         typename U, \
         typename = decltype( \
-          ::fatal::detail::call_traits_arg_impl<U>().__VA_ARGS__( \
-            ::fatal::detail::call_traits_arg_impl<UArgs>()... \
+          ::fatal::detail::call_traits_impl::arg<U>().__VA_ARGS__( \
+            ::fatal::detail::call_traits_impl::arg<UArgs>()... \
           ) \
         ) \
       > \
@@ -169,7 +190,7 @@ public:
         typename U, \
         typename = decltype( \
           U::__VA_ARGS__( \
-            ::fatal::detail::call_traits_arg_impl<UArgs>()... \
+            ::fatal::detail::call_traits_impl::arg<UArgs>()... \
           ) \
         ) \
       > \
@@ -182,6 +203,19 @@ public:
   public: \
     struct member_function { \
       constexpr member_function() {} \
+      \
+      template <typename U> \
+      struct bind { \
+        template <typename... UArgs> \
+        using supports = decltype( \
+          member_fn_supports_impl<UArgs...>::template sfinae( \
+            static_cast<U *>(nullptr) \
+          ) \
+        ); \
+      }; \
+      \
+      template <typename U, typename... UArgs> \
+      using supports = typename bind<U>::template supports<UArgs...>; \
       \
       template <typename U, typename... UArgs> \
       constexpr static auto call(U &&subject, UArgs &&...args) \
@@ -199,19 +233,6 @@ public:
           ::std::forward<UArgs>(args)... \
         ); \
       } \
-      \
-      template <typename U> \
-      struct bind { \
-        template <typename... UArgs> \
-        using supports = decltype( \
-          member_fn_supports_impl<UArgs...>::template sfinae( \
-            static_cast<U *>(nullptr) \
-          ) \
-        ); \
-      }; \
-      \
-      template <typename U, typename... UArgs> \
-      using supports = typename bind<U>::template supports<UArgs...>; \
     }; \
     \
     struct static_member { \
@@ -246,6 +267,11 @@ public:
     }; \
   }
 
+/**
+ * Some pre-instantiated call traits for common method names.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
 struct call_traits {
 # define FATAL_CALL_TRAITS_IMPL(Name) FATAL_CALL_TRAITS(Name, Name)
 
@@ -337,6 +363,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(index_of);
   FATAL_CALL_TRAITS_IMPL(init);
   FATAL_CALL_TRAITS_IMPL(initialize);
+  FATAL_CALL_TRAITS_IMPL(inject);
   FATAL_CALL_TRAITS_IMPL(insert);
   FATAL_CALL_TRAITS_IMPL(join);
   FATAL_CALL_TRAITS_IMPL(joinable);
@@ -478,6 +505,11 @@ struct call_traits {
 # undef FATAL_CALL_TRAITS_IMPL
 };
 
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
 #define FATAL_FREE_FUNCTION_CALL_TRAITS(Name, ...) \
   struct Name { \
     constexpr Name() {} \
@@ -493,6 +525,63 @@ struct call_traits {
     { return call(::std::forward<UArgs>(args)...); } \
   }; \
 
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename CallTraits,
+  typename WhenFalseFunctionObject,
+  template <typename...> class Predicate = CallTraits::template supports,
+  typename... Args,
+  typename... UArgs
+>
+constexpr static auto call_if(UArgs &&...args)
+  -> decltype(
+    detail::call_traits_impl::call_if<
+      fatal::apply<Predicate, Args..., UArgs...>::value
+    >::template call<CallTraits, WhenFalseFunctionObject>(
+      std::forward<UArgs>(args)...
+    )
+  )
+{
+  return detail::call_traits_impl::call_if<
+    fatal::apply<Predicate, Args..., UArgs...>::value
+  >::template call<CallTraits, WhenFalseFunctionObject>(
+    std::forward<UArgs>(args)...
+  );
+}
+
+////////////////////////////
+// IMPLEMENTATION DETAILS //
+////////////////////////////
+
+namespace detail {
+namespace call_traits_impl {
+
+template <bool>
+struct call_if {
+  template <typename Traits, typename, typename... Args, typename... UArgs>
+  constexpr static auto call(UArgs &&...args)
+    -> decltype(Traits::template call<Args...>(std::forward<UArgs>(args)...))
+  {
+    return Traits::template call<Args...>(std::forward<UArgs>(args)...);
+  }
+};
+
+template <>
+struct call_if<false> {
+  template <typename, typename Fn, typename... Args, typename... UArgs>
+  constexpr static auto call(UArgs &&...args)
+    -> decltype(Fn()(std::forward<UArgs>(args)...))
+  {
+    return Fn()(std::forward<UArgs>(args)...);
+  }
+};
+
+} // namespace call_traits_impl {
+} // namespace detail {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_call_traits_h
