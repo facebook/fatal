@@ -128,8 +128,8 @@ struct string_ref {
   }
 
   void reset(const_iterator begin) {
-    assert(begin_ <= i);
-    begin_ = i;
+    assert(begin_ <= begin);
+    begin_ = begin;
     assert(begin_ <= end_);
   }
 
