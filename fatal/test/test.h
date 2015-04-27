@@ -232,8 +232,8 @@ namespace test {
   ).check
 
 using clock = std::chrono::system_clock;
-using duration = clock::duration;
-using timestamp = clock::time_point;
+using duration_t = clock::duration;
+using timestamp_t = clock::time_point;
 
 // TODO: ISSUE SHOULD NOT BUILD AN INTERNAL STRING BUT RATHER A HIERARCHICAL MAP
 //       TO ALLOW PRETTY PRINTERS TO CHOOSE THE FORMATTING
@@ -243,7 +243,7 @@ struct test_issue {
   template <typename... Args>
   test_issue(
     severity_t severity,
-    timestamp timestamp,
+    timestamp_t timestamp,
     source_info source,
     Args &&...args
   ):
@@ -260,7 +260,7 @@ struct test_issue {
   }
 
   severity_t severity() const { return severity_; }
-  timestamp timestamp() const { return timestamp_; }
+  timestamp_t timestamp() const { return timestamp_; }
   source_info const &source() const { return source_; }
   std::string const &message() const { return message_; }
 
@@ -277,7 +277,7 @@ struct test_issue {
 
 private:
   severity_t const severity_;
-  test::timestamp const timestamp_;
+  timestamp_t const timestamp_;
   source_info const source_;
   std::string message_;
 };
@@ -304,13 +304,13 @@ public:
 
   bool passed() const { return issues_.empty(); }
 
-  duration elapsed() const { return elapsed_; }
+  duration_t elapsed() const { return elapsed_; }
 
-  void set_elapsed(duration elapsed) { elapsed_ = elapsed; }
+  void set_elapsed(duration_t elapsed) { elapsed_ = elapsed; }
 
 private:
   issue_list issues_;
-  duration elapsed_;
+  duration_t elapsed_;
 
 };
 
@@ -909,7 +909,7 @@ public:
 
     printer.start_run(out, size_, groups_.size(), clock::now());
 
-    duration running_time(0);
+    duration_t running_time(0);
     size_type passed = 0;
     size_type total = 0;
 
@@ -919,7 +919,7 @@ public:
       assert(g->second < entries_.size());
       auto const &group = entries_[g->second];
 
-      duration group_time(0);
+      duration_t group_time(0);
 
       printer.start_group(out, g->first, clock::now());
 
@@ -977,7 +977,7 @@ private:
 struct default_printer {
   template <typename TOut>
   void start_run(
-    TOut &out, std::size_t total, std::size_t groups, timestamp start
+    TOut &out, std::size_t total, std::size_t groups, timestamp_t start
   ) {
     // TODO: pretty print test run start time??
     out << "running " << total << " tests from " << groups << " test cases\n";
@@ -985,7 +985,7 @@ struct default_printer {
   }
 
   template <typename TOut, typename TGroup>
-  void start_group(TOut &out, TGroup const &group, timestamp start) {
+  void start_group(TOut &out, TGroup const &group, timestamp_t start) {
     auto const time = start - run_start_;
 
     // TODO: pretty print test group start time
@@ -997,7 +997,7 @@ struct default_printer {
 
   template <typename TOut, typename TName>
   void start_test(
-    TOut &out, TName const &name, source_info const &source, timestamp start
+    TOut &out, TName const &name, source_info const &source, timestamp_t start
   ) {
     auto const time = start - group_start_;
 
@@ -1035,12 +1035,12 @@ struct default_printer {
   }
 
   template <typename TOut, typename TGroup>
-  void end_group(TOut &out, TGroup const &group, duration time) {
+  void end_group(TOut &out, TGroup const &group, duration_t time) {
   }
 
   template <typename TOut>
   void end_run(
-    TOut &out, std::size_t passed, std::size_t total, duration time
+    TOut &out, std::size_t passed, std::size_t total, duration_t time
   ) {
     out << '\n' << (passed == total ? "succeeded" : "FAILED")
       << ": passed " << passed << '/' << total << " after "
@@ -1048,9 +1048,9 @@ struct default_printer {
   }
 
 private:
-  timestamp run_start_;
-  timestamp group_start_;
-  timestamp test_start_;
+  timestamp_t run_start_;
+  timestamp_t group_start_;
+  timestamp_t test_start_;
 };
 
 template <typename TPrinter = default_printer, typename TOut>
