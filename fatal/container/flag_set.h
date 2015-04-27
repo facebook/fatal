@@ -32,21 +32,21 @@ namespace fatal {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename... TFlags>
+template <typename... Flags>
 struct flag_set {
   /**
    * The list of supported flags.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef type_list<TFlags...> tag_list;
+  using tag_list = type_list<Flags...>;
 
   /**
    * The integral representation of the flag_set.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef smallest_fast_unsigned_integral<tag_list::size> flags_type;
+  using flags_type = smallest_fast_unsigned_integral<tag_list::size>;
 
   static_assert(
     tag_list::size <= data_bits<flags_type>::value,
@@ -56,13 +56,13 @@ struct flag_set {
   static_assert(
     logical_transform::all<
       std::true_type,
-      std::is_same<TFlags, typename std::decay<TFlags>::type>...
+      std::is_same<Flags, typename std::decay<Flags>::type>...
     >::value,
     "unsupported tag"
   );
 
 private:
-  typedef mersenne_number<tag_list::size> range_mask;
+  using range_mask = mersenne_number<tag_list::size>;
 
   template <bool IgnoreUnsupported, typename... UFlags>
   using mask_for = bitwise_transform::any<
@@ -81,7 +81,7 @@ private:
 
   template <typename... UFlags>
   struct import_foreign {
-    typedef flag_set<UFlags...> foreign_set;
+    using foreign_set = flag_set<UFlags...>;
 
     struct visitor {
       template <typename UFlag, std::size_t Index>
@@ -90,7 +90,7 @@ private:
         foreign_set const &foreign,
         flags_type &out
       ) {
-        if (foreign.template is_set<UFlag>()) {
+        if (foreign.template test<UFlag>()) {
           out |= mask_for<true, UFlag>::value;
         }
       }
@@ -131,13 +131,6 @@ public:
   {}
 
   /**
-   * Unsets all the flags in this `flag_set`.
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  void clear() { flags_ = 0; }
-
-  /**
    * Initializes this set setting all supported flags that are set in `other`,
    * ignoring the unsupported ones.
    *
@@ -156,8 +149,69 @@ public:
     flags_(import_foreign<UFlags...>::import(other))
   {}
 
+  //////////
+  // test //
+  //////////
+
   /**
-   * Sets the given flags.
+   * Tells whether all given flags are set.
+   *
+   * Example:
+   *
+   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s{my_flag_1(), my_flag_3()};
+   *
+   *  // yields `true`
+   *  s.test(my_flag_1(), my_flag_3());
+   *
+   *  // yields `true`
+   *  s.test(my_flag_1());
+   *
+   *  // yields `false`
+   *  s.test(my_flag_1(), my_flag_2());
+   *
+   *  // yields `false`
+   *  s.test(my_flag_2());
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... UFlags>
+  bool test(UFlags &&...) const {
+    return test<typename std::decay<UFlags>::type...>();
+  }
+
+  /**
+   * Tells whether all given flags are set.
+   *
+   * Example:
+   *
+   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s{my_flag_1(), my_flag_3()};
+   *
+   *  // yields `true`
+   *  s.test<my_flag_1, my_flag_3>();
+   *
+   *  // yields `true`
+   *  s.test<my_flag_1>();
+   *
+   *  // yields `false`
+   *  s.test<my_flag_1, my_flag_2>();
+   *
+   *  // yields `false`
+   *  s.test<my_flag_2>();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... UFlags>
+  bool test() const {
+    using mask = mask_for<false, UFlags...>;
+    return (flags_ & mask::value) == mask::value;
+  }
+
+  /////////
+  // set //
+  /////////
+
+  /**
+   * Sets the given flags to true.
    *
    * Example:
    *
@@ -175,7 +229,7 @@ public:
   }
 
   /**
-   * Sets the given flags.
+   * Sets the given flags to true.
    *
    * Example:
    *
@@ -192,7 +246,7 @@ public:
   }
 
   /**
-   * Sets the given flags.
+   * Sets the given flags to true.
    *
    * Example:
    *
@@ -211,7 +265,7 @@ public:
   }
 
   /**
-   * Sets the given flags.
+   * Sets the given flags to true.
    *
    * Example:
    *
@@ -228,9 +282,13 @@ public:
     return std::move(*this);
   }
 
+  ////////////
+  // set_if //
+  ////////////
+
   /**
-   * Sets the `UFlag` flag iff the `condition` is true, otherwise leave it
-   * unchanged.
+   * Sets the `UFlag` flag to true if the `condition` is true,
+   * otherwise leave it unchanged.
    *
    * Example:
    *
@@ -253,10 +311,9 @@ public:
     return *this;
   }
 
-
   /**
-   * Sets the `UFlag` flag iff the `condition` is true, otherwise leave it
-   * unchanged.
+   * Sets the `UFlag` flag  to true if the `condition` is true,
+   * otherwise leave it unchanged.
    *
    * Example:
    *
@@ -276,99 +333,274 @@ public:
     return std::move(*this);
   }
 
-  /**
-   * Resets resets this flag set to contain exactly the given flags.
-   *
-   * This is the same as calling `clear()` then `set(flags...)`.
-   *
-   * Example:
-   *
-   *  flag_set<my_flag_1, my_flag_2, my_flag_3, my_flag_4> s{
-   *    my_flag_1(), my_flag_3()
-   *  };
-   *
-   *  // leaves only `my_flag_2` and `my_flag_4` set
-   *  s.reset(my_flag_2(), my_flag_4());
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  template <typename... UFlags>
-  void reset(UFlags &&...) { reset<typename std::decay<UFlags>::type...>(); }
+  ///////////
+  // reset //
+  ///////////
 
   /**
-   * Resets resets this flag set to contain exactly the given flags.
-   *
-   * This is the same as calling `clear()` then `set<UFlags...>()`.
+   * Resets the given flags to false.
    *
    * Example:
    *
-   *  flag_set<my_flag_1, my_flag_2, my_flag_3, my_flag_4> s{
-   *    my_flag_1(), my_flag_3()
-   *  };
+   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s;
    *
-   *  // leaves only `my_flag_2` and `my_flag_4` set
-   *  s.reset<my_flag_2, my_flag_4>();
+   *  // resets `my_flag_1` and `my_flag_2`
+   *  s.reset(my_flag_1(), my_flag_2());
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... UFlags>
-  void reset() {
-    flags_ = mask_for<false, UFlags...>::value;
+  flag_set &reset(UFlags &&...) & {
+    reset<typename std::decay<UFlags>::type...>();
+    return *this;
+  }
+
+  /**
+   * Resets the given flags to false.
+   *
+   * Example:
+   *
+   *  // resets `my_flag_1` and `my_flag_2`
+   *  auto s = flag_set<my_flag_1, my_flag_2, my_flag_3>()
+   *    .reset(my_flag_1(), my_flag_2());
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... UFlags>
+  flag_set &&reset(UFlags &&...) && {
+    reset<typename std::decay<UFlags>::type...>();
+    return std::move(*this);
+  }
+
+  /**
+   * Resets the given flags to false.
+   *
+   * Example:
+   *
+   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s;
+   *
+   *  // resets `my_flag_1` and `my_flag_2`
+   *  s.reset<my_flag_1, my_flag_2>();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... UFlags>
+  flag_set &reset() & {
+    flags_ &= ~mask_for<false, UFlags...>::value;
     assert((flags_ & range_mask::value) == flags_);
+    return *this;
   }
 
   /**
-   * Tells whether all given flag are set.
+   * Resets the given flags to false.
    *
    * Example:
    *
-   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s{my_flag_1(), my_flag_3()};
-   *
-   *  // yields `true`
-   *  s.is_set(my_flag_1(), my_flag_3());
-   *
-   *  // yields `true`
-   *  s.is_set(my_flag_1());
-   *
-   *  // yields `false`
-   *  s.is_set(my_flag_1(), my_flag_2());
-   *
-   *  // yields `false`
-   *  s.is_set(my_flag_2());
+   *  // resets `my_flag_1` and `my_flag_2`
+   *  auto s = flag_set<my_flag_1, my_flag_2, my_flag_3>()
+   *    .reset<my_flag_1, my_flag_2>();
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... UFlags>
-  bool is_set(UFlags &&...) const {
-    return is_set<typename std::decay<UFlags>::type...>();
+  flag_set &&reset() && {
+    flags_ &= ~mask_for<false, UFlags...>::value;
+    assert((flags_ & range_mask::value) == flags_);
+    return std::move(*this);
   }
 
+  //////////////
+  // reset_if //
+  //////////////
+
   /**
-   * Tells whether all given flag are set.
+   * Resets the `UFlag` flag to false if the `condition` is true,
+   * otherwise leave it unchanged.
    *
    * Example:
    *
-   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s{my_flag_1(), my_flag_3()};
+   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s;
    *
-   *  // yields `true`
-   *  s.is_set<my_flag_1, my_flag_3>();
+   *  // resets `my_flag_1`
+   *  s.reset_if<my_flag_1>(true);
    *
-   *  // yields `true`
-   *  s.is_set<my_flag_1>();
+   *  // leaves `my_flag_2` unchanged
+   *  s.reset_if<my_flag_2>(false);
    *
-   *  // yields `false`
-   *  s.is_set<my_flag_1, my_flag_2>();
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename UFlag>
+  flag_set &reset_if(bool condition) & {
+    if (condition) {
+      reset<UFlag>();
+    }
+
+    return *this;
+  }
+
+  /**
+   * Resets the `UFlag` flag to false if the `condition` is true,
+   * otherwise leave it unchanged.
    *
-   *  // yields `false`
-   *  s.is_set<my_flag_2>();
+   * Example:
+   *
+   *  // resets `my_flag_1` but leaves `my_flag_2` unchanged
+   *  auto s = flag_set<my_flag_1, my_flag_2, my_flag_3>()
+   *    .reset_if<my_flag_1>(true)
+   *    .reset_if<my_flag_2>(false);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename UFlag>
+  flag_set &&reset_if(bool condition) && {
+    if (condition) {
+      reset<UFlag>();
+    }
+
+    return std::move(*this);
+  }
+
+  //////////
+  // flip //
+  //////////
+
+  /**
+   * Flips the given flags to the opposite of its current value.
+   *
+   * Example:
+   *
+   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s;
+   *
+   *  // flips `my_flag_1` and `my_flag_2`
+   *  s.flip(my_flag_1(), my_flag_2());
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... UFlags>
-  bool is_set() const {
-    typedef mask_for<false, UFlags...> mask;
-    return (flags_ & mask::value) == mask::value;
+  flag_set &flip(UFlags &&...) & {
+    flip<typename std::decay<UFlags>::type...>();
+    return *this;
   }
+
+  /**
+   * Flips the given flags to the opposite of its current value.
+   *
+   * Example:
+   *
+   *  // flips `my_flag_1` and `my_flag_2`
+   *  auto s = flag_set<my_flag_1, my_flag_2, my_flag_3>()
+   *    .flip(my_flag_1(), my_flag_2());
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... UFlags>
+  flag_set &&flip(UFlags &&...) && {
+    flip<typename std::decay<UFlags>::type...>();
+    return std::move(*this);
+  }
+
+  /**
+   * Flips the given flags to the opposite of its current value.
+   *
+   * Example:
+   *
+   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s;
+   *
+   *  // flips `my_flag_1` and `my_flag_2`
+   *  s.flip<my_flag_1, my_flag_2>();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... UFlags>
+  flag_set &flip() & {
+    flags_ ^= mask_for<false, UFlags...>::value;
+    assert((flags_ & range_mask::value) == flags_);
+    return *this;
+  }
+
+  /**
+   * Flips the given flags to the opposite of its current value.
+   *
+   * Example:
+   *
+   *  // flips `my_flag_1` and `my_flag_2`
+   *  auto s = flag_set<my_flag_1, my_flag_2, my_flag_3>()
+   *    .flip<my_flag_1, my_flag_2>();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... UFlags>
+  flag_set &&flip() && {
+    flags_ ^= mask_for<false, UFlags...>::value;
+    assert((flags_ & range_mask::value) == flags_);
+    return std::move(*this);
+  }
+
+  /////////////
+  // flip_if //
+  /////////////
+
+  /**
+   * Flips the `UFlag` flag to the opposite of its current value if
+   * the `condition` is true, otherwise leave it unchanged.
+   *
+   * Example:
+   *
+   *  flag_set<my_flag_1, my_flag_2, my_flag_3> s;
+   *
+   *  // flips `my_flag_1`
+   *  s.flip_if<my_flag_1>(true);
+   *
+   *  // leaves `my_flag_2` unchanged
+   *  s.flip_if<my_flag_2>(false);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename UFlag>
+  flag_set &flip_if(bool condition) & {
+    if (condition) {
+      flip<UFlag>();
+    }
+
+    return *this;
+  }
+
+  /**
+   * Flips the `UFlag` flag to the opposite of its current value if
+   * the `condition` is true, otherwise leave it unchanged.
+   *
+   * Example:
+   *
+   *  // flips `my_flag_1` but leaves `my_flag_2` unchanged
+   *  auto s = flag_set<my_flag_1, my_flag_2, my_flag_3>()
+   *    .flip_if<my_flag_1>(true)
+   *    .flip_if<my_flag_2>(false);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename UFlag>
+  flag_set &&flip_if(bool condition) && {
+    if (condition) {
+      flip<UFlag>();
+    }
+
+    return std::move(*this);
+  }
+
+  ///////////
+  // clear //
+  ///////////
+
+  /**
+   * Unsets all the flags in this `flag_set`.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  void clear() { flags_ = 0; }
+
+  ////////////
+  // expand //
+  ////////////
 
   /**
    * Adds `UFlag` to the list of supported flags (in which case it returns a
@@ -378,18 +610,18 @@ public:
    * This is the type returned by `expand()`.
    *
    *  // yields `flag_set<my_flag_1>`
-   *  typedef flag_set<>::expanded<my_flag_1> result0;
+   *  using result0 = flag_set<>::expanded<my_flag_1>;
    *
-   *  typedef flag_set<my_flag_2, my_flag_3> my_set;
+   *  using my_set = flag_set<my_flag_2, my_flag_3>;
    *
    *  // yields `flag_set<my_flag_2, my_flag_3, my_flag_4>`
-   *  typedef my_set::expanded<my_flag_4> result1;
+   *  using result1 = my_set::expanded<my_flag_4>;
    *
    *  // yields `flag_set<my_flag_2, my_flag_3, my_flag_1>`
-   *  typedef my_set::expanded<my_flag_1> result2;
+   *  using result2 = my_set::expanded<my_flag_1>;
    *
    *  // yields `flag_set<my_flag_2, my_flag_3>`
-   *  typedef my_set::expanded<my_flag_2> result3;
+   *  using result3 = my_set::expanded<my_flag_2>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -422,18 +654,18 @@ public:
    *
    *  // yields `flag_set<my_flag_2, my_flag_3, my_flag_4>`
    *  // with `my_flag_2` and `my_flag_4` set
-   *  typedef s.expand<my_flag_4>();
+   *  using result0 = s.expand<my_flag_4>();
    *
    *  // yields `flag_set<my_flag_2, my_flag_3, my_flag_1>`
    *  // with `my_flag_2` and `my_flag_1` set
-   *  typedef s.expand<my_flag_1>();
+   *  using result1 = s.expand<my_flag_1>();
    *
    *  // yields `flag_set<my_flag_2, my_flag_3>` with `my_flag_2`
-   *  typedef s.expand<my_flag_2>();
+   *  using result2 = s.expand<my_flag_2>();
    *
    *  // yields `flag_set<my_flag_2, my_flag_3>`
    *  // with `my_flag_2` and `my_flag_3` set
-   *  typedef s.expand<my_flag_3>();
+   *  using result3 = s.expand<my_flag_3>();
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -441,6 +673,10 @@ public:
   expanded<UFlag> expand() const {
     return expanded<UFlag>(*this).template set<UFlag>();
   }
+
+  ///////////////
+  // expand_if //
+  ///////////////
 
   /**
    * Expands the list of supported flags with `UFlag` and leaves set whatever
@@ -467,6 +703,10 @@ public:
     return expanded<UFlag>(*this).template set_if<UFlag>(condition);
   }
 
+  /////////
+  // get //
+  /////////
+
   /**
    * Gets the integral representation of this `flag_set`.
    *
@@ -492,12 +732,16 @@ public:
    */
   fast_pass<flags_type> get() const { return flags_; }
 
+  ////////////////
+  // operator = //
+  ////////////////
+
   /**
    * Assignment operator. Sets this `flag_set` with exactly what's set in `rhs`.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  flag_set &operator =(flag_set const &rhs) {
+  flag_set &operator =(fast_pass<flag_set> const &rhs) {
     flags_ = rhs.flags_;
     assert((flags_ & range_mask::value) == flags_);
 
