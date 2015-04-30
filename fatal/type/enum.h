@@ -22,9 +22,319 @@
 #include <cstring>
 
 namespace fatal {
+namespace detail {
+namespace enum_impl {
+
+struct metadata_tag {};
+
+} // namespace enum_impl {
+} // namespace detail {
 
 /**
- * Declares an enum named `Enum`, containing the given fields.
+ * Provides additional functionality for enumerations like efficient
+ * enum <-> string conversion, template meta-programming metadata and
+ * compile-time reflection.
+ *
+ * Only enumerations exported with `FATAL_EXPORT_RICH_ENUM`, `FATAL_RICH_ENUM`
+ * and `FATAL_RICH_ENUM_CLASS` are available to `enum_traits`.
+ *
+ * Example:
+ *
+ *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+ *
+ *  my_enum e = my_enum::field0;
+ *
+ *  // yields `"field0"`
+ *  auto result = enum_traits<my_enum>::to_string(e);
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename Enum>
+class enum_traits {
+  static_assert(std::is_enum<Enum>::value, "enumeration expected");
+
+  using impl = decltype(
+    detail::enum_impl::metadata_tag() << static_cast<Enum *>(nullptr)
+  );
+
+public:
+  /**
+   * A type alias for the enumeration itself.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `my_enum`
+   *  using result = enum_traits<my_enum>::type;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using type = typename impl::type;
+
+  /**
+   * The underlying integral type of the enumeration.
+   *
+   * This is equivalent to `std::underlying_type`.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `unsigned`
+   *  using result = enum_traits<my_enum>::int_type;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using int_type = typename std::underlying_type<type>::type;
+
+  /**
+   * Provides type strings representing the name of each enumeration field.
+   *
+   * The members are named exactly like its respective enumeration field.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `type_string<char, 'f', 'i', 'e', 'l', 'd', '0'>;
+   *  using result = enum_traits<my_enum>::str::field0;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using str = typename impl::str;
+
+  /**
+   * A `type_map` from name to value for each known enumeration field.
+   *
+   * Field names are represented as `type_string`, while field values are
+   * represented as a `std::integral_constant` of the given enumeration.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `std::integral_constant<my_enum, my_enum::field0>`
+   *  using result = enum_traits<my_enum>::name_to_value::get<
+   *    enum_traits<my_enum>::str::field0
+   *  >;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using name_to_value = typename impl::name_to_value;
+
+  /**
+   * A `type_map` from value to name for each known enumeration field.
+   *
+   * Field names are represented as `type_string`, while field values are
+   * represented as a `std::integral_constant` of the given enumeration.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `enum_traits<my_enum>::str::field0`
+   *  using result = enum_traits<my_enum>::value_to_name::get<
+   *    std::integral_constant<my_enum, my_enum::field0>
+   *  >;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using value_to_name = typename name_to_value::template invert<>;
+
+  /**
+   * A `type_list` of type strings for the names of each known
+   * enumeration fields.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `type_list<
+   *  //   enum_traits<my_enum>::str::field0,
+   *  //   enum_traits<my_enum>::str::field1,
+   *  //   enum_traits<my_enum>::str::field2
+   *  // >`
+   *  using result = enum_traits<my_enum>::names;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using names = typename name_to_value::keys;
+
+  /**
+   * A `type_list` of `std::integral_constant` for each of the
+   * known enumeration values.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `type_list<
+   *  //   std::integral_constant<my_enum, my_enum::field0>,
+   *  //   std::integral_constant<my_enum, my_enum::field1>,
+   *  //   std::integral_constant<my_enum, my_enum::field2>
+   *  // >`
+   *  using result = enum_traits<my_enum>::values;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using values = typename name_to_value::mapped;
+
+  /**
+   * A `type_prefix_tree` containing the names of the enumeration fields.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `build_type_prefix_tree::from<
+   *  //   enum_traits<my_enum>::str::field0,
+   *  //   enum_traits<my_enum>::str::field1,
+   *  //   enum_traits<my_enum>::str::field2
+   *  // >`
+   *  using result = enum_traits<my_enum>::prefix_tree;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using prefix_tree = typename names::template apply<
+    fatal::build_type_prefix_tree<>::from
+  >;
+
+private:
+  struct parser {
+    template <typename TString>
+    void operator ()(type_tag<TString>, Enum &out) {
+      out = name_to_value::template get<TString>::value;
+    }
+  };
+
+public:
+  /**
+   * Returns a non-owning pointer to the statically allocated string
+   * representation of the enumeration value given, or `nullptr` when
+   * the given value is not supported.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `"field0"`
+   *  auto result = enum_traits<my_enum>::to_string(my_enum::field0);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  static char const *to_string(type e) { return impl::to_string(e); }
+
+  /**
+   * Parses the string given by the iterators `[begin, end)`
+   * and returns the corresponding enumeration value.
+   *
+   * Throws `std::invalid_argument` if the given string is not
+   * a valid enumeration field.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  std::string f1("field0");
+   *  std::string f2("yolo");
+   *
+   *  // returns `my_enum::field0`
+   *  auto result1 = enum_traits<my_enum>::parse(f1.begin(), f1.end());
+   *
+   *  // throws `std::invalid_argument`
+   *  auto result2 = enum_traits<my_enum>::parse(f2.begin(), f2.end());
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TBegin, typename TEnd>
+  static type parse(TBegin &&begin, TEnd &&end) {
+    type out;
+
+    if (!prefix_tree::template match<>::exact(
+      std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
+    )) {
+      throw std::invalid_argument("unrecognized enum value");
+    }
+
+    return out;
+  }
+
+  /**
+   * Equivalent to `parse(std::begin(s), std::end(s))`.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // returns `my_enum::field0`
+   *  auto result1 = enum_traits<my_enum>::parse("field0");
+   *
+   *  // throws `std::invalid_argument`
+   *  auto result2 = enum_traits<my_enum>::parse("yolo");
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TString>
+  static type parse(TString const &s) {
+    return parse(std::begin(s), std::end(s));
+  }
+
+  /**
+   * Parses the string given by the iterators `[begin, end)`.
+   * and sets `out` with the appropriate enumeration value.
+   *
+   * Returns `true` if successful or `false` otherwise.
+   * When `false` is returned, `out` remains untouched.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  my_enum out;
+   *  std::string f1("field0");
+   *  std::string f2("yolo");
+   *
+   *  // returns `true` and sets `out` to `my_enum::field0`
+   *  bool result1 = enum_traits<my_enum>::try_parse(out, f1.begin(), f1.end());
+   *
+   *  // returns `false` and leaves `out` untouched
+   *  bool result2 = enum_traits<my_enum>::try_parse(out, f2.begin(), f2.end());
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TBegin, typename TEnd>
+  static bool try_parse(type &out, TBegin &&begin, TEnd &&end) {
+    return prefix_tree::template match<>::exact(
+      std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
+    );
+  }
+
+  /**
+   * Equivalent to `try_parse(out, std::begin(s), std::end(s))`.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  my_enum out;
+   *
+   *  // returns `true` and sets `out` to `my_enum::field0`
+   *  bool result1 = enum_traits<my_enum>::try_parse(out, "field0");
+   *
+   *  // returns `false` and leaves `out` untouched
+   *  bool result2 = enum_traits<my_enum>::try_parse(out, "yolo");
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TString>
+  static bool try_parse(type &out, TString const &s) {
+    return try_parse(out, std::begin(s), std::end(s));
+  }
+};
+
+/**
+ * Declares an `enum` named `Enum`, containing the given fields.
  *
  * To give an explicit value to a field, provide a tuple `(FieldName, Value)`.
  *
@@ -54,33 +364,27 @@ namespace fatal {
   }
 
 /**
- * Declares an enum named `Enum` containing the given fields, as well as
- * a companion class that can be used for enum <-> string conversion and
- * template meta-programming / compile-time reflection.
+ * Declares an `enum` named `Enum` containing the given fields. It also
+ * adds support for this enumeration to `enum_traits`.
  *
  * To give an explicit value to a field, provide a tuple `(FieldName, Value)`.
  * Refer to `FATAL_ENUM` above for more information.
  *
- * For more information on the companion class, refer to the documentation
- * for `FATAL_EXPORT_RICH_ENUM` below.
- *
  * Example:
  *
- *  // yields `enum my_enum { field0, field1, field2 };`
- *  // and a companion class called `my_companion_class`
- *  FATAL_RICH_ENUM(my_companion_class, my_enum, field0, field1, field2);
+ *  FATAL_RICH_ENUM(my_enum, field0, field1, field2);
  *
- *  // yields `enum my_enum { field0, field1 = 37, field2 };`
- *  // and a companion class called `my_companion_class`
- *  FATAL_RICH_ENUM(my_companion_class, field0, (field1, 37), field2);
+ *  my_enum e = my_enum::field0;
+ *
+ *  // yields `"field0"`
+ *  auto result = enum_traits<my_enum>::to_string(e);
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FATAL_RICH_ENUM(ClassName, Enum, ...) \
+#define FATAL_RICH_ENUM(Enum, ...) \
   FATAL_ENUM(Enum, __VA_ARGS__); \
   \
-  FATAL_EXPORT_RICH_ENUM( \
-    ClassName, \
+  FATAL_IMPL_EXPORT_RICH_ENUM_CALL( \
     Enum \
     FATAL_SIMPLE_MAP(FATAL_IMPL_RICH_ENUM_EXTRACT_FIELD, __VA_ARGS__) \
   )
@@ -89,89 +393,44 @@ namespace fatal {
  * The same as `FATAL_RICH_ENUM`, but declares
  * an `enum class` instead of an `enum`.
  *
+ * Example:
+ *
+ *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+ *
+ *  my_enum e = my_enum::field0;
+ *
+ *  // yields `"field0"`
+ *  auto result = enum_traits<my_enum>::to_string(e);
+ *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FATAL_RICH_ENUM_CLASS(ClassName, Enum, ...) \
+#define FATAL_RICH_ENUM_CLASS(Enum, ...) \
   FATAL_ENUM_CLASS(Enum, __VA_ARGS__); \
   \
-  FATAL_EXPORT_RICH_ENUM( \
-    ClassName, \
+  FATAL_IMPL_EXPORT_RICH_ENUM_CALL( \
     Enum \
     FATAL_SIMPLE_MAP(FATAL_IMPL_RICH_ENUM_EXTRACT_FIELD, __VA_ARGS__) \
   )
 
 /**
- * Provides a companion class named `ClassName` for an existing
- * enum `Enum` that can be used for efficient enum <-> string
- * conversion and template meta-programming / compile-time reflection.
+ * Adds `enum_traits` support for an existing enum `Enum` to `enum_traits`.
  *
  * Only the specified fields will be supported.
  *
  * Example:
  *
- *  enum my_enum { field0, field1 = 37, field2 };
+ *  enum class my_enum { field0, field1 = 37, field2 };
  *
- *  // generates the class `my_companion_class`, as specified below
- *  FATAL_EXPORT_RICH_ENUM(my_companion_class, my_enum, field0, field1, field2);
+ *  FATAL_EXPORT_RICH_ENUM(my_enum, field0, field1, field2);
  *
- * Output of example:
- *
- *  struct my_companion_class {
- *    using type = my_enum;
- *
- *    struct str {
- *      FATAL_STR(field0, "field0");
- *      FATAL_STR(field1, "field1");
- *      FATAL_STR(field2, "field2");
- *    };
- *
- *    using name_to_value = fatal::build_type_map<
- *      str::field0, std::integral_constant<my_enum, my_enum::field0>,
- *      str::field1, std::integral_constant<my_enum, my_enum::field1>,
- *      str::field2, std::integral_constant<my_enum, my_enum::field2>
- *    >;
- *
- *    using names = name_to_value::keys;
- *    using values = name_to_value::mapped;
- *
- *    using value_to_name = name_to_value::invert<>;
- *
- *    using prefix_tree = fatal::build_type_prefix_tree<>::from<
- *      str::field0, str::field1, str::field2
- *    >;
- *
- *    // returns the string representation of the enum value given
- *    // by `e`, or `nullptr` when the given value is not supported
- *    static char const *to_str(my_enum e);
- *
- *    // parses the string given by the iterators `[begin, end)`
- *    // and returns the corresponding enum value.
- *    // throws `std::invalid_argument` if the given string is not
- *    // a valid enum field
- *    template <typename TBegin, typename TEnd>
- *    static my_enum parse(TBegin &&begin, TEnd &&end);
- *
- *    // equivalent to `parse(std::begin(s), std::end(s))`
- *    template <typename TString>
- *    static my_enum parse(TString const &s);
- *
- *    // parses the string given by the iterators `[begin, end)`
- *    // and sets `out` with the appropriate enum value.
- *    // returns `true` if successful or `false` otherwise
- *    // when `false` is returned, `out` is untouched.
- *    template <typename TBegin, typename TEnd>
- *    static bool try_parse(my_enum &out, TBegin &&begin, TEnd &&end);
- *
- *    // equivalent to `try_parse(out, std::begin(s), std::end(s))`
- *    template <typename TString>
- *    static bool try_parse(my_enum &out, TString const &s);
- *  };
+ *  // yields `"field0"`
+ *  auto result = enum_traits<my_enum>::to_string(my_enum::field0);
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FATAL_EXPORT_RICH_ENUM(ClassName, Enum, ...) \
+#define FATAL_EXPORT_RICH_ENUM(Enum, ...) \
   FATAL_IMPL_EXPORT_RICH_ENUM( \
-    ClassName, \
+    FATAL_UID(FATAL_CAT(enum_metadata_impl_, Enum)), \
     FATAL_UID(TString), \
     FATAL_UID(TBegin), \
     FATAL_UID(TEnd), \
@@ -195,6 +454,9 @@ namespace fatal {
 
 #define FATAL_IMPL_RICH_ENUM_EXTRACT_FIELD(...) \
   , FATAL_DEFER_1(FATAL_ARG_1)(FATAL_UNPARENTHESIZE(__VA_ARGS__))
+
+#define FATAL_IMPL_EXPORT_RICH_ENUM_CALL(...) \
+  FATAL_EXPORT_RICH_ENUM(__VA_ARGS__)
 
 #define FATAL_IMPL_EXPORT_RICH_ENUM_STR(...) \
   FATAL_STR(__VA_ARGS__, FATAL_TO_STR(__VA_ARGS__));
@@ -220,71 +482,16 @@ namespace fatal {
       FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR_VALUE_LIST, ~, __VA_ARGS__) \
     >; \
     \
-    using names = typename name_to_value::keys; \
-    using values = typename name_to_value::mapped; \
-    \
-    using value_to_name = typename name_to_value::template invert<>; \
-    \
-    using prefix_tree = names::apply< \
-      ::fatal::build_type_prefix_tree<>::from \
-    >; \
-    \
-  private: \
-    struct parse_visitor_impl { \
-      template <typename TString> \
-      void operator ()(::fatal::type_tag<TString>, Enum &out) { \
-        using value = typename name_to_value::template find<TString>; \
-        \
-        static_assert( \
-          !::std::is_same<value, ::fatal::type_not_found_tag>::value, \
-          "missing enum mapping" \
-        ); \
-        \
-        out = value::value; \
-      } \
-    }; \
-    \
-  public: \
-    static char const *to_str(Enum e) { \
+    static char const *to_string(Enum e) { \
       switch (e) { \
         default: return nullptr; \
         \
         FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_TO_STR, __VA_ARGS__) \
       } \
     } \
-    \
-    template <typename TBegin, typename TEnd> \
-    static Enum parse(TBegin &&begin, TEnd &&end) { \
-      Enum out; \
-      \
-      if (!prefix_tree::match<>::exact( \
-        ::std::forward<TBegin>(begin), ::std::forward<TEnd>(end), \
-        parse_visitor_impl{}, out \
-      )) { \
-        throw ::std::invalid_argument("unrecognized enum value"); \
-      } \
-      \
-      return out; \
-    } \
-    \
-    template <typename TString> \
-    static Enum parse(TString const &s) { \
-      return parse(::std::begin(s), ::std::end(s)); \
-    } \
-    \
-    template <typename TBegin, typename TEnd> \
-    static bool try_parse(Enum &out, TBegin &&begin, TEnd &&end) { \
-      return prefix_tree::match<>::exact( \
-        ::std::forward<TBegin>(begin), ::std::forward<TEnd>(end), \
-        parse_visitor_impl{}, out \
-      ); \
-    } \
-    \
-    template <typename TString> \
-    static bool try_parse(Enum &out, TString const &s) { \
-      return try_parse(out, ::std::begin(s), ::std::end(s)); \
-    } \
-  } \
+  }; \
+  \
+  ClassName operator <<(::fatal::detail::enum_impl::metadata_tag, Enum *)
 
 } // namespace fatal {
 
