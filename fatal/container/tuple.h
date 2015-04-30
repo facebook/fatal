@@ -165,7 +165,7 @@ struct tuple {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename TTag>
-  constexpr fast_pass<type_of<TTag>> get() noexcept const {
+  constexpr fast_pass<type_of<TTag>> get() const noexcept {
     return tags::template get<TTag>(data_);
   }
 
