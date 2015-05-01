@@ -443,7 +443,7 @@ public:
    */
   template <
     template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = get_member_type::tag
+    template <typename...> class TTagTransform = identity_transform
   >
   using args = typename impl<TTagTransform, TTypeTransform>
     ::template args<Args...>;
@@ -455,7 +455,7 @@ public:
    */
   template <
     template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = get_member_type::tag
+    template <typename...> class TTagTransform = identity_transform
   >
   using list = fatal::apply<
     impl<TTagTransform, TTypeTransform>::template list,
