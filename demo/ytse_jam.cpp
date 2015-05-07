@@ -351,9 +351,9 @@ int main() {
   ytse_jam engine;
   std::cout << "ytse jam db engine: ready" << std::endl << std::endl;
 
-  auto read_request = [](auto &s) -> bool {
+  auto read_request = [](auto &s) {
     std::cout << "$ ";
-    return std::getline(std::cin, s);
+    return static_cast<bool>(std::getline(std::cin, s));
   };
 
   for (std::string request; read_request(request); std::cout << std::endl) {
