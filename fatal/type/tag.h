@@ -19,7 +19,7 @@ namespace fatal {
 template <typename T> struct type_tag { typedef T type; };
 
 template <typename T, std::size_t Index>
-struct indexed_type_tag:
+struct indexed_tag:
   public std::integral_constant<std::size_t, Index>
 {
   typedef T type;
@@ -28,7 +28,11 @@ struct indexed_type_tag:
 };
 
 template <typename T, std::size_t Index>
-constexpr std::size_t indexed_type_tag<T, Index>::index;
+constexpr std::size_t indexed_tag<T, Index>::index;
+
+// TODO: Deprecate indexed_type_tag
+template <typename T, std::size_t Index>
+using indexed_type_tag = indexed_tag<T, Index>;
 
 struct type_not_found_tag {};
 
