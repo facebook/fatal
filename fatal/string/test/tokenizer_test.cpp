@@ -16,13 +16,54 @@
 
 namespace fatal {
 
+template <typename Tokenizer, typename T>
+void tokenizer_test(T &&data, std::vector<char const *> const &expected) {
+  auto i = expected.begin();
+
+  for (auto const &token: Tokenizer(std::forward<T>(data))) {
+    FATAL_ASSERT_NE(expected.end(), i);
+    FATAL_EXPECT_EQ(*i, token);
+    ++i;
+  }
+
+  FATAL_EXPECT_EQ(expected.end(), i);
+}
+
+FATAL_TEST(tokenizer, space) {
+  tokenizer_test<space_tokenizer>(
+    "1 2 3 4 5  6 7 8 9",
+    {"1", "2", "3", "4", "5", "", "6", "7", "8", "9"}
+  );
+}
+
+FATAL_TEST(tokenizer, line) {
+  tokenizer_test<line_tokenizer>(
+    "1\n2\n3\n4\n5\n\n6\n 7\n8 \n9",
+    {"1", "2", "3", "4", "5", "", "6", " 7", "8 ", "9"}
+  );
+}
+
+FATAL_TEST(tokenizer, comma) {
+  tokenizer_test<comma_tokenizer>(
+    "1,2,3,4,5,,6, 7,8 ,9",
+    {"1", "2", "3", "4", "5", "", "6", " 7", "8 ", "9"}
+  );
+}
+
+FATAL_TEST(tokenizer, colon) {
+  tokenizer_test<colon_tokenizer>(
+    "1:2:3:4:5::6: 7:8 :9",
+    {"1", "2", "3", "4", "5", "", "6", " 7", "8 ", "9"}
+  );
+}
+
 template <typename T>
-void csv_test(
+void csv_tokenizer_test(
   T &&data,
   std::vector<std::vector<char const *>> const &expected
 ) {
   auto i = expected.begin();
-  for (auto const &line: csv_tokenizer(string_ref(std::forward<T>(data)))) {
+  for (auto const &line: csv_tokenizer(std::forward<T>(data))) {
     FATAL_ASSERT_NE(expected.end(), i);
     auto j = i->begin();
     for (auto const &token: line) {
@@ -37,11 +78,12 @@ void csv_test(
 }
 
 FATAL_TEST(tokenizer, csv) {
-  csv_test(
-    "1,2,3,4,5,6\n7,8,9",
+  csv_tokenizer_test(
+    "1,2,3,4,5,,6\n\n 7,8 ,9",
     {
-      {"1", "2", "3", "4", "5", "6"},
-      {"7", "8", "9"}
+      {"1", "2", "3", "4", "5", "", "6"},
+      {},
+      {" 7", "8 ", "9"}
     }
   );
 }

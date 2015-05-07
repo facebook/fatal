@@ -12,6 +12,7 @@
 
 #include <fatal/container/uninitialized.h>
 #include <fatal/string/string_ref.h>
+#include <fatal/type/traits.h>
 
 #include <type_traits>
 #include <utility>
@@ -23,7 +24,8 @@ struct tokenizer {
   using token = Token;
   using delimiter = std::integral_constant<char, Delimiter>;
 
-  explicit tokenizer(string_ref data): data_(data) {}
+  template <typename U, typename = safe_overload_t<tokenizer, U>>
+  explicit tokenizer(U &&data): data_(std::forward<U>(data)) {}
 
   struct const_iterator {
     const_iterator(const_iterator const &rhs):
@@ -98,7 +100,12 @@ private:
 };
 
 
-using csv_tokenizer = tokenizer<tokenizer<string_ref, ','>, '\n'>;
+using space_tokenizer = tokenizer<string_ref, ' '>;
+using line_tokenizer = tokenizer<string_ref, '\n'>;
+using comma_tokenizer = tokenizer<string_ref, ','>;
+using colon_tokenizer = tokenizer<string_ref, ':'>;
+
+using csv_tokenizer = tokenizer<comma_tokenizer, '\n'>;
 
 } // namespace fatal {
 
