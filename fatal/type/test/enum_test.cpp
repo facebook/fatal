@@ -38,10 +38,16 @@ FATAL_TEST(enums, declare_enum) {
 
 FATAL_TEST(enums, to_string) {
   FATAL_EXPECT_EQ(nullptr, traits::to_string(static_cast<test_enum>(-1)));
-  FATAL_EXPECT_EQ(FATAL_TO_STR(state0), traits::to_string(test_enum::state0));
-  FATAL_EXPECT_EQ(FATAL_TO_STR(state1), traits::to_string(test_enum::state1));
-  FATAL_EXPECT_EQ(FATAL_TO_STR(state2), traits::to_string(test_enum::state2));
-  FATAL_EXPECT_EQ(FATAL_TO_STR(state3), traits::to_string(test_enum::state3));
+  FATAL_EXPECT_EQ("state0", traits::to_string(test_enum::state0));
+  FATAL_EXPECT_EQ("state1", traits::to_string(test_enum::state1));
+  FATAL_EXPECT_EQ("state2", traits::to_string(test_enum::state2));
+  FATAL_EXPECT_EQ("state3", traits::to_string(test_enum::state3));
+
+  FATAL_EXPECT_EQ("", traits::to_string(static_cast<test_enum>(-1), ""));
+  FATAL_EXPECT_EQ("state0", traits::to_string(test_enum::state0, ""));
+  FATAL_EXPECT_EQ("state1", traits::to_string(test_enum::state1, ""));
+  FATAL_EXPECT_EQ("state2", traits::to_string(test_enum::state2, ""));
+  FATAL_EXPECT_EQ("state3", traits::to_string(test_enum::state3, ""));
 }
 
 FATAL_TEST(enums, parse) {

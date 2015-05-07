@@ -211,8 +211,10 @@ private:
 public:
   /**
    * Returns a non-owning pointer to the statically allocated string
-   * representation of the enumeration value given, or `nullptr` when
+   * representation of the enumeration value given, or `fallback` when
    * the given value is not supported.
+   *
+   * The default value for `fallback` is `nullptr`.
    *
    * Example:
    *
@@ -223,7 +225,9 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  static char const *to_string(type e) { return impl::to_string(e); }
+  static char const *to_string(type e, char const *fallback = nullptr) {
+    return impl::to_string(e, fallback);
+  }
 
   /**
    * Parses the string given by the iterators `[begin, end)`
@@ -482,11 +486,10 @@ public:
       FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR_VALUE_LIST, ~, __VA_ARGS__) \
     >; \
     \
-    static char const *to_string(Enum e) { \
+    static char const *to_string(Enum e, char const *fallback) { \
       switch (e) { \
-        default: return nullptr; \
-        \
         FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_TO_STR, __VA_ARGS__) \
+        default: return fallback; \
       } \
     } \
   }; \
