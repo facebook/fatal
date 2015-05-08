@@ -216,6 +216,8 @@ public:
    *
    * The default value for `fallback` is `nullptr`.
    *
+   * See also `enum_to_string()` for a convenient shortcut.
+   *
    * Example:
    *
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
@@ -336,6 +338,29 @@ public:
     return try_parse(out, std::begin(s), std::end(s));
   }
 };
+
+/**
+ * A convenient shortcut to `enum_traits::to_string()`.
+ *
+ * Returns a non-owning pointer to the statically allocated string
+ * representation of the enumeration value given, or `fallback` when
+ * the given value is not supported.
+ *
+ * The default value for `fallback` is `nullptr`.
+ *
+ * Example:
+ *
+ *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+ *
+ *  // yields `"field0"`
+ *  auto result = enum_to_string(my_enum::field0);
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename Enum>
+char const *enum_to_string(Enum e, char const *fallback = nullptr) {
+  return enum_traits<typename std::decay<Enum>::type>::to_string(e, fallback);
+}
 
 /**
  * Declares an `enum` named `Enum`, containing the given fields.
