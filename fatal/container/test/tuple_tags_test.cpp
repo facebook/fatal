@@ -18,6 +18,8 @@ struct Bar {};
 struct Baz {};
 struct Gaz {};
 
+template <typename> struct Tag {};
+
 template <std::size_t Id>
 using tag = std::integral_constant<std::size_t, Id>;
 
@@ -119,6 +121,20 @@ FATAL_TEST(tuple_tags, foreach) {
 
   FATAL_EXPECT_EQ((std::vector<std::size_t>{0, 1, 2}), indexes);
   FATAL_EXPECT_EQ((std::vector<std::string>{"hello", "world", "!"}), elements);
+}
+
+FATAL_TEST(tuple_tags, tuple_tags_from) {
+  FATAL_EXPECT_SAME<tuple_tags<>, tuple_tags_from<std::tuple<>>>();
+
+  FATAL_EXPECT_SAME<
+    tuple_tags<int, double>,
+    tuple_tags_from<std::tuple<int, double>>
+  >();
+
+  FATAL_EXPECT_SAME<
+    tuple_tags<Tag<int>, Tag<double>>,
+    tuple_tags_from<std::tuple<int, double>, Tag>
+  >();
 }
 
 } // namespace fatal {

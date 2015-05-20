@@ -12,6 +12,7 @@
 
 #include <fatal/type/list.h>
 #include <fatal/type/map.h>
+#include <fatal/type/reflect_template.h>
 
 #include <tuple>
 #include <utility>
@@ -264,6 +265,35 @@ struct tuple_tags {
     );
   };
 };
+
+/**
+ * Derives a `tuple_tags` type out of the given type's template parameters.
+ *
+ * An optional transform for the tags can be given. If no transform is given,
+ * the tags are used as is.
+ *
+ * Example:
+ *
+ *  // `yields tuple_tags<>`
+ *  using result1 = tuple_tags_from<std::tuple<>>;
+ *
+ *  // `yields tuple_tags<int, double>`
+ *  using result2 = tuple_tags_from<std::tuple<int, double>>;
+ *
+ *  template <typename> struct Tag {};
+ *
+ *  // `yields tuple_tags<Tag<int>, Tag<double>>`
+ *  using result3 = tuple_tags_from<std::tuple<int, double>, Tag>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename T,
+  template <typename> class TTagTransform = fatal::identity_transform
+>
+using tuple_tags_from = typename fatal::reflect_template<T>::types
+  ::template transform<TTagTransform>
+  ::template apply<tuple_tags>;
 
 } // namespace fatal {
 
