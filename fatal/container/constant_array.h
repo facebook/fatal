@@ -14,12 +14,10 @@
 
 namespace fatal {
 
-// TODO: DOCUMENT AND TEST
+// TODO: DOCUMENT
 template <typename T, T... Values>
 struct constant_array {
   /**
-   * TODO: TEST
-   *
    * Tells how many elements this array has.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
@@ -27,8 +25,6 @@ struct constant_array {
   static constexpr std::size_t size = sizeof...(Values);
 
   /**
-   * TODO: TEST
-   *
    * Tells whether this array is empty or not.
    * This is the same as `size == 0`.
    *
@@ -36,16 +32,16 @@ struct constant_array {
    */
   static constexpr bool empty = size == 0;
 
-  // TODO: DOCUMENT AND TEST
+  // TODO: DOCUMENT
   using value_type = T;
 
-  // TODO: DOCUMENT AND TEST
+  // TODO: DOCUMENT
   using type = std::array<value_type, size>;
 
-  // TODO: DOCUMENT AND TEST
+  // TODO: DOCUMENT
   static constexpr type get{{Values...}};
 
-  // TODO: DOCUMENT AND TEST
+  // TODO: DOCUMENT
   static constexpr value_type const *data() { return get.data(); }
 };
 
