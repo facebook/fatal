@@ -1147,6 +1147,64 @@ FATAL_TEST(flag_set, expand_if) {
   }
 }
 
+FATAL_TEST(flag_set, equals) {
+  auto s = fx().set<x1t, x2t, x4t>();
+
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x1t, x4t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t>()));
+
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x1t, x4t, x2t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x1t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x4t, x1t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x2t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t, x1t>()));
+
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x1t, x4t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x1t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x4t, x1t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t, x1t>()));
+
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x2t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x4t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x2t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x2t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x2t, x1t>()));
+
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x2t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x4t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x4t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x4t, x2t, x1t>()));
+
+  FATAL_EXPECT_FALSE((s.equals<x1t, x2t, x0t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x2t, x3t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x2t, x5t>()));
+
+  FATAL_EXPECT_FALSE((s.equals<x1t, x0t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x2t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x3t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x4t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x5t>()));
+
+  FATAL_EXPECT_FALSE((s.equals<x0t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t>()));
+  FATAL_EXPECT_FALSE((s.equals<x2t>()));
+  FATAL_EXPECT_FALSE((s.equals<x3t>()));
+  FATAL_EXPECT_FALSE((s.equals<x4t>()));
+  FATAL_EXPECT_FALSE((s.equals<x5t>()));
+
+  FATAL_EXPECT_FALSE((s.equals<>()));
+}
+
 /////////////////////////
 // operator assignment //
 /////////////////////////

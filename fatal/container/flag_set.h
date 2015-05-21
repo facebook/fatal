@@ -732,6 +732,32 @@ public:
    */
   fast_pass<flags_type> get() const { return flags_; }
 
+  ////////////
+  // equals //
+  ////////////
+  
+  /**
+   * Checks if all given flags are set and none other.
+   *
+   * Example:
+   *
+   *  using flags_type = flag_set<my_flag_1, my_flag_2, my_flag_3>;
+   *
+   *  auto flags = flags_type().set<my_flag_1, my_flag_2>();
+   *
+   *  // yields `true`
+   *  auto result1 = flags.equals<my_flag_1, my_flag_2>();
+   *
+   *  // yields `false`
+   *  auto result2 = flags.equals<my_flag_1>();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... UFlags>
+  bool equals() const {
+    return flags_ == mask_for<false, UFlags...>::value;
+  }
+
   ////////////////
   // operator = //
   ////////////////
