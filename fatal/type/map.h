@@ -112,7 +112,7 @@ struct find<TDefault, TKey, type_pair<TKey, TValue>, Args...> {
 
 template <typename TDefault, typename TKey, typename T, typename... Args>
 struct find<TDefault, TKey, T, Args...> {
-  using type = typename find<TDefault, TKey, Args...>::type;;
+  using type = typename find<TDefault, TKey, Args...>::type;
 };
 
 /////////
@@ -128,7 +128,7 @@ struct get<TKey, type_pair<TKey, TValue>, Args...> {
 
 template <typename TKey, typename T, typename... Args>
 struct get<TKey, T, Args...> {
-  using type = typename get<TKey, Args...>::type;;
+  using type = typename get<TKey, Args...>::type;
 };
 
 //////////////
