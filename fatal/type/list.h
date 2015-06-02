@@ -320,7 +320,9 @@ template <
 >
 struct foreach_if {
   template <typename V, typename... VArgs>
-  static constexpr std::size_t visit(V &&, VArgs &&...) { return 0; }
+  static constexpr std::size_t visit(std::size_t result, V &&, VArgs &&...) {
+    return result;
+  }
 };
 
 template <
@@ -329,11 +331,13 @@ template <
 >
 struct foreach_if<TPredicate, Index, U, UArgs...> {
   template <typename V, typename... VArgs>
-  static constexpr std::size_t visit(V &&visitor, VArgs &&...args) {
-    return conditional_visit<fatal::apply<TPredicate, U>::value>::visit(
-      visitor, indexed_type_tag<U, Index>(), args...
-    ) + foreach_if<TPredicate, Index + 1, UArgs...>::visit(
-      visitor, args...
+  static constexpr std::size_t visit(
+    std::size_t result, V &&visitor, VArgs &&...args
+  ) {
+    return foreach_if<TPredicate, Index + 1, UArgs...>::visit(
+      result + conditional_visit<fatal::apply<TPredicate, U>::value>::visit(
+        visitor, indexed_type_tag<U, Index>(), args...
+      ), visitor, args...
     );
   }
 };
@@ -1503,8 +1507,7 @@ struct type_list {
   >
   static constexpr std::size_t foreach_if(V &&visitor, VArgs &&...args) {
     return detail::type_list_impl::foreach_if<TPredicate, 0, Args...>::visit(
-      std::forward<V>(visitor),
-      std::forward<VArgs>(args)...
+      0, std::forward<V>(visitor), std::forward<VArgs>(args)...
     );
   };
 
@@ -1552,9 +1555,9 @@ struct type_list {
    */
   template <typename V, typename... VArgs>
   static constexpr bool foreach(V &&visitor, VArgs &&...args) {
-    return 0 < foreach_if<
+    return foreach_if<
       fixed_transform<std::true_type>::template apply
-    >(std::forward<V>(visitor), std::forward<VArgs>(args)...);
+    >(std::forward<V>(visitor), std::forward<VArgs>(args)...) != 0;
   };
 
   /**
