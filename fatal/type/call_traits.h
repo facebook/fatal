@@ -294,6 +294,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(cbegin);
   FATAL_CALL_TRAITS_IMPL(cend);
   FATAL_CALL_TRAITS_IMPL(center);
+  FATAL_CALL_TRAITS_IMPL(check);
   FATAL_CALL_TRAITS_IMPL(child);
   FATAL_CALL_TRAITS_IMPL(children);
   FATAL_CALL_TRAITS_IMPL(clear);
