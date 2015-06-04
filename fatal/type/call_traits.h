@@ -534,13 +534,59 @@ struct call_traits {
   }; \
 
 /**
- * TODO: DOCUMENT AND TEST
+ * Conditionally calls a function according to the given predicate.
+ *
+ * The provided call traits is used to decide which function to call, perfectly
+ * forwarding the given parameters to it.
+ *
+ * When the predicate evaluates to false, `Fallback` is instantiated and its
+ * call operator is called, perfectly forwarding the parameters to it.
+ *
+ * An optional list of template parameters `Args` can also be passed to the
+ * function.
+ *
+ * The predicate is a type template. It receives the optional list of template
+ * parameters and the types of the arguments given to `call_if`, and must
+ * evaluate to a type similar to `std::integral_constant` of type `bool`.
+ * In other words, `Predicate<Args..., UArgs...>::value` is used to decide
+ * whether to call the function, through the call traits, or the fallback.
+ *
+ * Default predicate calls the function if it exists and supported the given
+ * parameters, otherwise it calls the fallback.
+ *
+ * Example:
+ *
+ *  struct fallback {
+ *    template <typename... Args>
+ *    int operator ()(Args &&...) { return 98765; }
+ *  };
+ *
+ *  struct foo {
+ *    int bar() { return 12345; }
+ *    double bar(char const *, bool) { return 5.6; }
+ *  };
+ *
+ *  FATAL_CALL_TRAITS(bar_traits, bar);
+ *
+ *  using traits = bar_traits::member_function;
+ *
+ *  // yields `12345`
+ *  auto result1 = call_if<traits, fallback>();
+ *
+ *  // yields `98765`
+ *  auto result2 = call_if<traits, fallback>("hello", "world", 143);
+ *
+ *  // yields `5.6`
+ *  auto result3 = call_if<traits, fallback>("test", true);
+ *
+ *  // yields `98765`
+ *  auto result4 = call_if<traits, fallback>(10);
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
   typename CallTraits,
-  typename WhenFalseFunctionObject,
+  typename Fallback,
   template <typename...> class Predicate = CallTraits::template supports,
   typename... Args,
   typename... UArgs
@@ -549,14 +595,14 @@ constexpr auto call_if(UArgs &&...args)
   -> decltype(
     detail::call_traits_impl::call_if<
       fatal::apply<Predicate, Args..., UArgs...>::value
-    >::template call<CallTraits, WhenFalseFunctionObject, Args...>(
+    >::template call<CallTraits, Fallback, Args...>(
       std::forward<UArgs>(args)...
     )
   )
 {
   return detail::call_traits_impl::call_if<
     fatal::apply<Predicate, Args..., UArgs...>::value
-  >::template call<CallTraits, WhenFalseFunctionObject, Args...>(
+  >::template call<CallTraits, Fallback, Args...>(
     std::forward<UArgs>(args)...
   );
 }
