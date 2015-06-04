@@ -209,7 +209,7 @@ public:
         template <typename... UArgs> \
         using supports = decltype( \
           member_fn_supports_impl<UArgs...>::template sfinae( \
-            static_cast<U *>(nullptr) \
+            static_cast<typename ::std::remove_reference<U>::type *>(nullptr) \
           ) \
         ); \
       }; \
