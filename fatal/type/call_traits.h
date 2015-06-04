@@ -251,6 +251,13 @@ public:
         constexpr auto operator ()(UArgs &&...args) const \
           -> decltype(call(::std::forward<UArgs>(args)...)) \
         { return call(::std::forward<UArgs>(args)...); } \
+        \
+        template <typename... UArgs> \
+        using supports = decltype( \
+          static_member_supports_impl<UArgs...>::sfinae( \
+            static_cast<U *>(nullptr) \
+          ) \
+        ); \
       }; \
       \
       template <typename U, typename... UArgs> \
@@ -259,11 +266,11 @@ public:
       { return bind<U>::call(::std::forward<UArgs>(args)...); } \
       \
       template <typename U, typename... UArgs> \
-        using supports = decltype( \
-          static_member_supports_impl<UArgs...>::sfinae( \
-            static_cast<U *>(nullptr) \
-          ) \
-        ); \
+      using supports = decltype( \
+        static_member_supports_impl<UArgs...>::sfinae( \
+          static_cast<U *>(nullptr) \
+        ) \
+      ); \
     }; \
   }
 
@@ -538,7 +545,7 @@ template <
   typename... Args,
   typename... UArgs
 >
-constexpr static auto call_if(UArgs &&...args)
+constexpr auto call_if(UArgs &&...args)
   -> decltype(
     detail::call_traits_impl::call_if<
       fatal::apply<Predicate, Args..., UArgs...>::value

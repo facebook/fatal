@@ -93,9 +93,9 @@ FATAL_TEST(member_function, call_const_this_ref) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<
+  using c = std::integral_constant<
     int, test_fn_traits::member_function::call(f, 2, 3, 5)
-  > c;
+  >;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -129,9 +129,9 @@ FATAL_TEST(member_function, call_non_const_this_ref) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<
+  using c = std::integral_constant<
     int, test_fn_traits::member_function::call(f, 2, 3, 5)
-  > c;
+  >;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -168,7 +168,7 @@ FATAL_TEST(member_function, function_object_const_this_ref) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, function_object(f, 2, 3, 5)> c;
+  using c = std::integral_constant<int, function_object(f, 2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -204,7 +204,7 @@ FATAL_TEST(member_function, function_object_non_const_this_ref) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, function_object(f, 2, 3, 5)> c;
+  using c = std::integral_constant<int, function_object(f, 2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -306,13 +306,15 @@ struct static_fn {
   static constexpr int test_fn(int a, int b, int c) { return a + b + c; }
 };
 
+using static_fn_traits = test_fn_traits::static_member::bind<static_fn>;
+
 ///////////////////////////
 // static_member -> call //
 ///////////////////////////
 
 FATAL_TEST(static_member, call_static_member) {
   FATAL_EXPECT_THROW(std::exception) {
-    test_fn_traits::static_member::bind<static_fn>::call(0l, 0.0, 0, "");
+    static_fn_traits::call(0l, 0.0, 0, "");
   };
 
   std::string s1("hello");
@@ -321,28 +323,20 @@ FATAL_TEST(static_member, call_static_member) {
   std::string s4("!");
   std::string out("some test string");
 
-  FATAL_EXPECT_EQ(17, test_fn_traits::static_member::bind<static_fn>::call(17));
+  FATAL_EXPECT_EQ(17, static_fn_traits::call(17));
 
   FATAL_EXPECT_EQ(
     s1.size() + std::strlen(s2) + s3.size() + s4.size(),
-    test_fn_traits::static_member::bind<static_fn>::call(s1, s2, s3, s4, out)
+    static_fn_traits::call(s1, s2, s3, s4, out)
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<
-    int, test_fn_traits::static_member::bind<static_fn>::call(2, 3, 5)
-  > c;
+  using c = std::integral_constant<int, static_fn_traits::call(2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
-  FATAL_EXPECT_EQ(
-    57,
-    test_fn_traits::static_member::bind<static_fn>::call(57, true)
-  );
-  FATAL_EXPECT_EQ(
-    -57,
-    test_fn_traits::static_member::bind<static_fn>::call(57, false)
-  );
+  FATAL_EXPECT_EQ(57, static_fn_traits::call(57, true));
+  FATAL_EXPECT_EQ(-57, static_fn_traits::call(57, false));
 }
 
 //////////////////////////////////////
@@ -350,7 +344,7 @@ FATAL_TEST(static_member, call_static_member) {
 //////////////////////////////////////
 
 FATAL_TEST(static_member, function_object_static_member) {
-  test_fn_traits::static_member::bind<static_fn> function_object;
+  static_fn_traits function_object;
 
   FATAL_EXPECT_THROW(std::exception) {
     function_object(0l, 0.0, 0, "");
@@ -370,7 +364,7 @@ FATAL_TEST(static_member, function_object_static_member) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, function_object(2, 3, 5)> c;
+  using c = std::integral_constant<int, function_object(2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -484,9 +478,7 @@ FATAL_TEST(free_function, call_free_function) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<
-    int, test_free_fn_traits::call(2, 3, 5)
-  > c;
+  using c = std::integral_constant<int, test_free_fn_traits::call(2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -519,7 +511,7 @@ FATAL_TEST(free_function, function_object_free_function) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, function_object(2, 3, 5)> c;
+  using c = std::integral_constant<int, function_object(2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -593,7 +585,7 @@ FATAL_TEST(call_operator_traits, const_this_ref) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, call_operator_traits::call(f, 2, 3, 5)> c;
+  using c = std::integral_constant<int, call_operator_traits::call(f, 2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -626,7 +618,7 @@ FATAL_TEST(call_operator_traits, const_this_ref_function_object) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, function_object(f, 2, 3, 5)> c;
+  using c = std::integral_constant<int, function_object(f, 2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -660,7 +652,7 @@ FATAL_TEST(call_operator_traits, non_const_this_ref) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, call_operator_traits::call(f, 2, 3, 5)> c;
+  using c = std::integral_constant<int, call_operator_traits::call(f, 2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -700,7 +692,7 @@ FATAL_TEST(call_operator_traits, non_const_this_ref_function_object) {
   );
   FATAL_EXPECT_EQ("hello, world!", out);
 
-  typedef std::integral_constant<int, function_object(f, 2, 3, 5)> c;
+  using c = std::integral_constant<int, function_object(f, 2, 3, 5)>;
 
   FATAL_EXPECT_EQ(2 + 3 + 5, c::value);
 
@@ -778,6 +770,45 @@ FATAL_TEST(call_operator_traits, supports) {
   FATAL_EXPECT_TRUE((
     call_operator_traits::supports<foonction_is, int, std::string>::value
   ));
+}
+
+/////////////
+// call_if //
+/////////////
+
+template <typename T, T Result>
+struct return_constant:
+  public std::integral_constant<T, Result>
+{
+  template <typename... Args>
+  constexpr T operator ()(Args &&...) const { return Result; }
+};
+
+
+// TODO: ADD CALL IF FOR member_function AND free_function
+FATAL_TEST(call_if, static_member) {
+  using fallback = return_constant<std::size_t, 54321>;
+
+  FATAL_EXPECT_EQ(fallback::value, (call_if<static_fn_traits, fallback>()));
+
+  FATAL_EXPECT_EQ(98989, (call_if<static_fn_traits, fallback>(98989)));
+
+  FATAL_EXPECT_EQ(fallback::value, (call_if<static_fn_traits, fallback>("xx")));
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<static_fn_traits, fallback>(137, false, "test"))
+  );
+
+  FATAL_EXPECT_EQ(-137, (call_if<static_fn_traits, fallback>(137, false)));
+
+  std::string s1("012345");
+  std::string out;
+
+  FATAL_EXPECT_EQ(
+    15,
+    (call_if<static_fn_traits, fallback>("1234", "56", "789", s1, out))
+  );
 }
 
 } // namespace fatal {
