@@ -275,7 +275,7 @@ public:
   }
 
 /**
- * Some pre-instantiated call traits for common method names.
+ * Some pre-instantiated call traits for common function names.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -562,25 +562,66 @@ struct call_traits {
  *  };
  *
  *  struct foo {
- *    int bar() { return 12345; }
+ *    template <typename T>
+ *    T bar() { return T(12345); }
+ *
  *    double bar(char const *, bool) { return 5.6; }
+ *
+ *    std::string baz(std::size_t n = 1) { return std::string(n, 'x'); }
+ *
+ *    template <typename... Args>
+ *    std::size_t baz(char const *s) {
+ *      return std::strlen(s) + sizeof...(Args);
+ *    }
  *  };
  *
  *  FATAL_CALL_TRAITS(bar_traits, bar);
+ *  using member_fn = bar_traits::member_function;
  *
- *  using traits = bar_traits::member_function;
+ *  template <typename T, typename... Args>
+ *  using member_pred = member_fn::supports<T, Args...>;
  *
- *  // yields `12345`
- *  auto result1 = call_if<traits, fallback>();
+ *  foo f;
+ *
+ *  // yields `12345` as an `int`
+ *  auto result1 = call_if<member_fn, fallback, member_pred>(f);
+ *
+ *  // yields `12345` as a `double`
+ *  auto result2 = call_if<member_fn, fallback, member_pred, double>(f);
  *
  *  // yields `98765`
- *  auto result2 = call_if<traits, fallback>("hello", "world", 143);
+ *  auto result3 = call_if<member_fn, fallback, member_pred>(
+ *    f, "hello", "world", 143
+ *  );
  *
  *  // yields `5.6`
- *  auto result3 = call_if<traits, fallback>("test", true);
+ *  auto result4 = call_if<member_fn, fallback, member_pred>(f, "test", true);
  *
  *  // yields `98765`
- *  auto result4 = call_if<traits, fallback>(10);
+ *  auto result5 = call_if<member_fn, fallback, member_pred>(f, 10);
+ *
+ *  FATAL_CALL_TRAITS(baz_traits, baz);
+ *  using static_fn = baz_traits::static_member::bind<foo>;
+ *
+ *  template <typename... Args>
+ *  using static_pred = static_fn::supports<Args...>;
+ *
+ *  // yields `"xxxxx"`
+ *  auto result6 = call_if<static_fn, fallback, static_pred>(5);
+ *
+ *  // yields `"x"`
+ *  auto result7 = call_if<static_fn, fallback, static_pred>();
+ *
+ *  // yields `98765`
+ *  auto result8 = call_if<static_fn, fallback, static_pred>("hello", "world");
+ *
+ *  // yields `4`
+ *  auto result9 = call_if<static_fn, fallback, static_pred>("test");
+ *
+ *  // yields `6`
+ *  auto result10 = call_if<static_fn, fallback, static_pred, void, bool>(
+ *    "test"
+ *  );
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -603,6 +644,94 @@ constexpr auto call_if(UArgs &&...args)
   return detail::call_traits_impl::call_if<
     fatal::apply<Predicate, Args..., UArgs...>::value
   >::template call<CallTraits, Fallback, Args...>(
+    std::forward<UArgs>(args)...
+  );
+}
+
+/**
+ * Convenient specialization of `call_if` that calls a function if it exists
+ * and the desired overload is supported, or calls the fallback otherwise.
+ *
+ * The provided call traits is used to decide which function to call, perfectly
+ * forwarding the given parameters to it.
+ *
+ * An optional list of template parameters `Args` can also be passed to the
+ * function.
+ *
+ * Example:
+ *
+ *  struct fallback {
+ *    template <typename... Args>
+ *    int operator ()(Args &&...) { return 98765; }
+ *  };
+ *
+ *  struct foo {
+ *    template <typename T>
+ *    T bar() { return T(12345); }
+ *
+ *    double bar(char const *, bool) { return 5.6; }
+ *
+ *    std::string baz(std::size_t n = 1) { return std::string(n, 'x'); }
+ *
+ *    template <typename... Args>
+ *    std::size_t baz(char const *s) {
+ *      return std::strlen(s) + sizeof...(Args);
+ *    }
+ *  };
+ *
+ *  FATAL_CALL_TRAITS(bar_traits, bar);
+ *  using member_fn = bar_traits::member_function;
+ *
+ *  foo f;
+ *
+ *  // yields `12345` as an `int`
+ *  auto result1 = call_if_supported<member_fn, fallback>(f);
+ *
+ *  // yields `12345` as a `double`
+ *  auto result2 = call_if_supported<member_fn, fallback, double>(f);
+ *
+ *  // yields `98765`
+ *  auto result3 = call_if_supported<member_fn, fallback>(
+ *    f, "hello", "world", 143
+ *  );
+ *
+ *  // yields `5.6`
+ *  auto result4 = call_if_supported<member_fn, fallback>(f, "test", true);
+ *
+ *  // yields `98765`
+ *  auto result5 = call_if_supported<member_fn, fallback>(f, 10);
+ *
+ *  FATAL_CALL_TRAITS(baz_traits, baz);
+ *  using static_fn = baz_traits::static_member::bind<foo>;
+ *
+ *  // yields `"xxxxx"`
+ *  auto result6 = call_if_supported<static_fn, fallback>(5);
+ *
+ *  // yields `"x"`
+ *  auto result7 = call_if_supported<static_fn, fallback>();
+ *
+ *  // yields `98765`
+ *  auto result8 = call_if_supported<static_fn, fallback>("hello", "world");
+ *
+ *  // yields `4`
+ *  auto result9 = call_if_supported<static_fn, fallback>("test");
+ *
+ *  // yields `6`
+ *  auto result10 = call_if_supported<static_fn, fallback, void, bool>("test");
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename CallTraits, typename Fallback, typename... Args, typename... UArgs
+>
+constexpr auto call_if_supported(UArgs &&...args)
+  -> decltype(
+    call_if<CallTraits, Fallback, CallTraits::template supports, Args...>(
+      std::forward<UArgs>(args)...
+    )
+  )
+{
+  return call_if<CallTraits, Fallback, CallTraits::template supports, Args...>(
     std::forward<UArgs>(args)...
   );
 }
