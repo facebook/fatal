@@ -139,6 +139,12 @@ struct string_ref {
     assert(begin_ <= end_);
   }
 
+  void reset(const_iterator begin, size_type size) {
+    begin_ = begin;
+    end_ = std::next(begin, size);
+    assert(begin_ <= end_);
+  }
+
   void limit(size_type size) {
     assert(size >= 0);
 
