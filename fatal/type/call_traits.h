@@ -237,20 +237,16 @@ public:
     \
     struct static_member { \
       template <typename U> \
-      struct bind { \
+      class bind { \
+        template <typename V, typename... UArgs> \
+        constexpr static auto call_impl(UArgs &&...args) \
+          -> decltype(V::__VA_ARGS__(::std::forward<UArgs>(args)...)) \
+        { return V::__VA_ARGS__(::std::forward<UArgs>(args)...); } \
+        \
+      public: \
         constexpr bind() {} \
         \
         using type = U; \
-        \
-        template <typename... UArgs> \
-        constexpr static auto call(UArgs &&...args) \
-          -> decltype(type::__VA_ARGS__(::std::forward<UArgs>(args)...)) \
-        { return type::__VA_ARGS__(::std::forward<UArgs>(args)...); } \
-        \
-        template <typename... UArgs> \
-        constexpr auto operator ()(UArgs &&...args) const \
-          -> decltype(call(::std::forward<UArgs>(args)...)) \
-        { return call(::std::forward<UArgs>(args)...); } \
         \
         template <typename... UArgs> \
         using supports = decltype( \
@@ -258,6 +254,16 @@ public:
             static_cast<U *>(nullptr) \
           ) \
         ); \
+        \
+        template <typename... UArgs> \
+        constexpr static auto call(UArgs &&...args) \
+          -> decltype(call_impl<type>(::std::forward<UArgs>(args)...)) \
+        { return call_impl<type>(::std::forward<UArgs>(args)...); } \
+        \
+        template <typename... UArgs> \
+        constexpr auto operator ()(UArgs &&...args) const \
+          -> decltype(call_impl<type>(::std::forward<UArgs>(args)...)) \
+        { return call_impl<type>(::std::forward<UArgs>(args)...); } \
       }; \
       \
       template <typename U, typename... UArgs> \
@@ -628,7 +634,7 @@ struct call_traits {
 template <
   typename CallTraits,
   typename Fallback,
-  template <typename...> class Predicate = CallTraits::template supports,
+  template <typename...> class Predicate,
   typename... Args,
   typename... UArgs
 >

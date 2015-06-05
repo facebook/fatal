@@ -33,7 +33,10 @@ struct return_constant:
   constexpr T operator ()(Args &&...) const { return Result; }
 };
 
+using fallback = return_constant<std::size_t, 54321>;
+
 FATAL_CALL_TRAITS(test_fn_traits, test_fn);
+FATAL_CALL_TRAITS(no_fn_traits, no_fn);
 
 /////////////////////
 // member_function //
@@ -238,7 +241,7 @@ FATAL_TEST(member_function, supports) {
 
   CHECK_MEMBER_FUNCTION_SUPPORTS(true, dummy_ctmfs);
   CHECK_MEMBER_FUNCTION_SUPPORTS(true, dummy_ctmfs, int);
-  CHECK_MEMBER_FUNCTION_SUPPORTS(true, dummy_ctmfs, int const); // TODO: CHECK
+  CHECK_MEMBER_FUNCTION_SUPPORTS(true, dummy_ctmfs, int const);
   CHECK_MEMBER_FUNCTION_SUPPORTS(false, dummy_ctmfs, int &);
   CHECK_MEMBER_FUNCTION_SUPPORTS(false, dummy_ctmfs, int const &);
   CHECK_MEMBER_FUNCTION_SUPPORTS(true, dummy_ctmfs, int &&);
@@ -398,7 +401,7 @@ FATAL_TEST(static_member, supports) {
 
   CHECK_STATIC_MEMBER_SUPPORTS(true, dummy_ctsms);
   CHECK_STATIC_MEMBER_SUPPORTS(true, dummy_ctsms, int);
-  CHECK_STATIC_MEMBER_SUPPORTS(true, dummy_ctsms, int const); // TODO: CHECK
+  CHECK_STATIC_MEMBER_SUPPORTS(true, dummy_ctsms, int const);
   CHECK_STATIC_MEMBER_SUPPORTS(false, dummy_ctsms, int &);
   CHECK_STATIC_MEMBER_SUPPORTS(false, dummy_ctsms, int const &);
   CHECK_STATIC_MEMBER_SUPPORTS(true, dummy_ctsms, int &&);
@@ -785,8 +788,6 @@ FATAL_TEST(call_operator_traits, supports) {
 FATAL_TEST(call_if, member_function) {
   member_fn f;
 
-  using fallback = return_constant<std::size_t, 54321>;
-
   FATAL_EXPECT_SAME<
     void,
     decltype(call_if<member_fn_traits, fallback, member_fn_traits::supports>(f))
@@ -825,39 +826,53 @@ FATAL_TEST(call_if, member_function) {
       f, "1234", "56", "789", s1, out
     ))
   );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<
+      no_fn_traits::member_function, fallback,
+      no_fn_traits::member_function::supports
+    >(f))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<
+      no_fn_traits::member_function, fallback,
+      no_fn_traits::member_function::supports
+    >(f, 98989))
+  );
 }
 
 FATAL_TEST(call_if, member_function_const) {
   member_fn const f;
 
-  using fallback = return_constant<std::size_t, 54321>;
-
-  FATAL_EXPECT_EQ(
-    fallback::value,
-    (call_if<static_fn_traits, fallback, static_fn_traits::supports>())
-  );
+  FATAL_EXPECT_SAME<
+    double,
+    decltype(call_if<member_fn_traits, fallback, member_fn_traits::supports>(f))
+  >();
 
   FATAL_EXPECT_EQ(
     98989,
-    (call_if<static_fn_traits, fallback, static_fn_traits::supports>(98989))
+    (call_if<member_fn_traits, fallback, member_fn_traits::supports>(f, 98989))
   );
 
   FATAL_EXPECT_EQ(
     fallback::value,
-    (call_if<static_fn_traits, fallback, static_fn_traits::supports>("xx"))
+    (call_if<member_fn_traits, fallback, member_fn_traits::supports>(f, "xx"))
   );
 
   FATAL_EXPECT_EQ(
     fallback::value,
-    (call_if<static_fn_traits, fallback, static_fn_traits::supports>(
-      137, false, "test"
+    (call_if<member_fn_traits, fallback, member_fn_traits::supports>(
+      f, 137, false, "test"
     ))
   );
 
   FATAL_EXPECT_EQ(
     -137,
-    (call_if<static_fn_traits, fallback, static_fn_traits::supports>(
-      137, false
+    (call_if<member_fn_traits, fallback, member_fn_traits::supports>(
+      f, 137, false
     ))
   );
 
@@ -866,15 +881,29 @@ FATAL_TEST(call_if, member_function_const) {
 
   FATAL_EXPECT_EQ(
     15,
-    (call_if<static_fn_traits, fallback, static_fn_traits::supports>(
-      "1234", "56", "789", s1, out
+    (call_if<member_fn_traits, fallback, member_fn_traits::supports>(
+      f, "1234", "56", "789", s1, out
     ))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<
+      no_fn_traits::member_function, fallback,
+      no_fn_traits::member_function::supports
+    >(f))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<
+      no_fn_traits::member_function, fallback,
+      no_fn_traits::member_function::supports
+    >(f, 98989))
   );
 }
 
 FATAL_TEST(call_if, static_member) {
-  using fallback = return_constant<std::size_t, 54321>;
-
   FATAL_EXPECT_EQ(
     fallback::value,
     (call_if<static_fn_traits, fallback, static_fn_traits::supports>())
@@ -913,11 +942,25 @@ FATAL_TEST(call_if, static_member) {
       "1234", "56", "789", s1, out
     ))
   );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<
+      no_fn_traits::static_member::bind<static_fn>, fallback,
+      no_fn_traits::static_member::bind<static_fn>::supports
+    >())
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<
+      no_fn_traits::static_member::bind<static_fn>, fallback,
+      no_fn_traits::static_member::bind<static_fn>::supports
+    >(98989))
+  );
 }
 
 FATAL_TEST(call_if, static_member_unbound) {
-  using fallback = return_constant<std::size_t, 54321>;
-
   FATAL_EXPECT_EQ(
     fallback::value,
     (call_if<
@@ -968,6 +1011,22 @@ FATAL_TEST(call_if, static_member_unbound) {
       test_fn_traits::static_member::supports, static_fn
     >("1234", "56", "789", s1, out))
   );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<
+      no_fn_traits::static_member, fallback,
+      no_fn_traits::static_member::supports, static_fn
+    >())
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if<
+      no_fn_traits::static_member, fallback,
+      no_fn_traits::static_member::supports, static_fn
+    >(98989))
+  );
 }
 
 ///////////////////////
@@ -976,8 +1035,6 @@ FATAL_TEST(call_if, static_member_unbound) {
 
 FATAL_TEST(call_if_supported, member_function) {
   member_fn f;
-
-  using fallback = return_constant<std::size_t, 54321>;
 
   FATAL_EXPECT_SAME<
     void,
@@ -1013,13 +1070,68 @@ FATAL_TEST(call_if_supported, member_function) {
       f, "1234", "56", "789", s1, out
     ))
   );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if_supported<no_fn_traits::member_function, fallback>(f))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if_supported<no_fn_traits::member_function, fallback>(f, 98989))
+  );
 }
 
 FATAL_TEST(call_if_supported, member_function_const) {
   member_fn const f;
 
-  using fallback = return_constant<std::size_t, 54321>;
+  FATAL_EXPECT_SAME<
+    double,
+    decltype(call_if_supported<member_fn_traits, fallback>(f))
+  >();
 
+  FATAL_EXPECT_EQ(
+    98989,
+    (call_if_supported<member_fn_traits, fallback>(f, 98989))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if_supported<member_fn_traits, fallback>(f, "xx"))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if_supported<member_fn_traits, fallback>(f, 137, false, "test"))
+  );
+
+  FATAL_EXPECT_EQ(
+    -137,
+    (call_if_supported<member_fn_traits, fallback>(f, 137, false))
+  );
+
+  std::string s1("012345");
+  std::string out;
+
+  FATAL_EXPECT_EQ(
+    15,
+    (call_if_supported<member_fn_traits, fallback>(
+      f, "1234", "56", "789", s1, out
+    ))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if_supported<no_fn_traits::member_function, fallback>(f))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if_supported<no_fn_traits::member_function, fallback>(f, 98989))
+  );
+}
+
+FATAL_TEST(call_if_supported, static_member) {
   FATAL_EXPECT_EQ(
     fallback::value,
     (call_if_supported<static_fn_traits, fallback>())
@@ -1054,50 +1166,22 @@ FATAL_TEST(call_if_supported, member_function_const) {
       "1234", "56", "789", s1, out
     ))
   );
-}
-
-FATAL_TEST(call_if_supported, static_member) {
-  using fallback = return_constant<std::size_t, 54321>;
 
   FATAL_EXPECT_EQ(
     fallback::value,
-    (call_if_supported<static_fn_traits, fallback>())
-  );
-
-  FATAL_EXPECT_EQ(
-    98989,
-    (call_if_supported<static_fn_traits, fallback>(98989))
+    (call_if_supported<no_fn_traits::static_member::bind<static_fn>, fallback>(
+    ))
   );
 
   FATAL_EXPECT_EQ(
     fallback::value,
-    (call_if_supported<static_fn_traits, fallback>("xx"))
-  );
-
-  FATAL_EXPECT_EQ(
-    fallback::value,
-    (call_if_supported<static_fn_traits, fallback>(137, false, "test"))
-  );
-
-  FATAL_EXPECT_EQ(
-    -137,
-    (call_if_supported<static_fn_traits, fallback>(137, false))
-  );
-
-  std::string s1("012345");
-  std::string out;
-
-  FATAL_EXPECT_EQ(
-    15,
-    (call_if_supported<static_fn_traits, fallback>(
-      "1234", "56", "789", s1, out
+    (call_if_supported<no_fn_traits::static_member::bind<static_fn>, fallback>(
+      98989
     ))
   );
 }
 
 FATAL_TEST(call_if_supported, static_member_unbound) {
-  using fallback = return_constant<std::size_t, 54321>;
-
   FATAL_EXPECT_EQ(
     fallback::value,
     (call_if_supported<test_fn_traits::static_member, fallback, static_fn>())
@@ -1139,6 +1223,16 @@ FATAL_TEST(call_if_supported, static_member_unbound) {
     (call_if_supported<test_fn_traits::static_member, fallback, static_fn>(
       "1234", "56", "789", s1, out
     ))
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if_supported<no_fn_traits::static_member, fallback, static_fn>())
+  );
+
+  FATAL_EXPECT_EQ(
+    fallback::value,
+    (call_if_supported<no_fn_traits::static_member, fallback, static_fn>(98989))
   );
 }
 
