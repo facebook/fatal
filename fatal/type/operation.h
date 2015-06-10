@@ -47,8 +47,7 @@ template <typename, typename> struct from_sequence;
  *  //   pair<void, double>,
  *  //   pair<void, bool>
  *  // >
- *  using result = cartesian_product<
- *    list, pair,
+ *  using result = cartesian_product<list, pair>::apply<
  *    list<int, void>,
  *    list<double, bool>,
  *  >;
@@ -57,73 +56,75 @@ template <typename, typename> struct from_sequence;
  */
 template <
   template <typename...> class TList,
-  template <typename...> class TPair,
-  typename TLHS, typename TRHS
+  template <typename...> class TPair
 >
-using cartesian_product = typename detail::operation_impl::cartesian_product<
-  TPair, TLHS, TRHS
->::template apply<TList>;
+struct cartesian_product {
+  template <typename TLHS, typename TRHS>
+  using apply = typename detail::operation_impl::cartesian_product<
+    TPair, TLHS, TRHS
+  >::template apply<TList>;
+};
 
 /**
-   * Flattens the arguments of a specific template into a topmost list.
-   *
-   * Only a single level will be flattened.
-   *
-   * Parameters:
-   *
-   *  - TList: the template for the topmost list to be returned
-   *  - TWhich: which template to flatten
-   *  - Args...: the list of types to be flattened
-   *
-   * Example:
-   *
-   *  template <typename...> struct list {};
-   *
-   *  // yields `list<
-   *  //   int,
-   *  //   double,
-   *  //   float,
-   *  //   list<short>,
-   *  //   bool
-   *  // >`
-   *  using result1 = fatal::flatten<
-   *    list, list,
-   *    int,
-   *    list<
-   *      double,
-   *      float,
-   *      list<short>
-   *    >,
-   *    bool
-   *  >;
-   *
-   *  // yields `std::tuple<
-   *  //   int,
-   *  //   double,
-   *  //   float,
-   *  //   list<short>,
-   *  //   bool
-   *  // >`
-   *  using result2 = list::flatten<
-   *    std::tuple, list,
-   *    int,
-   *    list<
-   *      double,
-   *      float,
-   *      list<short>
-   *    >,
-   *    bool
-   *  >;
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
+  * Flattens the arguments of a specific template into a topmost list.
+  *
+  * Only a single level will be flattened.
+  *
+  * Parameters:
+  *
+  *  - TList: the template for the topmost list to be returned
+  *  - TWhich: which template to flatten
+  *  - Args...: the list of types to be flattened
+  *
+  * Example:
+  *
+  *  template <typename...> struct list {};
+  *
+  *  // yields `list<
+  *  //   int,
+  *  //   double,
+  *  //   float,
+  *  //   list<short>,
+  *  //   bool
+  *  // >`
+  *  using result1 = fatal::flatten<list, list>::apply<
+  *    int,
+  *    list<
+  *      double,
+  *      float,
+  *      list<short>
+  *    >,
+  *    bool
+  *  >;
+  *
+  *  // yields `std::tuple<
+  *  //   int,
+  *  //   double,
+  *  //   float,
+  *  //   list<short>,
+  *  //   bool
+  *  // >`
+  *  using result2 = list::flatten<std::tuple, list>::apply<
+  *    int,
+  *    list<
+  *      double,
+  *      float,
+  *      list<short>
+  *    >,
+  *    bool
+  *  >;
+  *
+  * @author: Marcelo Juchem <marcelo@fb.com>
+  */
 template <
   template <typename...> class TList,
-  template <typename...> class TWhich,
-  typename... Args
+  template <typename...> class TWhich
 >
-using flatten = typename detail::operation_impl::flatten<TWhich, Args...>
+struct flatten {
+  template <typename... Args>
+  using apply = typename detail::operation_impl::flatten<TWhich, Args...>
   ::template apply<TList>;
+};
 
 /////////////////
 // to_sequence //
@@ -273,7 +274,8 @@ template <typename V>
   using impl = list<TPair<V, UArgs>...>;
 
   template <template <typename...> class TList>
-  using apply = typename fatal::flatten<TList, list, impl<TArgs>...>;
+  using apply = typename fatal::flatten<TList, list>
+    ::template apply<impl<TArgs>...>;
 };
 
 /////////////

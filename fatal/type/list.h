@@ -2089,7 +2089,8 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <template <typename...> class TList = fatal::type_list>
-  using flatten = typename fatal::flatten<TList, fatal::type_list, Args...>;
+  using flatten = typename fatal::flatten<TList, fatal::type_list>
+    ::template apply<Args...>;
 
   /**
    * Recursively flattens elements from sublists into a single, topmost list.

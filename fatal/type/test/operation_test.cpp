@@ -28,8 +28,7 @@ FATAL_TEST(operation, cartesian_product) {
 # define TEST_IMPL(List, Pair, LHS, RHS, ...) \
   FATAL_EXPECT_SAME< \
     List<__VA_ARGS__>, \
-    fatal::cartesian_product< \
-      List, Pair, \
+    fatal::cartesian_product<List, Pair>::apply< \
       FATAL_UNPARENTHESIZE(LHS), \
       FATAL_UNPARENTHESIZE(RHS) \
     > \
@@ -121,9 +120,7 @@ FATAL_TEST(operation, flatten) {
       dummy_list<short>,
       bool
     >,
-    flatten<
-      dummy_list,
-      dummy_list,
+    flatten<dummy_list, dummy_list>::apply<
       int,
       dummy_list<
         double,
@@ -142,9 +139,7 @@ FATAL_TEST(operation, flatten) {
       dummy_list<short>,
       bool
     >,
-    flatten<
-      std::tuple,
-      dummy_list,
+    flatten<std::tuple, dummy_list>::apply<
       int,
       dummy_list<
         double,
