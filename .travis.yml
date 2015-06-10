@@ -7,10 +7,15 @@ compiler:
   - clang
 
 before_install:
+  - echo $LANG
+  - echo $LC_ALL
+  - lsb_release -a
+  - uname -a
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
 
 install:
+  - apt-cache search '^g\+\+|^clang'
   - sudo apt-get install -y bash coreutils g++-4.8 g++-4.9 clang-3.4
 
 before_script:
