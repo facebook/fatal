@@ -18,11 +18,19 @@ if [ -z "$1" ]; then
       USE_CC="$USE_CC" NO_CLEAR=true "$0" "$f" "$@"
     done
   fi
-elif [ -z "$2" ] && [ -e "$1" ]; then
-  test_path="`basename "$1" .cpp`"
+elif [ -z "$2" ]; then
+  test_basename="`basename "$1" .cpp`"
   if ! [ -e "$1" ]; then
-    echo "test $test_path not found">&2
-    exit 1
+    test_name="$1"
+    test_path="fatal/test/${test_name}_test.cpp"
+    if [ -e "$test_path" ]; then
+      shift
+      "$0" "$test_path"
+      exit 0
+    else
+      echo "test $test_basename not found">&2
+      exit 1
+    fi
   fi
   PRE_PROC="$PRE_PROC" USE_CC="$USE_CC" NO_CLEAR=true DO_RUN=true ./compile.sh "$1"
 elif [ "$1" ] && [ "$2" ]; then
