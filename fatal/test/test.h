@@ -75,7 +75,7 @@ namespace test {
     return Name; \
   } \
   \
-  source_info const &operator <<( \
+  ::fatal::source_info const &operator <<( \
     ::fatal::test::detail::test_impl::source_tag, \
     Class * \
   ) { \
