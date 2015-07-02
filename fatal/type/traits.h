@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_traits_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/type/scalar.h>
 #include <fatal/type/string.h>
 #include <fatal/type/transform.h>
 
@@ -382,8 +383,8 @@ integral_of<typename std::decay<T>::type> as_integral(T value) noexcept {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using is_fast_pass = std::integral_constant<
-  bool, std::is_scalar<typename std::decay<T>::type>::value
+using is_fast_pass = bool_constant<
+  std::is_scalar<typename std::decay<T>::type>::value
 >;
 
 ///////////////
@@ -412,6 +413,376 @@ using fast_pass = typename std::conditional<
     >::type
   >::type
 >::type;
+
+/////////////////
+// enable_when //
+/////////////////
+
+/**
+ * Helpers for enabling methods when specific predicates match.
+ *
+ * Example:
+ *
+ *  template <typename T, typename = enable_when::is_false<std::is_const<T>>>
+ *  void foo(T &value) {
+ *    std::cout << "got a non-const: " << value;
+ *  }
+ *
+ *  int i = 10;
+ *  int const c = 5;
+ *
+ *  // prints "got a non-const: 10"
+ *  foo(i);
+ *
+ *  // fails to compile
+ *  foo(c);
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct enable_when {
+  /**
+   * Helps conditionally enable methods when the given `Predicate` provides a
+   * `value` member that evaluates to `true`.
+   *
+   * Example:
+   *
+   *  template <typename T, typename = enable_when::is_true<std::is_const<T>>>
+   *  void foo(T &value) {
+   *    std::cout << "got a const: " << value;
+   *  }
+   *
+   *  int i = 10;
+   *  int const c = 5;
+   *
+   *  // fails to compile
+   *  foo(i);
+   *
+   *  // prints "got a const: 5"
+   *  foo(c);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename Predicate>
+  using is_true = typename std::enable_if<Predicate::value>::type;
+
+  /**
+   * Helps conditionally enable methods when all of the given `Predicates`
+   * provide a `value` member that evaluates to `true`.
+   *
+   * Example:
+   *
+   *  template <
+   *    typename T,
+   *    typename = enable_when::all_true<
+   *      std::is_const<T>,
+   *      std::is_integral<T>,
+   *      std::is_signed<T>
+   *    >
+   *  >
+   *  void foo(T &value) {
+   *    std::cout << "got a const, integral and signed: " << value;
+   *  }
+   *
+   *  int i = 10;
+   *  int const c = 5;
+   *  double const d = 7.2;
+   *
+   *  // fails to compile
+   *  foo(i);
+   *
+   *  // prints "got a const, integral and signed: 5"
+   *  foo(c);
+   *
+   *  // fails to compile
+   *  foo(d);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Predicates>
+  using all_true = typename std::enable_if<
+    logical_transform::all<Predicates...>::value
+  >::type;
+
+  /**
+   * Helps conditionally enable methods when any of the given `Predicates`
+   * provide a `value` member that evaluates to `true`.
+   *
+   * Example:
+   *
+   *  template <
+   *    typename T,
+   *    typename = enable_when::any_true<
+   *      std::is_const<T>,
+   *      std::is_integral<T>,
+   *      std::is_unsigned<T>
+   *    >
+   *  >
+   *  void foo(T &value) {
+   *    std::cout << "got a const, integral or unsigned: " << value;
+   *  }
+   *
+   *  int const i = 5;
+   *  unsigned const u = 10;
+   *  double const c = 7.2;
+   *  double d = 5.6;
+   *
+   *  // prints "got a const, integral or unsigned: 5"
+   *  foo(i);
+   *
+   *  // prints "got a const, integral or unsigned: 10"
+   *  foo(u);
+   *
+   *  // prints "got a const, integral or unsigned: 7.2"
+   *  foo(c);
+   *
+   *  // fails to compile
+   *  foo(d);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Predicates>
+  using any_true = typename std::enable_if<
+    logical_transform::any<Predicates...>::value
+  >::type;
+
+  /**
+   * Helps conditionally enable methods when the given `Predicate` provides a
+   * `value` member that evaluates to `false`.
+   *
+   * Example:
+   *
+   *  template <typename T, typename = enable_when::is_false<std::is_const<T>>>
+   *  void foo(T &value) {
+   *    std::cout << "got a non-const: " << value;
+   *  }
+   *
+   *  int i = 10;
+   *  int const c = 5;
+   *
+   *  // prints "got a non-const: 10"
+   *  foo(i);
+   *
+   *  // fails to compile
+   *  foo(c);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename Predicate>
+  using is_false = typename std::enable_if<!Predicate::value>::type;
+
+  /**
+   * Helps conditionally enable methods when all of the given `Predicates`
+   * provide a `value` member that evaluates to `false`.
+   *
+   * Example:
+   *
+   *  template <
+   *    typename T,
+   *    typename = enable_when::all_false<
+   *      std::is_const<T>,
+   *      std::is_integral<T>,
+   *      std::is_unsigned<T>
+   *    >
+   *  >
+   *  void foo(T &value) {
+   *    std::cout << "got a non-const, non-integral and signed: " << value;
+   *  }
+   *
+   *  int const i = 5;
+   *  unsigned const u = 10;
+   *  double const c = 7.2;
+   *  double d = 5.6;
+   *
+   *  // fails to compile
+   *  foo(i);
+   *
+   *  // fails to compile
+   *  foo(u);
+   *
+   *  // fails to compile
+   *  foo(c);
+   *
+   *  // prints "got a non-const, non-integral or signed: 5.6"
+   *  foo(d);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Predicates>
+  using all_false = typename std::enable_if<
+    !logical_transform::any<Predicates...>::value
+  >::type;
+
+  /**
+   * Helps conditionally enable methods when any of the given `Predicates`
+   * provide a `value` member that evaluates to `false`.
+   *
+   * Example:
+   *
+   *  template <
+   *    typename T,
+   *    typename = enable_when::any_false<
+   *      std::is_const<T>,
+   *      std::is_integral<T>,
+   *      std::is_signed<T>
+   *    >
+   *  >
+   *  void foo(T &value) {
+   *    std::cout << "got a non-const, non-integral or non-signed: " << value;
+   *  }
+   *
+   *  int const i = 10;
+   *  unsigned const u = 5;
+   *  double const d = 7.2;
+   *
+   *  // fails to compile
+   *  foo(i);
+   *
+   *  // yields "got a non-const, non-integral or non-signed: 5"
+   *  foo(u);
+   *
+   *  // yields "got a non-const, non-integral or non-signed: 7.2"
+   *  foo(d);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Predicates>
+  using any_false = typename std::enable_if<
+    !logical_transform::all<Predicates...>::value
+  >::type;
+
+  /**
+   * Helps conditionally enable methods when the given type `T` has a `const`
+   * qualifier or is a reference to a `const` qualified type.
+   *
+   * Example:
+   *
+   *  template <typename T, typename = enable_when::is_const<T>>
+   *  void foo(T value) {
+   *    std::cout << "got a const: " << value;
+   *  }
+   *
+   *  int i = 10;
+   *  int const c = 5;
+   *
+   *  // fails to compile
+   *  foo(i);
+   *
+   *  // prints "got a const: 10"
+   *  foo(static_cast<int const>(i));
+   *
+   *  // prints "got a const: 5"
+   *  foo(c);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T>
+  using is_const = is_true<
+    std::is_const<typename std::remove_reference<T>::type>
+  >;
+
+  /**
+   * Helps conditionally enable methods when the given type `T` doesn't have a
+   * `const` qualifier or is a reference to a non-`const` qualified type.
+   *
+   * Example:
+   *
+   *  template <typename T, typename = enable_when::non_const<T>>
+   *  void foo(T value) {
+   *    std::cout << "got a non-const: " << value;
+   *  }
+   *
+   *  int i = 10;
+   *  int const c = 5;
+   *
+   *  // prints "got a non-const: 10"
+   *  foo(i);
+   *
+   *  // fails to compile
+   *  foo(static_cast<int const>(i));
+   *
+   *  // fails to compile
+   *  foo(c);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T>
+  using non_const = is_false<
+    std::is_const<typename std::remove_reference<T>::type>
+  >;
+
+  /**
+   * Helps conditionally enable methods when the given type `T` was forwarded
+   * as an rvalue reference. This is useful when a forwarding reference must
+   * only accept r-value references.
+   *
+   * Example:
+   *
+   *  template <typename T, typename = enable_when::forwarded_rvalue<T>>
+   *  void foo(T &&value) {
+   *    std::cout << "got an r-value reference: " << value;
+   *  }
+   *
+   *  int i = 10;
+   *
+   *  // fails to compile
+   *  foo(i);
+   *
+   *  // prints "got an r-value reference: 10"
+   *  foo(std::move(i));
+   *
+   *  // prints "got an r-value reference: 5"
+   *  foo(5);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T>
+  using forwarded_rvalue = is_true<std::is_rvalue_reference<T &&>>;
+
+  /**
+   * Helps conditionally enable methods when the given type `T` was forwarded
+   * as an rvalue reference to a non-const qualified type. This is useful when a
+   * forwarding reference must only accept r-value references that can be moved.
+   *
+   * Example:
+   *
+   *  template <
+   *    typename T,
+   *    typename = enable_when::forwarded_non_const_rvalue<T>
+   *  >
+   *  void foo(T &&value) {
+   *    std::cout << "got a non-const r-value reference: " << value;
+   *  }
+   *
+   *  int i = 10;
+   *  int const c = 5;
+   *
+   *  // fails to compile
+   *  foo(i);
+   *
+   *  // prints "got a non-const r-value reference: 10"
+   *  foo(std::move(i));
+   *
+   *  // fails to compile
+   *  foo(c);
+   *
+   *  // fails to compile
+   *  foo(std::move(c));
+   *
+   *  // prints "got a non-const r-value reference: 72"
+   *  foo(72);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T>
+  using forwarded_non_const_rvalue = all_true<
+    std::is_rvalue_reference<T &&>,
+    logical_transform::negate<
+      std::is_const<
+        typename std::remove_reference<T>::type
+      >
+    >
+  >;
+};
 
 ///////////////////
 // safe_overload //
@@ -469,8 +840,7 @@ struct safe_overload: public std::true_type {};
 
 template <typename Class, typename T>
 struct safe_overload<Class, T>:
-  public std::integral_constant<
-    bool,
+  public bool_constant<
     !std::is_base_of<
       Class,
       typename std::remove_cv<
@@ -507,9 +877,7 @@ struct safe_overload<Class, T>:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename Class, typename... Args>
-using safe_overload_t = typename std::enable_if<
-  safe_overload<Class, Args...>::value
->::type;
+using safe_overload_t = enable_when::is_true<safe_overload<Class, Args...>>;
 
 /////////////////
 // is_callable //

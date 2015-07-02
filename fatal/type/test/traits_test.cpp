@@ -651,6 +651,390 @@ FATAL_TEST(traits, fast_pass) {
   >();
 }
 
+//////////////////////////
+// enable_when::is_true //
+//////////////////////////
+
+FATAL_TEST(enable_when, is_true) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_true, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int const &>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int &>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int const &&>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int &&>
+  );
+}
+
+///////////////////////////
+// enable_when::all_true //
+///////////////////////////
+
+FATAL_TEST(enable_when, all_true) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::all_true, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::all_true, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::all_true,
+    std::is_const<int const>, std::is_integral<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_true,
+    std::is_const<double const>, std::is_integral<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::all_true,
+    std::is_const<int const>,
+    std::is_integral<int const>,
+    std::is_signed<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_true,
+    std::is_const<unsigned const>,
+    std::is_integral<unsigned const>,
+    std::is_signed<unsigned const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_true,
+    std::is_const<double const>,
+    std::is_integral<double const>,
+    std::is_signed<double const>
+  );
+}
+
+///////////////////////////
+// enable_when::any_true //
+///////////////////////////
+
+FATAL_TEST(enable_when, any_true) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::any_true, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::any_true, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<int const>, std::is_integral<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<double const>, std::is_integral<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::any_true,
+    std::is_const<double>, std::is_integral<double>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<int const>,
+    std::is_integral<int const>,
+    std::is_unsigned<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<unsigned const>,
+    std::is_integral<unsigned const>,
+    std::is_unsigned<unsigned const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<double const>,
+    std::is_integral<double const>,
+    std::is_unsigned<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::any_true,
+    std::is_const<double>,
+    std::is_integral<double>,
+    std::is_unsigned<double>
+  );
+}
+
+///////////////////////////
+// enable_when::is_false //
+///////////////////////////
+
+FATAL_TEST(enable_when, is_false) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_false, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int const &>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int &>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int const &&>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int &&>
+  );
+}
+
+////////////////////////////
+// enable_when::all_false //
+////////////////////////////
+
+FATAL_TEST(enable_when, all_false) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::all_false, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::all_false, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<int const>, std::is_integral<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<double const>, std::is_integral<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::all_false,
+    std::is_const<double>, std::is_integral<double>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<int const>,
+    std::is_integral<int const>,
+    std::is_unsigned<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<unsigned const>,
+    std::is_integral<unsigned const>,
+    std::is_unsigned<unsigned const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<double const>,
+    std::is_integral<double const>,
+    std::is_unsigned<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::all_false,
+    std::is_const<double>,
+    std::is_integral<double>,
+    std::is_unsigned<double>
+  );
+}
+
+////////////////////////////
+// enable_when::any_false //
+////////////////////////////
+
+FATAL_TEST(enable_when, any_false) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::any_false, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::any_false, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::any_false,
+    std::is_const<int const>, std::is_integral<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_false,
+    std::is_const<double const>, std::is_integral<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::any_false,
+    std::is_const<int const>,
+    std::is_integral<int const>,
+    std::is_signed<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_false,
+    std::is_const<unsigned const>,
+    std::is_integral<unsigned const>,
+    std::is_signed<unsigned const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_false,
+    std::is_const<double const>,
+    std::is_integral<double const>,
+    std::is_signed<double const>
+  );
+}
+
+///////////////////////////
+// enable_when::is_const //
+///////////////////////////
+
+FATAL_TEST(enable_when, is_const) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_const, int const
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_const, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_const, int const &
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_const, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_const, int const &&
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_const, int &&
+  );
+}
+
+////////////////////////////
+// enable_when::non_const //
+////////////////////////////
+
+FATAL_TEST(enable_when, non_const) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::non_const, int const
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::non_const, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::non_const, int const &
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::non_const, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::non_const, int const &&
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::non_const, int &&
+  );
+}
+
+///////////////////////////////////
+// enable_when::forwarded_rvalue //
+///////////////////////////////////
+
+FATAL_TEST(enable_when, forwarded_rvalue) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_rvalue, int const
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_rvalue, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::forwarded_rvalue, int const &
+  )
+  ;
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::forwarded_rvalue, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_rvalue, int const &&
+  )
+  ;
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_rvalue, int &&
+  );
+}
+
+/////////////////////////////////////////////
+// enable_when::forwarded_non_const_rvalue //
+/////////////////////////////////////////////
+
+FATAL_TEST(enable_when, forwarded_non_const_rvalue) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::forwarded_non_const_rvalue, int const
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_non_const_rvalue, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::forwarded_non_const_rvalue, int const &
+  )
+  ;
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::forwarded_non_const_rvalue, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::forwarded_non_const_rvalue, int const &&
+  )
+  ;
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_non_const_rvalue, int &&
+  );
+}
+
 ///////////////////
 // safe_overload //
 ///////////////////
