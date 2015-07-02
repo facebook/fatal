@@ -16,11 +16,21 @@
 #include <vector>
 
 #include <cassert>
+#include <climits>
 
 namespace fatal {
 
 struct random_data {
+  using rng_type = std::mt19937;
+  using result_type = typename rng_type::result_type;
+
   random_data(): rng_([] { std::random_device r; return r(); }()) {}
+
+  result_type operator ()() { return rng_(); }
+
+  bool coin_flip() {
+    return rng_() & (result_type(1) << (sizeof(result_type) * CHAR_BIT / 2));
+  }
 
   template <typename Iterator>
   void string(
@@ -45,8 +55,9 @@ struct random_data {
     std::size_t alphabet_size
   ) {
     std::string result;
-    result.reserve(size);
+    result.resize(size);
     string(result.begin(), result.end(), alphabet, alphabet_size);
+    assert(result.size() == size);
     return result;
   }
 
@@ -97,8 +108,10 @@ struct random_data {
     return result;
   }
 
+
+
 private:
-  std::mt19937 rng_;
+  rng_type rng_;
 };
 
 } // namespace fatal {
