@@ -2186,6 +2186,50 @@ struct type_get_traits<std::tuple<Args...>> {
   >::type;
 };
 
+// TODO: DOCUMENT AND TEST
+class check_compilability {
+  template <typename...> struct args;
+
+  template <template <typename...> class T>
+  struct unary_impl {
+    template <typename U, typename = T<U>>
+    static constexpr std::true_type sfinae(args<U> *) {
+      return std::true_type();
+    }
+
+    template <typename...>
+    static constexpr std::false_type sfinae(...) {
+      return std::false_type();
+    }
+  };
+
+  template <template <typename...> class T>
+  struct variadic_impl {
+    template <typename... Args, typename = T<Args...>>
+    static constexpr std::true_type sfinae(args<Args...> *) {
+      return std::true_type();
+    }
+
+    template <typename...>
+    static constexpr std::false_type sfinae(...) {
+      return std::false_type();
+    }
+  };
+
+public:
+  // TODO: DOCUMENT AND TEST
+  template <template <typename...> class T, typename U>
+  using unary_template = decltype(
+    unary_impl<T>::sfinae(static_cast<args<U> *>(nullptr))
+  );
+
+  // TODO: DOCUMENT AND TEST
+  template <template <typename...> class T, typename... Args>
+  using variadic_template = decltype(
+    variadic_impl<T>::sfinae(static_cast<args<Args...> *>(nullptr))
+  );
+};
+
 } // namespace fatal
 
 #endif // FATAL_INCLUDE_fatal_type_transform_h
