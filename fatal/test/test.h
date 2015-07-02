@@ -13,6 +13,7 @@
 #include <fatal/preprocessor.h>
 #include <fatal/test/type.h>
 #include <fatal/time/time.h>
+#include <fatal/type/transform.h>
 #include <fatal/type/traits.h>
 
 #include <chrono>
@@ -130,6 +131,16 @@ namespace test {
 #define FATAL_WARN_GE(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(warning, greater_equal(), LHS, RHS)
 
+#define FATAL_WARN_TEMPLATE_COMPILES(Arity, ...) \
+  FATAL_WARN_TRUE(( \
+    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
+  ))
+
+#define FATAL_WARN_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
+  FATAL_WARN_FALSE(( \
+    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
+  ))
+
 
 #define FATAL_EXPECT_UNREACHABLE() \
   FATAL_IMPL_NULLARY_TEST(expectation, unreachable())
@@ -172,6 +183,16 @@ namespace test {
 #define FATAL_EXPECT_GE(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(expectation, greater_equal(), LHS, RHS)
 
+#define FATAL_EXPECT_TEMPLATE_COMPILES(Arity, ...) \
+  FATAL_EXPECT_TRUE(( \
+    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
+  ))
+
+#define FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
+  FATAL_EXPECT_FALSE(( \
+    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
+  ))
+
 
 #define FATAL_ASSERT_UNREACHABLE() \
   FATAL_IMPL_NULLARY_TEST(assertion, unreachable())
@@ -211,6 +232,16 @@ namespace test {
 
 #define FATAL_ASSERT_GE(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(assertion, greater_equal(), LHS, RHS)
+
+#define FATAL_ASSERT_TEMPLATE_COMPILES(Arity, ...) \
+  FATAL_ASSERT_TRUE(( \
+    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
+  ))
+
+#define FATAL_ASSERT_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
+  FATAL_ASSERT_FALSE(( \
+    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
+  ))
 
 /**
  * Unit test helper for checking whether two types are the same.
