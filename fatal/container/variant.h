@@ -1013,21 +1013,28 @@ public:
    * performance sensitive scenarios.
    */
   template <typename U>
-  U const &unchecked_get() const {
+  U const &unchecked_get() const & {
     return storage_policy::template get<U>(
       traits::template get<U>(union_)
     );
   }
 
   template <typename U>
-  U &unchecked_get() {
+  U &unchecked_get() & {
     return storage_policy::template get<U>(
       traits::template get<U>(union_)
     );
   }
 
   template <typename U>
-  U const &get() const {
+  U &&unchecked_get() && {
+    return std::move(storage_policy::template get<U>(
+      traits::template get<U>(union_)
+    ));
+  }
+
+  template <typename U>
+  U const &get() const & {
     if (tag<U>() != control_.storedType()) {
       throw std::invalid_argument(
         "requested type doesn't match the one contained in the variant"
@@ -1040,7 +1047,7 @@ public:
   }
 
   template <typename U>
-  U &get() {
+  U &get() & {
     if (tag<U>() != control_.storedType()) {
       throw std::invalid_argument(
         "requested type doesn't match the one contained in the variant"
@@ -1053,7 +1060,20 @@ public:
   }
 
   template <typename U>
-  U const *try_get() const {
+  U &&get() && {
+    if (tag<U>() != control_.storedType()) {
+      throw std::invalid_argument(
+        "requested type doesn't match the one contained in the variant"
+      );
+    }
+
+    return std::move(storage_policy::template get<U>(
+      traits::template get<U>(union_)
+    ));
+  }
+
+  template <typename U>
+  U const *try_get() const & {
     if (tag<U>() != control_.storedType()) {
       return nullptr;
     }
@@ -1066,7 +1086,7 @@ public:
   }
 
   template <typename U>
-  U *try_get() {
+  U *try_get() & {
     if (tag<U>() != control_.storedType()) {
       return nullptr;
     }
@@ -1077,6 +1097,9 @@ public:
       )
     );
   }
+
+  template <typename U>
+  U *try_get() && = delete;
 
   template <
     template <typename...> class UCondition,
@@ -1188,19 +1211,37 @@ public:
   }
 
   template <typename U>
-  U &set(U const &value) {
+  U &set(U const &value) & {
     return set_impl<typename std::decay<U>::type>(value);
   }
   template <typename U>
-  U &set(U &&value) {
+  U &set(U &&value) & {
     return set_impl<typename std::decay<U>::type>(std::move(value));
   }
 
+  template <typename U>
+  U &&set(U const &value) && {
+    return std::move(set_impl<typename std::decay<U>::type>(value));
+  }
+  template <typename U>
+  U &&set(U &&value) && {
+    return std::move(set_impl<typename std::decay<U>::type>(
+      std::move(value)
+    ));
+  }
+
   template <typename U, typename... UArgs>
-  U &emplace(UArgs &&...args) {
+  U &emplace(UArgs &&...args) & {
     return set_impl<typename std::decay<U>::type>(
       std::forward<UArgs>(args)...
     );
+  }
+
+  template <typename U, typename... UArgs>
+  U &&emplace(UArgs &&...args) && {
+    return std::move(set_impl<typename std::decay<U>::type>(
+      std::forward<UArgs>(args)...
+    ));
   }
 
   void clear() { unset_impl(control_.allocator()); }
@@ -1303,13 +1344,23 @@ public:
   }
 
   template <typename U>
-  U const &operator =(U const &value) {
+  U &operator =(U const &value) & {
     return set<U>(value);
   }
 
   template <typename U, typename = safe_overload_t<variant, U>>
-  U &operator =(U &&value) {
+  U &operator =(U &&value) & {
     return set<U>(std::forward<U>(value));
+  }
+
+  template <typename U>
+  U &&operator =(U const &value) && {
+    return std::move(set<U>(value));
+  }
+
+  template <typename U, typename = safe_overload_t<variant, U>>
+  U &&operator =(U &&value) && {
+    return std::move(set<U>(std::forward<U>(value)));
   }
 
   template <typename UStoragePolicy, typename... UArgs>
