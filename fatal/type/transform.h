@@ -847,6 +847,25 @@ struct comparison_transform {
  *
  * Example:
  *
+ *  FATAL_GET_MEMBER_TYPE_AS(get_type, type);
+ *
+ *  // evaluates to `int const`
+ *  using result = get_type<std::add_const<int>>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+# define FATAL_GET_MEMBER_TYPE_AS(Name, ...) \
+  template <typename T> using Name = typename T::__VA_ARGS__
+
+/**
+ * A convenient macro that creates a transform which
+ * evaluates to the given member typedef.
+ *
+ * Provides a template alias named `Name` which extracts
+ * the member typedef with the same name.
+ *
+ * Example:
+ *
  *  FATAL_GET_MEMBER_TYPE(type);
  *
  *  // evaluates to `int const`
@@ -855,7 +874,7 @@ struct comparison_transform {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 # define FATAL_GET_MEMBER_TYPE(Name) \
-  template <typename T> using Name = typename T::Name
+  FATAL_GET_MEMBER_TYPE_AS(Name, Name)
 
 /**
  * Provides transforms that evaluate to a member typedef of a given type.
