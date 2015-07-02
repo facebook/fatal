@@ -264,15 +264,66 @@ FATAL_TEST(variant, default_ctor) {
   FATAL_EXPECT_TRUE(v.empty());
 }
 
+test_variant<int, test_string, double> make_variant() {
+  return test_variant<int, test_string, double>(allocator, 10);
+}
+
 FATAL_TEST(variant, getters) {
   test_variant<int, test_string, double> v(allocator, 10);
 
   FATAL_EXPECT_TRUE(v.is_of<int>());
   FATAL_EXPECT_EQ(10, (v.unchecked_get<int>()));
+  FATAL_EXPECT_EQ(10, (make_variant().unchecked_get<int>()));
   FATAL_EXPECT_EQ(10, (v.get<int>()));
+  FATAL_EXPECT_EQ(10, (make_variant().get<int>()));
   FATAL_EXPECT_THROW(std::invalid_argument) {
     v.get<double>();
   };
+  FATAL_EXPECT_THROW(std::invalid_argument) {
+    make_variant().get<double>();
+  };
+}
+
+FATAL_TEST(variant, lvalue_setters) {
+  test_variant<int> v;
+  static_assert(std::is_lvalue_reference<decltype(v.set(0))>::value,
+      "set must return a lvalue reference when the variant is a lvalue.");
+  static_assert(std::is_lvalue_reference<decltype(v.emplace<int>(0))>::value,
+      "emplace must return a lvalue reference when the variant is a lvalue.");
+  static_assert(std::is_lvalue_reference<decltype(v = 0)>::value,
+      "operator= must return a lvalue reference when the variant is a lvalue.");
+  auto& x = v.set(10);
+  FATAL_EXPECT_EQ(10, (v.get<int>()));
+  x = 9;
+  FATAL_EXPECT_EQ(9, (v.get<int>()));
+
+  auto& y = v = 8;
+  FATAL_EXPECT_EQ(8, (v.get<int>()));
+  y = 7;
+  FATAL_EXPECT_EQ(7, (v.get<int>()));
+
+  auto& z = v.emplace<int>(6);
+  FATAL_EXPECT_EQ(6, (v.get<int>()));
+  z = 5;
+  FATAL_EXPECT_EQ(5, (v.get<int>()));
+}
+
+FATAL_TEST(variant, rvalue_setters) {
+  static_assert(std::is_rvalue_reference<
+        decltype(make_variant().set(0))
+      >::value,
+      "set must return a rvalue reference when the variant is a rvalue.");
+  static_assert(std::is_rvalue_reference<
+        decltype(make_variant().emplace<int>(0))
+      >::value,
+      "emplace must return a rvalue reference when the variant is a rvalue.");
+  static_assert(std::is_rvalue_reference<
+        decltype(make_variant() = 0)
+      >::value,
+      "set must return a rvalue reference when the variant is a rvalue.");
+  FATAL_EXPECT_EQ(10, (make_variant().set(10)));
+  FATAL_EXPECT_EQ(10, (make_variant().emplace<int>(10)));
+  FATAL_EXPECT_EQ(10, (make_variant() = 10));
 }
 
 struct FooCopyCtorTest {
