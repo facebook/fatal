@@ -214,7 +214,7 @@ using basic_test_string = std::basic_string<
   typename decltype(allocator)::template rebind<char>::other
 >;
 
-typedef basic_test_string<char> test_string;
+using test_string = basic_test_string<char>;
 
 template <typename T>
 using test_vector = std::vector<
@@ -259,7 +259,7 @@ FATAL_TEST(variant, is_variant) {
 
 FATAL_TEST(variant, default_ctor) {
   test_variant<int, test_string, double> v(allocator);
-  typedef decltype(v) var;
+  using var = decltype(v);
   FATAL_EXPECT_EQ(var::no_tag(), v.tag());
   FATAL_EXPECT_TRUE(v.empty());
 }
@@ -432,7 +432,7 @@ FATAL_TEST(variant, value_move_ctor) {
   FATAL_EXPECT_EQ(0, i.tag());
 
   test_variant<int, test_string, double> s(
-    allocator, std::move(test_string(allocator))
+    allocator, test_string(allocator)
   );
   FATAL_EXPECT_FALSE(s.empty());
   FATAL_EXPECT_EQ(1, s.tag());
@@ -445,7 +445,7 @@ FATAL_TEST(variant, value_move_ctor) {
 }
 
 FATAL_TEST(variant, copy_ctor_different_variant) {
-  typedef test_variant<bool, test_string, double, int> source_var;
+  using source_var = test_variant<bool, test_string, double, int>;
 
   {
     source_var v1(allocator, 10);
@@ -470,7 +470,7 @@ FATAL_TEST(variant, copy_ctor_different_variant) {
 }
 
 FATAL_TEST(variant, copy_ctor_different_variant_and_allocator) {
-  typedef test_variant<bool, test_string, double, int> source_var;
+  using source_var = test_variant<bool, test_string, double, int>;
 
   {
     source_var v1(allocator, 10);
@@ -504,7 +504,7 @@ FATAL_TEST(variant, copy_ctor_different_variant_and_allocator) {
 }
 
 FATAL_TEST(variant, copy_assignment) {
-  typedef test_variant<int, double, test_string> VAR;
+  using VAR = test_variant<int, double, test_string>;
 
   VAR v1(allocator, 10);
   FATAL_EXPECT_TRUE(v1.is_of<int>());
@@ -521,7 +521,7 @@ FATAL_TEST(variant, copy_assignment) {
 }
 
 FATAL_TEST(variant, move_assignment) {
-  typedef test_variant<int, double, test_string> VAR;
+  using VAR = test_variant<int, double, test_string>;
 
   VAR v1(allocator, 10);
   FATAL_EXPECT_TRUE(v1.is_of<int>());
@@ -537,7 +537,7 @@ FATAL_TEST(variant, move_assignment) {
 }
 
 FATAL_TEST(variant, self_assignment) {
-  typedef test_variant<int, double, test_string> VAR;
+  using VAR = test_variant<int, double, test_string>;
 
   VAR v1(allocator, 10);
   auto p = std::addressof(v1);
@@ -557,7 +557,7 @@ template <typename T, typename TStoragePolicy, typename ...Args>
 T const &copyset_constget_helper(
   variant<TStoragePolicy, Args...> &v, T const &value
 ) {
-  typedef typename std::remove_reference<T>::type type;
+  using type = typename std::remove_reference<T>::type;
   v.template set<type>(value);
   return static_cast<variant<TStoragePolicy, Args...> const &>(v)
     .template get<type>();
@@ -582,7 +582,7 @@ T &moveset_get_helper(variant<TStoragePolicy, Args...> &v, T &&value) {
     "T can't be const"
   );
 
-  typedef typename std::remove_reference<T>::type type;
+  using type = typename std::remove_reference<T>::type;
   v.template set<type>(std::move(value));
   return v.template get<type>();
 }
@@ -601,7 +601,7 @@ FATAL_TEST(variant, moveset_get) {
 
 template <typename T, typename V, typename ...Args>
 T const &emplace_constget_helper(V &v, Args &&...args) {
-  typedef typename std::remove_reference<T>::type type;
+  using type = typename std::remove_reference<T>::type;
   v.template emplace<type>(std::forward<Args>(args)...);
   return static_cast<V const &>(v).template get<type>();
 }
@@ -826,7 +826,7 @@ FATAL_TEST(variant, is_of) {
 }
 
 FATAL_TEST(variant, is_supported) {
-  typedef test_variant<int, double, int const *, test_string> var;
+  using var = test_variant<int, double, int const *, test_string>;
 
   FATAL_EXPECT_TRUE((var::is_supported<int>()));
   FATAL_EXPECT_TRUE((var::is_supported<double>()));
@@ -1303,7 +1303,7 @@ FATAL_TEST(variant, operator_copy_assignment_heterogeneous_policy_rvref) {
 
 template <typename Expected, typename ...Args>
 void check_type_tag_size() {
-  typedef variant<default_storage_policy<>, Args...> var;
+  using var = variant<default_storage_policy<>, Args...>;
   if (!std::is_same<Expected, typename var::type_tag>::value) {
     FATAL_LOG(INFO) << "expected \"" << type_str<Expected>()
       << "\", got \"" << type_str<typename var::type_tag>()
@@ -1374,7 +1374,7 @@ FATAL_TEST(variant, type_tag_size) {
 }
 
 FATAL_TEST(variant, id) {
-  typedef variant<
+  using var = variant<
     default_storage_policy<>,
     int,
     short,
@@ -1383,7 +1383,7 @@ FATAL_TEST(variant, id) {
     test_vector<double>,
     test_vector<test_string>,
     std::map<test_string, test_string>
-  > var;
+  >;
 
   FATAL_EXPECT_EQ(var::tag<int>(), 0);
   FATAL_EXPECT_EQ(var::tag<short>(), 1);
@@ -1391,13 +1391,11 @@ FATAL_TEST(variant, id) {
   FATAL_EXPECT_EQ(var::tag<test_vector<int>>(), 3);
   FATAL_EXPECT_EQ(var::tag<test_vector<double>>(), 4);
   FATAL_EXPECT_EQ(var::tag<test_vector<test_string>>(), 5);
-  typedef std::map<
-    test_string, test_string
-  > map_string_string;
+  using map_string_string = std::map<test_string, test_string>;
   FATAL_EXPECT_EQ(var::tag<map_string_string>(), 6);
-  typedef std::map<test_string, int> map_string_int;
+  using map_string_int = std::map<test_string, int>;
   FATAL_EXPECT_EQ(var::tag<map_string_int>(), 7);
-  typedef std::map<short, bool> map_short_bool;
+  using map_short_bool = std::map<short, bool>;
   FATAL_EXPECT_EQ(var::tag<map_short_bool>(), 7);
   FATAL_EXPECT_EQ(var::tag<bool>(), 7);
   FATAL_EXPECT_EQ(var::tag<unsigned int>(), 7);
@@ -1460,9 +1458,9 @@ FATAL_TEST(variant, templated_nested_variant) {
 }
 
 struct nested_vector;
-typedef variant<
+using nested_variant = variant<
   default_storage_policy<decltype(allocator)>, int, nested_vector
-> nested_variant;
+>;
 struct nested_vector:
   public test_vector<nested_variant>
 {
@@ -1607,9 +1605,9 @@ struct visitor_that_returns {
 };
 
 FATAL_TEST(variant, visitor_that_return) {
-  typedef test_variant<int, double> var;
+  using var = test_variant<int, double>;
 
-  typedef visitor_that_returns<int, 99> visitor_type;
+  using visitor_type = visitor_that_returns<int, 99>;
   visitor_type visitor;
   visitor_type const cvisitor;
 
@@ -1691,7 +1689,7 @@ FATAL_TEST(variant, visitor_that_return_on_arena_variant) {
     default_storage_policy<decltype(allocator), dynamic_allocation_policy>,
     int, double, std::string
   >;
-  typedef visitor_that_returns_type_tag<var> visitor_type;
+  using visitor_type = visitor_that_returns_type_tag<var>;
 
   var v(allocator);
   FATAL_EXPECT_TRUE(v.empty());
@@ -1730,9 +1728,9 @@ struct visitor_with_additional_parameters {
 };
 
 FATAL_TEST(variant, visitor_with_additional_parameters) {
-  typedef test_variant<int, double> var;
+  using var = test_variant<int, double>;
 
-  typedef visitor_with_additional_parameters<double> visitor_type;
+  using visitor_type = visitor_with_additional_parameters<double>;
   visitor_type visitor;
 
   FATAL_EXPECT_THROW(std::logic_error) {
@@ -1798,7 +1796,7 @@ FATAL_TEST(variant, visitor_with_additional_parameters) {
 }
 
 FATAL_TEST(variant, variant_vector) {
-  typedef test_variant<int, double, test_string> var;
+  using var = test_variant<int, double, test_string>;
   test_vector<var> v(allocator);
 
   v.reserve(1);
@@ -1866,9 +1864,9 @@ FATAL_TEST(variant, variant_vector) {
 }
 
 FATAL_TEST(variant, variant_map_as_value) {
-  typedef test_variant<int, double, test_string> var;
+  using var = test_variant<int, double, test_string>;
   std::map<test_string, var> m;
-  typedef decltype(m)::value_type pair_type;
+  using pair_type = decltype(m)::value_type;
 
   m.insert(pair_type("int", var(allocator, 10)));
   m.insert(pair_type("double", var(allocator, 5.6)));
@@ -1901,9 +1899,9 @@ FATAL_TEST(variant, variant_map_as_value) {
 }
 
 FATAL_TEST(variant, variant_map_as_key_value) {
-  typedef test_variant<int, double, test_string> var;
+  using var = test_variant<int, double, test_string>;
   std::map<var, var> m;
-  typedef decltype(m)::value_type pair_type;
+  using pair_type = decltype(m)::value_type;
 
   m.insert(std::make_pair(var(allocator, 10), var(allocator, 5.6)));
   var const t(allocator, test_string("THIS IS A TEST", allocator));
@@ -1994,7 +1992,7 @@ FATAL_TEST(variant, variant_map_as_key_value) {
 }
 
 FATAL_TEST(variant, variant_unordered_map_as_key_value) {
-  typedef test_variant<int, double, std::string> var;
+  using var = test_variant<int, double, std::string>;
   std::unordered_map<var, var> m;
 
   m.emplace(var(allocator, 10), var(allocator, 5.6));
@@ -2086,14 +2084,14 @@ FATAL_TEST(variant, variant_unordered_map_as_key_value) {
 }
 
 FATAL_TEST(variant, rebind_storage_policy) {
-  typedef default_storage_policy<
+  using custom_storage_policy = default_storage_policy<
     decltype(allocator), automatic_allocation_policy
-  > custom_storage_policy;
+  >;
 
-  typedef test_variant<int, double, test_string> original_var;
-  typedef original_var::types::apply_front<
+  using original_var = test_variant<int, double, test_string>;
+  using rebound_var = original_var::types::apply_front<
     variant, custom_storage_policy
-  > rebound_var;
+  >;
 
   FATAL_EXPECT_TRUE((
     std::is_same<
@@ -2109,8 +2107,8 @@ FATAL_TEST(variant, rebind_storage_policy) {
 }
 
 FATAL_TEST(variant, container_assignment) {
-  typedef test_variant<int, double, test_string> VAR;
-  typedef test_vector<VAR> VECTOR;
+  using VAR = test_variant<int, double, test_string>;
+  using VECTOR = test_vector<VAR>;
   VECTOR v1(allocator);
   v1.reserve(1);
 
@@ -2143,8 +2141,8 @@ FATAL_TEST(variant, container_assignment) {
 }
 
 FATAL_TEST(variant, set_difference) {
-  typedef test_variant<int, double, test_string> VAR;
-  typedef test_vector<VAR> VECTOR;
+  using VAR = test_variant<int, double, test_string>;
+  using VECTOR = test_vector<VAR>;
 
   VECTOR lhs({
     VAR(allocator, 1),
@@ -2178,8 +2176,8 @@ FATAL_TEST(variant, set_difference) {
 }
 
 FATAL_TEST(variant, set_difference_inplace) {
-  typedef test_variant<int, double, test_string> VAR;
-  typedef test_vector<VAR> VECTOR;
+  using VAR = test_variant<int, double, test_string>;
+  using VECTOR = test_vector<VAR>;
 
   VECTOR lhs({
     VAR(allocator, 1),

@@ -10,9 +10,10 @@
 #ifndef FATAL_INCLUDE_fatal_container_variant_h
 #define FATAL_INCLUDE_fatal_container_variant_h
 
+#include <fatal/container/unitary_union.h>
 #include <fatal/math/numerics.h>
-#include <fatal/type/traits.h>
 #include <fatal/type/list.h>
+#include <fatal/type/traits.h>
 
 #include <memory>
 #include <utility>
@@ -63,26 +64,27 @@ template <
 >
 class default_allocation_policy {
   template <typename T>
-  constexpr static std::size_t allocateThreshold() {
-    return allocateMultiplier * sizeof(T*) + allocateIncrement;
-  }
+  using allocate_threshold = size_constant<
+    allocateMultiplier * sizeof(T*) + allocateIncrement
+  >;
 
 public:
   template <typename T>
-  constexpr static bool allocate_dynamically() {
-    static_assert(!std::is_reference<T>::value, "T can't be a reference");
-    return !std::is_scalar<T>::value && allocateThreshold<T>() < sizeof(T);
-  }
+  using dynamic = bool_constant<
+    !is_complete<T>::value || (
+      !std::is_scalar<T>::value && allocate_threshold<T>::value < sizeof(T)
+    )
+  >;
 };
 
 template <bool alwaysDynamic>
 struct fixed_allocation_policy {
-  template <typename T>
-  constexpr static bool allocate_dynamically() { return alwaysDynamic; }
+  template <typename>
+  using dynamic = bool_constant<alwaysDynamic>;
 };
 
-typedef fixed_allocation_policy<true> dynamic_allocation_policy;
-typedef fixed_allocation_policy<false> automatic_allocation_policy;
+using dynamic_allocation_policy = fixed_allocation_policy<true>;
+using automatic_allocation_policy = fixed_allocation_policy<false>;
 
 /**
  * ####################
@@ -122,9 +124,9 @@ typedef fixed_allocation_policy<false> automatic_allocation_policy;
  * allocated types.
  *
  * TAllocationPolicy decides which allocation method will be used for a given
- * type. It needs to provide a single method
+ * type. It needs to provide a single constant
  *
- *  template <typename T> constexpr static bool allocate_dynamically();
+ *  template <typename T> using dynamic = std::integral_constant<bool, ???>;
  *
  * which returns true when dynamic allocation must be used to store the type
  * T, or false when automatic allocation must be used to store the same type.
@@ -140,9 +142,9 @@ template <
   bool IsCopyable = true
 >
 struct default_storage_policy {
-  typedef TAllocator allocator_type;
-  typedef std::allocator_traits<allocator_type> allocator_traits;
-  typedef TAllocationPolicy allocation_policy;
+  using allocator_type = TAllocator;
+  using allocator_traits = std::allocator_traits<allocator_type>;
+  using allocation_policy = TAllocationPolicy;
 
   /**
    * Tells whether copy construction and copy assignment should be allowed by
@@ -151,10 +153,10 @@ struct default_storage_policy {
   constexpr static bool is_copyable() { return IsCopyable; }
 
   /**
-   * This class abstracts the interaction with TAllocationPolicy and
-   * adds support for incomplete types. It provides a typedef for the
-   * internal storage representation of the given type T, and a boolean
-   * telling whether this representation uses automatic or dynamic storage.
+   * This class abstracts the interaction with TAllocationPolicy. It provides
+   * a member type for the internal storage representation of the given type T,
+   * and a boolean telling whether this representation uses automatic or
+   * dynamic storage.
    */
   template <typename T>
   class storage_type {
@@ -163,48 +165,23 @@ struct default_storage_policy {
       "default_storage_policy: unable to store references"
     );
 
-    // Helper intended for complete types.
-    template <typename U, bool>
-    struct storage_type_impl:
-      public std::integral_constant<
-        bool,
-        allocation_policy::template allocate_dynamically<U>()
-      >
-    {
-      // A union is used in order to facilitate uninitialized automatic storage.
-      union automatically_allocated{
-        automatically_allocated() {}
-        automatically_allocated(automatically_allocated const &) {}
-        automatically_allocated(automatically_allocated &&) {}
-        ~automatically_allocated() {}
-        U value;
-      };
-
-      // A naked pointer is used for dynamically allocated types. no smart
-      // pointers are used since we aim for the smallest possible footprint
-      // (having a copy of the deleter for every pointer is undesired).
-      typedef typename std::conditional<
-        allocation_policy::template allocate_dynamically<U>(),
-        U *, automatically_allocated
-      >::type type;
-    };
-
-    // Template partial specialization for incomplete types
-    // dynamic allocation will always be used since there's
-    // no layout information for the type.
-    template <typename U>
-    struct storage_type_impl<U, false>:
-      public std::true_type
-    {
-      typedef U *type;
-    };
-
   public:
-    typedef typename storage_type_impl<T, is_complete<T>::value>::type type;
-
     constexpr static bool allocate_dynamically() {
-      return storage_type_impl<T, is_complete<T>::value>::value;
+      return allocation_policy::template dynamic<T>::value;
     }
+
+    static_assert(
+      is_complete<T>::value || allocate_dynamically(),
+      "can't allocate an incomplete type using automatic storage duration"
+    );
+
+    // A naked pointer is used for dynamically allocated types. No smart
+    // pointers are used since we aim for the smallest possible footprint
+    // (having a copy of the deleter for every pointer is undesired).
+    using type = typename std::conditional<
+        allocate_dynamically(),
+        T *, unitary_union<T, false>
+      >::type;
   };
 
   // Methods for when T is stored using DYNAMIC ALLOCATION.
@@ -221,7 +198,7 @@ struct default_storage_policy {
       storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
     >::type &storage
   ) {
-    typedef typename allocator_traits::template rebind_alloc<T> rebound_alloc;
+    using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
     storage = rebound_alloc(*allocator).allocate(1);
   }
 
@@ -232,7 +209,7 @@ struct default_storage_policy {
       storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
     >::type &storage
   ) {
-    typedef typename allocator_traits::template rebind_alloc<T> rebound_alloc;
+    using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
     rebound_alloc(*allocator).deallocate(storage, 1);
     storage = nullptr;
   }
@@ -245,7 +222,7 @@ struct default_storage_policy {
     >::type &storage,
     Args &&...args
   ) {
-    typedef typename allocator_traits::template rebind_alloc<T> rebound_alloc;
+    using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
     rebound_alloc(*allocator).construct(storage, std::forward<Args>(args)...);
     return *storage;
   }
@@ -257,7 +234,7 @@ struct default_storage_policy {
       storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
     >::type &storage
   ) {
-    typedef typename allocator_traits::template rebind_alloc<T> rebound_alloc;
+    using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
     rebound_alloc(*allocator).destroy(storage);
   }
 
@@ -429,13 +406,13 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
   static_assert(!std::is_reference<T>::value, "T can't be a reference");
   static_assert(!std::is_const<T>::value, "T can't be const");
 
-  typedef TSize size_type;
-  typedef T value_type;
+  using size_type = TSize;
+  using value_type = T;
 
-  typedef TStoragePolicy storage_policy;
-  typedef typename storage_policy::allocator_type allocator_type;
-  typedef typename storage_policy::template storage_type<value_type>::type
-    storage_type;
+  using storage_policy = TStoragePolicy;
+  using allocator_type = typename storage_policy::allocator_type;
+  using storage_type = typename storage_policy
+    ::template storage_type<value_type>::type;
 
   union union_type {
     storage_type storage;
@@ -600,20 +577,20 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
   static_assert(!std::is_reference<T>::value, "T can't be a reference");
   static_assert(!std::is_const<T>::value, "T can't be const");
 
-  typedef TSize size_type;
-  typedef T value_type;
+  using size_type = TSize;
+  using value_type = T;
 
-  typedef TStoragePolicy storage_policy;
-  typedef typename storage_policy::allocator_type allocator_type;
-  typedef typename storage_policy::template storage_type<value_type>::type
-    storage_type;
+  using storage_policy = TStoragePolicy;
+  using allocator_type = typename storage_policy::allocator_type;
+  using storage_type = typename storage_policy
+    ::template storage_type<value_type>::type;
 
-  typedef variant_impl::variadic_union_traits<
+  using head_type = variant_impl::variadic_union_traits<
     storage_policy, size_type, Depth, T
-  > head_type;
-  typedef variant_impl::variadic_union_traits<
+  >;
+  using tail_type = variant_impl::variadic_union_traits<
     storage_policy, size_type, Depth + 1, Head, Tail...
-  > tail_type;
+  >;
 
   union union_type {
     typename head_type::union_type head;
@@ -889,9 +866,9 @@ struct is_variant<variant<UStoragePolicy, UArgs...>>:
  */
 template <typename TStoragePolicy, typename... Args>
 struct variant {
-  typedef TStoragePolicy storage_policy;
-  typedef typename storage_policy::allocator_type allocator_type;
-  typedef type_list<Args...> types;
+  using storage_policy = TStoragePolicy;
+  using allocator_type = typename storage_policy::allocator_type;
+  using types = type_list<Args...>;
 
 private:
   /**
@@ -905,7 +882,7 @@ private:
       return most_significant_bit<sizeof...(Args)>::value;
     }
 
-    typedef smallest_uint_for_value<sizeof...(Args)> type_tag;
+    using type_tag = smallest_uint_for_value<sizeof...(Args)>;
 
     control_block(allocator_type *allocator, type_tag storedType):
       allocator_(std::move(allocator)),
@@ -926,13 +903,13 @@ private:
   };
 
 public:
-  typedef typename control_block::type_tag type_tag;
-  typedef detail::variant_impl::variadic_union_traits<
+  using type_tag = typename control_block::type_tag;
+  using traits = detail::variant_impl::variadic_union_traits<
     storage_policy,
     type_tag, std::numeric_limits<type_tag>::min(),
     typename std::decay<Args>::type...
-  > traits;
-  typedef typename traits::union_type union_type;
+  >;
+  using union_type = typename traits::union_type;
 
   // returns no_tag() when the given type is not part of the variant
   template <typename U>
@@ -1528,9 +1505,12 @@ private:
       traits::move_over(otherStoredType, other.union_, union_);
     }
 
-    auto control = std::move(other.control_);
+    control_block control(
+      other.control_.allocator(),
+      other.control_.storedType()
+    );
     other.control_.setStoredType(no_tag());
-    return std::move(control);
+    return control;
   }
 
   template <bool ThrowIfUnsupported, bool ClearIfUnsupported>
@@ -1561,7 +1541,7 @@ private:
         "copy disabled by the variant's policy"
       );
 
-      typedef typename std::decay<U>::type type;
+      using type = typename std::decay<U>::type;
 
       setter<type, variant::template is_supported<type>()>::set(v, value);
     }
@@ -1599,8 +1579,8 @@ using default_dynamic_variant = variant<
  */
 template <typename TVisitor, typename TResult>
 struct visitor_wrapper {
-  typedef TVisitor visitor_type;
-  typedef TResult result_type;
+  using visitor_type = TVisitor;
+  using result_type = TResult;
 
   explicit visitor_wrapper(visitor_type &visitor):
     visitor_(visitor),
@@ -1832,7 +1812,7 @@ namespace std {
 
 template <typename TStoragePolicy, typename... Args>
 struct hash<fatal::variant<TStoragePolicy, Args...>> {
-  typedef std::size_t result_type;
+  using result_type = std::size_t;
 
   result_type operator ()(
     fatal::variant<TStoragePolicy, Args...> const &v
