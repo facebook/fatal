@@ -525,7 +525,7 @@ template <bool, bool, typename T, T, T> struct build;
 /////////////////////
 
 /**
- * Builds a constant_sequence with elements in the range `[Begin, End)`,
+ * Builds a `constant_sequence` with elements in the range `[Begin, End)`,
  * when `OpenEnd` is `true`, or in the range `[Begin, End]` otherwise.
  *
  * The default value for `OpenEnd` is `true`.
@@ -549,6 +549,31 @@ template <bool, bool, typename T, T, T> struct build;
 template <typename T, T Begin, T End, bool OpenEnd = true>
 using constant_range = typename detail::range_builder_impl::build<
   false, OpenEnd, T, Begin, End
+>::type;
+
+/**
+ * A convenient shortcut that builds a `constant_sequence` of
+ * type `std::size_t` with elements in the range `[0, End)`.
+ *
+ * Example:
+ *
+ * // yields `constant_sequence<std::size_t, 1, 2, 3, 4>`
+ * using result1 = indexes_sequence<5>;
+ *
+ * // yields `constant_sequence<std::size_t, 1, 2>`
+ * using result2 = indexes_sequence<3>;
+ *
+ * // yields `constant_sequence<std::size_t, 1, 2, 3, 4, 5>`
+ * using result3 = indexes_sequence<6>;
+ *
+ * // yields `constant_sequence<std::size_t,  3>`
+ * using result4 = indexes_sequence<4>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <std::size_t Size>
+using indexes_sequence = typename detail::range_builder_impl::build<
+  false, true, std::size_t, 0, Size
 >::type;
 
 ///////////////////////////////////////

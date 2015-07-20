@@ -895,4 +895,26 @@ FATAL_TEST(constant_range, char) {
   check_constant_range<char, '1', '2', '3', '4', '5'>();
 }
 
+//////////////////////
+// indexes_sequence //
+//////////////////////
+
+template <std::size_t... Values>
+void check_indexes_sequence() {
+  FATAL_EXPECT_SAME<
+    constant_sequence<std::size_t, Values...>,
+    indexes_sequence<sizeof...(Values)>
+  >();
+}
+
+FATAL_TEST(indexes_sequence, sanity_check) {
+  check_indexes_sequence<>();
+  check_indexes_sequence<0>();
+  check_indexes_sequence<0, 1>();
+  check_indexes_sequence<0, 1, 2>();
+  check_indexes_sequence<0, 1, 2, 3>();
+  check_indexes_sequence<0, 1, 2, 3, 4>();
+  check_indexes_sequence<0, 1, 2, 3, 4, 5>();
+}
+
 } // namespace fatal {
