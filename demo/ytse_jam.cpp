@@ -216,7 +216,7 @@ private:
 
         if (op::args::size != args.size()) { throw std::invalid_argument("arguments list size mismatch"); }
 
-        using arg_indexes = fatal::constant_range<std::size_t, 0, op::args::size>;
+        using arg_indexes = fatal::indexes_sequence<op::args::size>;
 
         call_method<typename op::method, typename op::result, typename op::args>(
           arg_indexes(), out, std::forward<T>(instance), args
@@ -250,7 +250,7 @@ private:
           ctor_index::visit<typename decltype(data_type_name)::type>(
             [&](auto ctor_pair) { // type_pair<type_string, constructor>
               using ctor = fatal::type_get_second<decltype(ctor_pair)>;
-              using arg_indexes = fatal::constant_range<std::size_t, 0, ctor::args::size>;
+              using arg_indexes = fatal::indexes_sequence<ctor::args::size>;
 
               if (ctor::args::size != args.size()) { throw std::invalid_argument("arguments list size mismatch"); }
 
