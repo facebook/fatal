@@ -60,10 +60,16 @@ struct parse_impl_conversion_pair<bool, std::string> {
     } \
   }
 
-FATAL_IMPL_PARSE_CONVERSION_PAIR(int);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(long);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int8_t);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int16_t);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int32_t);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int64_t);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint8_t);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint16_t);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint32_t);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint64_t);
+// TODO: FIX AS IT MIGHT CLASH WITH ONE ON THE TYPES ABOVE
 FATAL_IMPL_PARSE_CONVERSION_PAIR(long long);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(unsigned long);
 FATAL_IMPL_PARSE_CONVERSION_PAIR(unsigned long long);
 FATAL_IMPL_PARSE_CONVERSION_PAIR(float);
 FATAL_IMPL_PARSE_CONVERSION_PAIR(double);
@@ -71,20 +77,65 @@ FATAL_IMPL_PARSE_CONVERSION_PAIR(long double);
 
 #undef FATAL_IMPL_PARSE_CONVERSION_PAIR
 
-#define FATAL_IMPL_PARSE_CONVERSION_PAIR(To, From, Fn) \
+template <typename T>
+struct stoi {
+  static T parse(std::string const &s) { return std::stoi(s); }
+};
+
+template <>
+struct stoi<long> {
+  static long parse(std::string const &s) { return std::stol(s); }
+};
+
+template <>
+struct stoi<long long> {
+  static long long parse(std::string const &s) { return std::stoll(s); }
+};
+
+template <typename T>
+struct stou {
+  static T parse(std::string const &s) { return std::stoul(s); }
+};
+
+template <>
+struct stou<unsigned long long> {
+  static unsigned long long parse(std::string const &s) {
+    return std::stoull(s);
+  }
+};
+
+template <typename T>
+struct stofp {
+  static T parse(std::string const &s) { return std::stof(s); }
+};
+
+template <>
+struct stofp<double> {
+  static double parse(std::string const &s) { return std::stod(s); }
+};
+
+template <>
+struct stofp<long double> {
+  static long double parse(std::string const &s) { return std::stold(s); }
+};
+
+#define FATAL_IMPL_PARSE_CONVERSION_PAIR(To, From, Converter) \
   template <> \
   struct parse_impl_conversion_pair<To, From> { \
-    static To convert(From const &value) { return Fn(value); } \
+    static To convert(From const &value) { return Converter<To>::parse(value); } \
   }
 
-FATAL_IMPL_PARSE_CONVERSION_PAIR(int, std::string, std::stoi);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(long, std::string, std::stol);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(long long, std::string, std::stoll);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(unsigned long, std::string, std::stoul);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(unsigned long long, std::string, std::stoull);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(float, std::string, std::stof);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(double, std::string, std::stod);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(long double, std::string, std::stold);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int8_t, std::string, stoi);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int16_t, std::string, stoi);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int32_t, std::string, stoi);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int64_t, std::string, stoi);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint8_t, std::string, stou);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint16_t, std::string, stou);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint32_t, std::string, stou);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint64_t, std::string, stou);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(float, std::string, stofp);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(double, std::string, stofp);
+FATAL_IMPL_PARSE_CONVERSION_PAIR(long double, std::string, stofp);
 
 #undef FATAL_IMPL_PARSE_CONVERSION_PAIR
 
