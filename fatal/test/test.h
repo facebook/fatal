@@ -11,14 +11,16 @@
 #define FATAL_INCLUDE_fatal_test_test_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/test/string.h>
 #include <fatal/test/type.h>
 #include <fatal/time/time.h>
-#include <fatal/type/transform.h>
 #include <fatal/type/traits.h>
+#include <fatal/type/transform.h>
 
 #include <chrono>
 #include <exception>
 #include <functional>
+#include <iostream> // TODO: REMOVE WHEN EXPECT_SAME IS FIXED
 #include <memory>
 #include <string>
 #include <tuple>
