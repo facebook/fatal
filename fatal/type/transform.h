@@ -2146,7 +2146,22 @@ class check_compilability {
     }
   };
 
+  template <template <typename...> class T>
+  struct t_variadic_impl {
+    template <typename U, typename... Args, typename = T<U, Args...>>
+    static constexpr std::true_type sfinae(args<U, Args...> *) {
+      return std::true_type();
+    }
+
+    template <typename...>
+    static constexpr std::false_type sfinae(...) {
+      return std::false_type();
+    }
+  };
+
 public:
+  // TODO: UNIFY ALL INTERFACES BELOW
+
   // TODO: DOCUMENT AND TEST
   template <template <typename...> class T, typename U>
   using unary_template = decltype(
@@ -2157,6 +2172,11 @@ public:
   template <template <typename...> class T, typename... Args>
   using variadic_template = decltype(
     variadic_impl<T>::sfinae(static_cast<args<Args...> *>(nullptr))
+  );
+  // TODO: DOCUMENT AND TEST
+  template <template <typename...> class T, typename U, typename... Args>
+  using t_variadic_template = decltype(
+    t_variadic_impl<T>::sfinae(static_cast<args<U, Args...> *>(nullptr))
   );
 };
 
