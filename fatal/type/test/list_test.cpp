@@ -50,6 +50,7 @@ template <char Value> using chr_val = std::integral_constant<char, Value>;
 template <char... Values> using chr_seq = type_list<chr_val<Values>...>;
 template <int Value> using int_val = std::integral_constant<int, Value>;
 template <int... Values> using int_seq = type_list<int_val<Values>...>;
+template <typename...> struct lst {};
 
 template <typename T, T Multiplier>
 struct multiply_transform {
@@ -638,18 +639,121 @@ FATAL_TEST(indexed_transform, indexed_transform) {
   >();
 }
 
+/////////////////////////////////////
+// type_list::cumulative_transform //
+/////////////////////////////////////
+
+template <int... Values>
+using cumulative_sum = typename int_seq<Values...>
+  ::template cumulative_transform<arithmetic_transform::add>;
+
+FATAL_TEST(cumulative_transform, cumulative_transform) {
+  FATAL_EXPECT_SAME<
+    type_list<>,
+    type_list<>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<lst<T0>>,
+    type_list<T0>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<lst<T0>, lst<T0, T1>>,
+    type_list<T0, T1>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<lst<T0>, lst<T0, T1>, lst<T0, T1, T2>>,
+    type_list<T0, T1, T2>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<lst<T0>, lst<T0, T1>, lst<T0, T1, T2>, lst<T0, T1, T2, P0>>,
+    type_list<T0, T1, T2, P0>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>
+    >,
+    type_list<T0, T1, T2, P0, P1>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>,
+      lst<T0, T1, T2, P0, P1, P2>
+    >,
+    type_list<T0, T1, T2, P0, P1, P2>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>,
+      lst<T0, T1, T2, P0, P1, P2>,
+      lst<T0, T1, T2, P0, P1, P2, S0>
+    >,
+    type_list<T0, T1, T2, P0, P1, P2, S0>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>,
+      lst<T0, T1, T2, P0, P1, P2>,
+      lst<T0, T1, T2, P0, P1, P2, S0>,
+      lst<T0, T1, T2, P0, P1, P2, S0, S1>
+    >,
+    type_list<T0, T1, T2, P0, P1, P2, S0, S1>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>,
+      lst<T0, T1, T2, P0, P1, P2>,
+      lst<T0, T1, T2, P0, P1, P2, S0>,
+      lst<T0, T1, T2, P0, P1, P2, S0, S1>,
+      lst<T0, T1, T2, P0, P1, P2, S0, S1, S2>
+    >,
+    type_list<T0, T1, T2, P0, P1, P2, S0, S1, S2>::cumulative_transform<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<1, 3, 6, 10, 15, 21, 28, 36, 45, 55>,
+    cumulative_sum<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
+  >();
+}
+
 ///////////////////////////
 // type_list::accumulate //
 ///////////////////////////
 
 FATAL_TEST(accumulate, accumulate) {
 # define FATAL_TEST_IMPL(TExpected, TTransform, ...) \
-  do { \
-    FATAL_EXPECT_EQ( \
-      TExpected, \
-      (int_seq<__VA_ARGS__>::accumulate<TTransform>::value) \
-    ); \
-  } while (false)
+  FATAL_EXPECT_EQ( \
+    TExpected, \
+    (int_seq<__VA_ARGS__>::accumulate<TTransform>::value) \
+  )
 
   FATAL_TEST_IMPL(7, arithmetic_transform::add, 7);
   FATAL_TEST_IMPL(8, arithmetic_transform::add, 1, 7);
@@ -694,6 +798,15 @@ FATAL_TEST(choose, choose) {
       int_seq<__VA_ARGS__>::choose<TPredicate> \
     >(); \
   } while (false)
+
+  FATAL_TEST_IMPL(7, comparison_transform::less_than, 7);
+  FATAL_TEST_IMPL(1, comparison_transform::less_than, 1, 7);
+  FATAL_TEST_IMPL(1, comparison_transform::less_than, 7, 1);
+
+  FATAL_TEST_IMPL(1, comparison_transform::less_than, 1, 2, 3, 4, 5, 6, 7);
+  FATAL_TEST_IMPL(1, comparison_transform::less_than, 7, 6, 5, 4, 3, 2, 1);
+
+  FATAL_TEST_IMPL(1, comparison_transform::less_than, 1, 6, 2, 7, 5, 3, 4);
 
   FATAL_TEST_IMPL(7, comparison_transform::greater_than, 7);
   FATAL_TEST_IMPL(7, comparison_transform::greater_than, 1, 7);

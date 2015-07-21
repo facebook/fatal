@@ -402,6 +402,42 @@ struct indexed_transform<Index> {
   using apply = type_list<>;
 };
 
+//////////////////////////
+// cumulative_transform //
+//////////////////////////
+
+template <template <typename...> class, typename, typename, typename...>
+struct cumulative_transform;
+
+template <
+  template <typename...> class Transform,
+  typename... Result,
+  typename... Front,
+  typename T, typename... Tail
+>
+// TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
+//       FOR OTHER IMPLEMENTATIONS LIKE HERE
+struct cumulative_transform<
+  Transform, type_list<Result...>, type_list<Front...>, T, Tail...
+> {
+  using accumulator = fatal::apply<Transform, Front..., T>;
+  using type = typename cumulative_transform<
+    Transform,
+    type_list<Result..., accumulator>,
+    type_list<Front..., T>,
+    Tail...
+  >::type;
+};
+
+template <
+  template <typename...> class Transform,
+  typename Result,
+  typename Accumulator
+>
+struct cumulative_transform<Transform, Result, Accumulator> {
+  using type = Result;
+};
+
 ////////////////
 // accumulate //
 ////////////////
@@ -1697,7 +1733,53 @@ struct type_list {
   >::template apply<TTransform, UArgs...>;
 
   /**
-   * TODO: DOCUMENT AND TEST
+   * TODO: DOCUMENT
+   *
+   * Example:
+   *
+   *  using list = type_list<A, B, C, D, E>;
+   *
+   *  // yields `type_list<
+   *  //  std::tuple<A>,
+   *  //  std::tuple<A, B>,
+   *  //  std::tuple<A, B, C>,
+   *  //  std::tuple<A, B, C, D>,
+   *  //  std::tuple<A, B, C, D, E>
+   *  // >`
+   *  using result1 = list::cumulative_transform<std::tuple>;
+   *
+   *  template <int... Values>
+   *  using int_seq = type_list<std::integral_constant<int, Values>...>;
+   *
+   *  // yields `int_seq<1, 3, 6, 10, 15, 21, 28, 36, 45, 55>`
+   *  using result2 = int_seq<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
+   *    ::cumulative_transform<arithmetic_transform::add>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class Transform>
+  using cumulative_transform = typename detail::type_list_impl
+    ::cumulative_transform<Transform, type_list<>, type_list<>, Args...>::type;
+
+  /**
+   * TODO: DOCUMENT
+   *
+   * Example:
+   *
+   *  template <int... Values>
+   *  using int_seq = type_list<std::integral_constant<int, Values>...>;
+   *
+   *  template <typename L, typename R>
+   *  using add = std::integral_constant<int, L::value + R::value>;
+   *
+   *  // yields `std::integral_constant<int, 28>`
+   *  using result1 = int_seq<1, 2, 3, 4, 5, 6, 7>::accumulate<add>;
+   *
+   *  template <typename L, typename R>
+   *  using mul = std::integral_constant<int, L::value * R::value>;
+   *
+   *  // yields `std::integral_constant<int, 120>`
+   *  using result2 = int_seq<1, 2, 3, 4, 5>::accumulate<mul>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1707,7 +1789,24 @@ struct type_list {
   >::type;
 
   /**
-   * TODO: DOCUMENT AND TEST
+   * TODO: DOCUMENT
+   *
+   * Example:
+   *
+   *  template <int... Values>
+   *  using int_seq = type_list<std::integral_constant<int, Values>...>;
+   *
+   *  template <typename L, typename R>
+   *  using lt = std::integral_constant<bool, (L::value < R::value)>;
+   *
+   *  // yields `std::integral_constant<int, 1>`
+   *  using result1 = int_seq<1, 2, 3, 4, 5, 6, 7>::choose<lt>;
+   *
+   *  template <typename L, typename R>
+   *  using gt = std::integral_constant<bool, (L::value > R::value)>;
+   *
+   *  // yields `std::integral_constant<int, 7>`
+   *  using result2 = int_seq<1, 2, 3, 4, 5, 6, 7>::choose<gt>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
