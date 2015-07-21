@@ -643,34 +643,135 @@ FATAL_TEST(indexed_transform, indexed_transform) {
 // type_list::cumulative_transform //
 /////////////////////////////////////
 
-template <int... Values>
+template <bool Inclusive, int... Values>
 using cumulative_sum = typename int_seq<Values...>
-  ::template cumulative_transform<arithmetic_transform::add>;
+  ::template cumulative_transform<Inclusive>
+  ::template apply<arithmetic_transform::add, int_val<0>>;
 
-FATAL_TEST(cumulative_transform, cumulative_transform) {
+FATAL_TEST(cumulative_transform, non_inclusive) {
   FATAL_EXPECT_SAME<
     type_list<>,
-    type_list<>::cumulative_transform<lst>
+    type_list<>::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<lst<>>,
+    type_list<T0>::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<lst<>, lst<T0>>,
+    type_list<T0, T1>::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<lst<>, lst<T0>, lst<T0, T1>>,
+    type_list<T0, T1, T2>::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<lst<>, lst<T0>, lst<T0, T1>, lst<T0, T1, T2>>,
+    type_list<T0, T1, T2, P0>::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<>,
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>
+    >,
+    type_list<T0, T1, T2, P0, P1>::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<>,
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>
+    >,
+    type_list<T0, T1, T2, P0, P1, P2>::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<>,
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>,
+      lst<T0, T1, T2, P0, P1, P2>
+    >,
+    type_list<T0, T1, T2, P0, P1, P2, S0>
+      ::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<>,
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>,
+      lst<T0, T1, T2, P0, P1, P2>,
+      lst<T0, T1, T2, P0, P1, P2, S0>
+    >,
+    type_list<T0, T1, T2, P0, P1, P2, S0, S1>
+      ::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      lst<>,
+      lst<T0>,
+      lst<T0, T1>,
+      lst<T0, T1, T2>,
+      lst<T0, T1, T2, P0>,
+      lst<T0, T1, T2, P0, P1>,
+      lst<T0, T1, T2, P0, P1, P2>,
+      lst<T0, T1, T2, P0, P1, P2, S0>,
+      lst<T0, T1, T2, P0, P1, P2, S0, S1>
+    >,
+    type_list<T0, T1, T2, P0, P1, P2, S0, S1, S2>
+      ::cumulative_transform<false>::apply<lst>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 1, 3, 6, 10, 15, 21, 28, 36, 45>,
+    cumulative_sum<false, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
+  >();
+}
+
+FATAL_TEST(cumulative_transform, inclusive) {
+  FATAL_EXPECT_SAME<
+    type_list<>,
+    type_list<>::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
     type_list<lst<T0>>,
-    type_list<T0>::cumulative_transform<lst>
+    type_list<T0>::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
     type_list<lst<T0>, lst<T0, T1>>,
-    type_list<T0, T1>::cumulative_transform<lst>
+    type_list<T0, T1>::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
     type_list<lst<T0>, lst<T0, T1>, lst<T0, T1, T2>>,
-    type_list<T0, T1, T2>::cumulative_transform<lst>
+    type_list<T0, T1, T2>::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
     type_list<lst<T0>, lst<T0, T1>, lst<T0, T1, T2>, lst<T0, T1, T2, P0>>,
-    type_list<T0, T1, T2, P0>::cumulative_transform<lst>
+    type_list<T0, T1, T2, P0>::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
@@ -681,7 +782,7 @@ FATAL_TEST(cumulative_transform, cumulative_transform) {
       lst<T0, T1, T2, P0>,
       lst<T0, T1, T2, P0, P1>
     >,
-    type_list<T0, T1, T2, P0, P1>::cumulative_transform<lst>
+    type_list<T0, T1, T2, P0, P1>::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
@@ -693,7 +794,7 @@ FATAL_TEST(cumulative_transform, cumulative_transform) {
       lst<T0, T1, T2, P0, P1>,
       lst<T0, T1, T2, P0, P1, P2>
     >,
-    type_list<T0, T1, T2, P0, P1, P2>::cumulative_transform<lst>
+    type_list<T0, T1, T2, P0, P1, P2>::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
@@ -706,7 +807,8 @@ FATAL_TEST(cumulative_transform, cumulative_transform) {
       lst<T0, T1, T2, P0, P1, P2>,
       lst<T0, T1, T2, P0, P1, P2, S0>
     >,
-    type_list<T0, T1, T2, P0, P1, P2, S0>::cumulative_transform<lst>
+    type_list<T0, T1, T2, P0, P1, P2, S0>
+      ::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
@@ -720,7 +822,8 @@ FATAL_TEST(cumulative_transform, cumulative_transform) {
       lst<T0, T1, T2, P0, P1, P2, S0>,
       lst<T0, T1, T2, P0, P1, P2, S0, S1>
     >,
-    type_list<T0, T1, T2, P0, P1, P2, S0, S1>::cumulative_transform<lst>
+    type_list<T0, T1, T2, P0, P1, P2, S0, S1>
+      ::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
@@ -735,12 +838,13 @@ FATAL_TEST(cumulative_transform, cumulative_transform) {
       lst<T0, T1, T2, P0, P1, P2, S0, S1>,
       lst<T0, T1, T2, P0, P1, P2, S0, S1, S2>
     >,
-    type_list<T0, T1, T2, P0, P1, P2, S0, S1, S2>::cumulative_transform<lst>
+    type_list<T0, T1, T2, P0, P1, P2, S0, S1, S2>
+      ::cumulative_transform<true>::apply<lst>
   >();
 
   FATAL_EXPECT_SAME<
     int_seq<1, 3, 6, 10, 15, 21, 28, 36, 45, 55>,
-    cumulative_sum<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
+    cumulative_sum<true, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
   >();
 }
 

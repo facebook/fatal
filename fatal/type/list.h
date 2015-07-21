@@ -406,7 +406,7 @@ struct indexed_transform<Index> {
 // cumulative_transform //
 //////////////////////////
 
-template <template <typename...> class, typename, typename, typename...>
+template <bool, template <typename...> class, typename, typename, typename...>
 struct cumulative_transform;
 
 template <
@@ -418,24 +418,48 @@ template <
 // TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
 //       FOR OTHER IMPLEMENTATIONS LIKE HERE
 struct cumulative_transform<
-  Transform, type_list<Result...>, type_list<Front...>, T, Tail...
+  true, Transform, type_list<Result...>, type_list<Front...>, T, Tail...
 > {
-  using accumulator = fatal::apply<Transform, Front..., T>;
-  using type = typename cumulative_transform<
+  template <typename... UArgs>
+  using apply = typename cumulative_transform<
+    true,
     Transform,
-    type_list<Result..., accumulator>,
+    type_list<Result..., fatal::apply<Transform, UArgs..., Front..., T>>,
     type_list<Front..., T>,
     Tail...
-  >::type;
+  >::template apply<UArgs...>;
 };
 
 template <
   template <typename...> class Transform,
+  typename... Result,
+  typename... Front,
+  typename T, typename... Tail
+>
+// TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
+//       FOR OTHER IMPLEMENTATIONS LIKE HERE
+struct cumulative_transform<
+  false, Transform, type_list<Result...>, type_list<Front...>, T, Tail...
+> {
+  template <typename... UArgs>
+  using apply = typename cumulative_transform<
+    false,
+    Transform,
+    type_list<Result..., fatal::apply<Transform, UArgs..., Front...>>,
+    type_list<Front..., T>,
+    Tail...
+  >::template apply<UArgs...>;
+};
+
+template <
+  bool Inclusive,
+  template <typename...> class Transform,
   typename Result,
   typename Accumulator
 >
-struct cumulative_transform<Transform, Result, Accumulator> {
-  using type = Result;
+struct cumulative_transform<Inclusive, Transform, Result, Accumulator> {
+  template <typename...>
+  using apply = Result;
 };
 
 ////////////////
@@ -1740,26 +1764,44 @@ struct type_list {
    *  using list = type_list<A, B, C, D, E>;
    *
    *  // yields `type_list<
+   *  //  std::tuple<>,
+   *  //  std::tuple<A>,
+   *  //  std::tuple<A, B>,
+   *  //  std::tuple<A, B, C>,
+   *  //  std::tuple<A, B, C, D>
+   *  // >`
+   *  using result1 = list::cumulative_transform<>::apply<std::tuple>;
+   *
+   *  // yields `type_list<
    *  //  std::tuple<A>,
    *  //  std::tuple<A, B>,
    *  //  std::tuple<A, B, C>,
    *  //  std::tuple<A, B, C, D>,
    *  //  std::tuple<A, B, C, D, E>
    *  // >`
-   *  using result1 = list::cumulative_transform<std::tuple>;
+   *  using result2 = list::cumulative_transform<true>::apply<std::tuple>;
    *
    *  template <int... Values>
    *  using int_seq = type_list<std::integral_constant<int, Values>...>;
    *
+   *  // yields `int_seq<0, 1, 3, 6, 10, 15, 21, 28, 36, 45>`
+   *  using result3 = int_seq<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
+   *    ::cumulative_transform<>
+   *    ::apply<arithmetic_transform::add, std::integral_constant<int, 0>>;
+   *
    *  // yields `int_seq<1, 3, 6, 10, 15, 21, 28, 36, 45, 55>`
-   *  using result2 = int_seq<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
-   *    ::cumulative_transform<arithmetic_transform::add>;
+   *  using result4 = int_seq<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
+   *    ::cumulative_transform<true>::apply<arithmetic_transform::add>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class Transform>
-  using cumulative_transform = typename detail::type_list_impl
-    ::cumulative_transform<Transform, type_list<>, type_list<>, Args...>::type;
+  template <bool Inclusive = false>
+  struct cumulative_transform {
+    template <template <typename...> class Transform, typename... UArgs>
+    using apply = typename detail::type_list_impl::cumulative_transform<
+      Inclusive, Transform, type_list<>, type_list<>, Args...
+    >::template apply<UArgs...>;
+  };
 
   /**
    * TODO: DOCUMENT
@@ -2660,6 +2702,10 @@ struct type_list {
     }
   };
 };
+
+// TODO: DOCUMENT AND TEST
+template <std::size_t... Values>
+using size_list = type_list<std::integral_constant<std::size_t, Values>...>;
 
 ///////////////////////////////
 // STATIC MEMBERS DEFINITION //
