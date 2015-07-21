@@ -902,7 +902,7 @@ FATAL_TEST(constant_range, char) {
 template <std::size_t... Values>
 void check_indexes_sequence() {
   FATAL_EXPECT_SAME<
-    constant_sequence<std::size_t, Values...>,
+    size_sequence<Values...>,
     indexes_sequence<sizeof...(Values)>
   >();
 }

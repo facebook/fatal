@@ -508,6 +508,10 @@ struct constant_sequence:
   >
 {};
 
+// TODO: DOCUMENT AND TEST
+template <std::size_t... Values>
+using size_sequence = constant_sequence<std::size_t, Values...>;
+
 ////////////////////////////////////////
 // IMPLEMENTATION DETAILS DECLARATION //
 ////////////////////////////////////////
