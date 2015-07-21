@@ -126,6 +126,7 @@ struct type_list_from {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+// TODO: MOVE TO ANOTHER HEADER
 struct type_value_comparer {
   template <typename TLHS, typename TRHS, std::size_t Index>
   static constexpr int compare(TLHS &&lhs, indexed_type_tag<TRHS, Index>) {
@@ -161,6 +162,7 @@ struct type_value_comparer {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+// TODO: MOVE TO ANOTHER HEADER
 struct index_value_comparer {
   template <typename TLHS, typename TRHS, std::size_t Index>
   static constexpr int compare(TLHS &&lhs, indexed_type_tag<TRHS, Index>) {
@@ -177,6 +179,7 @@ struct index_value_comparer {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+// TODO: MOVE TO ANOTHER HEADER
 struct no_op_visitor {
   template <typename... UArgs>
   void operator ()(UArgs &&...) {}
