@@ -415,6 +415,57 @@ using fast_pass = typename std::conditional<
 >::type;
 
 /////////////////
+// is_callable //
+/////////////////
+
+namespace detail {
+template <typename...> class is_callable_impl;
+} // namespace detail {
+
+/**
+ * Tells whether an instance of a given type supports the
+ * call operator, when passing arguments of given types.
+ *
+ * Example:
+ *
+ *  void noop();
+ *
+ *  int fn(std::string const &s, bool b);
+ *
+ *  struct non_callable {};
+ *
+ *  struct callable {
+ *    void operator ()(int i, double d);
+ *  };
+ *
+ *  // yields `true`
+ *  is_callable<noop>::value
+ *
+ *  // yields `false`
+ *  is_callable<decltype(fn), int, double>::value
+ *
+ *  // yields `true`
+ *  is_callable<decltype(fn), char const *, bool>::value
+ *
+ *  // yields `false`
+ *  is_callable<non_callable>::value
+ *
+ *  // yields `false`
+ *  is_callable<non_callable, int>::value
+ *
+ *  // yields `true`
+ *  is_callable<callable, int, double>::value
+ *
+ *  // yields `false`
+ *  is_callable<callable, int, double, std::string>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, typename... Args>
+using is_callable = typename detail::is_callable_impl<Args...>
+  ::template type<T>;
+
+/////////////////
 // enable_when //
 /////////////////
 
@@ -782,6 +833,42 @@ struct enable_when {
       >
     >
   >;
+
+  /**
+   * Helps conditionally enable methods when an instance of the
+   * given type `T` can be called with arguments of type `Args`.
+   *
+   * See `is_callable` for more information.
+   *
+   * Example:
+   *
+   *  template <
+   *    typename T,
+   *    typename = enable_when::is_callable<T, int>
+   *  >
+   *  void foo(T &&value) {
+   *    std::cout << "got a callable object that accepts an int";
+   *  }
+   *
+   *  struct bar { void operator ()(int x) const {} };
+   *  struct baz { void operator ()(int x, int y) const {} };
+   *
+   *  // prints "got a callable object that accepts an int"
+   *  foo(std::ceil);
+   *
+   *  // prints "got a callable object that accepts an int"
+   *  foo(bar());
+   *
+   *  // fails to compile
+   *  foo(baz());
+   *
+   *  // fails to compile
+   *  foo(10);
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename T, typename... Args>
+  using callable = is_true<is_callable<T, Args...>>;
 };
 
 ///////////////////
@@ -878,57 +965,6 @@ struct safe_overload<Class, T>:
  */
 template <typename Class, typename... Args>
 using safe_overload_t = enable_when::is_true<safe_overload<Class, Args...>>;
-
-/////////////////
-// is_callable //
-/////////////////
-
-namespace detail {
-template <typename...> class is_callable_impl;
-} // namespace detail {
-
-/**
- * Tells whether an instance of a given type supports the
- * call operator, when passing arguments of given types.
- *
- * Example:
- *
- *  void noop();
- *
- *  int fn(std::string const &s, bool b);
- *
- *  struct non_callable {};
- *
- *  struct callable {
- *    void operator ()(int i, double d);
- *  };
- *
- *  // yields `true`
- *  is_callable<noop>::value
- *
- *  // yields `false`
- *  is_callable<decltype(fn), int, double>::value
- *
- *  // yields `true`
- *  is_callable<decltype(fn), char const *, bool>::value
- *
- *  // yields `false`
- *  is_callable<non_callable>::value
- *
- *  // yields `false`
- *  is_callable<non_callable, int>::value
- *
- *  // yields `true`
- *  is_callable<callable, int, double>::value
- *
- *  // yields `false`
- *  is_callable<callable, int, double, std::string>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T, typename... Args>
-using is_callable = typename detail::is_callable_impl<Args...>
-  ::template type<T>;
 
 ///////////////////////////
 // FATAL_HAS_MEMBER_TYPE //

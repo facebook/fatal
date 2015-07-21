@@ -486,37 +486,37 @@ FATAL_TEST(traits, as_integral) {
 
   as_integral_constant_test<bool, true, false>();
 
-  as_integral_constant_test<char, ' ', 'h', 'e', 'l', 'o'>(); 
-  as_integral_constant_test<unsigned char, ' ', 'h', 'e', 'l', 'o'>(); 
+  as_integral_constant_test<char, ' ', 'h', 'e', 'l', 'o'>();
+  as_integral_constant_test<unsigned char, ' ', 'h', 'e', 'l', 'o'>();
 
-  as_integral_constant_test<std::size_t, 0, 1, 2, 3, 5, 8, 13, 21, 1000>(); 
-  as_integral_constant_test<unsigned short, 0, 1, 2, 3, 5, 8, 13, 21, 1000>(); 
-  as_integral_constant_test<unsigned, 0, 1, 2, 3, 5, 8, 13, 21, 1000>(); 
-  as_integral_constant_test<unsigned long, 0, 1, 2, 3, 5, 8, 13, 21, 1000>(); 
+  as_integral_constant_test<std::size_t, 0, 1, 2, 3, 5, 8, 13, 21, 1000>();
+  as_integral_constant_test<unsigned short, 0, 1, 2, 3, 5, 8, 13, 21, 1000>();
+  as_integral_constant_test<unsigned, 0, 1, 2, 3, 5, 8, 13, 21, 1000>();
+  as_integral_constant_test<unsigned long, 0, 1, 2, 3, 5, 8, 13, 21, 1000>();
   as_integral_constant_test<
     unsigned long long, 0, 1, 2, 3, 5, 8, 13, 21, 1000
-  >(); 
+  >();
 
   as_integral_constant_test<
     short,
     0, 1, 2, 3, 5, 8, 13, 21, 1000,
     -1, -2, -3, -5, -8, -13, -21, -1000
-  >(); 
+  >();
   as_integral_constant_test<
     int,
     0, 1, 2, 3, 5, 8, 13, 21, 1000,
     -1, -2, -3, -5, -8, -13, -21, -1000
-  >(); 
+  >();
   as_integral_constant_test<
     long,
     0, 1, 2, 3, 5, 8, 13, 21, 1000,
     -1, -2, -3, -5, -8, -13, -21, -1000
-  >(); 
+  >();
   as_integral_constant_test<
     long long,
     0, 1, 2, 3, 5, 8, 13, 21, 1000,
     -1, -2, -3, -5, -8, -13, -21, -1000
-  >(); 
+  >();
 }
 
 //////////////////
@@ -649,6 +649,50 @@ FATAL_TEST(traits, fast_pass) {
     std::string const *const,
     fast_pass<std::string const * const &&>
   >();
+}
+
+/////////////////
+// is_callable //
+/////////////////
+
+struct foonctor {
+  void operator ()() {}
+  void operator ()(int, std::string) {}
+};
+
+typedef void(*foonction)();
+typedef void(*foonction_is)(int, std::string);
+
+FATAL_TEST(traits, is_callable) {
+  auto const lambda = []() {};
+  auto const lambda_is = [](int, std::string) {};
+
+  FATAL_EXPECT_TRUE((is_callable<foonctor>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonctor, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonctor, int, double>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonctor, int, std::string>::value));
+
+  FATAL_EXPECT_TRUE((is_callable<decltype(lambda)>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int, double>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int, std::string>::value));
+
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is)>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is), int>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is), int, double>::value));
+  FATAL_EXPECT_TRUE((
+    is_callable<decltype(lambda_is), int, std::string>::value
+  ));
+
+  FATAL_EXPECT_TRUE((is_callable<foonction>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int, double>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int, std::string>::value));
+
+  FATAL_EXPECT_FALSE((is_callable<foonction_is>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction_is, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction_is, int, double>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
 }
 
 //////////////////////////
@@ -998,8 +1042,8 @@ FATAL_TEST(enable_when, forwarded_rvalue) {
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
     unary, enable_when::forwarded_rvalue, int const &&
-  )
-  ;
+  );
+
   FATAL_EXPECT_TEMPLATE_COMPILES(
     unary, enable_when::forwarded_rvalue, int &&
   );
@@ -1028,10 +1072,252 @@ FATAL_TEST(enable_when, forwarded_non_const_rvalue) {
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
     unary, enable_when::forwarded_non_const_rvalue, int const &&
-  )
-  ;
+  );
+
   FATAL_EXPECT_TEMPLATE_COMPILES(
     unary, enable_when::forwarded_non_const_rvalue, int &&
+  );
+}
+
+///////////////////////////
+// enable_when::callable //
+///////////////////////////
+
+struct non_callable {};
+
+FATAL_TEST(enable_when, callable [non-callable object]) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, std::string, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, non_callable, int
+  );
+}
+
+struct callable_nullary { void operator ()(); };
+struct callable_i { void operator ()(int); };
+struct callable_d { void operator ()(double); };
+struct callable_id { void operator ()(int, double); };
+struct callable_overloaded_i_d {
+  void operator ()(int);
+  void operator ()(double);
+};
+struct callable_overloaded_f_id {
+  void operator ()(float);
+  void operator ()(int, double);
+};
+
+FATAL_TEST(enable_when, callable [callable object]) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_nullary
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_nullary, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_nullary, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_nullary, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_nullary, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_i
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_i, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_i, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_i, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_i, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_d
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_d, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_d, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_d, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_d, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_i_d
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_overloaded_i_d, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_i_d, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_i_d, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_i_d, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_f_id
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_overloaded_f_id, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_f_id, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_overloaded_f_id, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_overloaded_f_id, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_id
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_id, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_id, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_id, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_id, int, int
+  );
+}
+
+void fun_nullary();
+void fun_i(int);
+void fun_d(double);
+void fun_id(int, double);
+
+FATAL_TEST(enable_when, callable [function]) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_nullary)
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_nullary), int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_nullary), std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_nullary), int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_nullary), int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_i)
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_i), int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_i), std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_i), int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_i), int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_d)
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_d), int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_d), std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_d), int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_d), int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_id)
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_id), int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_id), std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_id), int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_id), int, int
   );
 }
 
@@ -1176,50 +1462,6 @@ FATAL_TEST(traits, safe_overload_variadic_t) {
   FATAL_EXPECT_EQ(ctor::universal, foo.type);
   variadic_overloading_test_t universal(copy, move);
   FATAL_EXPECT_EQ(ctor::universal, universal.type);
-}
-
-/////////////////
-// is_callable //
-/////////////////
-
-struct foonctor {
-  void operator ()() {}
-  void operator ()(int, std::string) {}
-};
-
-typedef void(*foonction)();
-typedef void(*foonction_is)(int, std::string);
-
-FATAL_TEST(traits, is_callable) {
-  auto const lambda = []() {};
-  auto const lambda_is = [](int, std::string) {};
-
-  FATAL_EXPECT_TRUE((is_callable<foonctor>::value));
-  FATAL_EXPECT_FALSE((is_callable<foonctor, int>::value));
-  FATAL_EXPECT_FALSE((is_callable<foonctor, int, double>::value));
-  FATAL_EXPECT_TRUE((is_callable<foonctor, int, std::string>::value));
-
-  FATAL_EXPECT_TRUE((is_callable<decltype(lambda)>::value));
-  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int>::value));
-  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int, double>::value));
-  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int, std::string>::value));
-
-  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is)>::value));
-  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is), int>::value));
-  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is), int, double>::value));
-  FATAL_EXPECT_TRUE((
-    is_callable<decltype(lambda_is), int, std::string>::value
-  ));
-
-  FATAL_EXPECT_TRUE((is_callable<foonction>::value));
-  FATAL_EXPECT_FALSE((is_callable<foonction, int>::value));
-  FATAL_EXPECT_FALSE((is_callable<foonction, int, double>::value));
-  FATAL_EXPECT_FALSE((is_callable<foonction, int, std::string>::value));
-
-  FATAL_EXPECT_FALSE((is_callable<foonction_is>::value));
-  FATAL_EXPECT_FALSE((is_callable<foonction_is, int>::value));
-  FATAL_EXPECT_FALSE((is_callable<foonction_is, int, double>::value));
-  FATAL_EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
 }
 
 //////////////////////////////
