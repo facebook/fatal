@@ -1191,19 +1191,27 @@ public:
   U &set(U const &value) & {
     return set_impl<typename std::decay<U>::type>(value);
   }
-  template <typename U>
+  template <
+    typename U,
+    typename = enable_when::forwarded_non_const_rvalue<U>
+  >
   U &set(U &&value) & {
-    return set_impl<typename std::decay<U>::type>(std::move(value));
+    return set_impl<typename std::decay<U>::type>(
+      std::forward<U>(value)
+    );
   }
 
   template <typename U>
   U &&set(U const &value) && {
     return std::move(set_impl<typename std::decay<U>::type>(value));
   }
-  template <typename U>
+  template <
+    typename U,
+    typename = enable_when::forwarded_non_const_rvalue<U>
+  >
   U &&set(U &&value) && {
     return std::move(set_impl<typename std::decay<U>::type>(
-      std::move(value)
+      std::forward<U>(value)
     ));
   }
 
@@ -1322,22 +1330,30 @@ public:
 
   template <typename U>
   U &operator =(U const &value) & {
-    return set<U>(value);
+    return set(value);
   }
 
-  template <typename U, typename = safe_overload_t<variant, U>>
+  template <
+    typename U,
+    typename = safe_overload_t<variant, U>,
+    typename = enable_when::forwarded_non_const_rvalue<U>
+  >
   U &operator =(U &&value) & {
-    return set<U>(std::forward<U>(value));
+    return set(std::forward<U>(value));
   }
 
   template <typename U>
   U &&operator =(U const &value) && {
-    return std::move(set<U>(value));
+    return std::move(set(value));
   }
 
-  template <typename U, typename = safe_overload_t<variant, U>>
+  template <
+    typename U,
+    typename = safe_overload_t<variant, U>,
+    typename = enable_when::forwarded_non_const_rvalue<U>
+  >
   U &&operator =(U &&value) && {
-    return std::move(set<U>(std::forward<U>(value)));
+    return std::move(set(std::forward<U>(value)));
   }
 
   template <typename UStoragePolicy, typename... UArgs>
@@ -1517,7 +1533,7 @@ private:
   class copy_variant_visitor {
     template <typename U, bool>
     struct setter {
-      static void set(variant &v, U const &value) { v.template set<U>(value); }
+      static void set(variant &v, U const &value) { v.set(value); }
     };
 
     template <typename U>
