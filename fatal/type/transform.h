@@ -315,119 +315,88 @@ struct transform_sequence<> {
 // arithmetic_transform //
 //////////////////////////
 
+namespace detail {
+namespace arithmetic_transform_impl {
+template <typename...> struct add;
+template <typename...> struct subtract;
+template <typename...> struct multiply;
+template <typename...> struct divide;
+template <typename...> struct modulo;
+} // namespace arithmetic_transform_impl {
+} // namespace detail {
+
 /**
  * TODO: DOCUMENT
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace arithmetic_transform {
+struct arithmetic_transform {
   /**
    * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename T, typename... Args>
-  struct add:
-    public std::integral_constant<
-      decltype(T::value + add<Args...>::value),
-      (T::value + add<Args...>::value)
-    >
-  {};
-
-  template <typename T>
-  struct add<T>:
-    public std::integral_constant<decltype(T::value), T::value>
-  {};
+  template <typename... Args>
+  using add = typename detail::arithmetic_transform_impl::add<Args...>::type;
 
   /**
    * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename...> struct subtract;
-
-  template <typename TLHS, typename TRHS, typename... Args>
-  struct subtract<TLHS, TRHS, Args...>:
-    public subtract<subtract<TLHS, TRHS>, Args...>
-  {};
-
-  template <typename TLHS, typename TRHS>
-  struct subtract<TLHS, TRHS>:
-    public std::integral_constant<
-      decltype(TLHS::value - TRHS::value),
-      (TLHS::value - TRHS::value)
-    >
-  {};
+  template <typename... Args>
+  using subtract = typename detail::arithmetic_transform_impl::subtract<
+    Args...
+  >::type;
 
   /**
    * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename T, typename... Args>
-  struct multiply:
-    public std::integral_constant<
-      decltype(T::value * multiply<Args...>::value),
-      (T::value * multiply<Args...>::value)
-    >
-  {};
-
-  template <typename T>
-  struct multiply<T>:
-    public std::integral_constant<decltype(T::value), T::value>
-  {};
+  template <typename... Args>
+  using multiply = typename detail::arithmetic_transform_impl::multiply<
+    Args...
+  >::type;
 
   /**
    * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename...> struct divide;
-
-  template <typename TLHS, typename TRHS, typename... Args>
-  struct divide<TLHS, TRHS, Args...>:
-    public divide<divide<TLHS, TRHS>, Args...>
-  {};
-
-  template <typename TLHS, typename TRHS>
-  struct divide<TLHS, TRHS>:
-    public std::integral_constant<
-      decltype(TLHS::value / TRHS::value),
-      (TLHS::value / TRHS::value)
-    >
-  {};
+  template <typename... Args>
+  using divide = typename detail::arithmetic_transform_impl::divide<
+    Args...
+  >::type;
 
   /**
    * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename...> struct modulo;
-
-  template <typename TLHS, typename TRHS, typename... Args>
-  struct modulo<TLHS, TRHS, Args...>:
-    public modulo<modulo<TLHS, TRHS>, Args...>
-  {};
-
-  template <typename TLHS, typename TRHS>
-  struct modulo<TLHS, TRHS>:
-    public std::integral_constant<
-      decltype(TLHS::value % TRHS::value),
-      (TLHS::value % TRHS::value)
-    >
-  {};
+  template <typename... Args>
+  using modulo = typename detail::arithmetic_transform_impl::modulo<
+    Args...
+  >::type;
 };
 
 ///////////////////////
 // logical_transform //
 ///////////////////////
 
+namespace detail {
+namespace logical_transform_impl {
+template <typename...> struct all;
+template <typename...> struct any;
+} // namespace logical_transform_impl {
+} // namespace detail {
+
 /**
  * TODO: DOCUMENT
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace logical_transform {
+struct logical_transform {
   /**
    * Helper class similar to std::integral_constant whose value is the logical
    * AND of the value of each `Arg`.
@@ -458,18 +427,8 @@ namespace logical_transform {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename T, typename... Args>
-  struct all:
-    public std::integral_constant<
-      decltype(T::value && all<Args...>::value),
-      (T::value && all<Args...>::value)
-    >
-  {};
-
-  template <typename T>
-  struct all<T>:
-    public std::integral_constant<decltype(T::value), T::value>
-  {};
+  template <typename... Args>
+  using all = typename detail::logical_transform_impl::all<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the logical
@@ -493,18 +452,8 @@ namespace logical_transform {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename T, typename... Args>
-  struct any:
-    public std::integral_constant<
-      decltype(T::value || any<Args...>::value),
-      (T::value || any<Args...>::value)
-    >
-  {};
-
-  template <typename T>
-  struct any<T>:
-    public std::integral_constant<decltype(T::value), T::value>
-  {};
+  template <typename... Args>
+  using any = typename detail::logical_transform_impl::any<Args...>::type;
 
   /**
    * Helper class similar to std::integral whose value is the logical
@@ -521,7 +470,10 @@ namespace logical_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename T>
-  using negate = std::integral_constant<decltype(!T::value), !T::value>;
+  using negate = std::integral_constant<
+    typename std::decay<decltype(!T::value)>::type,
+    !T::value
+  >;
 
   // TODO: DOCUMENT AND TEST
   template <typename... Args>
@@ -536,12 +488,20 @@ namespace logical_transform {
 // bitwise_transform //
 ///////////////////////
 
+namespace detail {
+namespace bitwise_transform_impl {
+template <typename...> struct all;
+template <typename...> struct any;
+template <typename...> struct diff;
+} // namespace bitwise_transform_impl {
+} // namespace detail {
+
 /**
  * TODO: DOCUMENT
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace bitwise_transform {
+struct bitwise_transform {
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
    * AND of the value of each `Arg`.
@@ -561,18 +521,8 @@ namespace bitwise_transform {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename T, typename... Args>
-  struct all:
-    public std::integral_constant<
-      decltype(T::value & all<Args...>::value),
-      (T::value & all<Args...>::value)
-    >
-  {};
-
-  template <typename T>
-  struct all<T>:
-    public std::integral_constant<decltype(T::value), T::value>
-  {};
+  template <typename... Args>
+  using all = typename detail::bitwise_transform_impl::all<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -590,18 +540,8 @@ namespace bitwise_transform {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename T, typename... Args>
-  struct any:
-    public std::integral_constant<
-      decltype(T::value | any<Args...>::value),
-      (T::value | any<Args...>::value)
-    >
-  {};
-
-  template <typename T>
-  struct any<T>:
-    public std::integral_constant<decltype(T::value), T::value>
-  {};
+  template <typename... Args>
+  using any = typename detail::bitwise_transform_impl::any<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -622,18 +562,8 @@ namespace bitwise_transform {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename T, typename... Args>
-  struct diff:
-    public std::integral_constant<
-      decltype(T::value ^ diff<Args...>::value),
-      (T::value ^ diff<Args...>::value)
-    >
-  {};
-
-  template <typename T>
-  struct diff<T>:
-    public std::integral_constant<decltype(T::value), T::value>
-  {};
+  template <typename... Args>
+  using diff = typename detail::bitwise_transform_impl::diff<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -651,15 +581,15 @@ namespace bitwise_transform {
   template <typename T>
   using complement = std::integral_constant<
     typename std::conditional<
-      std::is_integral<decltype(T::value)>::value,
-      decltype(T::value),
-      decltype(~T::value)
+      std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
+      typename std::decay<decltype(T::value)>::type,
+      typename std::decay<decltype(~T::value)>::type
     >::type,
     static_cast<
       typename std::conditional<
-        std::is_integral<decltype(T::value)>::value,
-        decltype(T::value),
-        decltype(~T::value)
+        std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
+        typename std::decay<decltype(T::value)>::type,
+        typename std::decay<decltype(~T::value)>::type
       >::type
     >(~T::value)
   >;
@@ -698,7 +628,7 @@ struct comparison_transform {
    */
   template <typename TLHS, typename TRHS>
   using equal = std::integral_constant<
-    decltype(TLHS::value == TRHS::value),
+    typename std::decay<decltype(TLHS::value == TRHS::value)>::type,
     (TLHS::value == TRHS::value)
   >;
 
@@ -725,7 +655,7 @@ struct comparison_transform {
    */
   template <typename TLHS, typename TRHS>
   using not_equal = std::integral_constant<
-    decltype(TLHS::value != TRHS::value),
+    typename std::decay<decltype(TLHS::value != TRHS::value)>::type,
     (TLHS::value != TRHS::value)
   >;
 
@@ -752,7 +682,7 @@ struct comparison_transform {
    */
   template <typename TLHS, typename TRHS>
   using less_than = std::integral_constant<
-    decltype(TLHS::value < TRHS::value),
+    typename std::decay<decltype(TLHS::value < TRHS::value)>::type,
     (TLHS::value < TRHS::value)
   >;
 
@@ -779,7 +709,7 @@ struct comparison_transform {
    */
   template <typename TLHS, typename TRHS>
   using less_than_equal = std::integral_constant<
-    decltype(TLHS::value <= TRHS::value),
+    typename std::decay<decltype(TLHS::value <= TRHS::value)>::type,
     (TLHS::value <= TRHS::value)
   >;
 
@@ -806,7 +736,7 @@ struct comparison_transform {
    */
   template <typename TLHS, typename TRHS>
   using greater_than = std::integral_constant<
-    decltype(TLHS::value > TRHS::value),
+    typename std::decay<decltype(TLHS::value > TRHS::value)>::type,
     (TLHS::value > TRHS::value)
   >;
 
@@ -833,7 +763,7 @@ struct comparison_transform {
    */
   template <typename TLHS, typename TRHS>
   using greater_than_equal = std::integral_constant<
-    decltype(TLHS::value >= TRHS::value),
+    typename std::decay<decltype(TLHS::value >= TRHS::value)>::type,
     (TLHS::value >= TRHS::value)
   >;
 };
@@ -2230,6 +2160,225 @@ public:
   );
 };
 
+////////////////////////////
+// IMPLEMENTATION DETAILS //
+////////////////////////////
+
+namespace detail {
+namespace arithmetic_transform_impl {
+
+/////////
+// add //
+/////////
+
+template <typename T, typename... Args>
+struct add<T, Args...> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value + add<Args...>::type::value)>::type,
+    (T::value + add<Args...>::type::value)
+  >;
+};
+
+template <typename T>
+struct add<T> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value)>::type,
+    T::value
+  >;
+};
+
+//////////////
+// subtract //
+//////////////
+
+template <typename TLHS, typename TRHS, typename... Args>
+struct subtract<TLHS, TRHS, Args...> {
+  using type = typename subtract<
+    typename subtract<TLHS, TRHS>::type,
+    Args...
+  >::type;
+};
+
+template <typename TLHS, typename TRHS>
+struct subtract<TLHS, TRHS> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(TLHS::value - TRHS::value)>::type,
+    (TLHS::value - TRHS::value)
+  >;
+};
+
+//////////////
+// multiply //
+//////////////
+
+template <typename T, typename... Args>
+struct multiply<T, Args...> {
+  using type = std::integral_constant<
+    typename std::decay<
+      decltype(T::value * multiply<Args...>::type::value)
+    >::type,
+    (T::value * multiply<Args...>::type::value)
+  >;
+};
+
+template <typename T>
+struct multiply<T> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value)>::type,
+    T::value
+  >;
+};
+
+////////////
+// divide //
+////////////
+
+template <typename TLHS, typename TRHS, typename... Args>
+struct divide<TLHS, TRHS, Args...> {
+  using type = typename divide<
+    typename divide<TLHS, TRHS>::type,
+    Args...
+  >::type;
+};
+
+template <typename TLHS, typename TRHS>
+struct divide<TLHS, TRHS> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(TLHS::value / TRHS::value)>::type,
+    (TLHS::value / TRHS::value)
+  >;
+};
+
+////////////
+// modulo //
+////////////
+
+template <typename TLHS, typename TRHS, typename... Args>
+struct modulo<TLHS, TRHS, Args...> {
+  using type = typename modulo<
+    typename modulo<TLHS, TRHS>::type,
+    Args...
+  >::type;
+};
+
+template <typename TLHS, typename TRHS>
+struct modulo<TLHS, TRHS> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(TLHS::value % TRHS::value)>::type,
+    (TLHS::value % TRHS::value)
+  >;
+};
+
+} // namespace arithmetic_transform_impl {
+
+namespace logical_transform_impl {
+
+/////////
+// all //
+/////////
+
+template <typename T, typename... Args>
+struct all<T, Args...> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value && all<Args...>::type::value)>::type,
+    (T::value && all<Args...>::type::value)
+  >;
+};
+
+template <typename T>
+struct all<T> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value)>::type,
+    T::value
+  >;
+};
+
+/////////
+// any //
+/////////
+
+template <typename T, typename... Args>
+struct any<T, Args...> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value || any<Args...>::type::value)>::type,
+    (T::value || any<Args...>::type::value)
+  >;
+};
+
+template <typename T>
+struct any<T> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value)>::type,
+    T::value
+  >;
+};
+
+} // logical_transform_impl logical_transform {
+
+namespace bitwise_transform_impl {
+
+/////////
+// all //
+/////////
+
+template <typename T, typename... Args>
+struct all<T, Args...> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value & all<Args...>::type::value)>::type,
+    (T::value & all<Args...>::type::value)
+  >;
+};
+
+template <typename T>
+struct all<T> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value)>::type,
+    T::value
+  >;
+};
+
+/////////
+// any //
+/////////
+
+template <typename T, typename... Args>
+struct any<T, Args...> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value | any<Args...>::type::value)>::type,
+    (T::value | any<Args...>::type::value)
+  >;
+};
+
+template <typename T>
+struct any<T> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value)>::type,
+    T::value
+  >;
+};
+
+//////////
+// diff //
+//////////
+
+template <typename T, typename... Args>
+struct diff<T, Args...> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value ^ diff<Args...>::type::value)>::type,
+    (T::value ^ diff<Args...>::type::value)
+  >;
+};
+
+template <typename T>
+struct diff<T> {
+  using type = std::integral_constant<
+    typename std::decay<decltype(T::value)>::type,
+    T::value
+  >;
+};
+
+} // namespace bitwise_transform_impl {
+} // namespace detail {
 } // namespace fatal
 
 #endif // FATAL_INCLUDE_fatal_type_transform_h

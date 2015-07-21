@@ -235,129 +235,179 @@ template <int... Values>
 using test_add = transform_int<arithmetic_transform::add, Values...>;
 
 FATAL_TEST(arithmetic_transform, add) {
-  FATAL_EXPECT_EQ(0,    (test_add<0>::value));
-  FATAL_EXPECT_EQ(1,    (test_add<1>::value));
-  FATAL_EXPECT_EQ(2,    (test_add<2>::value));
-  FATAL_EXPECT_EQ(56,   (test_add<56>::value));
-  FATAL_EXPECT_EQ(100,  (test_add<100>::value));
+# define FATAL_TEST_IMPL(Expected, ...) \
+  do { \
+    using actual = __VA_ARGS__; \
+    using expected = std::decay<decltype(Expected)>::type; \
+    FATAL_EXPECT_SAME<expected, actual::value_type>(); \
+    FATAL_EXPECT_EQ(Expected, actual::value); \
+  } while (false)
 
-  FATAL_EXPECT_EQ(200,  (test_add<100, 100>::value));
-  FATAL_EXPECT_EQ(157,  (test_add<100, 57>::value));
-  FATAL_EXPECT_EQ(102,  (test_add<100, 2>::value));
-  FATAL_EXPECT_EQ(103,  (test_add<100, 3>::value));
-  FATAL_EXPECT_EQ(102,  (test_add<2, 100>::value));
-  FATAL_EXPECT_EQ(143,  (test_add<43, 100>::value));
+  FATAL_TEST_IMPL(0,    test_add<0>);
+  FATAL_TEST_IMPL(1,    test_add<1>);
+  FATAL_TEST_IMPL(2,    test_add<2>);
+  FATAL_TEST_IMPL(56,   test_add<56>);
+  FATAL_TEST_IMPL(100,  test_add<100>);
 
-  FATAL_EXPECT_EQ(400,  (test_add<100, 100, 100, 100>::value));
-  FATAL_EXPECT_EQ(108,  (test_add<100, 5, 2, 1>::value));
-  FATAL_EXPECT_EQ(125,  (test_add<100, 20, 5>::value));
-  FATAL_EXPECT_EQ(121,  (test_add<100, 2, 19>::value));
-  FATAL_EXPECT_EQ(109,  (test_add<100, 3, 6>::value));
-  FATAL_EXPECT_EQ(110,  (test_add<100, 3, 1, 6>::value));
-  FATAL_EXPECT_EQ(1102, (test_add<2, 100, 1000>::value));
-  FATAL_EXPECT_EQ(1036, (test_add<1000, 32, 4>::value));
+  FATAL_TEST_IMPL(200,  test_add<100, 100>);
+  FATAL_TEST_IMPL(157,  test_add<100, 57>);
+  FATAL_TEST_IMPL(102,  test_add<100, 2>);
+  FATAL_TEST_IMPL(103,  test_add<100, 3>);
+  FATAL_TEST_IMPL(102,  test_add<2, 100>);
+  FATAL_TEST_IMPL(143,  test_add<43, 100>);
+
+  FATAL_TEST_IMPL(400,  test_add<100, 100, 100, 100>);
+  FATAL_TEST_IMPL(108,  test_add<100, 5, 2, 1>);
+  FATAL_TEST_IMPL(125,  test_add<100, 20, 5>);
+  FATAL_TEST_IMPL(121,  test_add<100, 2, 19>);
+  FATAL_TEST_IMPL(109,  test_add<100, 3, 6>);
+  FATAL_TEST_IMPL(110,  test_add<100, 3, 1, 6>);
+  FATAL_TEST_IMPL(1102, test_add<2, 100, 1000>);
+  FATAL_TEST_IMPL(1036, test_add<1000, 32, 4>);
+
+# undef FATAL_TEST_IMPL
 }
 
 template <int... Values>
 using test_subtract = transform_int<arithmetic_transform::subtract, Values...>;
 
 FATAL_TEST(arithmetic_transform, subtract) {
-  FATAL_EXPECT_EQ(0,     (test_subtract<100, 100>::value));
-  FATAL_EXPECT_EQ(43,    (test_subtract<100, 57>::value));
-  FATAL_EXPECT_EQ(98,    (test_subtract<100, 2>::value));
-  FATAL_EXPECT_EQ(97,    (test_subtract<100, 3>::value));
-  FATAL_EXPECT_EQ(-98,   (test_subtract<2, 100>::value));
-  FATAL_EXPECT_EQ(-57,   (test_subtract<43, 100>::value));
+# define FATAL_TEST_IMPL(Expected, ...) \
+  do { \
+    using actual = __VA_ARGS__; \
+    using expected = std::decay<decltype(Expected)>::type; \
+    FATAL_EXPECT_SAME<expected, actual::value_type>(); \
+    FATAL_EXPECT_EQ(Expected, actual::value); \
+  } while (false)
 
-  FATAL_EXPECT_EQ(-200,  (test_subtract<100, 100, 100, 100>::value));
-  FATAL_EXPECT_EQ(92,    (test_subtract<100, 5, 2, 1>::value));
-  FATAL_EXPECT_EQ(75,    (test_subtract<100, 20, 5>::value));
-  FATAL_EXPECT_EQ(79,    (test_subtract<100, 2, 19>::value));
-  FATAL_EXPECT_EQ(91,    (test_subtract<100, 3, 6>::value));
-  FATAL_EXPECT_EQ(90,    (test_subtract<100, 3, 1, 6>::value));
-  FATAL_EXPECT_EQ(-1098, (test_subtract<2, 100, 1000>::value));
-  FATAL_EXPECT_EQ(964,   (test_subtract<1000, 32, 4>::value));
+  FATAL_TEST_IMPL(0,     test_subtract<100, 100>);
+  FATAL_TEST_IMPL(43,    test_subtract<100, 57>);
+  FATAL_TEST_IMPL(98,    test_subtract<100, 2>);
+  FATAL_TEST_IMPL(97,    test_subtract<100, 3>);
+  FATAL_TEST_IMPL(-98,   test_subtract<2, 100>);
+  FATAL_TEST_IMPL(-57,   test_subtract<43, 100>);
+
+  FATAL_TEST_IMPL(-200,  test_subtract<100, 100, 100, 100>);
+  FATAL_TEST_IMPL(92,    test_subtract<100, 5, 2, 1>);
+  FATAL_TEST_IMPL(75,    test_subtract<100, 20, 5>);
+  FATAL_TEST_IMPL(79,    test_subtract<100, 2, 19>);
+  FATAL_TEST_IMPL(91,    test_subtract<100, 3, 6>);
+  FATAL_TEST_IMPL(90,    test_subtract<100, 3, 1, 6>);
+  FATAL_TEST_IMPL(-1098, test_subtract<2, 100, 1000>);
+  FATAL_TEST_IMPL(964,   test_subtract<1000, 32, 4>);
+
+# undef FATAL_TEST_IMPL
 }
 
 template <int... Values>
 using test_multiply = transform_int<arithmetic_transform::multiply, Values...>;
 
 FATAL_TEST(arithmetic_transform, multiply) {
-  FATAL_EXPECT_EQ(0,         (test_multiply<0>::value));
-  FATAL_EXPECT_EQ(1,         (test_multiply<1>::value));
-  FATAL_EXPECT_EQ(2,         (test_multiply<2>::value));
-  FATAL_EXPECT_EQ(56,        (test_multiply<56>::value));
-  FATAL_EXPECT_EQ(100,       (test_multiply<100>::value));
+# define FATAL_TEST_IMPL(Expected, ...) \
+  do { \
+    using actual = __VA_ARGS__; \
+    using expected = std::decay<decltype(Expected)>::type; \
+    FATAL_EXPECT_SAME<expected, actual::value_type>(); \
+    FATAL_EXPECT_EQ(Expected, actual::value); \
+  } while (false)
 
-  FATAL_EXPECT_EQ(10000,     (test_multiply<100, 100>::value));
-  FATAL_EXPECT_EQ(5700,      (test_multiply<100, 57>::value));
-  FATAL_EXPECT_EQ(200,       (test_multiply<100, 2>::value));
-  FATAL_EXPECT_EQ(300,       (test_multiply<100, 3>::value));
-  FATAL_EXPECT_EQ(200,       (test_multiply<2, 100>::value));
-  FATAL_EXPECT_EQ(4300,      (test_multiply<43, 100>::value));
+  FATAL_TEST_IMPL(0,         test_multiply<0>);
+  FATAL_TEST_IMPL(1,         test_multiply<1>);
+  FATAL_TEST_IMPL(2,         test_multiply<2>);
+  FATAL_TEST_IMPL(56,        test_multiply<56>);
+  FATAL_TEST_IMPL(100,       test_multiply<100>);
 
-  FATAL_EXPECT_EQ(100000000, (test_multiply<100, 100, 100, 100>::value));
-  FATAL_EXPECT_EQ(1000,      (test_multiply<100, 5, 2, 1>::value));
-  FATAL_EXPECT_EQ(10000,     (test_multiply<100, 20, 5>::value));
-  FATAL_EXPECT_EQ(3800,      (test_multiply<100, 2, 19>::value));
-  FATAL_EXPECT_EQ(1800,      (test_multiply<100, 3, 6>::value));
-  FATAL_EXPECT_EQ(1800,      (test_multiply<100, 3, 1, 6>::value));
-  FATAL_EXPECT_EQ(200000,    (test_multiply<2, 100, 1000>::value));
-  FATAL_EXPECT_EQ(128000,    (test_multiply<1000, 32, 4>::value));
+  FATAL_TEST_IMPL(10000,     test_multiply<100, 100>);
+  FATAL_TEST_IMPL(5700,      test_multiply<100, 57>);
+  FATAL_TEST_IMPL(200,       test_multiply<100, 2>);
+  FATAL_TEST_IMPL(300,       test_multiply<100, 3>);
+  FATAL_TEST_IMPL(200,       test_multiply<2, 100>);
+  FATAL_TEST_IMPL(4300,      test_multiply<43, 100>);
+
+  FATAL_TEST_IMPL(100000000, test_multiply<100, 100, 100, 100>);
+  FATAL_TEST_IMPL(1000,      test_multiply<100, 5, 2, 1>);
+  FATAL_TEST_IMPL(10000,     test_multiply<100, 20, 5>);
+  FATAL_TEST_IMPL(3800,      test_multiply<100, 2, 19>);
+  FATAL_TEST_IMPL(1800,      test_multiply<100, 3, 6>);
+  FATAL_TEST_IMPL(1800,      test_multiply<100, 3, 1, 6>);
+  FATAL_TEST_IMPL(200000,    test_multiply<2, 100, 1000>);
+  FATAL_TEST_IMPL(128000,    test_multiply<1000, 32, 4>);
+
+# undef FATAL_TEST_IMPL
 }
 
 template <int... Values>
 using test_divide = transform_int<arithmetic_transform::divide, Values...>;
 
 FATAL_TEST(arithmetic_transform, divide) {
-  FATAL_EXPECT_EQ(1,   (test_divide<100, 100>::value));
-  FATAL_EXPECT_EQ(1,   (test_divide<100, 57>::value));
-  FATAL_EXPECT_EQ(50,  (test_divide<100, 2>::value));
-  FATAL_EXPECT_EQ(33,  (test_divide<100, 3>::value));
-  FATAL_EXPECT_EQ(0,   (test_divide<2, 100>::value));
-  FATAL_EXPECT_EQ(0,   (test_divide<43, 100>::value));
+# define FATAL_TEST_IMPL(Expected, ...) \
+  do { \
+    using actual = __VA_ARGS__; \
+    using expected = std::decay<decltype(Expected)>::type; \
+    FATAL_EXPECT_SAME<expected, actual::value_type>(); \
+    FATAL_EXPECT_EQ(Expected, actual::value); \
+  } while (false)
 
-  FATAL_EXPECT_EQ(0,   (test_divide<100, 100, 100, 100>::value));
-  FATAL_EXPECT_EQ(10,  (test_divide<100, 5, 2, 1>::value));
-  FATAL_EXPECT_EQ(1,   (test_divide<100, 20, 5>::value));
-  FATAL_EXPECT_EQ(2,   (test_divide<100, 2, 19>::value));
-  FATAL_EXPECT_EQ(5,   (test_divide<100, 3, 6>::value));
-  FATAL_EXPECT_EQ(5,   (test_divide<100, 3, 1, 6>::value));
-  FATAL_EXPECT_EQ(0,   (test_divide<2, 100, 1000>::value));
-  FATAL_EXPECT_EQ(7,   (test_divide<1000, 32, 4>::value));
+  FATAL_TEST_IMPL(1,   test_divide<100, 100>);
+  FATAL_TEST_IMPL(1,   test_divide<100, 57>);
+  FATAL_TEST_IMPL(50,  test_divide<100, 2>);
+  FATAL_TEST_IMPL(33,  test_divide<100, 3>);
+  FATAL_TEST_IMPL(0,   test_divide<2, 100>);
+  FATAL_TEST_IMPL(0,   test_divide<43, 100>);
+
+  FATAL_TEST_IMPL(0,   test_divide<100, 100, 100, 100>);
+  FATAL_TEST_IMPL(10,  test_divide<100, 5, 2, 1>);
+  FATAL_TEST_IMPL(1,   test_divide<100, 20, 5>);
+  FATAL_TEST_IMPL(2,   test_divide<100, 2, 19>);
+  FATAL_TEST_IMPL(5,   test_divide<100, 3, 6>);
+  FATAL_TEST_IMPL(5,   test_divide<100, 3, 1, 6>);
+  FATAL_TEST_IMPL(0,   test_divide<2, 100, 1000>);
+  FATAL_TEST_IMPL(7,   test_divide<1000, 32, 4>);
+
+# undef FATAL_TEST_IMPL
 }
 
 template <int... Values>
 using test_modulo = transform_int<arithmetic_transform::modulo, Values...>;
 
 FATAL_TEST(arithmetic_transform, modulo) {
-  FATAL_EXPECT_EQ(0,   (test_modulo<100, 100>::value));
-  FATAL_EXPECT_EQ(43,  (test_modulo<100, 57>::value));
-  FATAL_EXPECT_EQ(0,   (test_modulo<100, 2>::value));
-  FATAL_EXPECT_EQ(1,   (test_modulo<100, 3>::value));
-  FATAL_EXPECT_EQ(2,   (test_modulo<2, 100>::value));
-  FATAL_EXPECT_EQ(43,  (test_modulo<43, 100>::value));
+# define FATAL_TEST_IMPL(Expected, ...) \
+  do { \
+    using actual = __VA_ARGS__; \
+    using expected = std::decay<decltype(Expected)>::type; \
+    FATAL_EXPECT_SAME<expected, actual::value_type>(); \
+    FATAL_EXPECT_EQ(Expected, actual::value); \
+  } while (false)
 
-  FATAL_EXPECT_EQ(0,   (test_modulo<100, 100, 100, 100>::value));
-  FATAL_EXPECT_EQ(0,   (test_modulo<100, 57, 100, 1>::value));
-  FATAL_EXPECT_EQ(3,   (test_modulo<100, 57, 5>::value));
-  FATAL_EXPECT_EQ(0,   (test_modulo<100, 2, 99>::value));
-  FATAL_EXPECT_EQ(1,   (test_modulo<100, 3, 6>::value));
-  FATAL_EXPECT_EQ(0,   (test_modulo<100, 3, 1, 6>::value));
-  FATAL_EXPECT_EQ(2,   (test_modulo<2, 100, 1000>::value));
-  FATAL_EXPECT_EQ(43,  (test_modulo<43, 1000, 100>::value));
+  FATAL_TEST_IMPL(0,  test_modulo<100, 100>);
+  FATAL_TEST_IMPL(43, test_modulo<100, 57>);
+  FATAL_TEST_IMPL(0,  test_modulo<100, 2>);
+  FATAL_TEST_IMPL(1,  test_modulo<100, 3>);
+  FATAL_TEST_IMPL(2,  test_modulo<2, 100>);
+  FATAL_TEST_IMPL(43, test_modulo<43, 100>);
+
+  FATAL_TEST_IMPL(0,  test_modulo<100, 100, 100, 100>);
+  FATAL_TEST_IMPL(0,  test_modulo<100, 57, 100, 1>);
+  FATAL_TEST_IMPL(3,  test_modulo<100, 57, 5>);
+  FATAL_TEST_IMPL(0,  test_modulo<100, 2, 99>);
+  FATAL_TEST_IMPL(1,  test_modulo<100, 3, 6>);
+  FATAL_TEST_IMPL(0,  test_modulo<100, 3, 1, 6>);
+  FATAL_TEST_IMPL(2,  test_modulo<2, 100, 1000>);
+  FATAL_TEST_IMPL(43, test_modulo<43, 1000, 100>);
+
+# undef FATAL_TEST_IMPL
 }
 
 ///////////////////////
 // logical_transform //
 ///////////////////////
 
-#define FATAL_TEST_IMPL(TTransform, Expected, ...) \
+#define FATAL_TEST_IMPL(Transform, Expected, ...) \
   do { \
-    bool actual = bool_seq<__VA_ARGS__>::apply< \
-      logical_transform::TTransform \
-    >::value; \
-    bool expected = Expected; \
+    using result = bool_seq<__VA_ARGS__>::apply<logical_transform::Transform>; \
+    FATAL_EXPECT_SAME<bool, result::value_type>(); \
+    auto const actual = result::value; \
+    bool const expected = Expected; \
     FATAL_EXPECT_EQ(expected, actual); \
   } while (false)
 
@@ -444,16 +494,23 @@ FATAL_TEST(logical_transform, negate) {
 // bitwise_transform //
 ///////////////////////
 
+#define FATAL_TEST_IMPL(Expected, ...) \
+  do { \
+    using actual = __VA_ARGS__; \
+    FATAL_EXPECT_SAME<int, actual::value_type>(); \
+    FATAL_EXPECT_EQ(Expected, actual::value); \
+  } while (false)
+
 template <int... Args>
 using all_test_impl = bitwise_transform::all<
   std::integral_constant<int, Args>...
 >;
 
 FATAL_TEST(bitwise_transform, all) {
-  FATAL_EXPECT_EQ(99, (all_test_impl<99>::value));
-  FATAL_EXPECT_EQ(0, (all_test_impl<1, 2, 4>::value));
-  FATAL_EXPECT_EQ(3, (all_test_impl<7, 11>::value));
-  FATAL_EXPECT_EQ(8 & 9 & 57, (all_test_impl<8, 9, 57>::value));
+  FATAL_TEST_IMPL(99, all_test_impl<99>);
+  FATAL_TEST_IMPL(0, all_test_impl<1, 2, 4>);
+  FATAL_TEST_IMPL(3, all_test_impl<7, 11>);
+  FATAL_TEST_IMPL(8 & 9 & 57, all_test_impl<8, 9, 57>);
 }
 
 template <int... Args>
@@ -462,9 +519,9 @@ using any_test_impl = bitwise_transform::any<
 >;
 
 FATAL_TEST(bitwise_transform, any) {
-  FATAL_EXPECT_EQ(99, (any_test_impl<99>::value));
-  FATAL_EXPECT_EQ(7, (any_test_impl<1, 2, 4>::value));
-  FATAL_EXPECT_EQ(8 | 9 | 57, (any_test_impl<8, 9, 57>::value));
+  FATAL_TEST_IMPL(99, any_test_impl<99>);
+  FATAL_TEST_IMPL(7, any_test_impl<1, 2, 4>);
+  FATAL_TEST_IMPL(8 | 9 | 57, any_test_impl<8, 9, 57>);
 }
 
 template <int... Args>
@@ -473,22 +530,23 @@ using diff_test_impl = bitwise_transform::diff<
 >;
 
 FATAL_TEST(bitwise_transform, diff) {
-  FATAL_EXPECT_EQ(99, (diff_test_impl<99>::value));
-  FATAL_EXPECT_EQ(3, (diff_test_impl<1, 2>::value));
-  FATAL_EXPECT_EQ(12, (diff_test_impl<7, 11>::value));
-  FATAL_EXPECT_EQ(1 ^ 2 ^ 4, (diff_test_impl<1, 2, 4>::value));
-  FATAL_EXPECT_EQ(8 ^ 9 ^ 57, (diff_test_impl<8, 9, 57>::value));
+  FATAL_TEST_IMPL(99, diff_test_impl<99>);
+  FATAL_TEST_IMPL(3, diff_test_impl<1, 2>);
+  FATAL_TEST_IMPL(12, diff_test_impl<7, 11>);
+  FATAL_TEST_IMPL(1 ^ 2 ^ 4, diff_test_impl<1, 2, 4>);
+  FATAL_TEST_IMPL(8 ^ 9 ^ 57, diff_test_impl<8, 9, 57>);
 }
+
+#undef FATAL_TEST_IMPL
 
 FATAL_TEST(bitwise_transform, complement) {
 # define FATAL_TEST_IMPL(x) \
   do { \
-    FATAL_EXPECT_EQ( \
-      ~static_cast<unsigned>(x), \
-      (bitwise_transform::complement< \
-        std::integral_constant<unsigned, (x)> \
-      >::value) \
-    );\
+    using result = bitwise_transform::complement< \
+      std::integral_constant<unsigned, (x)> \
+    >; \
+    FATAL_EXPECT_SAME<unsigned, result::value_type>(); \
+    FATAL_EXPECT_EQ(~static_cast<unsigned>(x), result::value);\
   } while(false)
 
   FATAL_TEST_IMPL(0);
@@ -508,59 +566,70 @@ FATAL_TEST(bitwise_transform, complement) {
 // comparison_transform //
 //////////////////////////
 
-FATAL_TEST(comparison_transform, equal) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
+#define FATAL_TEST_IMPL(Expected, ...) \
+  do { \
+    using result = __VA_ARGS__; \
+    auto const actual = result::value; \
+    FATAL_EXPECT_SAME<bool, result::value_type>(); \
+    auto const expected = Expected; \
+    FATAL_EXPECT_EQ(expected, actual); \
+  } while (false)
 
-  FATAL_EXPECT_FALSE((comparison_transform::equal<A, B>::value));
-  FATAL_EXPECT_FALSE((comparison_transform::equal<B, A>::value));
-  FATAL_EXPECT_TRUE((comparison_transform::equal<A, A>::value));
+FATAL_TEST(comparison_transform, equal) {
+  using A = std::integral_constant<int, 10>;
+  using B = std::integral_constant<int, 20>;
+
+  FATAL_TEST_IMPL(false, comparison_transform::equal<A, B>);
+  FATAL_TEST_IMPL(false, comparison_transform::equal<B, A>);
+  FATAL_TEST_IMPL(true, comparison_transform::equal<A, A>);
 }
 
 FATAL_TEST(comparison_transform, not_equal) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
+  using A = std::integral_constant<int, 10>;
+  using B = std::integral_constant<int, 20>;
 
-  FATAL_EXPECT_TRUE((comparison_transform::not_equal<A, B>::value));
-  FATAL_EXPECT_TRUE((comparison_transform::not_equal<B, A>::value));
-  FATAL_EXPECT_FALSE((comparison_transform::not_equal<A, A>::value));
+  FATAL_TEST_IMPL(true, comparison_transform::not_equal<A, B>);
+  FATAL_TEST_IMPL(true, comparison_transform::not_equal<B, A>);
+  FATAL_TEST_IMPL(false, comparison_transform::not_equal<A, A>);
 }
 
 FATAL_TEST(comparison_transform, less_than) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
+  using A = std::integral_constant<int, 10>;
+  using B = std::integral_constant<int, 20>;
 
-  FATAL_EXPECT_TRUE((comparison_transform::less_than<A, B>::value));
-  FATAL_EXPECT_FALSE((comparison_transform::less_than<B, A>::value));
-  FATAL_EXPECT_FALSE((comparison_transform::less_than<A, A>::value));
+  FATAL_TEST_IMPL(true, comparison_transform::less_than<A, B>);
+  FATAL_TEST_IMPL(false, comparison_transform::less_than<B, A>);
+  FATAL_TEST_IMPL(false, comparison_transform::less_than<A, A>);
 }
 
 FATAL_TEST(comparison_transform, less_than_equal) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
+  using A = std::integral_constant<int, 10>;
+  using B = std::integral_constant<int, 20>;
 
-  FATAL_EXPECT_TRUE((comparison_transform::less_than_equal<A, B>::value));
-  FATAL_EXPECT_FALSE((comparison_transform::less_than_equal<B, A>::value));
-  FATAL_EXPECT_TRUE((comparison_transform::less_than_equal<A, A>::value));
+  FATAL_TEST_IMPL(true, comparison_transform::less_than_equal<A, B>);
+  FATAL_TEST_IMPL(false, comparison_transform::less_than_equal<B, A>);
+  FATAL_TEST_IMPL(true, comparison_transform::less_than_equal<A, A>);
 }
 
 FATAL_TEST(comparison_transform, greater_than) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
+  using A = std::integral_constant<int, 10>;
+  using B = std::integral_constant<int, 20>;
 
-  FATAL_EXPECT_FALSE((comparison_transform::greater_than<A, B>::value));
-  FATAL_EXPECT_TRUE((comparison_transform::greater_than<B, A>::value));
-  FATAL_EXPECT_FALSE((comparison_transform::greater_than<A, A>::value));
+  FATAL_TEST_IMPL(false, comparison_transform::greater_than<A, B>);
+  FATAL_TEST_IMPL(true, comparison_transform::greater_than<B, A>);
+  FATAL_TEST_IMPL(false, comparison_transform::greater_than<A, A>);
 }
 
 FATAL_TEST(comparison_transform, greater_than_equal) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
+  using A = std::integral_constant<int, 10>;
+  using B = std::integral_constant<int, 20>;
 
-  FATAL_EXPECT_FALSE((comparison_transform::greater_than_equal<A, B>::value));
-  FATAL_EXPECT_TRUE((comparison_transform::greater_than_equal<B, A>::value));
-  FATAL_EXPECT_TRUE((comparison_transform::greater_than_equal<A, A>::value));
+  FATAL_TEST_IMPL(false, comparison_transform::greater_than_equal<A, B>);
+  FATAL_TEST_IMPL(true, comparison_transform::greater_than_equal<B, A>);
+  FATAL_TEST_IMPL(true, comparison_transform::greater_than_equal<A, A>);
 }
+
+#undef FATAL_TEST_IMPL
 
 /////////////////////
 // get_member_type //
