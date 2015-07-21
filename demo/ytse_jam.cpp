@@ -190,13 +190,13 @@ private:
   using instances_map = std::unordered_map<std::string, instance_t>;
 
   template <typename T, typename TArgsList, std::size_t... Indexes>
-  static void call_ctor(fatal::constant_sequence<std::size_t, Indexes...>, instance_t &instance, request_args &args) {
+  static void call_ctor(fatal::size_sequence<Indexes...>, instance_t &instance, request_args &args) {
     instance.template emplace<T>(args.template get<typename TArgsList::template at<Indexes>>(Indexes)...);
   }
 
   template <typename TMethod, typename TResult, typename TArgsList, typename T, std::size_t... Indexes>
   static void call_method(
-    fatal::constant_sequence<std::size_t, Indexes...>, result_t &out, T &&instance, request_args &args
+    fatal::size_sequence<Indexes...>, result_t &out, T &&instance, request_args &args
   ) {
     out.set_result_of([&]() {
       return static_cast<TResult>(
