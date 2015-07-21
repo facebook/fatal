@@ -844,7 +844,7 @@ struct enable_when {
    *
    *  template <
    *    typename T,
-   *    typename = enable_when::is_callable<T, int>
+   *    typename = enable_when::callable<T, int>
    *  >
    *  void foo(T &&value) {
    *    std::cout << "got a callable object that accepts an int";
@@ -1295,7 +1295,7 @@ class is_callable_impl {
       typename T,
       typename = decltype(
         std::declval<T>()(
-          std::forward<Args>(std::declval<typename std::decay<Args>::type>())...
+          std::forward<Args>(std::declval<Args>())...
         )
       )
     >
@@ -1307,7 +1307,11 @@ class is_callable_impl {
 
 public:
   template <typename T>
-  using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
+  using type = decltype(
+    impl::sfinae(
+      static_cast<typename std::remove_reference<T>::type *>(nullptr)
+    )
+  );
 };
 
 } // namespace detail {
