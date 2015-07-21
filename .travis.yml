@@ -6,17 +6,26 @@ os:
 compiler:
   - clang
 
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - bash
+    - coreutils
+    - g++-4.8
+    - g++-4.9
+    - g++-5
+    - clang-3.4
+
 before_install:
   - echo $LANG
   - echo $LC_ALL
   - lsb_release -a
   - uname -a
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
 
 install:
   - apt-cache search '^g\+\+|^clang'
-  - sudo apt-get install -y bash coreutils g++-4.8 g++-4.9 g++-5 clang-3.4
 
 before_script:
   - echo $LANG
@@ -26,8 +35,8 @@ before_script:
   - apt-cache search '^g\+\+|^clang'
 
 script:
-  - for cc in g++-4.8 g++-4.9 g++-5; do if which $cc; then $cc --version; USE_CC=$cc NO_CLEAR=true ./validate.sh nobuild; else echo "no $cc installed, skipping validation"; fi; done
-  - for cc in clang++ clang++-3.4 clang++-3.5; do if which $cc; then $cc --version; USE_CC=$cc NO_CLEAR=true ./validate.sh; else echo "no $cc installed, skipping validation"; fi; done
+  - for cc in g++-4.8 g++-4.9 g++-5; do if which $cc; then $cc --version; else echo "no $cc installed, skipping validation"; fi; USE_CC=$cc NO_CLEAR=true ./validate.sh nobuild;; done
+  - for cc in clang++ clang++-3.4 clang++-3.5 clang++-3.6 clang++-3.7; do if which $cc; then $cc --version; else echo "no $cc installed, skipping validation"; fi; USE_CC=$cc NO_CLEAR=true ./validate.sh; done
 
 branches:
   only:
