@@ -1012,7 +1012,6 @@ struct default_printer {
   void start_run(
     TOut &out, std::size_t total, std::size_t groups, timestamp_t start
   ) {
-    // TODO: pretty print test run start time??
     out << "running " << total << " tests from " << groups << " test cases\n";
     run_start_ = start;
   }
@@ -1021,9 +1020,8 @@ struct default_printer {
   void start_group(TOut &out, TGroup const &group, timestamp_t start) {
     auto const time = start - run_start_;
 
-    // TODO: pretty print test group start time
-    out << "\n== test case: '" << group << "' at "
-      << time.count() << time::suffix(time) << " ==\n";
+    time::pretty_print(out << "\n== test case: '" << group << "' at [", time)
+      << "] ==\n";
 
     group_start_ = start;
   }
@@ -1034,9 +1032,11 @@ struct default_printer {
   ) {
     auto const time = start - group_start_;
 
-    // TODO: pretty print unit test start time
-    out << ">> test '" << name << "' (" << source.file() << ':' << source.line()
-      << ") at " << time.count() << time::suffix(time) << ":\n";
+    time::pretty_print(
+      out << ">> test '" << name << "' (" << source.file() << ':'
+        << source.line() << ") at [",
+      time
+    ) << "]:\n";
 
     test_start_ = start;
   }
@@ -1052,9 +1052,11 @@ struct default_printer {
 
     auto const time = i.timestamp() - test_start_;
 
-    out << i.severity_signature()
-      << " [" << i.source().file() << ':' << i.source().line() << "] at "
-      << time.count() << time::suffix(time) << ":\n  " << i.message() << '\n';
+    time::pretty_print(
+      out << i.severity_signature() << " [" << i.source().file() << ':'
+        << i.source().line() << "] at [",
+      time
+    ) << "]:\n  " << i.message() << '\n';
   }
 
   template <typename TOut, typename TName>
@@ -1062,9 +1064,10 @@ struct default_printer {
     TOut &out, results const &result,
     TName const &name, source_info const &source
   ) {
-    out << "<< " << (result.passed() ? "succeeded" : "failed")
-      << " after " << result.elapsed().count() << ' '
-      << time::suffix(result.elapsed()) << "\n\n";
+    time::pretty_print(
+      out << "<< " << (result.passed() ? "succeeded" : "failed") << " after [",
+      result.elapsed()
+    ) << "]\n\n";
   }
 
   template <typename TOut, typename TGroup>
@@ -1075,9 +1078,11 @@ struct default_printer {
   void end_run(
     TOut &out, std::size_t passed, std::size_t total, duration_t time
   ) {
-    out << '\n' << (passed == total ? "succeeded" : "FAILED")
-      << ": passed " << passed << '/' << total << " after "
-      << time.count() << ' ' << time::suffix(time) << "\n\n";
+    time::pretty_print(
+      out << '\n' << (passed == total ? "succeeded" : "FAILED") << ": passed "
+        << passed << '/' << total << " after [",
+      time
+    ) << "]\n\n";
   }
 
 private:
