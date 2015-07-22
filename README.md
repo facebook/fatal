@@ -26,7 +26,7 @@ The `dev` branch is considered the development version of the library and experi
 
 
 ## Requirements
-A compliant C++11 compiler. Currently tested under GCC 4.8, GCC 4.9, Clang 3.4 and Clang 3.5.
+A compliant C++11 compiler. Currently tested under GCC {4.8, 4.9, 5.1}, Clang {3.4, 3.5, 3.6, 3.7}.
 
 There are no other external dependencies.
 
@@ -49,7 +49,7 @@ A demo program is also available under the `demo/` directory.
 
 
 ## Requirements for Demos
-A compliant C++14 compiler. Currently tested under GCC 4.9, Clang 3.4 and Clang 3.5.
+A compliant C++14 compiler. Currently tested under GCC {4.8, 4.9, 5.1}, Clang {3.4, 3.5, 3.6, 3.7}.
 
 
 ## Building Demos
