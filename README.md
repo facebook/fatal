@@ -54,24 +54,24 @@ A compliant C++14 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} an
 
 ## Building Demos
 ```sh
-$ clang++ -Wall -std=c++1y -I path/to/fatal \
+$ clang++ -Wall -Werror -O2 -std=c++1y -I path/to/fatal \
   -o path/to/output/binary path/to/demo.cpp
 ```
 or
 ```sh
-$ g++ -Wall -std=c++1y -I path/to/fatal \
+$ g++ -Wall -Werror -O2 -std=c++1y -I path/to/fatal \
   -o path/to/output/binary path/to/demo.cpp
 ```
 
 
 ## Building Benchmarks and Unit Tests
 ```sh
-$ clang++ -Wall -std=c++11 -I path/to/fatal \
+$ clang++ -Wall -Werror -O2 -std=c++11 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
 ```
 or
 ```sh
-$ g++ -Wall -std=c++11 -I path/to/fatal \
+$ g++ -Wall -Werror -O2 -std=c++11 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
 ```
 
