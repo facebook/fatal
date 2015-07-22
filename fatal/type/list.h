@@ -414,42 +414,44 @@ struct cumulative_transform;
 
 template <
   template <typename...> class Transform,
-  typename... Result,
-  typename... Front,
+  typename Result,
+  typename Front,
   typename T, typename... Tail
 >
 // TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
 //       FOR OTHER IMPLEMENTATIONS LIKE HERE
-struct cumulative_transform<
-  true, Transform, type_list<Result...>, type_list<Front...>, T, Tail...
-> {
+struct cumulative_transform<true, Transform, Result, Front, T, Tail...> {
+  using front = typename Front::template push_back<T>;
+
   template <typename... UArgs>
   using apply = typename cumulative_transform<
     true,
     Transform,
-    type_list<Result..., fatal::apply<Transform, UArgs..., Front..., T>>,
-    type_list<Front..., T>,
+    typename Result::template push_back<
+      typename front::template push_front<UArgs...>::template apply<Transform>
+    >,
+    front,
     Tail...
   >::template apply<UArgs...>;
 };
 
 template <
   template <typename...> class Transform,
-  typename... Result,
-  typename... Front,
+  typename Result,
+  typename Front,
   typename T, typename... Tail
 >
 // TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
 //       FOR OTHER IMPLEMENTATIONS LIKE HERE
-struct cumulative_transform<
-  false, Transform, type_list<Result...>, type_list<Front...>, T, Tail...
-> {
+struct cumulative_transform<false, Transform, Result, Front, T, Tail...> {
   template <typename... UArgs>
   using apply = typename cumulative_transform<
     false,
     Transform,
-    type_list<Result..., fatal::apply<Transform, UArgs..., Front...>>,
-    type_list<Front..., T>,
+    typename Result::template push_back<
+      typename Front::template push_front<UArgs...>::template apply<Transform>
+    >,
+    typename Front::template push_back<T>,
     Tail...
   >::template apply<UArgs...>;
 };
