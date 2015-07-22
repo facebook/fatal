@@ -28,7 +28,6 @@ before_install:
   - echo $LC_ALL
   - lsb_release -a
   - uname -a
-  - for cc in g++-4.8 g++-4.9 g++-5 clang-3.4 clang-3.5 clang-3.6 clang-3.7; do dpkg -s $cc | grep '^Status: '; dpkg -L $cc; done
 
 install:
   - apt-cache search '^g\+\+|^clang'

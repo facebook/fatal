@@ -2,6 +2,13 @@
 
 set -xe
 
+
+for cc in g++-4.8 g++-4.9 g++-5 clang-3.4 clang-3.5 clang-3.6 clang-3.7; do
+  echo "Package: $cc"
+  dpkg -s $cc | grep '^Status: '
+  dpkg -L $cc | grep '/bin/'
+done
+
 for cc in g++-4.8 g++-4.9 g++-5; do
   if which $cc; then
     $cc --version
