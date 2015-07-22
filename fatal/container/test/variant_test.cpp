@@ -327,58 +327,78 @@ FATAL_TEST(variant, rvalue_setters) {
 }
 
 struct copyable {
-  copyable() = default;
-  copyable(copyable const&) = default;
-  copyable& operator =(copyable const&) = default;
+  copyable() {}
+
+  copyable(copyable const &) = default;
   copyable(copyable &&) = delete;
-  copyable& operator =(copyable &&) = delete;
+
+  copyable &operator =(copyable const &) { return *this; }
+  copyable &operator =(copyable &&) = delete;
 };
 
 FATAL_TEST(variant, universal_lvalue_setters) {
   test_variant<copyable> v(allocator);
+
   copyable x;
-  const copyable y;
   v.set(x);
+
+  const copyable y;
   v.set(y);
+
   test_variant<copyable>().set(x);
   test_variant<copyable>().set(y);
+
   v = x;
   v = y;
+
   test_variant<copyable>() = x;
   test_variant<copyable>() = y;
-  FATAL_EXPECT_TRUE(true);
 }
 
 struct movable {
   movable() = default;
-  movable(movable const&) = delete;
+
+  movable(movable const &) = delete;
   movable(movable &&) = default;
-  movable& operator =(movable &&) = default;
+
+  movable &operator =(movable const &) = delete;
+  movable &operator =(movable &&) { return *this; }
 };
 
 FATAL_TEST(variant, universal_rvalue_setters) {
   test_variant<movable, copyable> v(allocator);
+
   movable a;
-  const copyable ca;
   v.set(std::move(a));
+
+  const copyable ca;
   v.set(std::move(ca));
+
   v.set(movable());
+
   movable b;
-  const copyable cb;
   test_variant<movable, copyable>().set(std::move(b));
+
+  const copyable cb;
   test_variant<movable, copyable>().set(std::move(cb));
+
   test_variant<movable, copyable>().set(movable());
+
   movable c;
-  const copyable cc;
   v = std::move(c);
+
+  const copyable cc;
   v = std::move(cc);
+
   v = movable();
+
   movable d;
-  const copyable cd;
   test_variant<movable, copyable>() = std::move(d);
+
+  const copyable cd;
   test_variant<movable, copyable>() = std::move(cd);
+
   test_variant<movable, copyable>() = movable();
-  FATAL_EXPECT_TRUE(true);
 }
 
 struct FooCopyCtorTest {
