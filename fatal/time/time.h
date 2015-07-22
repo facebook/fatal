@@ -16,6 +16,8 @@
 #include <fatal/type/transform.h>
 
 #include <chrono>
+#include <ratio>
+#include <type_traits>
 
 namespace fatal {
 namespace time {
@@ -55,12 +57,21 @@ using ratio_suffixes = build_type_map<
 template <typename T>
 using suffixes_impl_append_s = typename T::template push_back<'s'>;
 
+using day_ratio = std::ratio_multiply<
+  std::chrono::hours::period,
+  std::ratio<24, 1>
+>;
+
+using week_ratio = std::ratio_multiply<day_ratio, std::ratio<7, 1>>;
+
 } // namespace detail {
 
 // TODO: DOCUMENT AND TEST
 using suffixes = detail::ratio_suffixes::transform<
   detail::suffixes_impl_append_s
 >::push_back<
+  detail::week_ratio, type_string<char, 'w', 'k'>,
+  detail::day_ratio, type_string<char, 'd'>,
   std::chrono::hours::period, type_string<char, 'h'>,
   std::chrono::minutes::period, type_string<char, 'm', 'i', 'n'>,
   std::chrono::seconds::period, type_string<char, 's'>
@@ -80,6 +91,64 @@ inline char const *suffix() {
 template <typename T>
 inline char const *suffix(T const &) {
   return suffix<T>();
+}
+
+namespace detail {
+
+template <typename...> struct pretty;
+
+template <typename T, typename... Args>
+struct pretty<T, Args...> {
+  template <typename Out, typename P, typename R>
+  static void print(Out &out, std::chrono::duration<R, P> time) {
+    auto const local = std::chrono::duration_cast<
+      std::chrono::duration<R, T>
+    >(time);
+
+    auto const remaining = time - local;
+
+    if (local.count()) {
+      out << local.count() << suffix_t<T>::z_data();
+
+      if (sizeof...(Args) && remaining.count()) {
+        out << ' ';
+      }
+    }
+
+    pretty<Args...>::print(out, remaining);
+  }
+};
+
+template <>
+struct pretty<> {
+  template <typename Out, typename D>
+  static void print(Out &out, D) {}
+};
+
+using pretty_print_ratios = type_list<
+  week_ratio,
+  day_ratio,
+  std::chrono::hours::period,
+  std::chrono::minutes::period,
+  std::chrono::seconds::period,
+  std::chrono::milliseconds::period,
+  std::chrono::microseconds::period,
+  std::chrono::nanoseconds::period
+>::sort<std::ratio_greater>;
+
+} // namespace detail {
+
+template <typename Out, typename R, typename P>
+Out &&pretty_print(Out &&out, std::chrono::duration<R, P> time) {
+  using ratios = typename detail::pretty_print_ratios::reject<
+    transform_alias<std::ratio_greater, P>::template apply
+  >;
+  static_assert(!ratios::empty, "unsupported duration");
+
+  using impl = typename ratios::template apply<detail::pretty>;
+  impl::print(out, time);
+
+  return std::forward<Out>(out);
 }
 
 } // namespace time {
