@@ -25,7 +25,7 @@ namespace fatal {
 // type_map DECLARATION //
 //////////////////////////
 
-template <typename... Args> class type_map;
+template <typename...> class type_map;
 
 /////////////////////
 // SUPPORT LIBRARY //
@@ -50,6 +50,20 @@ struct build_pair_list<TKey, TValue, Args...> {
 template <>
 struct build_pair_list<> {
   using type = type_list<>;
+};
+
+////////////
+// concat //
+////////////
+
+template <typename T, typename... Prefix>
+struct concat;
+
+template <
+  template <typename...> class T, typename... Suffix, typename... Prefix
+>
+struct concat<T<Suffix...>, Prefix...> {
+  using type = type_map<Prefix..., Suffix...>;
 };
 
 ///////////////
@@ -300,6 +314,14 @@ public:
   using apply = typename transform<TMappedTransform, TKeyTransform>
     ::contents::template apply<TTransform>;
 
+  // TODO: DOCUMENT AND TEST
+  template <typename... UArgs>
+  using append = type_map<Args..., UArgs...>;
+
+  // TODO: DOCUMENT AND TEST
+  template <typename T>
+  using concat = typename detail::type_map_impl::concat<T, Args...>::type;
+
   /**
    * Inverts the key and mapped types of this `type_map`.
    *
@@ -473,13 +495,7 @@ public:
     ::type::template apply_back<fatal::type_map, Args...>;
 
   /**
-   * TODO: FIX DOCS
-   *
    * Inserts the given `TKey` and `TValue` pair after all elements of this map.
-   *
-   * There are two overloads, one accepting the key and mapped type
-   * (push_back<TKey, TMapped>) and another accepting a `type_pair`
-   * (push_back<type_pair<TKey, TMapped>>).
    *
    * Note that keys are not necessarily unique. Inserting an existing key
    * will create duplicate entries for it.
@@ -492,18 +508,22 @@ public:
    *  >;
    *
    *  // yields `type_map<
-   *  //   type_pair<int, bool>,
-   *  //   type_pair<float, double>,
-   *  //   type_pair<short, long>
+   *  //  type_pair<int, bool>,
+   *  //  type_pair<float, double>,
+   *  //  type_pair<short, long>
    *  // >`
    *  using result1 = map::push_back<short, long>;
    *
    *  // yields `type_map<
-   *  //   type_pair<int, bool>,
-   *  //   type_pair<float, double>,
-   *  //   type_pair<short, long>
+   *  //  type_pair<int, bool>,
+   *  //  type_pair<float, double>,
+   *  //  type_pair<short, long>,
+   *  //  type_pair<void, unsigned>
    *  // >`
-   *  using result2 = map::push_back<type_pair<short, long>>;
+   *  using result2 = map::push_back<
+   *    short, long,
+   *    void, unsigned
+   *  >;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -512,7 +532,6 @@ public:
     ::type::template apply_front<fatal::type_map, Args...>;
 
   /**
-   * TODO: FIX DOCS
    * TODO: IT SHOULD INSERT AFTER A SPECIFIC KEY, OR END OF MAP IF NOT FOUND
    *
    * Inserts a new mapping into the type_map, in no specified order.
@@ -521,20 +540,25 @@ public:
    * will create duplicate entries for it. Should you need unique mappings,
    * use `replace` instead.
    *
-   * There are two overloads, one accepting the key and mapped type
-   * (insert<TKey, TMapped>) and another accepting a `type_pair`
-   * (insert<type_pair<TKey, TMapped>>).
-   *
    * Example:
    *
    *  using map = type_map<type_pair<int, double>>;
    *
-   *  // yields `type_map<type_pair<int, double>, type_pair<float, long>>`
+   *  // yields `type_map<
+   *  //  type_pair<int, double>,
+   *  //  type_pair<float, long>
+   *  // >`
    *  using result1 = map::insert<float, long>;
    *
-   *  // yields `type_map<type_pair<int, double>, type_pair<float, long>>`
-   *  using pair = type_pair<float, long>;
-   *  using result2 = map::insert<pair>;
+   *  // yields `type_map<
+   *  //  type_pair<int, double>,
+   *  //  type_pair<float, long>,
+   *  //  type_pair<void, unsigned>
+   *  // >`
+   *  using result2 = map::insert<
+   *    float, long,
+   *    void, unsigned
+   *  >;
    */
   template <typename... UArgs>
   using insert = push_back<UArgs...>;
