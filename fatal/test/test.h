@@ -14,13 +14,13 @@
 #include <fatal/test/string.h>
 #include <fatal/test/type.h>
 #include <fatal/time/time.h>
+#include <fatal/type/call_traits.h>
 #include <fatal/type/traits.h>
 #include <fatal/type/transform.h>
 
 #include <chrono>
 #include <exception>
 #include <functional>
-#include <iostream> // TODO: REMOVE WHEN EXPECT_SAME IS FIXED
 #include <memory>
 #include <string>
 #include <tuple>
@@ -115,6 +115,9 @@ namespace test {
 #define FATAL_WARN_THROW(Exception) \
   FATAL_IMPL_BODY_TEST(warning, exception<Exception>(FATAL_TO_STR(Exception)))
 
+#define FATAL_WARN_SAME \
+  FATAL_IMPL_TEMPLATE_TEST(warning, same_type())
+
 #define FATAL_WARN_EQ(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(warning, is_equal(), LHS, RHS)
 
@@ -167,6 +170,9 @@ namespace test {
     expectation, exception<Exception>(FATAL_TO_STR(Exception)) \
   )
 
+#define FATAL_EXPECT_SAME \
+  FATAL_IMPL_TEMPLATE_TEST(expectation, same_type())
+
 #define FATAL_EXPECT_EQ(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(expectation, is_equal(), LHS, RHS)
 
@@ -217,6 +223,9 @@ namespace test {
 #define FATAL_ASSERT_THROW(Exception) \
   FATAL_IMPL_BODY_TEST(assertion, exception<Exception>(FATAL_TO_STR(Exception)))
 
+#define FATAL_ASSERT_SAME \
+  FATAL_IMPL_TEMPLATE_TEST(assertion, same_type())
+
 #define FATAL_ASSERT_EQ(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(assertion, is_equal(), LHS, RHS)
 
@@ -235,34 +244,17 @@ namespace test {
 #define FATAL_ASSERT_GE(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(assertion, greater_equal(), LHS, RHS)
 
+// TODO: FIX IT SO IT DISPLAYS THE PROPER MESSAGE OTHER THAN (is not true)
 #define FATAL_ASSERT_TEMPLATE_COMPILES(Arity, ...) \
   FATAL_ASSERT_TRUE(( \
     ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
   ))
 
+// TODO: FIX IT SO IT DISPLAYS THE PROPER MESSAGE OTHER THAN (is not true)
 #define FATAL_ASSERT_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
   FATAL_ASSERT_FALSE(( \
     ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
   ))
-
-/**
- * Unit test helper for checking whether two types are the same.
- *
- * Example:
- *
- *  // passes the test
- *  FATAL_EXPECT_SAME<int, int>();
- *
- *  // yields an error
- *  FATAL_EXPECT_SAME<int, void>();
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-// TODO: REWRITE USING THE NEW FRAMEWORK
-#define FATAL_EXPECT_SAME \
-  ::fatal::test::detail::test_impl::expect_same_impl( \
-    FATAL_SOURCE_INFO() \
-  ).check
 
 using clock = std::chrono::system_clock;
 using duration_t = clock::duration;
@@ -400,19 +392,22 @@ struct abort_test_run_exception {};
     )) \
   ).check((LHS), (RHS))
 
+#define FATAL_IMPL_TEMPLATE_TEST(Category, Predicate) \
+  FATAL_IMPL_TEST_WRAP_CHECK(Category, Predicate, ::std::tuple<>()).check
+
 #define FATAL_IMPL_BODY_TEST(Category, Predicate) \
   FATAL_IMPL_TEST_WRAP_CHECK( \
     Category, Predicate, \
     ::std::tuple<char const *>("<expression>") \
   ) << [&]()
 
-#define FATAL_IMPL_TEST_WRAP_CHECK(Category, Predicate, ArgsTuple) \
+#define FATAL_IMPL_TEST_WRAP_CHECK(Category, Predicate, ...) \
   ::fatal::test::detail::test_impl::make_check_wrapper< \
     ::fatal::test::detail::test_impl::categories::Category \
   >( \
     ::fatal::test::detail::test_impl::predicates::Predicate, \
     FATAL_SOURCE_INFO(), \
-    ArgsTuple \
+    __VA_ARGS__ \
   )
 
 template <
@@ -459,8 +454,6 @@ std::string any_to_string(T const &value) {
   return result;
 }
 
-// TODO: MOVE ELSEWHERE??
-
 void handle_exception(test_issue &issue) {
   try {
     auto e = std::current_exception();
@@ -487,11 +480,50 @@ void handle_exception(test_issue &issue) {
   }
 }
 
-template <typename TCategory, typename TPredicate, typename TArgsTuple>
+template <typename...> struct args_list {};
+
+template <typename... Args>
+struct call_predicate {
+  template <typename Predicate, typename... UArgs>
+  static bool call(Predicate &predicate, UArgs &&...args) {
+    return predicate(args_list<Args...>(), std::forward<UArgs>(args)...);
+  }
+};
+
+template <>
+struct call_predicate<> {
+  template <typename Predicate, typename... UArgs>
+  static bool call(Predicate &predicate, UArgs &&...args) {
+    return predicate(std::forward<UArgs>(args)...);
+  }
+};
+
+template <
+  typename Predicate,
+  bool = call_traits::args::member_function::supports<Predicate>::value
+>
+struct get_args_tuple {
+  template <typename Tuple>
+  static auto get(Tuple &&, Predicate &predicate)
+    -> decltype(
+      call_traits::args::member_function::call(
+        std::declval<Predicate &>()
+      )
+    )
+  { return predicate.args(); }
+};
+
+template <typename Predicate>
+struct get_args_tuple<Predicate, false> {
+  template <typename Tuple>
+  static Tuple &&get(Tuple &&tuple, Predicate &) { return tuple; }
+};
+
+template <typename Category, typename Predicate, typename ArgsTuple>
 class check_wrapper {
-  using predicate = TPredicate;
-  using args_tuple = TArgsTuple;
-  using category = TCategory;
+  using predicate = Predicate;
+  using args_tuple = ArgsTuple;
+  using category = Category;
 
 public:
   template <typename UPredicate, typename UArgsTuple>
@@ -505,19 +537,22 @@ public:
     args_(std::forward<UArgsTuple>(args))
   {}
 
-  template <typename... Args>
-  void check(Args &&...args) {
+  template <typename... Args, typename... UArgs>
+  void check(UArgs &&...args) {
     test_issue issue(category::severity(), clock::now(), source_);
 
     try {
-      if (predicate_(args...)) {
+      if (call_predicate<Args...>::call(predicate_, args...)) {
         return;
       }
 
       issue.append(category::name(), " failed: ");
 
-      // TODO: properly build message based on arity
-      append_args(issue, args_, args...);
+      append_args(
+        issue,
+        get_args_tuple<Predicate>::get(args_, predicate_),
+        args...
+      );
     } catch (...) {
       issue.append("unexpected exception ");
       handle_exception(issue);
@@ -542,52 +577,73 @@ private:
   }
 
   // TODO: CLEANUP - see TODO on unreachable::text()
-  template <typename Value>
-  void append_args(
-    test_issue &issue,
-    std::tuple<char const *> const &args,
-    Value const &value
-  ) {
+  template <typename TValue>
+  void append_args(test_issue &issue, std::tuple<TValue> const &arg) {
     issue.append(
-      "\n    ", std::get<0>(args), " -> ", any_to_string(value),
-      "\n      ", predicate_.text()
+      "\n    '", std::get<0>(arg),
+      "'\n      ", predicate_.text()
     );
   }
 
   // TODO: CLEANUP - see TODO on unreachable::text()
-  template <typename LHS, typename RHS>
+  template <typename TValue, typename Value>
   void append_args(
     test_issue &issue,
-    std::tuple<char const *, char const *> const &args,
+    std::tuple<TValue> const &arg,
+    Value const &value
+  ) {
+    issue.append(
+      "\n    '", std::get<0>(arg), "' -> '", any_to_string(value),
+      "'\n      ", predicate_.text()
+    );
+  }
+
+  // TODO: CLEANUP - see TODO on unreachable::text()
+  template <typename TLHS, typename TRHS>
+  void append_args(test_issue &issue, std::tuple<TLHS, TRHS> const &args) {
+    issue.append(
+      "\n    lhs: '", std::get<0>(args),
+      "'\n      ", predicate_.text(),
+      "\n    rhs: '", std::get<1>(args), '\''
+    );
+  }
+
+  // TODO: CLEANUP - see TODO on unreachable::text()
+  template <typename TLHS, typename TRHS, typename LHS, typename RHS>
+  void append_args(
+    test_issue &issue,
+    std::tuple<TLHS, TRHS> const &args,
     LHS const &lhs,
     RHS const &rhs
   ) {
     issue.append(
-      "\n    lhs: ", std::get<0>(args), " -> ", any_to_string(lhs),
-      "\n      ", predicate_.text(),
-      "\n    rhs: ", std::get<1>(args), " -> ", any_to_string(rhs)
+      "\n    lhs: '", std::get<0>(args), "' -> '", any_to_string(lhs),
+      "'\n      ", predicate_.text(),
+      "\n    rhs: '", std::get<1>(args), "' -> '", any_to_string(rhs), '\''
     );
   }
 
-  predicate const predicate_;
+  predicate predicate_;
   source_info const source_;
   args_tuple const args_;
 };
 
-template <typename TCategory, typename TPredicate, typename TArgsTuple>
+template <
+  typename Category, typename Predicate, typename ArgsTuple = std::tuple<>
+>
 check_wrapper<
-  TCategory,
-  typename std::decay<TPredicate>::type,
-  typename std::decay<TArgsTuple>::type
+  Category,
+  typename std::decay<Predicate>::type,
+  typename std::decay<ArgsTuple>::type
 > make_check_wrapper(
-  TPredicate &&predicate,
+  Predicate &&predicate,
   source_info source,
-  TArgsTuple &&args
+  ArgsTuple &&args = ArgsTuple()
 ) {
   return {
-    std::forward<TPredicate>(predicate),
+    std::forward<Predicate>(predicate),
     source,
-    std::forward<TArgsTuple>(args)
+    std::forward<ArgsTuple>(args)
   };
 }
 
@@ -770,6 +826,25 @@ struct greater_equal {
   char const *text() const { return "is greater than or equal to"; }
 };
 
+class same_type {
+  using args_text = std::tuple<std::string, std::string>;
+
+public:
+  template <typename LHS, typename RHS>
+  bool operator ()(args_list<LHS, RHS>) {
+    args_ = std::make_tuple(type_str<LHS>(), type_str<RHS>());
+    return std::is_same<LHS, RHS>::value;
+  }
+
+  args_text const &args() const { return args_; }
+
+  char const *text() const { return "is the same type as"; }
+
+private:
+  args_text args_;
+  std::string text_;
+};
+
 struct no_throw {
   template <typename T>
   bool operator ()(T &&what) const {
@@ -811,37 +886,6 @@ private:
 };
 
 } // namespace predicates {
-
-///////////////////////
-// FATAL_EXPECT_SAME //
-///////////////////////
-
-struct expect_same_impl {
-  explicit expect_same_impl(source_info source): source_(source) {}
-
-  template <typename TExpected, typename TActual>
-  void check(
-    char const *file_name = __FILE__,
-    std::size_t line_number = __LINE__
-  ) {
-    // TODO: reimplement using basic test framework
-    if (!std::is_same<TExpected, TActual>::value) {
-      std::cerr << "at " << file_name << ':' << line_number << ':'
-        << std::endl << std::endl
-        << "  expected: '" << type_str<TExpected>() << '\''
-        << std::endl << std::endl
-        << "  actual:   '" << type_str<TActual>() << '\''
-        << std::endl << std::endl;
-
-      using result = std::is_same<TExpected, TActual>;
-
-      FATAL_EXPECT_TRUE(result::value);
-    }
-  }
-
-private:
-  source_info source_;
-};
 
 class registry {
   struct entry {
