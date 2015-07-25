@@ -1116,50 +1116,73 @@ struct has_member_type {
 /**
  * TODO: DOCUMENT
  *
+ *  struct getter_name {
+ *    FATAL_STR(field, "field");
+ *
+ *    template <typename Owner>
+ *    static reference ref(Owner &owner);
+ *
+ *    struct ref_getter {
+ *      template <typename Owner>
+ *      reference operator ()(Owner &owner);
+ *    };
+ *
+ *    template <typename Owner>
+ *    static pointer ptr(Owner &owner);
+ *
+ *    struct ptr_getter {
+ *      template <typename Owner>
+ *      pointer operator ()(Owner &owner);
+ *    };
+ *  };
+ *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_DATA_MEMBER_GETTER(Class, ...) \
   struct Class { \
-    template <typename TOwner> \
-    using type = typename ::fatal::add_reference_from< \
+    template <typename Owner> \
+    using type = decltype(::std::declval<Owner>().__VA_ARGS__); \
+    \
+    template <typename Owner> \
+    using reference = typename ::fatal::add_reference_from< \
       typename ::fatal::constify_from< \
-        decltype(::std::declval<TOwner>().__VA_ARGS__), \
-        typename ::std::remove_reference<TOwner>::type \
+        type<Owner>, \
+        typename ::std::remove_reference<Owner>::type \
       >::type, \
-      TOwner \
+      Owner && \
     >::type; \
     \
-  public: \
     FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
-    template <typename TOwner> \
-    static type<TOwner &&> ref(TOwner &&owner) { \
-      return static_cast<type<TOwner &&>>( \
-        ::std::forward<TOwner>(owner).__VA_ARGS__ \
+    template <typename Owner> \
+    static reference<Owner> ref(Owner &&owner) { \
+      return static_cast<reference<Owner>>( \
+        ::std::forward<Owner>(owner).__VA_ARGS__ \
       ); \
     } \
     \
     struct ref_getter { \
-      template <typename TOwner> \
-      type<TOwner &&> operator ()(TOwner &&owner) const { \
-        return static_cast<type<TOwner &&>>( \
-          ::std::forward<TOwner>(owner).__VA_ARGS__ \
+      template <typename Owner> \
+      reference<Owner> operator ()(Owner &&owner) const { \
+        return static_cast<reference<Owner>>( \
+          ::std::forward<Owner>(owner).__VA_ARGS__ \
         ); \
       } \
     }; \
     \
-    template <typename TOwner> \
-    static typename ::std::remove_reference<type<TOwner>>::type *ptr( \
-      TOwner &owner \
-    ) { \
+    template <typename Owner> \
+    using pointer = typename ::std::remove_reference< \
+      reference<Owner> \
+    >::type *; \
+    \
+    template <typename Owner> \
+    static pointer<Owner> ptr(Owner &owner) { \
       return ::std::addressof(owner.__VA_ARGS__); \
     } \
     \
     struct ptr_getter { \
-      template <typename TOwner> \
-      typename ::std::remove_reference<type<TOwner>>::type *operator ()( \
-        TOwner &owner \
-      ) const { \
+      template <typename Owner> \
+      pointer<Owner> operator ()(Owner &owner) const { \
         return ::std::addressof(owner.__VA_ARGS__); \
       } \
     }; \

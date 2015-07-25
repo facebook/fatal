@@ -1559,13 +1559,13 @@ FATAL_TEST(data_member_getter, type) {
     FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &>>();\
   } while (false)
 
-  TEST_IMPL(i, int &);
+  TEST_IMPL(i, int);
   TEST_IMPL(s, std::string const &);
-  TEST_IMPL(l, long &);
-  TEST_IMPL(d, double const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
   TEST_IMPL(b, bool &);
-  TEST_IMPL(v, std::vector<short> &);
-  TEST_IMPL(f, float const &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
 
 # undef TEST_IMPL
 # define TEST_IMPL(Field, ...) \
@@ -1574,6 +1574,77 @@ FATAL_TEST(data_member_getter, type) {
     using data = data_member_getter_test::data; \
     \
     FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &&>>();\
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &&>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(data_member_getter, reference) {
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data>>();\
   } while (false)
 
   TEST_IMPL(i, int &&);
@@ -1590,15 +1661,32 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &>>();\
   } while (false)
 
-  TEST_IMPL(i, int const);
+  TEST_IMPL(i, int &);
   TEST_IMPL(s, std::string const &);
-  TEST_IMPL(l, long const &&);
-  TEST_IMPL(d, double const);
-  TEST_IMPL(b, bool const &);
-  TEST_IMPL(v, std::vector<short> const);
+  TEST_IMPL(l, long &);
+  TEST_IMPL(d, double const &);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short> &);
+  TEST_IMPL(f, float const &);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &&>>();\
+  } while (false)
+
+  TEST_IMPL(i, int &&);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const &&);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short> &&);
   TEST_IMPL(f, float const &&);
 
 # undef TEST_IMPL
@@ -1607,7 +1695,24 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const &&);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long const &&);
+  TEST_IMPL(d, double const &&);
+  TEST_IMPL(b, bool const &);
+  TEST_IMPL(v, std::vector<short> const &&);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const &>>(); \
   } while (false)
 
   TEST_IMPL(i, int const &);
@@ -1624,7 +1729,7 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &&>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const &&>>(); \
   } while (false)
 
   TEST_IMPL(i, int const &&);
@@ -1634,6 +1739,111 @@ FATAL_TEST(data_member_getter, type) {
   TEST_IMPL(b, bool const &);
   TEST_IMPL(v, std::vector<short> const &&);
   TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(data_member_getter, pointer) {
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data>>();\
+  } while (false)
+
+  TEST_IMPL(i, int *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool *);
+  TEST_IMPL(v, std::vector<short> *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &>>();\
+  } while (false)
+
+  TEST_IMPL(i, int *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool *);
+  TEST_IMPL(v, std::vector<short> *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &&>>();\
+  } while (false)
+
+  TEST_IMPL(i, int *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool *);
+  TEST_IMPL(v, std::vector<short> *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long const *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool const *);
+  TEST_IMPL(v, std::vector<short> const *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const &>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long const *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool const *);
+  TEST_IMPL(v, std::vector<short> const *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const &&>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long const *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool const *);
+  TEST_IMPL(v, std::vector<short> const *);
+  TEST_IMPL(f, float const *);
 
 # undef TEST_IMPL
 }
