@@ -58,6 +58,32 @@ namespace fatal {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+namespace detail {
+
+template <typename std::size_t Threshold>
+struct variant_automatic_policy_impl {
+  template <
+    typename T,
+    typename = enable_when::any_true<
+      std::is_scalar<T>,
+      bool_constant<(sizeof(T) <= Threshold)>
+    >
+  >
+  static std::true_type sfinae(T *);
+
+  template <typename...>
+  static std::false_type sfinae(...);
+
+  template <typename T>
+  using type = logical_transform::all<
+    is_complete<T>,
+    decltype(sfinae(static_cast<T *>(nullptr)))
+  >;
+};
+
+} // namespace detail {
+
+
 template <
   std::size_t allocateMultiplier = 1,
   std::size_t allocateIncrement = sizeof(std::size_t)
@@ -65,22 +91,31 @@ template <
 class default_allocation_policy {
   template <typename T>
   using allocate_threshold = size_constant<
-    allocateMultiplier * sizeof(T*) + allocateIncrement
+    allocateMultiplier * sizeof(void *) + allocateIncrement
   >;
 
 public:
   template <typename T>
-  using dynamic = bool_constant<
-    !is_complete<T>::value || (
-      !std::is_scalar<T>::value && allocate_threshold<T>::value < sizeof(T)
-    )
-  >;
+  using dynamic = bool_constant<!(
+    detail::variant_automatic_policy_impl<allocate_threshold<T>::value>
+      ::template type<T>::value
+  )>;
 };
 
-template <bool alwaysDynamic>
-struct fixed_allocation_policy {
-  template <typename>
-  using dynamic = bool_constant<alwaysDynamic>;
+template <bool AlwaysDynamic>
+class fixed_allocation_policy {
+  template <typename T>
+  struct impl {
+    static_assert(
+      AlwaysDynamic || is_complete<T>::value,
+      "can't allocate an incomplete type using automatic storage duration"
+    );
+    using type = bool_constant<AlwaysDynamic>;
+  };
+
+public:
+  template <typename T>
+  using dynamic = typename impl<T>::type;
 };
 
 using dynamic_allocation_policy = fixed_allocation_policy<true>;
@@ -152,6 +187,9 @@ struct default_storage_policy {
    */
   constexpr static bool is_copyable() { return IsCopyable; }
 
+  template <typename T>
+  using allocate_dynamically = typename allocation_policy::template dynamic<T>;
+
   /**
    * This class abstracts the interaction with TAllocationPolicy. It provides
    * a member type for the internal storage representation of the given type T,
@@ -166,12 +204,10 @@ struct default_storage_policy {
     );
 
   public:
-    constexpr static bool allocate_dynamically() {
-      return allocation_policy::template dynamic<T>::value;
-    }
+    using dynamic = allocate_dynamically<T>;
 
     static_assert(
-      is_complete<T>::value || allocate_dynamically(),
+      is_complete<T>::value || dynamic::value,
       "can't allocate an incomplete type using automatic storage duration"
     );
 
@@ -179,7 +215,7 @@ struct default_storage_policy {
     // pointers are used since we aim for the smallest possible footprint
     // (having a copy of the deleter for every pointer is undesired).
     using type = typename std::conditional<
-        allocate_dynamically(),
+        dynamic::value,
         T *, unitary_union<T, false>
       >::type;
   };
@@ -188,14 +224,14 @@ struct default_storage_policy {
   //
   // The methods below are guaranteed to work on `T *` due to:
   //  typename std::enable_if<
-  //    storage_type<T>::allocate_dynamically(),
+  //    storage_type<T>::dynamic::value,
   //    ...
 
   template <typename T, typename... Args>
   static void allocate(
     allocator_type *allocator,
     typename std::enable_if<
-      storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
@@ -206,7 +242,7 @@ struct default_storage_policy {
   static void deallocate(
     allocator_type *allocator,
     typename std::enable_if<
-      storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
@@ -218,7 +254,7 @@ struct default_storage_policy {
   static T &construct(
     allocator_type *allocator,
     typename std::enable_if<
-      storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage,
     Args &&...args
   ) {
@@ -231,7 +267,7 @@ struct default_storage_policy {
   static void destroy(
     allocator_type *allocator,
     typename std::enable_if<
-      storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
@@ -241,7 +277,7 @@ struct default_storage_policy {
   template <typename T>
   static void move_over(
     typename std::enable_if<
-      storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &from,
     typename storage_type<T>::type &to
   ) {
@@ -252,7 +288,7 @@ struct default_storage_policy {
   template <typename T>
   static T const &get(
     typename std::enable_if<
-      storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type const &storage
   ) {
     return *storage;
@@ -261,7 +297,7 @@ struct default_storage_policy {
   template <typename T>
   static T &get(
     typename std::enable_if<
-      storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     return *storage;
@@ -271,14 +307,14 @@ struct default_storage_policy {
   //
   // The methods below are guaranteed to work on `union { T value; };` due to:
   //  typename std::enable_if<
-  //    !storage_type<T>::allocate_dynamically(),
+  //    !storage_type<T>::dynamic::value,
   //    ...
 
   template <typename T, typename... Args>
   static void allocate(
     allocator_type *,
     typename std::enable_if<
-      !storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &
   ) {}
 
@@ -286,7 +322,7 @@ struct default_storage_policy {
   static void deallocate(
     allocator_type *,
     typename std::enable_if<
-      !storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &
   ) {}
 
@@ -294,7 +330,7 @@ struct default_storage_policy {
   static T &construct(
     allocator_type *,
     typename std::enable_if<
-      !storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage,
     Args &&...args
   ) {
@@ -305,7 +341,7 @@ struct default_storage_policy {
   static void destroy(
     allocator_type *,
     typename std::enable_if<
-      !storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     storage.value.~T();
@@ -314,7 +350,7 @@ struct default_storage_policy {
   template <typename T>
   static void move_over(
     typename std::enable_if<
-      !storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &from,
     typename storage_type<T>::type &to
   ) {
@@ -325,7 +361,7 @@ struct default_storage_policy {
   template <typename T>
   static T const &get(
     typename std::enable_if<
-      !storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type const &storage
   ) {
     return storage.value;
@@ -334,7 +370,7 @@ struct default_storage_policy {
   template <typename T>
   static T &get(
     typename std::enable_if<
-      !storage_type<T>::allocate_dynamically(), typename storage_type<T>::type
+      !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     return storage.value;
@@ -1597,14 +1633,14 @@ using auto_variant = variant<
   Args...
 >;
 
-template <typename... Args>
-using default_dynamic_variant = variant<
-  default_storage_policy<
-    std::allocator<void>,
-    dynamic_allocation_policy
-  >,
+template <typename Allocator, typename... Args>
+using dynamic_variant = variant<
+  default_storage_policy<Allocator, dynamic_allocation_policy>,
   Args...
 >;
+
+template <typename... Args>
+using default_dynamic_variant = dynamic_variant<std::allocator<void>, Args...>;
 
 /**
  * Wraps non-derived visitors that return a value on operator()

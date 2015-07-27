@@ -201,11 +201,10 @@ checked_allocator<
   typename default_storage_policy<>::allocator_type::rebind<int>::other()
 };
 
+using test_policy = default_storage_policy<decltype(allocator)>;
+
 template <typename... Args>
-using test_variant = variant<
-  default_storage_policy<decltype(allocator)>,
-  Args...
->;
+using test_variant = variant<test_policy, Args...>;
 
 template <typename T>
 using basic_test_string = std::basic_string<
@@ -1511,9 +1510,8 @@ FATAL_TEST(variant, arena_allocator) {
   FATAL_EXPECT_TRUE(v.empty());
 }
 
-template <typename StoragePolicy = default_storage_policy<decltype(allocator)>>
-struct t_nested_vector;
-template <typename StoragePolicy = default_storage_policy<decltype(allocator)>>
+template <typename StoragePolicy = test_policy> struct t_nested_vector;
+template <typename StoragePolicy = test_policy>
 using t_nested_variant = variant<StoragePolicy, int, t_nested_vector<>>;
 template <typename StoragePolicy>
 struct t_nested_vector: public test_vector<t_nested_variant<StoragePolicy>> {};
@@ -1533,9 +1531,7 @@ FATAL_TEST(variant, templated_nested_variant) {
 }
 
 struct nested_vector;
-using nested_variant = variant<
-  default_storage_policy<decltype(allocator)>, int, nested_vector
->;
+using nested_variant = variant<test_policy, int, nested_vector>;
 struct nested_vector:
   public test_vector<nested_variant>
 {
@@ -2282,6 +2278,70 @@ FATAL_TEST(variant, set_difference_inplace) {
   }, allocator);
   FATAL_EXPECT_EQ(expected.size(), lhs.size());
   FATAL_EXPECT_EQ(expected, lhs);
+}
+
+struct incomplete;
+struct below_threshold { void *a; };
+struct at_threshold { void * a; std::size_t b; };
+struct above_threshold { void * a; std::size_t b; int c; double d; };
+struct default_recursive;
+struct dynamic_recursive;
+
+using default_policy_test_variant = variant<
+  default_storage_policy<decltype(allocator)>,
+  incomplete, below_threshold, at_threshold, above_threshold, default_recursive
+>;
+
+using dynamic_policy_test_variant = dynamic_variant<
+  decltype(allocator),
+  incomplete, below_threshold, at_threshold, above_threshold, dynamic_recursive
+>;
+
+using automatic_policy_test_variant = auto_variant<
+  below_threshold, at_threshold, above_threshold
+>;
+
+struct default_recursive { default_policy_test_variant field; };
+struct dynamic_recursive { dynamic_policy_test_variant field; };
+
+template <typename T>
+using default_policy_test = default_policy_test_variant::storage_policy
+  ::allocate_dynamically<T>;
+
+template <typename T>
+using dynamic_policy_test = dynamic_policy_test_variant::storage_policy
+  ::allocate_dynamically<T>;
+
+template <typename T>
+using automatic_policy_test = automatic_policy_test_variant::storage_policy
+  ::allocate_dynamically<T>;
+
+FATAL_TEST(default_allocation_policy, storage_duration) {
+  FATAL_EXPECT_FALSE(default_policy_test<char>::value);
+  FATAL_EXPECT_FALSE(default_policy_test<int>::value);
+  FATAL_EXPECT_FALSE(default_policy_test<below_threshold>::value);
+  FATAL_EXPECT_FALSE(default_policy_test<at_threshold>::value);
+  FATAL_EXPECT_TRUE(default_policy_test<above_threshold>::value);
+  FATAL_EXPECT_TRUE(default_policy_test<incomplete>::value);
+  FATAL_EXPECT_TRUE(default_policy_test<default_recursive>::value);
+}
+
+FATAL_TEST(dynamic_allocation_policy, storage_duration) {
+  FATAL_EXPECT_TRUE(dynamic_policy_test<char>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<int>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<below_threshold>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<at_threshold>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<above_threshold>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<incomplete>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<dynamic_recursive>::value);
+}
+
+FATAL_TEST(automatic_allocation_policy, storage_duration) {
+  FATAL_EXPECT_FALSE(automatic_policy_test<char>::value);
+  FATAL_EXPECT_FALSE(automatic_policy_test<int>::value);
+  FATAL_EXPECT_FALSE(automatic_policy_test<below_threshold>::value);
+  FATAL_EXPECT_FALSE(automatic_policy_test<at_threshold>::value);
+  FATAL_EXPECT_FALSE(automatic_policy_test<above_threshold>::value);
 }
 
 // This MUST be the LAST test.
