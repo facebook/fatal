@@ -833,7 +833,7 @@ public:
 } // namespace detail {
 
 template <typename, typename...>
-struct variant;
+struct legacy_variant;
 
 template <typename, typename...>
 struct is_variant:
@@ -841,7 +841,7 @@ struct is_variant:
 {};
 
 template <typename UStoragePolicy, typename... UArgs>
-struct is_variant<variant<UStoragePolicy, UArgs...>>:
+struct is_variant<legacy_variant<UStoragePolicy, UArgs...>>:
   public std::true_type
 {};
 
@@ -865,7 +865,7 @@ struct is_variant<variant<UStoragePolicy, UArgs...>>:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename TStoragePolicy, typename... Args>
-struct variant {
+struct legacy_variant {
   using storage_policy = TStoragePolicy;
   using allocator_type = typename storage_policy::allocator_type;
   using types = type_list<Args...>;
@@ -931,15 +931,15 @@ public:
    * This method is provided mainly for compatibility with some
    * standard containers.
    */
-  explicit variant():
+  explicit legacy_variant():
     control_(nullptr, no_tag())
   {}
 
-  explicit variant(allocator_type &allocator):
+  explicit legacy_variant(allocator_type &allocator):
     control_(std::addressof(allocator), no_tag())
   {}
 
-  variant(variant const &other):
+  legacy_variant(legacy_variant const &other):
     control_(copy_impl(other))
   {
     static_assert(
@@ -949,40 +949,40 @@ public:
   }
 
   /* may throw */
-  variant(variant &&other):
+  legacy_variant(legacy_variant &&other):
     control_(move_impl(std::move(other)))
   {}
 
   template <typename U>
-  explicit variant(allocator_type *allocator, U &&value):
+  explicit legacy_variant(allocator_type *allocator, U &&value):
     control_(allocator, no_tag())
   {
     set<typename std::decay<U>::type>(std::forward<U>(value));
   }
 
   template <typename U>
-  explicit variant(allocator_type &allocator, U &&value):
-    variant(std::addressof(allocator), std::forward<U>(value))
+  explicit legacy_variant(allocator_type &allocator, U &&value):
+    legacy_variant(std::addressof(allocator), std::forward<U>(value))
   {}
 
   template <typename... UArgs>
-  variant(variant<storage_policy, UArgs...> const &other):
-    variant(other.allocator())
+  legacy_variant(legacy_variant<storage_policy, UArgs...> const &other):
+    legacy_variant(other.allocator())
   {
     other.visit(copy_variant_visitor<true, false>(), *this);
   }
 
   template <typename UStoragePolicy, typename... UArgs>
-  variant(
+  legacy_variant(
     allocator_type &allocator,
-    variant<UStoragePolicy, UArgs...> const &other
+    legacy_variant<UStoragePolicy, UArgs...> const &other
   ):
-    variant(allocator)
+    legacy_variant(allocator)
   {
     other.visit(copy_variant_visitor<true, false>(), *this);
   }
 
-  ~variant() { unset_impl(control_.allocator()); }
+  ~legacy_variant() { unset_impl(control_.allocator()); }
 
   /**
    * The unchecked_get won't perform type checks. The user must ensure the
@@ -1232,7 +1232,7 @@ public:
   void clear() { unset_impl(control_.allocator()); }
   bool empty() const { return control_.storedType() == no_tag(); }
 
-  void swap(variant &other) {
+  void swap(legacy_variant &other) {
     if (this == std::addressof(other)) {
       return;
     }
@@ -1262,7 +1262,7 @@ public:
   bool is_of() const { return tag() == tag<U>(); }
 
   template <typename U>
-  using tag_for = std::integral_constant<type_tag, variant::tag<U>()>;
+  using tag_for = std::integral_constant<type_tag, legacy_variant::tag<U>()>;
 
   template <typename UList>
   using tags_for = typename UList::template transform<tag_for>;
@@ -1301,7 +1301,7 @@ public:
     control_.set_allocator(std::addressof(allocator));
   }
 
-  variant &operator =(variant const &other) {
+  legacy_variant &operator =(legacy_variant const &other) {
     static_assert(
       storage_policy::is_copyable(),
       "copy assignment disabled by the variant's policy"
@@ -1315,11 +1315,11 @@ public:
     return *this;
   }
 
-  variant &operator =(variant &other) {
-    return (*this = static_cast<variant const &>(other));
+  legacy_variant &operator =(legacy_variant &other) {
+    return (*this = static_cast<legacy_variant const &>(other));
   }
 
-  variant &operator =(variant &&other) {
+  legacy_variant &operator =(legacy_variant &&other) {
     if (this != std::addressof(other)) {
       unset_impl(control_.allocator());
       control_ = move_impl(std::move(other));
@@ -1335,7 +1335,7 @@ public:
 
   template <
     typename U,
-    typename = safe_overload_t<variant, U>,
+    typename = safe_overload_t<legacy_variant, U>,
     typename = enable_when::forwarded_non_const_rvalue<U>
   >
   U &operator =(U &&value) & {
@@ -1349,7 +1349,7 @@ public:
 
   template <
     typename U,
-    typename = safe_overload_t<variant, U>,
+    typename = safe_overload_t<legacy_variant, U>,
     typename = enable_when::forwarded_non_const_rvalue<U>
   >
   U &&operator =(U &&value) && {
@@ -1357,7 +1357,9 @@ public:
   }
 
   template <typename UStoragePolicy, typename... UArgs>
-  variant &operator =(variant<UStoragePolicy, UArgs...> const &other) {
+  legacy_variant &operator =(
+    legacy_variant<UStoragePolicy, UArgs...> const &other
+  ) {
     if (!other.visit(copy_variant_visitor<false, true>(), *this)) {
       clear();
     }
@@ -1366,7 +1368,7 @@ public:
   }
 
   template <typename UStoragePolicy, typename... UArgs>
-  variant &operator =(variant<UStoragePolicy, UArgs...> &other) {
+  legacy_variant &operator =(legacy_variant<UStoragePolicy, UArgs...> &other) {
     if (!other.visit(copy_variant_visitor<false, true>(), *this)) {
       clear();
     }
@@ -1375,7 +1377,7 @@ public:
   }
 
   template <typename... UArgs>
-  variant &operator =(variant<storage_policy, UArgs...> &&other) {
+  legacy_variant &operator =(legacy_variant<storage_policy, UArgs...> &&other) {
     if (allocator() == other.allocator()) {
       if (!other.visit(copy_variant_visitor<false, true>(), *this)) {
         clear();
@@ -1402,7 +1404,7 @@ public:
   }
 
   template <typename UStoragePolicy, typename... UArgs>
-  variant &operator =(variant<UStoragePolicy, UArgs...> &&other) {
+  legacy_variant &operator =(legacy_variant<UStoragePolicy, UArgs...> &&other) {
     if (!other.visit(copy_variant_visitor<false, true>(), *this)) {
       clear();
     }
@@ -1411,7 +1413,7 @@ public:
     return *this;
   }
 
-  bool operator ==(variant const &other) const {
+  bool operator ==(legacy_variant const &other) const {
     auto const storedType = control_.storedType();
 
     if (storedType != other.control_.storedType()) {
@@ -1421,7 +1423,7 @@ public:
     return traits::equals(storedType, union_, other.union_);
   }
 
-  bool operator <(variant const &other) const {
+  bool operator <(legacy_variant const &other) const {
     auto const storedType = control_.storedType();
     auto const otherStoredType = other.control_.storedType();
 
@@ -1432,10 +1434,21 @@ public:
     return traits::less_than(storedType, union_, other.union_);
   }
 
-  bool operator !=(variant const &other) const { return !(*this == other); }
-  bool operator >(variant const &other) const { return other < *this; }
-  bool operator <=(variant const &other) const { return !(other < *this); }
-  bool operator >=(variant const &other) const { return !(*this < other); }
+  bool operator !=(legacy_variant const &other) const {
+    return !(*this == other);
+  }
+
+  bool operator >(legacy_variant const &other) const {
+    return other < *this;
+  }
+
+  bool operator <=(legacy_variant const &other) const {
+    return !(other < *this);
+  }
+
+  bool operator >=(legacy_variant const &other) const {
+    return !(*this < other);
+  }
 
 private:
   union_type union_;
@@ -1492,7 +1505,7 @@ private:
   }
 
   // assumes already unset
-  control_block copy_impl(variant const &other) {
+  control_block copy_impl(legacy_variant const &other) {
     auto const otherStoredType = other.control_.storedType();
     auto otherAllocator = other.control_.allocator();
 
@@ -1514,7 +1527,7 @@ private:
   }
 
   // assumes already unset
-  control_block move_impl(variant &&other) {
+  control_block move_impl(legacy_variant &&other) {
     auto const otherStoredType = other.control_.storedType();
 
     if (otherStoredType != no_tag()) {
@@ -1533,12 +1546,12 @@ private:
   class copy_variant_visitor {
     template <typename U, bool>
     struct setter {
-      static void set(variant &v, U const &value) { v.set(value); }
+      static void set(legacy_variant &v, U const &value) { v.set(value); }
     };
 
     template <typename U>
     struct setter<U, false> {
-      static void set(variant &v, U const &) {
+      static void set(legacy_variant &v, U const &) {
         if (ClearIfUnsupported) {
           v.clear();
         }
@@ -1551,7 +1564,7 @@ private:
 
   public:
     template <typename U>
-    void operator ()(U const &value, variant &v) {
+    void operator ()(U const &value, legacy_variant &v) {
       static_assert(
         storage_policy::is_copyable(),
         "copy disabled by the variant's policy"
@@ -1559,10 +1572,15 @@ private:
 
       using type = typename std::decay<U>::type;
 
-      setter<type, variant::template is_supported<type>()>::set(v, value);
+      setter<type, legacy_variant::template is_supported<type>()>::set(
+        v, value
+      );
     }
   };
 };
+
+template <typename TStoragePolicy, typename... Args>
+using variant = legacy_variant<TStoragePolicy, Args...>;
 
 template <typename... Args>
 using default_variant = variant<
