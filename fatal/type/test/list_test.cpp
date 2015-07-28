@@ -27,11 +27,11 @@ using P0 = P<0>; using P1 = P<1>; using P2 = P<2>;
 using S0 = S<0>; using S1 = S<1>; using S2 = S<2>;
 
 template <typename...> struct is_T: public std::false_type {};
-template <int Value> struct is_T<T<Value>>: public std::true_type {};
+template <std::int64_t Value> struct is_T<T<Value>>: public std::true_type {};
 template <typename...> struct is_P: public std::false_type {};
-template <int Value> struct is_P<P<Value>>: public std::true_type {};
+template <std::int64_t Value> struct is_P<P<Value>>: public std::true_type {};
 template <typename...> struct is_S: public std::false_type {};
-template <int Value> struct is_S<S<Value>>: public std::true_type {};
+template <std::int64_t Value> struct is_S<S<Value>>: public std::true_type {};
 
 
 using vl = type_list<void>;
@@ -48,8 +48,10 @@ using tpls = type_list<P0, P1, P2, T0, T1, T2, S0, S1, S2>;
 
 template <char Value> using chr_val = std::integral_constant<char, Value>;
 template <char... Values> using chr_seq = type_list<chr_val<Values>...>;
-template <int Value> using int_val = std::integral_constant<int, Value>;
-template <int... Values> using int_seq = type_list<int_val<Values>...>;
+template <std::int64_t Value> using int_val = std::integral_constant<
+  std::int64_t, Value
+>;
+template <std::int64_t... Values> using int_seq = type_list<int_val<Values>...>;
 template <typename...> struct lst {};
 
 template <typename T, T Multiplier>
@@ -62,9 +64,7 @@ struct multiply_transform {
 };
 
 template <typename T>
-using halve_val = std::integral_constant<int, T::value / 2>;
-
-struct xyz { int x; int y; int z; };
+using halve_val = std::integral_constant<std::int64_t, T::value / 2>;
 
 /////////////////////
 // type_list::size //
@@ -446,7 +446,7 @@ FATAL_TEST(apply_front, apply_front) {
 template <template <int...> class TTemplate>
 struct foreach_if_predicate {
   template <int... UArgs> static std::true_type sfinae(TTemplate<UArgs...> *);
-  static std::false_type sfinae(...);
+  template <int...> static std::false_type sfinae(...);
 
   template <typename U>
   using apply = decltype(sfinae(static_cast<U *>(nullptr)));
@@ -489,10 +489,10 @@ void check_foreach_if(foreach_if_expected expected) {
 }
 
 FATAL_TEST(foreach_if, foreach_if) {
-  typedef type_list<
+  using list1 = type_list<
     //     1      2      3      4      5      6      7      8
     T<10>, P<22>, S<67>, T<41>, S<97>, P<83>, T<16>, P<32>, S<75>
-  > list1;
+  >;
 
   check_foreach_if<T, list1>(foreach_if_expected{{0, 10}, {3, 41}, {6, 16}});
   check_foreach_if<S, list1>(foreach_if_expected{{2, 67}, {4, 97}, {8, 75}});
@@ -643,7 +643,7 @@ FATAL_TEST(indexed_transform, indexed_transform) {
 // type_list::cumulative_transform //
 /////////////////////////////////////
 
-template <bool Inclusive, int... Values>
+template <bool Inclusive, std::int64_t... Values>
 using cumulative_sum = typename int_seq<Values...>
   ::template cumulative_transform<Inclusive>
   ::template apply<arithmetic_transform::add, int_val<0>>;
@@ -1464,31 +1464,27 @@ FATAL_TEST(is_sorted, is_sorted) {
 // type_list::merge //
 //////////////////////
 
-template <typename TLHS, typename TRHS, typename TActual, int... Expected>
+template <
+  typename TLHS, typename TRHS, typename TActual, std::int64_t... Expected
+>
 void check_merge_impl() {
   using expected = int_seq<Expected...> ;
-
-  if (!std::is_same<expected, TActual>::value) {
-    FATAL_VLOG(1) << "lhs: '" << type_str<TLHS>() << '\'';
-    FATAL_VLOG(1) << "rhs: '" << type_str<TRHS>() << '\'';
-  }
-
   FATAL_EXPECT_SAME<expected, TActual>();
 }
 
-template <typename TLHS, typename TRHS, int... Expected>
+template <typename TLHS, typename TRHS, std::int64_t... Expected>
 void check_merge() {
   check_merge_impl<
     TLHS, TRHS,
     typename TLHS::template merge<>::template list<TRHS>
-      ::template apply_values<int, int_seq>,
+      ::template apply_values<std::int64_t, int_seq>,
     Expected...
   >();
 
   check_merge_impl<
     TLHS, TRHS,
     typename TRHS::template apply<TLHS::template merge<>::template args>
-      ::template apply_values<int, int_seq>,
+      ::template apply_values<std::int64_t, int_seq>,
     Expected...
   >();
 }
@@ -1523,7 +1519,7 @@ FATAL_TEST(merge, merge) {
 // type_list::sort //
 /////////////////////
 
-template <typename TExpectedList, int... Values>
+template <typename TExpectedList, std::int64_t... Values>
 void check_sort() {
   typedef TExpectedList expected;
 
@@ -1534,15 +1530,9 @@ void check_sort() {
 
   using input = int_seq<Values...>;
   using sorted = typename input::template sort<>;
-  auto is_sorted = sorted::template is_sorted<>::value;
-  using actual = typename sorted::template apply_values<int, int_seq>;
+  using actual = typename sorted::template apply_values<std::int64_t, int_seq>;
 
-  if (!is_sorted || !std::is_same<expected, actual>::value) {
-    FATAL_VLOG(1) << "input: '" << type_str<input>() << '\'';
-    FATAL_VLOG(1) << "result: '" << type_str<actual>() << '\'';
-  }
-
-  FATAL_EXPECT_TRUE(is_sorted);
+  FATAL_EXPECT_TRUE(sorted::template is_sorted<>::value);
   FATAL_EXPECT_SAME<expected, actual>();
 }
 
@@ -1661,73 +1651,123 @@ struct bs_visitor {
   };
 };
 
-template <
-  typename T,
-  bool Result, T Needle, std::size_t ExpectedIndex,
-  typename TList, T Empty
->
-void check_bs_exact() {
-  auto actual = Empty;
-  std::size_t index = TList::size;
-
-  auto result = TList::template binary_search<type_value_comparer>::exact(
-    Needle, bs_visitor<T>(), actual, index
-  );
-
-  auto const expectedResult = Result;
-  FATAL_EXPECT_EQ(expectedResult, result);
-  auto const expectedValue = Result ? Needle : Empty;
-  FATAL_EXPECT_EQ(expectedValue, actual);
-  auto const expectedIndex = ExpectedIndex;
-  FATAL_EXPECT_EQ(expectedIndex, index);
-}
-
 FATAL_TEST(binary_search, exact) {
-  typedef chr_seq<> empty;
+# define CHECK_BS_EXACT(T, Result, Needle, ExpectedIndex, TList, Empty) \
+  do { \
+    T actual = Empty; \
+    auto index = TList::size; \
+    \
+    auto const result = TList::template binary_search<type_value_comparer> \
+      ::exact(Needle, bs_visitor<T>(), actual, index); \
+    \
+    auto const expectedResult = Result; \
+    FATAL_EXPECT_EQ(expectedResult, result); \
+    auto const expectedValue = Result ? Needle : Empty; \
+    FATAL_EXPECT_EQ(expectedValue, actual); \
+    auto const expectedIndex = ExpectedIndex; \
+    FATAL_EXPECT_EQ(expectedIndex, index); \
+  } while (false)
 
-  FATAL_VLOG(1) << "empty";
-  check_bs_exact<char, false, '-', empty::size, empty, '\0'>();
-  check_bs_exact<int,  false, 3,   empty::size, empty, -1>();
+  using empty = chr_seq<>;
 
-  typedef chr_seq<'x'> one;
+  CHECK_BS_EXACT(char, false, '-', empty::size, empty, '\0');
+  CHECK_BS_EXACT(std::int64_t,  false, 3,   empty::size, empty, -1);
 
-  FATAL_VLOG(1) << "one";
-  check_bs_exact<char, false, '-', one::size, one, '\0'>();
-  check_bs_exact<char, true,  'x', 0, one, '\0'>();
+  using one = chr_seq<'x'>;
 
-  typedef chr_seq<'x', 'y'> two;
+  CHECK_BS_EXACT(char, false, '-', one::size, one, '\0');
+  CHECK_BS_EXACT(char, true,  'x', 0, one, '\0');
 
-  FATAL_VLOG(1) << "two";
-  check_bs_exact<char, false, '-', two::size, two, '\0'>();
-  check_bs_exact<char, true,  'x', 0, two, '\0'>();
-  check_bs_exact<char, true,  'y', 1, two, '\0'>();
+  using two = chr_seq<'x', 'y'>;
 
-  typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
+  CHECK_BS_EXACT(char, false, '-', two::size, two, '\0');
+  CHECK_BS_EXACT(char, true,  'x', 0, two, '\0');
+  CHECK_BS_EXACT(char, true,  'y', 1, two, '\0');
 
-  FATAL_VLOG(1) << "aeiou";
-  check_bs_exact<char, false, 'x', aeiou::size, aeiou, '\0'>();
+  using aeiou = chr_seq<'a', 'e', 'i', 'o', 'u'>;
 
-  check_bs_exact<char, true, 'a', 0, aeiou, '\0'>();
-  check_bs_exact<char, true, 'e', 1, aeiou, '\0'>();
-  check_bs_exact<char, true, 'i', 2, aeiou, '\0'>();
-  check_bs_exact<char, true, 'o', 3, aeiou, '\0'>();
-  check_bs_exact<char, true, 'u', 4, aeiou, '\0'>();
+  CHECK_BS_EXACT(char, false, 'x', aeiou::size, aeiou, '\0');
 
-  typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287, 2147483647> mp;
+  CHECK_BS_EXACT(char, true, 'a', 0, aeiou, '\0');
+  CHECK_BS_EXACT(char, true, 'e', 1, aeiou, '\0');
+  CHECK_BS_EXACT(char, true, 'i', 2, aeiou, '\0');
+  CHECK_BS_EXACT(char, true, 'o', 3, aeiou, '\0');
+  CHECK_BS_EXACT(char, true, 'u', 4, aeiou, '\0');
 
-  FATAL_VLOG(1) << "mp";
-  check_bs_exact<int, false, -1,         mp::size, mp, -1>();
-  check_bs_exact<int, false, 0,          mp::size, mp, -1>();
-  check_bs_exact<int, false, 63,         mp::size, mp, -1>();
-  check_bs_exact<int, false, 63,         mp::size, mp, -1>();
-  check_bs_exact<int, true,  3,          0, mp, -1>();
-  check_bs_exact<int, true,  7,          1, mp, -1>();
-  check_bs_exact<int, true,  31,         2, mp, -1>();
-  check_bs_exact<int, true,  127,        3, mp, -1>();
-  check_bs_exact<int, true,  8191,       4, mp, -1>();
-  check_bs_exact<int, true,  131071,     5, mp, -1>();
-  check_bs_exact<int, true,  524287,     6, mp, -1>();
-  check_bs_exact<int, true,  2147483647, 7, mp, -1>();
+  using mp = int_seq<3, 7, 31, 127, 8191, 131071, 524287, 2147483647>;
+
+  CHECK_BS_EXACT(std::int64_t, false, -1,         mp::size, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 0,          mp::size, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 63,         mp::size, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, true,  3,          0, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, true,  7,          1, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, true,  31,         2, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, true,  127,        3, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, true,  8191,       4, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, true,  131071,     5, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, true,  524287,     6, mp, -1);
+  CHECK_BS_EXACT(std::int64_t, true,  2147483647, 7, mp, -1);
+
+  using pw2 = int_seq<
+    1, 2, 4, 8, 16, 32, 64, 128, 256,
+    512, 1024, 2048, 4096, 8192, 16384, 32768, 65536,
+    131072, 262144, 524288, 1048576
+  >;
+
+  CHECK_BS_EXACT(std::int64_t, false, -1,         pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 0,          pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 63,         pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 3,          pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 7,          pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 31,         pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 127,        pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 8191,       pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 131071,     pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 524287,     pw2::size, pw2, -1);
+  CHECK_BS_EXACT(std::int64_t, false, 2147483647, pw2::size, pw2, -1);
+
+# define CHECK_PW2_EXACT(P) \
+  CHECK_BS_EXACT( \
+    std::int64_t, (P < pw2::size), std::int64_t(1 << P), \
+    (P < pw2::size ? P : pw2::size), pw2, -1 \
+  )
+
+  CHECK_PW2_EXACT(0);
+  CHECK_PW2_EXACT(1);
+  CHECK_PW2_EXACT(2);
+  CHECK_PW2_EXACT(3);
+  CHECK_PW2_EXACT(4);
+  CHECK_PW2_EXACT(5);
+  CHECK_PW2_EXACT(6);
+  CHECK_PW2_EXACT(7);
+  CHECK_PW2_EXACT(8);
+  CHECK_PW2_EXACT(9);
+  CHECK_PW2_EXACT(10);
+  CHECK_PW2_EXACT(11);
+  CHECK_PW2_EXACT(12);
+  CHECK_PW2_EXACT(13);
+  CHECK_PW2_EXACT(14);
+  CHECK_PW2_EXACT(15);
+  CHECK_PW2_EXACT(16);
+  CHECK_PW2_EXACT(17);
+  CHECK_PW2_EXACT(18);
+  CHECK_PW2_EXACT(19);
+  CHECK_PW2_EXACT(20);
+  CHECK_PW2_EXACT(20);
+  CHECK_PW2_EXACT(21);
+  CHECK_PW2_EXACT(22);
+  CHECK_PW2_EXACT(23);
+  CHECK_PW2_EXACT(24);
+  CHECK_PW2_EXACT(25);
+  CHECK_PW2_EXACT(26);
+  CHECK_PW2_EXACT(27);
+  CHECK_PW2_EXACT(28);
+  CHECK_PW2_EXACT(29);
+  CHECK_PW2_EXACT(30);
+  CHECK_PW2_EXACT(31);
+
+# undef CHECK_PW2_EXACT
+# undef CHECK_BS_EXACT
 }
 
 ///////////////////////////////////////////
@@ -1739,9 +1779,9 @@ template <
   bool Result, T Needle, T ExpectedValue, std::size_t ExpectedIndex,
   typename TList, T Empty
 >
-void check_bs_lower_bound() {
-  auto actual = Empty;
-  std::size_t index = TList::size;
+void check_bs_lbound() {
+  T actual = Empty;
+  auto index = TList::size;
 
   auto result = TList::template binary_search<type_value_comparer>::lower_bound(
     Needle, bs_visitor<T>(), actual, index
@@ -1756,64 +1796,59 @@ void check_bs_lower_bound() {
 }
 
 FATAL_TEST(binary_search, lower_bound) {
-  typedef chr_seq<> empty;
+  using empty = chr_seq<>;
 
-  FATAL_VLOG(1) << "empty";
-  check_bs_lower_bound<char, false, '-', '\0', empty::size, empty, '\0'>();
-  check_bs_lower_bound<int,  false, 3,   -1,   empty::size, empty, -1>();
+  check_bs_lbound<char, false, '-', '\0', empty::size, empty, '\0'>();
+  check_bs_lbound<std::int64_t,  false, 3,   -1,   empty::size, empty, -1>();
 
-  typedef chr_seq<'x'> one;
+  using one = chr_seq<'x'>;
 
-  FATAL_VLOG(1) << "one";
-  check_bs_lower_bound<char, false, 'w', '\0', one::size, one, '\0'>();
-  check_bs_lower_bound<char, true,  'x', 'x',  0, one, '\0'>();
-  check_bs_lower_bound<char, true,  'y', 'x',  0, one, '\0'>();
+  check_bs_lbound<char, false, 'w', '\0', one::size, one, '\0'>();
+  check_bs_lbound<char, true,  'x', 'x',  0, one, '\0'>();
+  check_bs_lbound<char, true,  'y', 'x',  0, one, '\0'>();
 
-  typedef chr_seq<'x', 'y'> two;
+  using two = chr_seq<'x', 'y'>;
 
-  FATAL_VLOG(1) << "two";
-  check_bs_lower_bound<char, false, 'w', '\0', two::size, two, '\0'>();
-  check_bs_lower_bound<char, true,  'x', 'x',  0, two, '\0'>();
-  check_bs_lower_bound<char, true,  'y', 'y',  1, two, '\0'>();
-  check_bs_lower_bound<char, true,  'z', 'y',  1, two, '\0'>();
+  check_bs_lbound<char, false, 'w', '\0', two::size, two, '\0'>();
+  check_bs_lbound<char, true,  'x', 'x',  0, two, '\0'>();
+  check_bs_lbound<char, true,  'y', 'y',  1, two, '\0'>();
+  check_bs_lbound<char, true,  'z', 'y',  1, two, '\0'>();
 
-  typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
+  using aeiou = chr_seq<'a', 'e', 'i', 'o', 'u'>;
 
-  FATAL_VLOG(1) << "aeiou";
-  check_bs_lower_bound<char, false, 'a' - 1, '\0', aeiou::size, aeiou, '\0'>();
-  check_bs_lower_bound<char, true,  'a',     'a',  0, aeiou, '\0'>();
-  check_bs_lower_bound<char, true,  'e',     'e',  1, aeiou, '\0'>();
-  check_bs_lower_bound<char, true,  'i',     'i',  2, aeiou, '\0'>();
-  check_bs_lower_bound<char, true,  'o',     'o',  3, aeiou, '\0'>();
-  check_bs_lower_bound<char, true,  'u',     'u',  4, aeiou, '\0'>();
-  check_bs_lower_bound<char, true,  'x',     'u',  4, aeiou, '\0'>();
+  check_bs_lbound<char, false, 'a' - 1, '\0', aeiou::size, aeiou, '\0'>();
+  check_bs_lbound<char, true,  'a',     'a',  0, aeiou, '\0'>();
+  check_bs_lbound<char, true,  'e',     'e',  1, aeiou, '\0'>();
+  check_bs_lbound<char, true,  'i',     'i',  2, aeiou, '\0'>();
+  check_bs_lbound<char, true,  'o',     'o',  3, aeiou, '\0'>();
+  check_bs_lbound<char, true,  'u',     'u',  4, aeiou, '\0'>();
+  check_bs_lbound<char, true,  'x',     'u',  4, aeiou, '\0'>();
 
-  typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287> mp;
+  using mp = int_seq<3, 7, 31, 127, 8191, 131071, 524287>;
 
-  FATAL_VLOG(1) << "mp";
-  check_bs_lower_bound<int, false, -1,        -1,     mp::size, mp, -1>();
-  check_bs_lower_bound<int, false, 0,         -1,     mp::size, mp, -1>();
-  check_bs_lower_bound<int, false, 2,         -1,     mp::size, mp, -1>();
-  check_bs_lower_bound<int, true,  3,         3,      0, mp, -1>();
-  check_bs_lower_bound<int, true,  4,         3,      0, mp, -1>();
-  check_bs_lower_bound<int, true,  6,         3,      0, mp, -1>();
-  check_bs_lower_bound<int, true,  7,         7,      1, mp, -1>();
-  check_bs_lower_bound<int, true,  8,         7,      1, mp, -1>();
-  check_bs_lower_bound<int, true,  30,        7,      1, mp, -1>();
-  check_bs_lower_bound<int, true,  31,        31,     2, mp, -1>();
-  check_bs_lower_bound<int, true,  32,        31,     2, mp, -1>();
-  check_bs_lower_bound<int, true,  126,       31,     2, mp, -1>();
-  check_bs_lower_bound<int, true,  127,       127,    3, mp, -1>();
-  check_bs_lower_bound<int, true,  128,       127,    3, mp, -1>();
-  check_bs_lower_bound<int, true,  8190,      127,    3, mp, -1>();
-  check_bs_lower_bound<int, true,  8191,      8191,   4, mp, -1>();
-  check_bs_lower_bound<int, true,  8192,      8191,   4, mp, -1>();
-  check_bs_lower_bound<int, true,  131070,    8191,   4, mp, -1>();
-  check_bs_lower_bound<int, true,  131071,    131071, 5, mp, -1>();
-  check_bs_lower_bound<int, true,  131072,    131071, 5, mp, -1>();
-  check_bs_lower_bound<int, true,  524286,    131071, 5, mp, -1>();
-  check_bs_lower_bound<int, true,  524287,    524287, 6, mp, -1>();
-  check_bs_lower_bound<int, true,  524288,    524287, 6, mp, -1>();
+  check_bs_lbound<std::int64_t, false, -1,        -1,     mp::size, mp, -1>();
+  check_bs_lbound<std::int64_t, false, 0,         -1,     mp::size, mp, -1>();
+  check_bs_lbound<std::int64_t, false, 2,         -1,     mp::size, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  3,         3,      0, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  4,         3,      0, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  6,         3,      0, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  7,         7,      1, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  8,         7,      1, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  30,        7,      1, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  31,        31,     2, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  32,        31,     2, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  126,       31,     2, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  127,       127,    3, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  128,       127,    3, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  8190,      127,    3, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  8191,      8191,   4, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  8192,      8191,   4, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  131070,    8191,   4, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  131071,    131071, 5, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  131072,    131071, 5, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  524286,    131071, 5, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  524287,    524287, 6, mp, -1>();
+  check_bs_lbound<std::int64_t, true,  524288,    524287, 6, mp, -1>();
 }
 
 ///////////////////////////////////////////
@@ -1825,9 +1860,9 @@ template <
   bool Result, T Needle, T ExpectedValue, std::size_t ExpectedIndex,
   typename TList, T Empty
 >
-void check_bs_upper_bound() {
-  auto actual = Empty;
-  std::size_t index = TList::size;
+void check_bs_ubound() {
+  T actual = Empty;
+  auto index = TList::size;
 
   auto result = TList::template binary_search<type_value_comparer>::upper_bound(
     Needle, bs_visitor<T>(), actual, index
@@ -1842,63 +1877,58 @@ void check_bs_upper_bound() {
 }
 
 FATAL_TEST(binary_search, upper_bound) {
-  typedef chr_seq<> empty;
+  using empty = chr_seq<>;
 
-  FATAL_VLOG(1) << "empty";
-  check_bs_upper_bound<char, false, '-', '\0', empty::size, empty, '\0'>();
-  check_bs_upper_bound<int,  false, 3,   -1,   empty::size, empty, -1>();
+  check_bs_ubound<char, false, '-', '\0', empty::size, empty, '\0'>();
+  check_bs_ubound<std::int64_t,  false, 3,   -1,   empty::size, empty, -1>();
 
-  typedef chr_seq<'x'> one;
+  using one = chr_seq<'x'>;
 
-  FATAL_VLOG(1) << "one";
-  check_bs_upper_bound<char, true,  'w', 'x',  0, one, '\0'>();
-  check_bs_upper_bound<char, false, 'x', '\0', one::size, one, '\0'>();
-  check_bs_upper_bound<char, false, 'y', '\0', one::size, one, '\0'>();
+  check_bs_ubound<char, true,  'w', 'x',  0, one, '\0'>();
+  check_bs_ubound<char, false, 'x', '\0', one::size, one, '\0'>();
+  check_bs_ubound<char, false, 'y', '\0', one::size, one, '\0'>();
 
-  typedef chr_seq<'x', 'y'> two;
+  using two = chr_seq<'x', 'y'>;
 
-  FATAL_VLOG(1) << "two";
-  check_bs_upper_bound<char, true,  'w', 'x',  0, two, '\0'>();
-  check_bs_upper_bound<char, true,  'x', 'y',  1, two, '\0'>();
-  check_bs_upper_bound<char, false, 'y', '\0', two::size, two, '\0'>();
-  check_bs_upper_bound<char, false, 'z', '\0', two::size, two, '\0'>();
+  check_bs_ubound<char, true,  'w', 'x',  0, two, '\0'>();
+  check_bs_ubound<char, true,  'x', 'y',  1, two, '\0'>();
+  check_bs_ubound<char, false, 'y', '\0', two::size, two, '\0'>();
+  check_bs_ubound<char, false, 'z', '\0', two::size, two, '\0'>();
 
-  typedef chr_seq<'a', 'e', 'i', 'o', 'u'> aeiou;
+  using aeiou = chr_seq<'a', 'e', 'i', 'o', 'u'>;
 
-  FATAL_VLOG(1) << "aeiou";
-  check_bs_upper_bound<char, true, 'a' - 1, 'a',  0, aeiou, '\0'>();
-  check_bs_upper_bound<char, true, 'a',     'e',  1, aeiou, '\0'>();
-  check_bs_upper_bound<char, true, 'e',     'i',  2, aeiou, '\0'>();
-  check_bs_upper_bound<char, true, 'i',     'o',  3, aeiou, '\0'>();
-  check_bs_upper_bound<char, true, 'o',     'u',  4, aeiou, '\0'>();
-  check_bs_upper_bound<char, false, 'u',    '\0', aeiou::size, aeiou, '\0'>();
+  check_bs_ubound<char, true, 'a' - 1, 'a',  0, aeiou, '\0'>();
+  check_bs_ubound<char, true, 'a',     'e',  1, aeiou, '\0'>();
+  check_bs_ubound<char, true, 'e',     'i',  2, aeiou, '\0'>();
+  check_bs_ubound<char, true, 'i',     'o',  3, aeiou, '\0'>();
+  check_bs_ubound<char, true, 'o',     'u',  4, aeiou, '\0'>();
+  check_bs_ubound<char, false, 'u',    '\0', aeiou::size, aeiou, '\0'>();
 
-  typedef int_seq<3, 7, 31, 127, 8191, 131071, 524287> mp;
+  using mp = int_seq<3, 7, 31, 127, 8191, 131071, 524287>;
 
-  FATAL_VLOG(1) << "mp";
-  check_bs_upper_bound<int, true,  -1,         3,      0, mp, -1>();
-  check_bs_upper_bound<int, true,  0,          3,      0, mp, -1>();
-  check_bs_upper_bound<int, true,  2,          3,      0, mp, -1>();
-  check_bs_upper_bound<int, true,  3,          7,      1, mp, -1>();
-  check_bs_upper_bound<int, true,  4,          7,      1, mp, -1>();
-  check_bs_upper_bound<int, true,  6,          7,      1, mp, -1>();
-  check_bs_upper_bound<int, true,  7,          31,     2, mp, -1>();
-  check_bs_upper_bound<int, true,  8,          31,     2, mp, -1>();
-  check_bs_upper_bound<int, true,  30,         31,     2, mp, -1>();
-  check_bs_upper_bound<int, true,  31,         127,    3, mp, -1>();
-  check_bs_upper_bound<int, true,  32,         127,    3, mp, -1>();
-  check_bs_upper_bound<int, true,  126,        127,    3, mp, -1>();
-  check_bs_upper_bound<int, true,  127,        8191,   4, mp, -1>();
-  check_bs_upper_bound<int, true,  128,        8191,   4, mp, -1>();
-  check_bs_upper_bound<int, true,  8190,       8191,   4, mp, -1>();
-  check_bs_upper_bound<int, true,  8191,       131071, 5, mp, -1>();
-  check_bs_upper_bound<int, true,  8192,       131071, 5, mp, -1>();
-  check_bs_upper_bound<int, true,  131070,     131071, 5, mp, -1>();
-  check_bs_upper_bound<int, true,  131071,     524287, 6, mp, -1>();
-  check_bs_upper_bound<int, true,  131072,     524287, 6, mp, -1>();
-  check_bs_upper_bound<int, true,  524286,     524287, 6, mp, -1>();
-  check_bs_upper_bound<int, false, 524287,     -1,     mp::size, mp, -1>();
-  check_bs_upper_bound<int, false, 524288,     -1,     mp::size, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  -1,         3,      0, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  0,          3,      0, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  2,          3,      0, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  3,          7,      1, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  4,          7,      1, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  6,          7,      1, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  7,          31,     2, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  8,          31,     2, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  30,         31,     2, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  31,         127,    3, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  32,         127,    3, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  126,        127,    3, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  127,        8191,   4, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  128,        8191,   4, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  8190,       8191,   4, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  8191,       131071, 5, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  8192,       131071, 5, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  131070,     131071, 5, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  131071,     524287, 6, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  131072,     524287, 6, mp, -1>();
+  check_bs_ubound<std::int64_t, true,  524286,     524287, 6, mp, -1>();
+  check_bs_ubound<std::int64_t, false, 524287,     -1,     mp::size, mp, -1>();
+  check_bs_ubound<std::int64_t, false, 524288,     -1,     mp::size, mp, -1>();
 }
 
 //////////////

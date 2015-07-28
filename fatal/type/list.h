@@ -953,15 +953,15 @@ struct unique<TResult, T, Args...> {
 // binary_search_exact //
 /////////////////////////
 
-template <typename... Args>
+template <typename Comparer, typename... Args>
 struct binary_search_exact {
   typedef type_list<Args...> list;
 
-  typedef typename list:: template split<list::size / 2> split;
+  using split = typename list:: template split<list::size / 2>;
   static_assert(!split::second::empty, "invalid specialization");
 
-  typedef typename split::first left;
-  typedef typename split::second::template tail<1> right;
+  using left = typename split::first;
+  using right = typename split::second::template tail<1>;
 
   template <std::size_t Offset> using pivot = indexed_type_tag<
     typename split::second::template at<0>,
@@ -969,35 +969,35 @@ struct binary_search_exact {
   >;
 
   template <
-    typename TComparer, std::size_t Offset, typename TComparison,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    std::size_t Offset, typename TComparison,
+    typename Needle, typename Visitor, typename... VArgs
   >
   static constexpr bool impl(
-    TComparison &&comparison, TNeedle &&needle,
-    TVisitor &&visitor, VArgs &&...args
+    TComparison &&comparison, Needle &&needle,
+    Visitor &&visitor, VArgs &&...args
   ) {
     // ternary needed due to C++11's constexpr restrictions
     return comparison < 0
-      ? left::template apply<
-          type_list_impl::binary_search_exact
-        >::template search<TComparer, Offset>(
-          std::forward<TNeedle>(needle),
-          std::forward<TVisitor>(visitor),
+      ? left::template apply_front<
+          type_list_impl::binary_search_exact, Comparer
+        >::template search<Offset>(
+          std::forward<Needle>(needle),
+          std::forward<Visitor>(visitor),
           std::forward<VArgs>(args)...
         )
       : (0 < comparison
-        ? right::template apply<
-            type_list_impl::binary_search_exact
-          >::template search<TComparer, Offset + left::size + 1>(
-            std::forward<TNeedle>(needle),
-            std::forward<TVisitor>(visitor),
+        ? right::template apply_front<
+            type_list_impl::binary_search_exact, Comparer
+          >::template search<Offset + left::size + 1>(
+            std::forward<Needle>(needle),
+            std::forward<Visitor>(visitor),
             std::forward<VArgs>(args)...
           )
         : (
           // comma operator needed due to C++11's constexpr restrictions
           visitor(
             pivot<Offset>{},
-            std::forward<TNeedle>(needle),
+            std::forward<Needle>(needle),
             std::forward<VArgs>(args)...
           ), true
         )
@@ -1005,27 +1005,461 @@ struct binary_search_exact {
   }
 
   template <
-    typename TComparer, std::size_t Offset,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
   >
   static constexpr bool search(
-    TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
   ) {
-    return impl<TComparer, Offset>(
-      TComparer::compare(needle, pivot<Offset>{}),
-      needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
+    return impl<Offset>(
+      Comparer::compare(needle, pivot<Offset>{}),
+      needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
     );
   }
 };
 
-template <>
-struct binary_search_exact<> {
+template <typename Comparer>
+struct binary_search_exact<Comparer> {
   template <
-    typename, std::size_t,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    std::size_t, typename Needle, typename Visitor, typename... VArgs
   >
-  static constexpr bool search(TNeedle &&, TVisitor &&, VArgs &&...) {
+  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
     return false;
+  }
+};
+
+// optimization for low cardinality lists //
+
+#define FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(Index) \
+  ( \
+    visitor( \
+      indexed_type_tag<T##Index, Offset + 0x##Index>(), \
+      std::forward<Needle>(needle), \
+      std::forward<VArgs>(args)... \
+    ), true \
+  )
+
+// TODO: WHAT IF VALUES REPEAT? PRE-FILTER PRIOR TO PASSING LIST TO BINARY
+// SEARCH? TAKE ADVANTAGE OF THE FACT THAT LIST IS SORTED AND ALSO STATIC_ASSERT
+// TO PREVENT UNSORTED LIST BUGS
+
+template <typename T0>
+struct binary_search_exact<type_value_comparer, T0> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    return needle == T0::value
+      ? FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0)
+      : false;
+  }
+};
+
+template <typename T0, typename T1>
+struct binary_search_exact<type_value_comparer, T0, T1> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      default: return false;
+    }
+  }
+};
+
+template <typename T0, typename T1, typename T2>
+struct binary_search_exact<type_value_comparer, T0, T1, T2> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      default: return false;
+    }
+  }
+};
+
+template <typename T0, typename T1, typename T2, typename T3>
+struct binary_search_exact<type_value_comparer, T0, T1, T2, T3> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      default: return false;
+    }
+  }
+};
+
+template <typename T0, typename T1, typename T2, typename T3, typename T4>
+struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3, typename T4, typename T5
+>
+struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4, T5> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6
+>
+struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4, T5, T6> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7, typename T8
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7, typename T8, typename T9
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB, typename TC
+>
+struct binary_search_exact<
+  type_value_comparer,
+  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB, typename TC, typename TD
+>
+struct binary_search_exact<
+  type_value_comparer,
+  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
+      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB,
+  typename TC, typename TD, typename TE
+>
+struct binary_search_exact<
+  type_value_comparer,
+  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD, TE
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
+      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
+      case TE::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(E);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB,
+  typename TC, typename TD, typename TE, typename TF
+>
+struct binary_search_exact<
+  type_value_comparer,
+  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD, TE, TF
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
+      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
+      case TE::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(E);
+      case TF::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(F);
+      default: return false;
+    }
   }
 };
 
@@ -1045,36 +1479,36 @@ struct binary_search_lower_bound {
   >;
 
   template <
-    typename TComparer, std::size_t Offset,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    typename Comparer, std::size_t Offset,
+    typename Needle, typename Visitor, typename... VArgs
   >
   static constexpr bool impl(
-    TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
   ) {
     // ternary needed due to C++11's constexpr restrictions
-    return TComparer::compare(needle, pivot<Offset>{}) < 0
+    return Comparer::compare(needle, pivot<Offset>{}) < 0
       ? left::template apply<
           type_list_impl::binary_search_lower_bound
-        >::template impl<TComparer, Offset>(
-          needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
+        >::template impl<Comparer, Offset>(
+          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
         )
       : right::template apply<
           type_list_impl::binary_search_lower_bound
-        >::template impl<TComparer, Offset + left::size>(
-          needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
+        >::template impl<Comparer, Offset + left::size>(
+          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
         );
   }
 
   template <
-    typename TComparer, typename TNeedle, typename TVisitor, typename... VArgs
+    typename Comparer, typename Needle, typename Visitor, typename... VArgs
   >
   static constexpr bool search(
-    TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
   ) {
     typedef indexed_type_tag<typename list::template at<0>, 0> first;
-    return TComparer::compare(needle, first{}) >= 0
-      && impl<TComparer, 0>(
-        needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
+    return Comparer::compare(needle, first{}) >= 0
+      && impl<Comparer, 0>(
+        needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
       );
   }
 };
@@ -1082,29 +1516,29 @@ struct binary_search_lower_bound {
 template <typename T>
 struct binary_search_lower_bound<T> {
   template <
-    typename TComparer, std::size_t Offset,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    typename Comparer, std::size_t Offset,
+    typename Needle, typename Visitor, typename... VArgs
   >
   static constexpr bool impl(
-    TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
   ) {
     // comma operator needed due to C++11's constexpr restrictions
     return visitor(
       indexed_type_tag<T, Offset>{},
-      std::forward<TNeedle>(needle),
+      std::forward<Needle>(needle),
       std::forward<VArgs>(args)...
     ), true;
   }
 
   template <
-    typename TComparer, typename TNeedle, typename TVisitor, typename... VArgs
+    typename Comparer, typename Needle, typename Visitor, typename... VArgs
   >
   static constexpr bool search(
-    TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
   ) {
-    return TComparer::compare(needle, indexed_type_tag<T, 0>{}) >= 0
-      && impl<TComparer, 0>(
-        needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
+    return Comparer::compare(needle, indexed_type_tag<T, 0>{}) >= 0
+      && impl<Comparer, 0>(
+        needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
       );
   }
 };
@@ -1113,14 +1547,14 @@ template <>
 struct binary_search_lower_bound<> {
   template <
     typename, std::size_t,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    typename Needle, typename Visitor, typename... VArgs
   >
-  static constexpr bool impl(TNeedle &&, TVisitor &&, VArgs &&...) {
+  static constexpr bool impl(Needle &&, Visitor &&, VArgs &&...) {
     return false;
   }
 
-  template <typename, typename TNeedle, typename TVisitor, typename... VArgs>
-  static constexpr bool search(TNeedle &&, TVisitor &&, VArgs &&...) {
+  template <typename, typename Needle, typename Visitor, typename... VArgs>
+  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
     return false;
   }
 };
@@ -1141,23 +1575,23 @@ struct binary_search_upper_bound {
   >;
 
   template <
-    typename TComparer, std::size_t Offset,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    typename Comparer, std::size_t Offset,
+    typename Needle, typename Visitor, typename... VArgs
   >
   static constexpr bool search(
-    TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
   ) {
     // ternary needed due to C++11's constexpr restrictions
-    return TComparer::compare(needle, pivot<Offset>{}) < 0
+    return Comparer::compare(needle, pivot<Offset>{}) < 0
       ? left::template apply<
           type_list_impl::binary_search_upper_bound
-        >::template search<TComparer, Offset>(
-          needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
+        >::template search<Comparer, Offset>(
+          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
         )
       : right::template apply<
           type_list_impl::binary_search_upper_bound
-        >::template search<TComparer, Offset + left::size>(
-          needle, std::forward<TVisitor>(visitor), std::forward<VArgs>(args)...
+        >::template search<Comparer, Offset + left::size>(
+          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
         );
   }
 };
@@ -1165,13 +1599,13 @@ struct binary_search_upper_bound {
 template <typename T>
 struct binary_search_upper_bound<T> {
   template <
-    typename TComparer, std::size_t Offset,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    typename Comparer, std::size_t Offset,
+    typename Needle, typename Visitor, typename... VArgs
   >
   static constexpr bool search(
-    TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
   ) {
-    return TComparer::compare(needle, indexed_type_tag<T, Offset>{}) < 0 && (
+    return Comparer::compare(needle, indexed_type_tag<T, Offset>{}) < 0 && (
       // comma operator needed due to C++11's constexpr restrictions
       visitor(
         indexed_type_tag<T, Offset>{},
@@ -1186,9 +1620,9 @@ template <>
 struct binary_search_upper_bound<> {
   template <
     typename, std::size_t,
-    typename TNeedle, typename TVisitor, typename... VArgs
+    typename Needle, typename Visitor, typename... VArgs
   >
-  static constexpr bool search(TNeedle &&, TVisitor &&, VArgs &&...) {
+  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
     return false;
   }
 };
@@ -2509,29 +2943,29 @@ struct type_list {
    *  template <
    *    typename T,
    *    std::size_t Index,
-   *    typename TNeedle,
+   *    typename Needle,
    *    typename... VArgs
    *  >
    *  void operator ()(
    *    indexed_type_tag<T, Index>,
-   *    TNeedle &&needle,
+   *    Needle &&needle,
    *    VArgs &&...args
    *  );
    *
    * Returns `true` when found, `false` otherwise.
    *
-   * The comparison is performed using the given `TComparer`'s method, whose
+   * The comparison is performed using the given `Comparer`'s method, whose
    * signature must follow this pattern:
    *
-   *  template <typename TNeedle, typename T, std::size_t Index>
-   *  static int compare(TNeedle &&needle, indexed_type_tag<T, Index>);
+   *  template <typename Needle, typename T, std::size_t Index>
+   *  static int compare(Needle &&needle, indexed_type_tag<T, Index>);
    *
    * which effectivelly compares `needle` against the type `T`. The result must
    * be < 0, > 0 or == 0 if `needle` is, respectively, less than, greather than
    * or equal to `T`. `Index` is the position of `T` in this type list and can
    * also be used in the comparison if needed.
    *
-   * `TComparer` defaults to `type_value_comparer` which compares an
+   * `Comparer` defaults to `type_value_comparer` which compares an
    * std::integral_constant-like value to a runtime value.
    *
    * The sole purpose of `args` is to be passed along to the visitor, it is not
@@ -2567,7 +3001,7 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TComparer = type_value_comparer>
+  template <typename Comparer = type_value_comparer>
   struct binary_search {
     /**
      * Performs a binary search for an element
@@ -2598,15 +3032,15 @@ struct type_list {
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    template <typename TNeedle, typename TVisitor, typename... VArgs>
+    template <typename Needle, typename Visitor, typename... VArgs>
     static constexpr bool exact(
-      TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+      Needle &&needle, Visitor &&visitor, VArgs &&...args
     ) {
-      return apply<
-        detail::type_list_impl::binary_search_exact
-      >::template search<TComparer, 0>(
-        std::forward<TNeedle>(needle),
-        std::forward<TVisitor>(visitor),
+      return apply_front<
+        detail::type_list_impl::binary_search_exact, Comparer
+      >::template search<0>(
+        std::forward<Needle>(needle),
+        std::forward<Visitor>(visitor),
         std::forward<VArgs>(args)...
       );
     }
@@ -2647,15 +3081,15 @@ struct type_list {
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    template <typename TNeedle, typename TVisitor, typename... VArgs>
+    template <typename Needle, typename Visitor, typename... VArgs>
     static constexpr bool lower_bound(
-      TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+      Needle &&needle, Visitor &&visitor, VArgs &&...args
     ) {
       return apply<
         detail::type_list_impl::binary_search_lower_bound
-      >::template search<TComparer>(
-        std::forward<TNeedle>(needle),
-        std::forward<TVisitor>(visitor),
+      >::template search<Comparer>(
+        std::forward<Needle>(needle),
+        std::forward<Visitor>(visitor),
         std::forward<VArgs>(args)...
       );
     }
@@ -2693,15 +3127,15 @@ struct type_list {
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    template <typename TNeedle, typename TVisitor, typename... VArgs>
+    template <typename Needle, typename Visitor, typename... VArgs>
     static constexpr bool upper_bound(
-      TNeedle &&needle, TVisitor &&visitor, VArgs &&...args
+      Needle &&needle, Visitor &&visitor, VArgs &&...args
     ) {
       return apply<
         detail::type_list_impl::binary_search_upper_bound
-      >::template search<TComparer, 0>(
-        std::forward<TNeedle>(needle),
-        std::forward<TVisitor>(visitor),
+      >::template search<Comparer, 0>(
+        std::forward<Needle>(needle),
+        std::forward<Visitor>(visitor),
         std::forward<VArgs>(args)...
       );
     }
