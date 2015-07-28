@@ -725,6 +725,14 @@ struct not_null {
   char const *text() const { return "is not null"; }
 };
 
+bool compare_string(char const *lhs, char const *rhs) {
+  if (!lhs || !rhs) {
+    return lhs == rhs;
+  }
+
+  return !std::strcmp(lhs, rhs);
+}
+
 struct is_equal {
   template <typename TLHS, typename TRHS>
   if_both_integral<bool, TLHS, TRHS, false> operator ()(
@@ -740,19 +748,19 @@ struct is_equal {
   }
 
   bool operator()(char const *lhs, char const *rhs) const {
-    return !std::strcmp(lhs, rhs);
+    return compare_string(lhs, rhs);
   }
 
   bool operator()(char const *lhs, char *rhs) const {
-    return !std::strcmp(lhs, rhs);
+    return compare_string(lhs, rhs);
   }
 
   bool operator()(char *lhs, char const *rhs) const {
-    return !std::strcmp(lhs, rhs);
+    return compare_string(lhs, rhs);
   }
 
   bool operator()(char *lhs, char *rhs) const {
-    return !std::strcmp(lhs, rhs);
+    return compare_string(lhs, rhs);
   }
 
   char const *text() const { return "is equal to"; }
@@ -773,19 +781,19 @@ struct not_equal {
   }
 
   bool operator()(char const *lhs, char const *rhs) const {
-    return std::strcmp(lhs, rhs) != 0;
+    return !compare_string(lhs, rhs);
   }
 
   bool operator()(char const *lhs, char *rhs) const {
-    return std::strcmp(lhs, rhs) != 0;
+    return !compare_string(lhs, rhs);
   }
 
   bool operator()(char *lhs, char const *rhs) const {
-    return std::strcmp(lhs, rhs) != 0;
+    return !compare_string(lhs, rhs);
   }
 
   bool operator()(char *lhs, char *rhs) const {
-    return std::strcmp(lhs, rhs) != 0;
+    return !compare_string(lhs, rhs);
   }
 
   char const *text() const { return "is not equal to"; }

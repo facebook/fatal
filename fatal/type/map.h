@@ -1050,7 +1050,7 @@ public:
      *  struct visitor {
      *    template <int Key, int Mapped, std::size_t Index>
      *    void operator ()(
-     *      indexed_type_tag<type_pair<int_val<Key>, int_val<Mapped>>, Index>,
+     *      indexed_type_pair_tag<int_val<Key>, int_val<Mapped>, Index>,
      *      int needle
      *    ) {
      *      assert(Key > needle);
