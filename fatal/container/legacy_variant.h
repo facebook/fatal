@@ -1628,10 +1628,13 @@ template <typename TStoragePolicy, typename... Args>
 using variant = legacy_variant<TStoragePolicy, Args...>;
 
 template <typename... Args>
-using default_variant = variant<
-  default_storage_policy<>,
+using legacy_default_variant = legacy_variant<
+  legacy_storage_policy<>,
   Args...
 >;
+
+template <typename... Args>
+using default_variant = legacy_default_variant<Args...>;
 
 template <typename... Args>
 using auto_variant = variant<
@@ -1808,6 +1811,90 @@ result_type visit(
  * Convenience function to visit a variant using a visitor that returns values.
  *
  * If the variant holds no values (the visitor is not actually called), this
+ * function throws std::logic_error.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename result_type, typename visitor_type,
+  typename TStoragePolicy, typename... Args,
+  typename... UArgs
+>
+result_type legacy_visit(
+  variant<TStoragePolicy, Args...> const &variant,
+  visitor_type &&visitor,
+  UArgs &&...args
+) {
+  auto wrapper = wrap_visitor<result_type>(visitor);
+  variant.visit(wrapper, std::forward<UArgs>(args)...);
+
+  if (!wrapper.has_value()) {
+    throw std::logic_error("there's no value returned by the visitor");
+  }
+
+  return std::move(wrapper.value());
+}
+
+/**
+ * Convenience function to visit a variant using a visitor that returns values.
+ *
+ * If the variant holds no values (the visitor is not actually called), this
+ * function throws std::logic_error.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename result_type, typename visitor_type,
+  typename TStoragePolicy, typename... Args,
+  typename... UArgs
+>
+result_type legacy_visit(
+  variant<TStoragePolicy, Args...> &variant,
+  visitor_type &&visitor,
+  UArgs &&...args
+) {
+  auto wrapper = wrap_visitor<result_type>(visitor);
+  variant.visit(wrapper, std::forward<UArgs>(args)...);
+
+  if (!wrapper.has_value()) {
+    throw std::logic_error("there's no value returned by the visitor");
+  }
+
+  return std::move(wrapper.value());
+}
+
+/**
+ * Convenience function to visit a variant using a visitor that returns values.
+ *
+ * If the variant holds no values (the visitor is not actually called), this
+ * function throws std::logic_error.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename result_type, typename visitor_type,
+  typename TStoragePolicy, typename... Args,
+  typename... UArgs
+>
+result_type legacy_visit(
+  variant<TStoragePolicy, Args...> &&variant,
+  visitor_type &&visitor,
+  UArgs &&...args
+) {
+  auto wrapper = wrap_visitor<result_type>(visitor);
+  variant.visit(wrapper, std::forward<UArgs>(args)...);
+
+  if (!wrapper.has_value()) {
+    throw std::logic_error("there's no value returned by the visitor");
+  }
+
+  return std::move(wrapper.value());
+}
+
+/**
+ * Convenience function to visit a variant using a visitor that returns values.
+ *
+ * If the variant holds no values (the visitor is not actually called), this
  * function returns `defaultValue`.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
@@ -1872,6 +1959,87 @@ template <
   typename... UArgs
 >
 result_type visit_def(
+  variant<TStoragePolicy, Args...> &&variant,
+  visitor_type &&visitor,
+  result_type defaultValue,
+  UArgs &&...args
+) {
+  auto wrapper = wrap_visitor<result_type>(visitor);
+  variant.visit(wrapper, std::forward<UArgs>(args)...);
+
+  return wrapper.has_value()
+    ? std::move(wrapper.value())
+    : defaultValue;
+}
+
+/**
+ * Convenience function to visit a variant using a visitor that returns values.
+ *
+ * If the variant holds no values (the visitor is not actually called), this
+ * function returns `defaultValue`.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename result_type, typename visitor_type,
+  typename TStoragePolicy, typename... Args,
+  typename... UArgs
+>
+result_type legacy_visit_def(
+  variant<TStoragePolicy, Args...> const &variant,
+  visitor_type &&visitor,
+  result_type defaultValue,
+  UArgs &&...args
+) {
+  auto wrapper = wrap_visitor<result_type>(visitor);
+  variant.visit(wrapper, std::forward<UArgs>(args)...);
+
+  return wrapper.has_value()
+    ? std::move(wrapper.value())
+    : defaultValue;
+}
+
+/**
+ * Convenience function to visit a variant using a visitor that returns values.
+ *
+ * If the variant holds no values (the visitor is not actually called), this
+ * function returns `defaultValue`.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename result_type, typename visitor_type,
+  typename TStoragePolicy, typename... Args,
+  typename... UArgs
+>
+result_type legacy_visit_def(
+  variant<TStoragePolicy, Args...> &variant,
+  visitor_type &&visitor,
+  result_type defaultValue,
+  UArgs &&...args
+) {
+  auto wrapper = wrap_visitor<result_type>(visitor);
+  variant.visit(wrapper, std::forward<UArgs>(args)...);
+
+  return wrapper.has_value()
+    ? std::move(wrapper.value())
+    : defaultValue;
+}
+
+/**
+ * Convenience function to visit a variant using a visitor that returns values.
+ *
+ * If the variant holds no values (the visitor is not actually called), this
+ * function returns `defaultValue`.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <
+  typename result_type, typename visitor_type,
+  typename TStoragePolicy, typename... Args,
+  typename... UArgs
+>
+result_type legacy_visit_def(
   variant<TStoragePolicy, Args...> &&variant,
   visitor_type &&visitor,
   result_type defaultValue,
