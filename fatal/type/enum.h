@@ -228,6 +228,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   static char const *to_string(type e, char const *fallback = nullptr) {
+    // TODO: CALL_IF AND FALLBACK TO TYPE_MAP LOOKUP
     return impl::to_string(e, fallback);
   }
 
@@ -467,6 +468,10 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
     __VA_ARGS__ \
   )
 
+// TODO: DOCUMENT
+#define FATAL_REGISTER_ENUM_TRAITS(Enum, Traits) \
+  Traits operator <<(::fatal::detail::enum_impl::metadata_tag, Enum *)
+
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
 ////////////////////////////
@@ -519,7 +524,7 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
     } \
   }; \
   \
-  ClassName operator <<(::fatal::detail::enum_impl::metadata_tag, Enum *)
+  FATAL_REGISTER_ENUM_TRAITS(Enum, ClassName)
 
 } // namespace fatal {
 
