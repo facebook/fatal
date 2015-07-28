@@ -30,6 +30,7 @@
 #include <vector>
 
 #include <cassert>
+#include <cstring>
 
 // for internal use only
 
@@ -738,6 +739,22 @@ struct is_equal {
     return static_cast<type>(lhs) == static_cast<type>(rhs);
   }
 
+  bool operator()(char const *lhs, char const *rhs) const {
+    return !std::strcmp(lhs, rhs);
+  }
+
+  bool operator()(char const *lhs, char *rhs) const {
+    return !std::strcmp(lhs, rhs);
+  }
+
+  bool operator()(char *lhs, char const *rhs) const {
+    return !std::strcmp(lhs, rhs);
+  }
+
+  bool operator()(char *lhs, char *rhs) const {
+    return !std::strcmp(lhs, rhs);
+  }
+
   char const *text() const { return "is equal to"; }
 };
 
@@ -753,6 +770,22 @@ struct not_equal {
   ) const {
     using type = common<TLHS, TRHS>;
     return static_cast<type>(lhs) != static_cast<type>(rhs);
+  }
+
+  bool operator()(char const *lhs, char const *rhs) const {
+    return std::strcmp(lhs, rhs) != 0;
+  }
+
+  bool operator()(char const *lhs, char *rhs) const {
+    return std::strcmp(lhs, rhs) != 0;
+  }
+
+  bool operator()(char *lhs, char const *rhs) const {
+    return std::strcmp(lhs, rhs) != 0;
+  }
+
+  bool operator()(char *lhs, char *rhs) const {
+    return std::strcmp(lhs, rhs) != 0;
   }
 
   char const *text() const { return "is not equal to"; }
