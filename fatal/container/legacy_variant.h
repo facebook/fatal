@@ -176,7 +176,7 @@ template <
   typename TAllocationPolicy = default_allocation_policy<>,
   bool IsCopyable = true
 >
-struct default_storage_policy {
+struct legacy_storage_policy {
   using allocator_type = TAllocator;
   using allocator_traits = std::allocator_traits<allocator_type>;
   using allocation_policy = TAllocationPolicy;
@@ -376,6 +376,15 @@ struct default_storage_policy {
     return storage.value;
   }
 };
+
+template <
+  typename Allocator = std::allocator<void>,
+  typename AllocationPolicy = default_allocation_policy<>,
+  bool IsCopyable = true
+>
+using default_storage_policy = legacy_storage_policy<
+  Allocator, AllocationPolicy, IsCopyable
+>;
 
 namespace detail {
 namespace variant_impl {
