@@ -11,8 +11,10 @@
 #define FATAL_INCLUDE_fatal_type_enum_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
 #include <fatal/type/string.h>
+#include <fatal/type/traits.h>
 
 #include <iterator>
 #include <stdexcept>
@@ -57,6 +59,11 @@ class enum_traits {
     detail::enum_impl::metadata_tag() << static_cast<Enum *>(nullptr)
   );
 
+  static_assert(
+    std::is_same<Enum, typename impl::type>::value,
+    "enum type mismatch"
+  );
+
 public:
   /**
    * A type alias for the enumeration itself.
@@ -70,7 +77,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using type = typename impl::type;
+  using type = Enum;
 
   /**
    * The underlying integral type of the enumeration.
@@ -208,6 +215,25 @@ private:
     }
   };
 
+  struct to_string_visitor {
+    template <typename Value, typename Name, std::size_t Index>
+    void operator ()(
+      indexed_type_pair_tag<Value, Name, Index>, type, char const *&out
+    ) const {
+      out = Name::z_data();
+    }
+  };
+
+  struct to_string_fallback {
+    char const *operator ()(type e, char const *fallback) const {
+      value_to_name::template sort<>::template binary_search<>::exact(
+        e, to_string_visitor(), fallback
+      );
+
+      return fallback;
+    }
+  };
+
 public:
   /**
    * Returns a non-owning pointer to the statically allocated string
@@ -228,8 +254,8 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   static char const *to_string(type e, char const *fallback = nullptr) {
-    // TODO: CALL_IF AND FALLBACK TO TYPE_MAP LOOKUP
-    return impl::to_string(e, fallback);
+    using caller = call_traits::to_string::static_member::bind<impl>;
+    return call_if_supported<caller, to_string_fallback>(e, fallback);
   }
 
   /**
@@ -468,9 +494,50 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
     __VA_ARGS__ \
   )
 
-// TODO: DOCUMENT
-#define FATAL_REGISTER_ENUM_TRAITS(Enum, Traits) \
-  Traits operator <<(::fatal::detail::enum_impl::metadata_tag, Enum *)
+/**
+ * TODO: DOCUMENT
+ *
+ * Example:
+ *
+ *  enum class my_enum { field0, field1 = 37, field2 };
+ *
+ *  struct my_traits {
+ *    using type = my_enum;
+ *
+ *    struct str {
+ *      FATAL_STR(field0, "field0");
+ *      FATAL_STR(field1, "field1");
+ *      FATAL_STR(field2, "field2");
+ *    };
+ *
+ *    using name_to_value = build_type_map<
+ *      str::field0, std::integral_constant<my_enum, my_enum::field0>,
+ *      str::field1, std::integral_constant<my_enum, my_enum::field1>,
+ *      str::field2, std::integral_constant<my_enum, my_enum::field2>
+ *    >;
+ *
+ *    // this function is optional but its presence greatly
+ *    // improves build times and runtime performance
+ *    static char const *to_string(my_enum e, char const *fallback) {
+ *      switch (e) {
+ *        case my_enum::field0: return "field0";
+ *        case my_enum::field1: return "field1";
+ *        case my_enum::field2: return "field2";
+ *        default: return fallback;
+ *      }
+ *    }
+ *  };
+ *
+ *  // adds my_enum support to enum_traits via my_traits
+ *  FATAL_REGISTER_ENUM_TRAITS(my_traits);
+ *
+ *  // yields `my_enum::field0`
+ *  auto const value = enum_traits::parse("field0");
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_REGISTER_ENUM_TRAITS(Traits) \
+  Traits operator <<(::fatal::detail::enum_impl::metadata_tag, Traits::type *)
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
@@ -524,7 +591,7 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
     } \
   }; \
   \
-  FATAL_REGISTER_ENUM_TRAITS(Enum, ClassName)
+  FATAL_REGISTER_ENUM_TRAITS(ClassName)
 
 } // namespace fatal {
 
