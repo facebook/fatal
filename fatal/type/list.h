@@ -949,6 +949,58 @@ struct unique<TResult, T, Args...> {
   >::type;
 };
 
+///////////////////////////
+// binary_search_prepare //
+///////////////////////////
+
+template <typename, typename, typename...> struct binary_search_prepare;
+
+template <typename Comparer, typename... Args>
+struct binary_search_prepare<Comparer, type_list<>, Args...> {
+  using type = type_list<Args...>;
+};
+
+template <typename T>
+struct binary_search_prepare<type_value_comparer, T> {
+  using type = T;
+};
+
+template <>
+struct binary_search_prepare<type_value_comparer, type_list<>> {
+  using type = type_list<>;
+};
+
+template <typename Head, typename... Tail>
+struct binary_search_prepare<type_value_comparer, type_list<>, Head, Tail...> {
+  using type = typename binary_search_prepare<
+    type_value_comparer, type_list<Head>, Tail...
+  >::type;
+};
+
+template <typename... Args, typename Head, typename... Tail>
+struct binary_search_prepare<
+  type_value_comparer, type_list<Args...>,
+  Head, Tail...
+> {
+  using list = type_list<Args...>;
+  using previous = typename list::template at<list::size - 1>;
+
+  static_assert(
+    previous::value <= Head::value,
+    "binary_search requires a sorted list as input"
+  );
+
+  using type = typename binary_search_prepare<
+    type_value_comparer,
+    typename std::conditional<
+      previous::value == Head::value,
+      list,
+      typename list::template push_back<Head>
+    >::type,
+    Tail...
+  >::type;
+};
+
 /////////////////////////
 // binary_search_exact //
 /////////////////////////
@@ -1037,10 +1089,6 @@ struct binary_search_exact<Comparer> {
       std::forward<VArgs>(args)... \
     ), true \
   )
-
-// TODO: WHAT IF VALUES REPEAT? PRE-FILTER PRIOR TO PASSING LIST TO BINARY
-// SEARCH? TAKE ADVANTAGE OF THE FACT THAT LIST IS SORTED AND ALSO STATIC_ASSERT
-// TO PREVENT UNSORTED LIST BUGS
 
 template <typename T0>
 struct binary_search_exact<type_value_comparer, T0> {
@@ -3002,7 +3050,12 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename Comparer = type_value_comparer>
-  struct binary_search {
+  class binary_search {
+    using prepared = typename detail::type_list_impl::binary_search_prepare<
+      Comparer, type_list<>, Args...
+    >::type;
+
+  public:
     /**
      * Performs a binary search for an element
      * that is an exact match of the `needle`.
@@ -3036,7 +3089,7 @@ struct type_list {
     static constexpr bool exact(
       Needle &&needle, Visitor &&visitor, VArgs &&...args
     ) {
-      return apply_front<
+      return prepared::template apply_front<
         detail::type_list_impl::binary_search_exact, Comparer
       >::template search<0>(
         std::forward<Needle>(needle),
@@ -3085,7 +3138,7 @@ struct type_list {
     static constexpr bool lower_bound(
       Needle &&needle, Visitor &&visitor, VArgs &&...args
     ) {
-      return apply<
+      return prepared::template apply<
         detail::type_list_impl::binary_search_lower_bound
       >::template search<Comparer>(
         std::forward<Needle>(needle),
@@ -3131,7 +3184,7 @@ struct type_list {
     static constexpr bool upper_bound(
       Needle &&needle, Visitor &&visitor, VArgs &&...args
     ) {
-      return apply<
+      return prepared::template apply<
         detail::type_list_impl::binary_search_upper_bound
       >::template search<Comparer, 0>(
         std::forward<Needle>(needle),
