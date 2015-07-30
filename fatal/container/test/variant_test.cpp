@@ -226,7 +226,7 @@ using test_vector = std::vector<
 ////////////////
 
 FATAL_TEST(variant, is_variant) {
-  FATAL_LOG(INFO) << "is_variant -> variant";
+  FATAL_VLOG(1) << "is_variant -> variant";
   FATAL_EXPECT_TRUE((is_variant<test_variant<>>::value));
   FATAL_EXPECT_TRUE((is_variant<test_variant<bool>>::value));
   FATAL_EXPECT_TRUE((is_variant<test_variant<int>>::value));
@@ -238,14 +238,14 @@ FATAL_TEST(variant, is_variant) {
     (is_variant<test_variant<int, double, test_string>>::value)
   );
 
-  FATAL_LOG(INFO) << "is_variant -> single types";
+  FATAL_VLOG(1) << "is_variant -> single types";
   FATAL_EXPECT_FALSE((is_variant<bool>::value));
   FATAL_EXPECT_FALSE((is_variant<int>::value));
   FATAL_EXPECT_FALSE((is_variant<double>::value));
   FATAL_EXPECT_FALSE((is_variant<long>::value));
   FATAL_EXPECT_FALSE((is_variant<test_string>::value));
 
-  FATAL_LOG(INFO) << "is_variant -> tuple";
+  FATAL_VLOG(1) << "is_variant -> tuple";
   FATAL_EXPECT_FALSE((is_variant<std::tuple<>>::value));
   FATAL_EXPECT_FALSE((is_variant<std::tuple<bool>>::value));
   FATAL_EXPECT_FALSE((is_variant<std::tuple<int>>::value));
@@ -476,6 +476,226 @@ FATAL_TEST(variant, move_ctor) {
   FATAL_EXPECT_TRUE(v.empty());
   FATAL_EXPECT_FALSE(z.empty());
   FATAL_EXPECT_EQ(1, z.tag());
+}
+
+struct throw_foo {
+  throw_foo() { throw nullptr; }
+  throw_foo(throw_foo const &) { throw nullptr; }
+  throw_foo(throw_foo &&) { throw nullptr; }
+  throw_foo &operator =(throw_foo const &) { throw nullptr; }
+  throw_foo &operator =(throw_foo &&) { throw nullptr; }
+};
+
+static_assert(!std::is_nothrow_default_constructible<throw_foo>::value, "");
+static_assert(!std::is_nothrow_copy_constructible<throw_foo>::value, "");
+static_assert(!std::is_nothrow_move_constructible<throw_foo>::value, "");
+static_assert(!std::is_nothrow_copy_assignable<throw_foo>::value, "");
+static_assert(!std::is_nothrow_move_assignable<throw_foo>::value, "");
+
+struct throw_large {
+  throw_large() { throw nullptr; }
+  throw_large(throw_large const &) { throw nullptr; }
+  throw_large(throw_large &&) { throw nullptr; }
+  throw_large &operator =(throw_large const &) { throw nullptr; }
+  throw_large &operator =(throw_large &&) { throw nullptr; }
+  std::array<char, 8192> payload;
+};
+
+static_assert(!std::is_nothrow_default_constructible<throw_large>::value, "");
+static_assert(!std::is_nothrow_copy_constructible<throw_large>::value, "");
+static_assert(!std::is_nothrow_move_constructible<throw_large>::value, "");
+static_assert(!std::is_nothrow_copy_assignable<throw_large>::value, "");
+static_assert(!std::is_nothrow_move_assignable<throw_large>::value, "");
+
+struct nothrow_foo {
+  nothrow_foo() noexcept {}
+  nothrow_foo(nothrow_foo const &) noexcept {}
+  nothrow_foo(nothrow_foo &&) noexcept {}
+  nothrow_foo &operator =(nothrow_foo const &) noexcept { return *this; }
+  nothrow_foo &operator =(nothrow_foo &&) noexcept { return *this; }
+};
+
+static_assert(std::is_nothrow_default_constructible<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_copy_constructible<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_move_constructible<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_copy_assignable<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_move_assignable<nothrow_foo>::value, "");
+
+FATAL_TEST(variant, noexcept) {
+# define TEST_IMPL(MayThrow, DefaultMoveMayThrow, ...) \
+  do { \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_constructible< \
+        default_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for copy constructor" \
+    ); \
+    static_assert( \
+      !DefaultMoveMayThrow == std::is_nothrow_move_constructible< \
+        default_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for move constructor" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_assignable< \
+        default_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for copy assignment operator" \
+    ); \
+    static_assert( \
+      !DefaultMoveMayThrow == std::is_nothrow_move_assignable< \
+        default_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for move assignment operator" \
+    ); \
+    \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_constructible< \
+        auto_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for copy constructor" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_move_constructible< \
+        auto_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for move constructor" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_assignable< \
+        auto_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for copy assignment operator" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_move_assignable< \
+        auto_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for move assignment operator" \
+    ); \
+    \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_constructible< \
+        default_dynamic_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for copy constructor" \
+    ); \
+    static_assert( \
+      std::is_nothrow_move_constructible< \
+        default_dynamic_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for move constructor" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_assignable< \
+        default_dynamic_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for copy assignment operator" \
+    ); \
+    static_assert( \
+      std::is_nothrow_move_assignable< \
+        default_dynamic_variant<__VA_ARGS__> \
+      >::value, \
+      "unexpected noexcept declaration for move assignment operator" \
+    ); \
+  } while (false)
+
+  TEST_IMPL(false, false, int);
+  TEST_IMPL(true,  true,  throw_foo);
+  TEST_IMPL(true,  false, throw_large);
+  TEST_IMPL(false, false, nothrow_foo);
+
+  TEST_IMPL(true,  true,  int, throw_foo);
+  TEST_IMPL(true,  false, int, throw_large);
+  TEST_IMPL(false, false, int, nothrow_foo);
+  TEST_IMPL(true,  true,  throw_foo, int);
+  TEST_IMPL(true,  true,  throw_foo, throw_large);
+  TEST_IMPL(true,  true,  throw_foo, nothrow_foo);
+  TEST_IMPL(true,  false, throw_large, int);
+  TEST_IMPL(true,  true,  throw_large, throw_foo);
+  TEST_IMPL(true,  false, throw_large, nothrow_foo);
+  TEST_IMPL(false, false, nothrow_foo, int);
+  TEST_IMPL(true,  true,  nothrow_foo, throw_foo);
+  TEST_IMPL(true,  false, nothrow_foo, throw_large);
+
+  TEST_IMPL(true,  true,  int, throw_foo, throw_large);
+  TEST_IMPL(true,  true,  int, throw_foo, nothrow_foo);
+  TEST_IMPL(true,  false, int, throw_large, nothrow_foo);
+  TEST_IMPL(true,  true,  throw_foo, throw_large, nothrow_foo);
+
+  TEST_IMPL(true,  true,  int, throw_foo, throw_large, nothrow_foo);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(variant, move_ctor_noexcept (default_automatic_variant)) {
+# define TEST_IMPL(MayThrow, ...) \
+  do { \
+  } while (false)
+
+  TEST_IMPL(false, int);
+  TEST_IMPL(true,  throw_foo);
+  TEST_IMPL(true,  throw_large);
+  TEST_IMPL(false, nothrow_foo);
+
+  TEST_IMPL(true,  int, throw_foo);
+  TEST_IMPL(true,  int, throw_large);
+  TEST_IMPL(false, int, nothrow_foo);
+  TEST_IMPL(true,  throw_foo, int);
+  TEST_IMPL(true,  throw_foo, throw_large);
+  TEST_IMPL(true,  throw_foo, nothrow_foo);
+  TEST_IMPL(true,  throw_large, int);
+  TEST_IMPL(true,  throw_large, throw_foo);
+  TEST_IMPL(true,  throw_large, nothrow_foo);
+  TEST_IMPL(false, nothrow_foo, int);
+  TEST_IMPL(true,  nothrow_foo, throw_foo);
+  TEST_IMPL(true,  nothrow_foo, throw_large);
+
+  TEST_IMPL(true,  int, throw_foo, throw_large);
+  TEST_IMPL(true,  int, throw_foo, nothrow_foo);
+  TEST_IMPL(true,  int, throw_large, nothrow_foo);
+  TEST_IMPL(true,  throw_foo, throw_large, nothrow_foo);
+
+  TEST_IMPL(true,  int, throw_foo, throw_large, nothrow_foo);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(variant, move_ctor_noexcept (default_dynamic_variant)) {
+# define TEST_IMPL(...) \
+  static_assert( \
+    std::is_nothrow_move_constructible< \
+      default_dynamic_variant<__VA_ARGS__> \
+    >::value, \
+    "unexpected result" \
+  )
+
+  TEST_IMPL(int);
+  TEST_IMPL(throw_foo);
+  TEST_IMPL(throw_large);
+  TEST_IMPL(nothrow_foo);
+
+  TEST_IMPL(int, throw_foo);
+  TEST_IMPL(int, throw_large);
+  TEST_IMPL(int, nothrow_foo);
+  TEST_IMPL(throw_foo, int);
+  TEST_IMPL(throw_foo, throw_large);
+  TEST_IMPL(throw_foo, nothrow_foo);
+  TEST_IMPL(throw_large, int);
+  TEST_IMPL(throw_large, throw_foo);
+  TEST_IMPL(throw_large, nothrow_foo);
+  TEST_IMPL(nothrow_foo, int);
+  TEST_IMPL(nothrow_foo, throw_foo);
+  TEST_IMPL(nothrow_foo, throw_large);
+
+  TEST_IMPL(int, throw_foo, throw_large);
+  TEST_IMPL(int, throw_foo, nothrow_foo);
+  TEST_IMPL(int, throw_large, nothrow_foo);
+  TEST_IMPL(throw_foo, throw_large, nothrow_foo);
+
+  TEST_IMPL(int, throw_foo, throw_large, nothrow_foo);
+
+# undef TEST_IMPL
 }
 
 FATAL_TEST(variant, value_copy_ctor) {
@@ -730,14 +950,14 @@ FATAL_TEST(variant, swap) {
   test_variant<int, test_string> v(allocator, 10);
   test_variant<int, test_string> u(allocator, test_string("5.0", allocator));
   test_variant<int, test_string> e(allocator);
-  FATAL_LOG(INFO) << "initial";
+  FATAL_VLOG(1) << "initial";
   FATAL_EXPECT_FALSE(v.empty());
   FATAL_EXPECT_EQ(10, v.get<int>());
   FATAL_EXPECT_FALSE(u.empty());
   FATAL_EXPECT_EQ(test_string("5.0", allocator), u.get<test_string>());
   FATAL_EXPECT_TRUE(e.empty());
 
-  FATAL_LOG(INFO) << "v.swap(u);";
+  FATAL_VLOG(1) << "v.swap(u);";
   v.swap(u);
   FATAL_EXPECT_FALSE(u.empty());
   FATAL_EXPECT_EQ(10, u.get<int>());
@@ -745,7 +965,7 @@ FATAL_TEST(variant, swap) {
   FATAL_EXPECT_EQ("5.0", v.get<test_string>());
   FATAL_EXPECT_TRUE(e.empty());
 
-  FATAL_LOG(INFO) << "v.swap(u);";
+  FATAL_VLOG(1) << "v.swap(u);";
   v.swap(u);
   FATAL_EXPECT_FALSE(v.empty());
   FATAL_EXPECT_EQ(10, v.get<int>());
@@ -753,7 +973,7 @@ FATAL_TEST(variant, swap) {
   FATAL_EXPECT_EQ("5.0", u.get<test_string>());
   FATAL_EXPECT_TRUE(e.empty());
 
-  FATAL_LOG(INFO) << "u.swap(e);";
+  FATAL_VLOG(1) << "u.swap(e);";
   u.swap(e);
   FATAL_EXPECT_FALSE(v.empty());
   FATAL_EXPECT_EQ(10, v.get<int>());
@@ -761,7 +981,7 @@ FATAL_TEST(variant, swap) {
   FATAL_EXPECT_EQ("5.0", e.get<test_string>());
   FATAL_EXPECT_TRUE(u.empty());
 
-  FATAL_LOG(INFO) << "e.swap(v);";
+  FATAL_VLOG(1) << "e.swap(v);";
   e.swap(v);
   FATAL_EXPECT_FALSE(e.empty());
   FATAL_EXPECT_EQ(10, e.get<int>());
@@ -820,7 +1040,7 @@ struct type_checker_visitor {
   template <typename U>
   struct comparer<U, false> {
     static void compare(T const &expected, U const &actual) {
-      FATAL_LOG(INFO) << "visited \"" << actual << "\" ["
+      FATAL_VLOG(1) << "visited \"" << actual << "\" ["
         << type_str<U>() << ", expecting \""
         << expected << "\" [" << type_str<T>() << ']';
       FATAL_EXPECT_TRUE(false);
@@ -1379,7 +1599,7 @@ template <typename Expected, typename ...Args>
 void check_type_tag_size() {
   using var = variant<default_storage_policy<>, Args...>;
   if (!std::is_same<Expected, typename var::type_tag>::value) {
-    FATAL_LOG(INFO) << "expected \"" << type_str<Expected>()
+    FATAL_VLOG(1) << "expected \"" << type_str<Expected>()
       << "\", got \"" << type_str<typename var::type_tag>()
       << "\" for " << sizeof...(Args) << " types";
     FATAL_EXPECT_TRUE(false);
@@ -1571,7 +1791,7 @@ struct nested_visitor {
   nested_visitor(std::initializer_list<int> list): expected_(list) {}
 
   void operator ()(nested_vector const &v) {
-    FATAL_LOG(INFO) << "push" << " expected.size() = " << expected_.size()
+    FATAL_VLOG(1) << "push" << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
     FATAL_ASSERT_NE(0, expected_.size());
     FATAL_EXPECT_EQ(-1, expected_.front());
@@ -1581,7 +1801,7 @@ struct nested_visitor {
       i.visit(*this);
     }
 
-    FATAL_LOG(INFO) << "pop" << " expected.size() = " << expected_.size()
+    FATAL_VLOG(1) << "pop" << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
     FATAL_ASSERT_NE(0, expected_.size());
     FATAL_EXPECT_EQ(-2, expected_.front());
@@ -1589,7 +1809,7 @@ struct nested_visitor {
   }
 
   void operator ()(int i) {
-    FATAL_LOG(INFO) << "int " << i << " expected.size() = " << expected_.size()
+    FATAL_VLOG(1) << "int " << i << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
     FATAL_ASSERT_NE(0, expected_.size());
     FATAL_EXPECT_EQ(expected_.front(), i);
@@ -2234,7 +2454,7 @@ FATAL_TEST(variant, set_difference) {
   );
 
   for (auto &i: diff) {
-    FATAL_LOG(INFO) << "result: " << i.get<int>();
+    FATAL_VLOG(1) << "result: " << i.get<int>();
   }
 
   VECTOR const expected({
@@ -2268,7 +2488,7 @@ FATAL_TEST(variant, set_difference_inplace) {
   lhs.erase(end, lhs.end());
 
   for (auto &i: lhs) {
-    FATAL_LOG(INFO) << "result: " << i.get<int>();
+    FATAL_VLOG(1) << "result: " << i.get<int>();
   }
 
   VECTOR const expected({
@@ -2350,7 +2570,7 @@ FATAL_TEST(variant, memory_leak) {
     ? freed - allocated
     : allocated - freed;
 
-  FATAL_LOG(INFO) << "allocated: " << allocated
+  FATAL_VLOG(1) << "allocated: " << allocated
     << " freed: " << freed
     << " balance: " << balance
     << (

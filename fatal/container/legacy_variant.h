@@ -947,6 +947,24 @@ private:
     type_tag tag_;
   };
 
+  template <typename T>
+  using nothrow_copy_ctor = std::is_nothrow_move_constructible<T>;
+
+  template <typename T>
+  using nothrow_move_ctor = logical_transform::any<
+    typename storage_policy::template allocate_dynamically<T>,
+    std::is_nothrow_move_constructible<T>
+  >;
+
+  template <typename T>
+  using nothrow_copy_assign = std::is_nothrow_copy_assignable<T>;
+
+  template <typename T>
+  using nothrow_move_assign = logical_transform::any<
+    typename storage_policy::template allocate_dynamically<T>,
+    std::is_nothrow_move_assignable<T>
+  >;
+
 public:
   using type_tag = typename control_block::type_tag;
   using traits = detail::variant_impl::variadic_union_traits<
@@ -984,7 +1002,8 @@ public:
     control_(std::addressof(allocator), no_tag())
   {}
 
-  legacy_variant(legacy_variant const &other):
+  legacy_variant(legacy_variant const &other)
+    noexcept(logical_transform::all<nothrow_copy_ctor<Args>...>::value):
     control_(copy_impl(other))
   {
     static_assert(
@@ -993,8 +1012,8 @@ public:
     );
   }
 
-  /* may throw */
-  legacy_variant(legacy_variant &&other):
+  legacy_variant(legacy_variant &&other)
+    noexcept(logical_transform::all<nothrow_move_ctor<Args>...>::value):
     control_(move_impl(std::move(other)))
   {}
 
@@ -1346,7 +1365,9 @@ public:
     control_.set_allocator(std::addressof(allocator));
   }
 
-  legacy_variant &operator =(legacy_variant const &other) {
+  legacy_variant &operator =(legacy_variant const &other)
+    noexcept(logical_transform::all<nothrow_copy_assign<Args>...>::value)
+  {
     static_assert(
       storage_policy::is_copyable(),
       "copy assignment disabled by the variant's policy"
@@ -1360,11 +1381,15 @@ public:
     return *this;
   }
 
-  legacy_variant &operator =(legacy_variant &other) {
+  legacy_variant &operator =(legacy_variant &other)
+    noexcept(logical_transform::all<nothrow_copy_assign<Args>...>::value)
+  {
     return (*this = static_cast<legacy_variant const &>(other));
   }
 
-  legacy_variant &operator =(legacy_variant &&other) {
+  legacy_variant &operator =(legacy_variant &&other)
+    noexcept(logical_transform::all<nothrow_move_assign<Args>...>::value)
+  {
     if (this != std::addressof(other)) {
       unset_impl(control_.allocator());
       control_ = move_impl(std::move(other));
