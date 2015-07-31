@@ -441,11 +441,18 @@ namespace variant_impl {
 template <typename, typename TSize, TSize, typename...>
 struct variadic_union_traits;
 
+// empty case
+template <typename TStoragePolicy, typename TSize, TSize Depth>
+struct variadic_union_traits<TStoragePolicy, TSize, Depth> {
+  using size_type = TSize;
+
+  union union_type {};
+
+  constexpr static size_type end_depth() { return Depth; }
+};
+
 // base case
-template <
-  typename TStoragePolicy,
-  typename TSize, TSize Depth, typename T
->
+template <typename TStoragePolicy, typename TSize, TSize Depth, typename T>
 struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
   static_assert(std::is_integral<TSize>::value, "TSize must be an integral");
   static_assert(!std::is_reference<T>::value, "T can't be a reference");
@@ -1002,12 +1009,17 @@ public:
     control_(nullptr, no_tag())
   {}
 
-  explicit legacy_variant(allocator_type &allocator):
+  explicit legacy_variant(allocator_type &allocator) noexcept:
     control_(std::addressof(allocator), no_tag())
   {}
 
   legacy_variant(legacy_variant const &other)
-    noexcept(logical_transform::all<nothrow_copy_ctor<Args>...>::value):
+    noexcept(
+      logical_transform::all<
+        std::true_type,
+        nothrow_copy_ctor<Args>...
+      >::value
+    ):
     control_(copy_impl(other))
   {
     static_assert(
@@ -1017,7 +1029,12 @@ public:
   }
 
   legacy_variant(legacy_variant &&other)
-    noexcept(logical_transform::all<nothrow_move_ctor<Args>...>::value):
+    noexcept(
+      logical_transform::all<
+        std::true_type,
+        nothrow_move_ctor<Args>...
+      >::value
+    ):
     control_(move_impl(std::move(other)))
   {}
 
@@ -1370,7 +1387,12 @@ public:
   }
 
   legacy_variant &operator =(legacy_variant const &other)
-    noexcept(logical_transform::all<nothrow_copy_assign<Args>...>::value)
+    noexcept(
+      logical_transform::all<
+        std::true_type,
+        nothrow_copy_assign<Args>...
+      >::value
+    )
   {
     static_assert(
       storage_policy::is_copyable(),
@@ -1386,13 +1408,23 @@ public:
   }
 
   legacy_variant &operator =(legacy_variant &other)
-    noexcept(logical_transform::all<nothrow_copy_assign<Args>...>::value)
+    noexcept(
+      logical_transform::all<
+        std::true_type,
+        nothrow_copy_assign<Args>...
+      >::value
+    )
   {
     return (*this = static_cast<legacy_variant const &>(other));
   }
 
   legacy_variant &operator =(legacy_variant &&other)
-    noexcept(logical_transform::all<nothrow_move_assign<Args>...>::value)
+    noexcept(
+      logical_transform::all<
+        std::true_type,
+        nothrow_move_assign<Args>...
+      >::value
+    )
   {
     if (this != std::addressof(other)) {
       unset_impl(control_.allocator());

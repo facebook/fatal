@@ -206,6 +206,8 @@ using test_policy = default_storage_policy<decltype(allocator)>;
 template <typename... Args>
 using test_variant = variant<test_policy, Args...>;
 
+using empty_var = test_variant<>;
+
 template <typename T>
 using basic_test_string = std::basic_string<
   char,
@@ -522,80 +524,81 @@ static_assert(std::is_nothrow_copy_assignable<nothrow_foo>::value, "");
 static_assert(std::is_nothrow_move_assignable<nothrow_foo>::value, "");
 
 FATAL_TEST(variant, noexcept) {
+  static_assert(std::is_nothrow_default_constructible<empty_var>::value, "");
+  static_assert(std::is_nothrow_copy_constructible<empty_var>::value, "");
+  static_assert(std::is_nothrow_move_constructible<empty_var>::value, "");
+  static_assert(std::is_nothrow_copy_assignable<empty_var>::value, "");
+  static_assert(std::is_nothrow_move_assignable<empty_var>::value, "");
+
 # define TEST_IMPL(MayThrow, DefaultMoveMayThrow, ...) \
   do { \
+    using default_var = default_variant<__VA_ARGS__>; \
+    \
+    default_var default_v; \
+    FATAL_EXPECT_NOT_NULL(std::addressof(default_v)); \
+    \
     static_assert( \
-      !MayThrow == std::is_nothrow_copy_constructible< \
-        default_variant<__VA_ARGS__> \
-      >::value, \
+      !MayThrow == std::is_nothrow_copy_constructible<default_var>::value, \
       "unexpected noexcept declaration for copy constructor" \
     ); \
     static_assert( \
       !DefaultMoveMayThrow == std::is_nothrow_move_constructible< \
-        default_variant<__VA_ARGS__> \
+        default_var \
       >::value, \
       "unexpected noexcept declaration for move constructor" \
     ); \
     static_assert( \
-      !MayThrow == std::is_nothrow_copy_assignable< \
-        default_variant<__VA_ARGS__> \
-      >::value, \
+      !MayThrow == std::is_nothrow_copy_assignable<default_var>::value, \
       "unexpected noexcept declaration for copy assignment operator" \
     ); \
     static_assert( \
       !DefaultMoveMayThrow == std::is_nothrow_move_assignable< \
-        default_variant<__VA_ARGS__> \
+        default_var \
       >::value, \
       "unexpected noexcept declaration for move assignment operator" \
     ); \
     \
+    using auto_var = auto_variant<__VA_ARGS__>; \
+    \
+    auto_var auto_v; \
+    FATAL_EXPECT_NOT_NULL(std::addressof(auto_v)); \
+    \
     static_assert( \
-      !MayThrow == std::is_nothrow_copy_constructible< \
-        auto_variant<__VA_ARGS__> \
-      >::value, \
+      !MayThrow == std::is_nothrow_copy_constructible<auto_var>::value, \
       "unexpected noexcept declaration for copy constructor" \
     ); \
     static_assert( \
-      !MayThrow == std::is_nothrow_move_constructible< \
-        auto_variant<__VA_ARGS__> \
-      >::value, \
+      !MayThrow == std::is_nothrow_move_constructible<auto_var>::value, \
       "unexpected noexcept declaration for move constructor" \
     ); \
     static_assert( \
-      !MayThrow == std::is_nothrow_copy_assignable< \
-        auto_variant<__VA_ARGS__> \
-      >::value, \
+      !MayThrow == std::is_nothrow_copy_assignable<auto_var>::value, \
       "unexpected noexcept declaration for copy assignment operator" \
     ); \
     static_assert( \
-      !MayThrow == std::is_nothrow_move_assignable< \
-        auto_variant<__VA_ARGS__> \
-      >::value, \
+      !MayThrow == std::is_nothrow_move_assignable<auto_var>::value, \
       "unexpected noexcept declaration for move assignment operator" \
     ); \
     \
+    using dynamic_var = default_dynamic_variant<__VA_ARGS__>; \
+    \
+    dynamic_var dynamic_v; \
+    FATAL_EXPECT_NOT_NULL(std::addressof(dynamic_v)); \
+    \
     static_assert( \
-      !MayThrow == std::is_nothrow_copy_constructible< \
-        default_dynamic_variant<__VA_ARGS__> \
-      >::value, \
+      !MayThrow == std::is_nothrow_copy_constructible<dynamic_var>::value, \
       "unexpected noexcept declaration for copy constructor" \
     ); \
     static_assert( \
-      std::is_nothrow_move_constructible< \
-        default_dynamic_variant<__VA_ARGS__> \
-      >::value, \
+      std::is_nothrow_move_constructible<dynamic_var>::value, \
       "unexpected noexcept declaration for move constructor" \
     ); \
     static_assert( \
-      !MayThrow == std::is_nothrow_copy_assignable< \
-        default_dynamic_variant<__VA_ARGS__> \
-      >::value, \
+      !MayThrow == std::is_nothrow_copy_assignable<dynamic_var>::value, \
       "unexpected noexcept declaration for copy assignment operator" \
     ); \
     static_assert( \
-      std::is_nothrow_move_assignable< \
-        default_dynamic_variant<__VA_ARGS__> \
-      >::value, \
+      std::is_nothrow_move_assignable<dynamic_var>::value, \
       "unexpected noexcept declaration for move assignment operator" \
     ); \
   } while (false)
@@ -630,16 +633,23 @@ FATAL_TEST(variant, noexcept) {
 
 struct recursive_nothrow;
 
-using recursive_nothrow_var = default_variant<recursive_nothrow>;
+using recursive_nothrow_var = test_variant<recursive_nothrow>;
 
 struct recursive_nothrow {
-  recursive_nothrow() noexcept {}
-  recursive_nothrow(recursive_nothrow const &) noexcept {}
-  recursive_nothrow(recursive_nothrow &&) noexcept {}
-  recursive_nothrow &operator =(recursive_nothrow const &) noexcept {
+  recursive_nothrow() noexcept: var(allocator) {}
+  recursive_nothrow(recursive_nothrow const &rhs) noexcept: var(rhs.var) {}
+  recursive_nothrow(recursive_nothrow &&rhs) noexcept:
+    var(std::move(rhs.var))
+  {}
+
+  recursive_nothrow &operator =(recursive_nothrow const &rhs) noexcept {
+    var = rhs.var;
     return *this;
   }
-  recursive_nothrow &operator =(recursive_nothrow &&) noexcept { return *this; }
+  recursive_nothrow &operator =(recursive_nothrow &&rhs) noexcept {
+    var = std::move(rhs.var);
+    return *this;
+  }
 
   recursive_nothrow_var var;
 };
@@ -652,9 +662,55 @@ static_assert(std::is_nothrow_move_constructible<recursive_nothrow>::value, "");
 static_assert(std::is_nothrow_copy_assignable<recursive_nothrow>::value, "");
 static_assert(std::is_nothrow_move_assignable<recursive_nothrow>::value, "");
 
+struct recursive_pair;
+
+using recursive_pair_var = test_variant<recursive_pair>;
+using recursive_pair_base = std::pair<recursive_pair_var, recursive_pair_var>;
+
+struct recursive_pair:
+  recursive_pair_base
+{
+  recursive_pair() noexcept:
+    recursive_pair_base(
+      recursive_pair_var(allocator),
+      recursive_pair_var(allocator)
+    )
+  {}
+
+  recursive_pair(recursive_pair const &rhs) noexcept:
+    recursive_pair_base(rhs.first, rhs.second)
+  {}
+
+  recursive_pair(recursive_pair &&rhs) noexcept:
+    recursive_pair_base(std::move(rhs.first), std::move(rhs.second))
+  {}
+
+  recursive_pair &operator =(recursive_pair const &rhs) noexcept {
+    first = rhs.first;
+    second = rhs.second;
+    return *this;
+  }
+  recursive_pair &operator =(recursive_pair &&rhs) noexcept {
+    first = std::move(rhs.first);
+    second = std::move(rhs.second);
+    return *this;
+  }
+};
+
+static_assert(
+  std::is_nothrow_default_constructible<recursive_pair>::value, ""
+);
+static_assert(std::is_nothrow_copy_constructible<recursive_pair>::value, "");
+static_assert(std::is_nothrow_move_constructible<recursive_pair>::value, "");
+static_assert(std::is_nothrow_copy_assignable<recursive_pair>::value, "");
+static_assert(std::is_nothrow_move_assignable<recursive_pair>::value, "");
+
 FATAL_TEST(variant, noexcept (recursive)) {
 # define TEST_IMPL(Variant) \
   do { \
+    Variant v; \
+    FATAL_EXPECT_NOT_NULL(std::addressof(v)); \
+    \
     static_assert( \
       std::is_nothrow_copy_constructible<Variant>::value, \
       "unexpected noexcept declaration for copy constructor" \
@@ -674,6 +730,7 @@ FATAL_TEST(variant, noexcept (recursive)) {
   } while (false)
 
   TEST_IMPL(recursive_nothrow_var);
+  TEST_IMPL(recursive_pair_var);
 
 # undef TEST_IMPL
 }
