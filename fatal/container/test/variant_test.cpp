@@ -628,72 +628,52 @@ FATAL_TEST(variant, noexcept) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(variant, move_ctor_noexcept (default_automatic_variant)) {
-# define TEST_IMPL(MayThrow, ...) \
+struct recursive_nothrow;
+
+using recursive_nothrow_var = default_variant<recursive_nothrow>;
+
+struct recursive_nothrow {
+  recursive_nothrow() noexcept {}
+  recursive_nothrow(recursive_nothrow const &) noexcept {}
+  recursive_nothrow(recursive_nothrow &&) noexcept {}
+  recursive_nothrow &operator =(recursive_nothrow const &) noexcept {
+    return *this;
+  }
+  recursive_nothrow &operator =(recursive_nothrow &&) noexcept { return *this; }
+
+  recursive_nothrow_var var;
+};
+
+static_assert(
+  std::is_nothrow_default_constructible<recursive_nothrow>::value, ""
+);
+static_assert(std::is_nothrow_copy_constructible<recursive_nothrow>::value, "");
+static_assert(std::is_nothrow_move_constructible<recursive_nothrow>::value, "");
+static_assert(std::is_nothrow_copy_assignable<recursive_nothrow>::value, "");
+static_assert(std::is_nothrow_move_assignable<recursive_nothrow>::value, "");
+
+FATAL_TEST(variant, noexcept (recursive)) {
+# define TEST_IMPL(Variant) \
   do { \
+    static_assert( \
+      std::is_nothrow_copy_constructible<Variant>::value, \
+      "unexpected noexcept declaration for copy constructor" \
+    ); \
+    static_assert( \
+      std::is_nothrow_move_constructible<Variant>::value, \
+      "unexpected noexcept declaration for move constructor" \
+    ); \
+    static_assert( \
+      std::is_nothrow_copy_assignable<Variant>::value, \
+      "unexpected noexcept declaration for copy assignment operator" \
+    ); \
+    static_assert( \
+      std::is_nothrow_move_assignable<Variant>::value, \
+      "unexpected noexcept declaration for move assignment operator" \
+    ); \
   } while (false)
 
-  TEST_IMPL(false, int);
-  TEST_IMPL(true,  throw_foo);
-  TEST_IMPL(true,  throw_large);
-  TEST_IMPL(false, nothrow_foo);
-
-  TEST_IMPL(true,  int, throw_foo);
-  TEST_IMPL(true,  int, throw_large);
-  TEST_IMPL(false, int, nothrow_foo);
-  TEST_IMPL(true,  throw_foo, int);
-  TEST_IMPL(true,  throw_foo, throw_large);
-  TEST_IMPL(true,  throw_foo, nothrow_foo);
-  TEST_IMPL(true,  throw_large, int);
-  TEST_IMPL(true,  throw_large, throw_foo);
-  TEST_IMPL(true,  throw_large, nothrow_foo);
-  TEST_IMPL(false, nothrow_foo, int);
-  TEST_IMPL(true,  nothrow_foo, throw_foo);
-  TEST_IMPL(true,  nothrow_foo, throw_large);
-
-  TEST_IMPL(true,  int, throw_foo, throw_large);
-  TEST_IMPL(true,  int, throw_foo, nothrow_foo);
-  TEST_IMPL(true,  int, throw_large, nothrow_foo);
-  TEST_IMPL(true,  throw_foo, throw_large, nothrow_foo);
-
-  TEST_IMPL(true,  int, throw_foo, throw_large, nothrow_foo);
-
-# undef TEST_IMPL
-}
-
-FATAL_TEST(variant, move_ctor_noexcept (default_dynamic_variant)) {
-# define TEST_IMPL(...) \
-  static_assert( \
-    std::is_nothrow_move_constructible< \
-      default_dynamic_variant<__VA_ARGS__> \
-    >::value, \
-    "unexpected result" \
-  )
-
-  TEST_IMPL(int);
-  TEST_IMPL(throw_foo);
-  TEST_IMPL(throw_large);
-  TEST_IMPL(nothrow_foo);
-
-  TEST_IMPL(int, throw_foo);
-  TEST_IMPL(int, throw_large);
-  TEST_IMPL(int, nothrow_foo);
-  TEST_IMPL(throw_foo, int);
-  TEST_IMPL(throw_foo, throw_large);
-  TEST_IMPL(throw_foo, nothrow_foo);
-  TEST_IMPL(throw_large, int);
-  TEST_IMPL(throw_large, throw_foo);
-  TEST_IMPL(throw_large, nothrow_foo);
-  TEST_IMPL(nothrow_foo, int);
-  TEST_IMPL(nothrow_foo, throw_foo);
-  TEST_IMPL(nothrow_foo, throw_large);
-
-  TEST_IMPL(int, throw_foo, throw_large);
-  TEST_IMPL(int, throw_foo, nothrow_foo);
-  TEST_IMPL(int, throw_large, nothrow_foo);
-  TEST_IMPL(throw_foo, throw_large, nothrow_foo);
-
-  TEST_IMPL(int, throw_foo, throw_large, nothrow_foo);
+  TEST_IMPL(recursive_nothrow_var);
 
 # undef TEST_IMPL
 }

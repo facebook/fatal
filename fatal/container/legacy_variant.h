@@ -998,7 +998,7 @@ public:
    * This method is provided mainly for compatibility with some
    * standard containers.
    */
-  explicit legacy_variant():
+  explicit legacy_variant() noexcept:
     control_(nullptr, no_tag())
   {}
 
