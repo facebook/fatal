@@ -880,15 +880,18 @@ public:
 template <typename, typename...>
 struct legacy_variant;
 
-template <typename, typename...>
-struct is_variant:
-  public std::false_type
-{};
+namespace detail {
+namespace variant_impl {
 
+template <typename> struct is_variant_impl;
 template <typename UStoragePolicy, typename... UArgs>
-struct is_variant<legacy_variant<UStoragePolicy, UArgs...>>:
-  public std::true_type
-{};
+struct is_variant_impl<legacy_variant<UStoragePolicy, UArgs...>> {};
+
+} // namespace variant_impl {
+} // namespace detail {
+
+template <typename T>
+using is_variant = is_complete<detail::variant_impl::is_variant_impl<T>>;
 
 /**
  * ################
@@ -909,6 +912,7 @@ struct is_variant<legacy_variant<UStoragePolicy, UArgs...>>:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+// TODO: ADD MISSING noexcept DECLARATIONS
 template <typename TStoragePolicy, typename... Args>
 struct legacy_variant {
   using storage_policy = TStoragePolicy;
