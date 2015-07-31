@@ -539,23 +539,23 @@ FATAL_TEST(variant, noexcept) {
     \
     static_assert( \
       !MayThrow == std::is_nothrow_copy_constructible<default_var>::value, \
-      "unexpected noexcept declaration for copy constructor" \
+      "unexpected noexcept declaration for copy constructor (default)" \
     ); \
     static_assert( \
       !DefaultMoveMayThrow == std::is_nothrow_move_constructible< \
         default_var \
       >::value, \
-      "unexpected noexcept declaration for move constructor" \
+      "unexpected noexcept declaration for move constructor (default)" \
     ); \
     static_assert( \
       !MayThrow == std::is_nothrow_copy_assignable<default_var>::value, \
-      "unexpected noexcept declaration for copy assignment operator" \
+      "unexpected noexcept declaration for copy assignment operator (default)" \
     ); \
     static_assert( \
       !DefaultMoveMayThrow == std::is_nothrow_move_assignable< \
         default_var \
       >::value, \
-      "unexpected noexcept declaration for move assignment operator" \
+      "unexpected noexcept declaration for move assignment operator (default)" \
     ); \
     \
     using auto_var = auto_variant<__VA_ARGS__>; \
@@ -565,19 +565,19 @@ FATAL_TEST(variant, noexcept) {
     \
     static_assert( \
       !MayThrow == std::is_nothrow_copy_constructible<auto_var>::value, \
-      "unexpected noexcept declaration for copy constructor" \
+      "unexpected noexcept declaration for copy constructor (auto)" \
     ); \
     static_assert( \
       !MayThrow == std::is_nothrow_move_constructible<auto_var>::value, \
-      "unexpected noexcept declaration for move constructor" \
+      "unexpected noexcept declaration for move constructor (auto)" \
     ); \
     static_assert( \
       !MayThrow == std::is_nothrow_copy_assignable<auto_var>::value, \
-      "unexpected noexcept declaration for copy assignment operator" \
+      "unexpected noexcept declaration for copy assignment operator (auto)" \
     ); \
     static_assert( \
       !MayThrow == std::is_nothrow_move_assignable<auto_var>::value, \
-      "unexpected noexcept declaration for move assignment operator" \
+      "unexpected noexcept declaration for move assignment operator (auto)" \
     ); \
     \
     using dynamic_var = default_dynamic_variant<__VA_ARGS__>; \
@@ -587,19 +587,19 @@ FATAL_TEST(variant, noexcept) {
     \
     static_assert( \
       !MayThrow == std::is_nothrow_copy_constructible<dynamic_var>::value, \
-      "unexpected noexcept declaration for copy constructor" \
+      "unexpected noexcept declaration for copy constructor (dynamic)" \
     ); \
     static_assert( \
       std::is_nothrow_move_constructible<dynamic_var>::value, \
-      "unexpected noexcept declaration for move constructor" \
+      "unexpected noexcept declaration for move constructor (dynamic)" \
     ); \
     static_assert( \
       !MayThrow == std::is_nothrow_copy_assignable<dynamic_var>::value, \
-      "unexpected noexcept declaration for copy assignment operator" \
+      "unexpected noexcept declaration for copy assignment operator (dynamic)" \
     ); \
     static_assert( \
       std::is_nothrow_move_assignable<dynamic_var>::value, \
-      "unexpected noexcept declaration for move assignment operator" \
+      "unexpected noexcept declaration for move assignment operator (dynamic)" \
     ); \
   } while (false)
 
