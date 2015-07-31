@@ -2310,12 +2310,9 @@ struct all<T, Args...> {
   >;
 };
 
-template <typename T>
-struct all<T> {
-  using type = std::integral_constant<
-    typename std::decay<decltype(T::value)>::type,
-    T::value
-  >;
+template <>
+struct all<> {
+  using type = std::true_type;
 };
 
 /////////
@@ -2330,12 +2327,9 @@ struct any<T, Args...> {
   >;
 };
 
-template <typename T>
-struct any<T> {
-  using type = std::integral_constant<
-    typename std::decay<decltype(T::value)>::type,
-    T::value
-  >;
+template <>
+struct any<> {
+  using type = std::false_type;
 };
 
 } // logical_transform_impl logical_transform {

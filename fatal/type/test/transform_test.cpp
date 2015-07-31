@@ -412,6 +412,8 @@ FATAL_TEST(arithmetic_transform, modulo) {
   } while (false)
 
 FATAL_TEST(logical_transform, all) {
+  FATAL_TEST_IMPL(all, true);
+
   FATAL_TEST_IMPL(all, true, true);
   FATAL_TEST_IMPL(all, false, false);
 
@@ -448,6 +450,8 @@ FATAL_TEST(logical_transform, all) {
 }
 
 FATAL_TEST(logical_transform, any) {
+  FATAL_TEST_IMPL(any, false);
+
   FATAL_TEST_IMPL(any, true, true);
   FATAL_TEST_IMPL(any, false, false);
 
