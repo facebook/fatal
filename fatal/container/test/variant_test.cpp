@@ -586,7 +586,7 @@ FATAL_TEST(variant, noexcept) {
     FATAL_EXPECT_NOT_NULL(std::addressof(dynamic_v)); \
     \
     static_assert( \
-      !MayThrow == std::is_nothrow_copy_constructible<dynamic_var>::value, \
+      !std::is_nothrow_copy_constructible<dynamic_var>::value, \
       "unexpected noexcept declaration for copy constructor (dynamic)" \
     ); \
     static_assert( \
@@ -594,7 +594,7 @@ FATAL_TEST(variant, noexcept) {
       "unexpected noexcept declaration for move constructor (dynamic)" \
     ); \
     static_assert( \
-      !MayThrow == std::is_nothrow_copy_assignable<dynamic_var>::value, \
+      !std::is_nothrow_copy_assignable<dynamic_var>::value, \
       "unexpected noexcept declaration for copy assignment operator (dynamic)" \
     ); \
     static_assert( \
@@ -712,7 +712,7 @@ FATAL_TEST(variant, noexcept (recursive)) {
     FATAL_EXPECT_NOT_NULL(std::addressof(v)); \
     \
     static_assert( \
-      std::is_nothrow_copy_constructible<Variant>::value, \
+      !std::is_nothrow_copy_constructible<Variant>::value, \
       "unexpected noexcept declaration for copy constructor" \
     ); \
     static_assert( \
@@ -720,7 +720,7 @@ FATAL_TEST(variant, noexcept (recursive)) {
       "unexpected noexcept declaration for move constructor" \
     ); \
     static_assert( \
-      std::is_nothrow_copy_assignable<Variant>::value, \
+      !std::is_nothrow_copy_assignable<Variant>::value, \
       "unexpected noexcept declaration for copy assignment operator" \
     ); \
     static_assert( \

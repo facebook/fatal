@@ -881,33 +881,43 @@ public:
   }
 };
 
-template <typename T>
-struct nothrow_copy_ctor {
+template <typename T, bool>
+struct nothrow_cp_ctor {
   using type = std::is_nothrow_move_constructible<T>;
+};
+
+template <typename T>
+struct nothrow_cp_ctor<T, true> {
+  using type = std::false_type;
 };
 
 template <typename T, bool>
-struct nothrow_move_ctor {
+struct nothrow_mv_ctor {
   using type = std::is_nothrow_move_constructible<T>;
 };
 
 template <typename T>
-struct nothrow_move_ctor<T, true> {
+struct nothrow_mv_ctor<T, true> {
   using type = std::true_type;
 };
 
-template <typename T>
-struct nothrow_copy_assign {
+template <typename T, bool>
+struct nothrow_cp_assign {
   using type = std::is_nothrow_copy_assignable<T>;
 };
 
+template <typename T>
+struct nothrow_cp_assign<T, true> {
+  using type = std::false_type;
+};
+
 template <typename T, bool>
-struct nothrow_move_assign {
+struct nothrow_mv_assign {
   using type = std::is_nothrow_move_assignable<T>;
 };
 
 template <typename T>
-struct nothrow_move_assign<T, true> {
+struct nothrow_mv_assign<T, true> {
   using type = std::true_type;
 };
 
@@ -989,23 +999,24 @@ private:
   };
 
   template <typename T>
-  using nothrow_copy_ctor = typename detail::variant_impl
-    ::nothrow_copy_ctor<T>::type;
-
-  template <typename T>
-  using nothrow_move_ctor = typename detail::variant_impl::nothrow_move_ctor<
+  using nothrow_cp_ctor = typename detail::variant_impl::nothrow_cp_ctor<
     T, storage_policy::template allocate_dynamically<T>::value
   >::type;
 
   template <typename T>
-  using nothrow_copy_assign = typename detail::variant_impl
-    ::nothrow_copy_assign<T>::type;
+  using nothrow_mv_ctor = typename detail::variant_impl::nothrow_mv_ctor<
+    T, storage_policy::template allocate_dynamically<T>::value
+  >::type;
 
   template <typename T>
-  using nothrow_move_assign = typename detail::variant_impl
-    ::nothrow_move_assign<
-      T, storage_policy::template allocate_dynamically<T>::value
-    >::type;
+  using nothrow_cp_assign = typename detail::variant_impl::nothrow_cp_assign<
+    T, storage_policy::template allocate_dynamically<T>::value
+  >::type;
+
+  template <typename T>
+  using nothrow_mv_assign = typename detail::variant_impl::nothrow_mv_assign<
+    T, storage_policy::template allocate_dynamically<T>::value
+  >::type;
 
 public:
   using type_tag = typename control_block::type_tag;
@@ -1045,12 +1056,7 @@ public:
   {}
 
   legacy_variant(legacy_variant const &other)
-    noexcept(
-      logical_transform::all<
-        std::true_type,
-        nothrow_copy_ctor<Args>...
-      >::value
-    ):
+    noexcept(logical_transform::all<nothrow_cp_ctor<Args>...>::value):
     control_(copy_impl(other))
   {
     static_assert(
@@ -1060,12 +1066,7 @@ public:
   }
 
   legacy_variant(legacy_variant &&other)
-    noexcept(
-      logical_transform::all<
-        std::true_type,
-        nothrow_move_ctor<Args>...
-      >::value
-    ):
+    noexcept(logical_transform::all<nothrow_mv_ctor<Args>...>::value):
     control_(move_impl(std::move(other)))
   {}
 
@@ -1419,10 +1420,7 @@ public:
 
   legacy_variant &operator =(legacy_variant const &other)
     noexcept(
-      logical_transform::all<
-        std::true_type,
-        nothrow_copy_assign<Args>...
-      >::value
+      logical_transform::all<std::true_type, nothrow_cp_assign<Args>...>::value
     )
   {
     static_assert(
@@ -1439,23 +1437,13 @@ public:
   }
 
   legacy_variant &operator =(legacy_variant &other)
-    noexcept(
-      logical_transform::all<
-        std::true_type,
-        nothrow_copy_assign<Args>...
-      >::value
-    )
+    noexcept(logical_transform::all<nothrow_cp_assign<Args>...>::value)
   {
     return (*this = static_cast<legacy_variant const &>(other));
   }
 
   legacy_variant &operator =(legacy_variant &&other)
-    noexcept(
-      logical_transform::all<
-        std::true_type,
-        nothrow_move_assign<Args>...
-      >::value
-    )
+    noexcept(logical_transform::all<nothrow_mv_assign<Args>...>::value)
   {
     if (this != std::addressof(other)) {
       unset_impl(control_.allocator());
