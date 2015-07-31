@@ -886,17 +886,14 @@ struct nothrow_copy_ctor {
   using type = std::is_nothrow_move_constructible<T>;
 };
 
-template <typename StoragePolicy, typename T, bool = is_complete<T>::value>
+template <typename T, bool>
 struct nothrow_move_ctor {
-  using type = logical_transform::any<
-    typename StoragePolicy::template allocate_dynamically<T>,
-    std::is_nothrow_move_constructible<T>
-  >;
+  using type = std::is_nothrow_move_constructible<T>;
 };
 
-template <typename StoragePolicy, typename T>
-struct nothrow_move_ctor<StoragePolicy, T, false> {
-  using type = std::false_type;
+template <typename T>
+struct nothrow_move_ctor<T, true> {
+  using type = std::true_type;
 };
 
 template <typename T>
@@ -904,17 +901,14 @@ struct nothrow_copy_assign {
   using type = std::is_nothrow_copy_assignable<T>;
 };
 
-template <typename StoragePolicy, typename T, bool = is_complete<T>::value>
+template <typename T, bool>
 struct nothrow_move_assign {
-  using type = logical_transform::any<
-    typename StoragePolicy::template allocate_dynamically<T>,
-    std::is_nothrow_move_assignable<T>
-  >;
+  using type = std::is_nothrow_move_assignable<T>;
 };
 
-template <typename StoragePolicy, typename T>
-struct nothrow_move_assign<StoragePolicy, T, false> {
-  using type = std::false_type;
+template <typename T>
+struct nothrow_move_assign<T, true> {
+  using type = std::true_type;
 };
 
 } // namespace variant_impl {
@@ -999,8 +993,9 @@ private:
     ::nothrow_copy_ctor<T>::type;
 
   template <typename T>
-  using nothrow_move_ctor = typename detail::variant_impl
-    ::nothrow_move_ctor<storage_policy, T>::type;
+  using nothrow_move_ctor = typename detail::variant_impl::nothrow_move_ctor<
+    T, storage_policy::template allocate_dynamically<T>::value
+  >::type;
 
   template <typename T>
   using nothrow_copy_assign = typename detail::variant_impl
@@ -1008,7 +1003,9 @@ private:
 
   template <typename T>
   using nothrow_move_assign = typename detail::variant_impl
-    ::nothrow_move_assign<storage_policy, T>::type;
+    ::nothrow_move_assign<
+      T, storage_policy::template allocate_dynamically<T>::value
+    >::type;
 
 public:
   using type_tag = typename control_block::type_tag;
