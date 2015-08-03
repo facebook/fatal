@@ -174,17 +174,6 @@ struct index_value_comparer {
   }
 };
 
-/**
- * A convenience visitor that accpets any parameters and does nothing.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-// TODO: MOVE TO ANOTHER HEADER
-struct no_op_visitor {
-  template <typename... UArgs>
-  void operator ()(UArgs &&...) {}
-};
-
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
 ////////////////////////////
