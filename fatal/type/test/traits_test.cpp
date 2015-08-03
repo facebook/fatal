@@ -1049,33 +1049,33 @@ FATAL_TEST(enable_when, forwarded_rvalue) {
   );
 }
 
-/////////////////////////////////////////////
-// enable_when::forwarded_non_const_rvalue //
-/////////////////////////////////////////////
+//////////////////////////
+// enable_when::movable //
+//////////////////////////
 
-FATAL_TEST(enable_when, forwarded_non_const_rvalue) {
+FATAL_TEST(enable_when, movable) {
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::forwarded_non_const_rvalue, int const
+    unary, enable_when::movable, int const
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::forwarded_non_const_rvalue, int
+    unary, enable_when::movable, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::forwarded_non_const_rvalue, int const &
+    unary, enable_when::movable, int const &
   )
   ;
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::forwarded_non_const_rvalue, int &
+    unary, enable_when::movable, int &
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::forwarded_non_const_rvalue, int const &&
+    unary, enable_when::movable, int const &&
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::forwarded_non_const_rvalue, int &&
+    unary, enable_when::movable, int &&
   );
 }
 

@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_container_legacy_variant_h
 
 #include <fatal/container/unitary_union.h>
+#include <fatal/functional/functional.h>
 #include <fatal/math/numerics.h>
 #include <fatal/type/list.h>
 #include <fatal/type/traits.h>
@@ -1308,10 +1309,7 @@ public:
   U &set(U const &value) & {
     return set_impl<typename std::decay<U>::type>(value);
   }
-  template <
-    typename U,
-    typename = enable_when::forwarded_non_const_rvalue<U>
-  >
+  template <typename U, typename = enable_when::movable<U>>
   U &set(U &&value) & {
     return set_impl<typename std::decay<U>::type>(
       std::forward<U>(value)
@@ -1322,10 +1320,7 @@ public:
   U &&set(U const &value) && {
     return std::move(set_impl<typename std::decay<U>::type>(value));
   }
-  template <
-    typename U,
-    typename = enable_when::forwarded_non_const_rvalue<U>
-  >
+  template <typename U, typename = enable_when::movable<U>>
   U &&set(U &&value) && {
     return std::move(set_impl<typename std::decay<U>::type>(
       std::forward<U>(value)
@@ -1387,15 +1382,13 @@ public:
   template <typename... U>
   bool is_any_of() const {
     return tags_for<type_list<U...>>::template binary_search<>::exact(
-      tag(), no_op_visitor()
+      tag(), fn::no_op()
     );
   }
 
   template <typename UList>
   bool is_any_from() const {
-    return tags_for<UList>::template binary_search<>::exact(
-      tag(), no_op_visitor()
-    );
+    return tags_for<UList>::template binary_search<>::exact(tag(), fn::no_op());
   }
 
   // for compatibility with boost::variant
@@ -1461,7 +1454,7 @@ public:
   template <
     typename U,
     typename = safe_overload_t<legacy_variant, U>,
-    typename = enable_when::forwarded_non_const_rvalue<U>
+    typename = enable_when::movable<U>
   >
   U &operator =(U &&value) & {
     return set(std::forward<U>(value));
@@ -1475,7 +1468,7 @@ public:
   template <
     typename U,
     typename = safe_overload_t<legacy_variant, U>,
-    typename = enable_when::forwarded_non_const_rvalue<U>
+    typename = enable_when::movable<U>
   >
   U &&operator =(U &&value) && {
     return std::move(set(std::forward<U>(value)));

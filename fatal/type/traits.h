@@ -798,7 +798,7 @@ struct enable_when {
    *
    *  template <
    *    typename T,
-   *    typename = enable_when::forwarded_non_const_rvalue<T>
+   *    typename = enable_when::movable<T>
    *  >
    *  void foo(T &&value) {
    *    std::cout << "got a non-const r-value reference: " << value;
@@ -825,7 +825,7 @@ struct enable_when {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename T>
-  using forwarded_non_const_rvalue = all_true<
+  using movable = all_true<
     std::is_rvalue_reference<T &&>,
     logical_transform::negate<
       std::is_const<
