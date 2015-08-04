@@ -39,6 +39,8 @@ namespace test {
 
 // TODO: organize the order of components
 
+// TODO: GENERALIZE THE TEST INFRASTRUCTURE TO RUN benchmarks, tutorials...
+
 #define FATAL_TEST(Case, Name) \
   FATAL_IMPL_TEST_CASE( \
     FATAL_UID(fatal_test_case_impl), \
