@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_log_log_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/time/time.h>
 
 #include <atomic>
 #include <chrono>
@@ -75,6 +76,12 @@ struct logger {
   logger(logger const &) = delete;
   logger(logger &&rhs) = default;
 
+  ~logger() {
+    if (info::abort::value) {
+      std::abort();
+    }
+  }
+
   template <typename T>
   writer operator <<(T &&value) {
     writer_ << info::signature::value;
@@ -87,17 +94,13 @@ struct logger {
       std::chrono::system_clock::now().time_since_epoch()
     );
 
-    // TODO: output date in a more useful format
-    writer_ << " [" << source_.file() << ':' << source_.line() << "] at "
-      << now.count() << ": " << std::forward<T>(value);
+    // TODO: output date in an absolute format
+    time::pretty_print(
+      writer_ << " [" << source_.file() << ':' << source_.line() << "] at ",
+      now
+    ) << ": " << std::forward<T>(value);
 
     return std::move(writer_);
-  }
-
-  ~logger() {
-    if (info::abort::value) {
-      std::abort();
-    }
   }
 
 private:
