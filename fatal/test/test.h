@@ -41,11 +41,11 @@ namespace test {
 
 // TODO: GENERALIZE THE TEST INFRASTRUCTURE TO RUN benchmarks, tutorials...
 
-#define FATAL_TEST(Case, Name) \
+#define FATAL_TEST(Case, ...) \
   FATAL_IMPL_TEST_CASE( \
     FATAL_UID(fatal_test_case_impl), \
     FATAL_TO_STR(FATAL_UNPARENTHESIZE(Case)), \
-    FATAL_TO_STR(FATAL_UNPARENTHESIZE(Name)), \
+    FATAL_TO_STR(FATAL_UNPARENTHESIZE(__VA_ARGS__)), \
     FATAL_UID(fatal_test_case_results_impl), \
     FATAL_UID(fatal_test_case_test_registry_placeholder_impl) \
   )
