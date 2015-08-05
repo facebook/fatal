@@ -308,24 +308,41 @@ FATAL_TEST(circular_queue, shift_to_back_by) {
 
 # undef CHECK_CONTENTS
 
-template <typename TSubject, typename TFactory>
-void check_circular_queue(TFactory &&factory) {
-  using subject_type = TSubject;
-  std::size_t ith = 0;
-  using capacity = std::integral_constant<std::size_t, 10>;
-  circular_queue<subject_type> q(capacity::value);
+template <typename Data, typename Factory>
+struct getter {
+  explicit getter(Data &data, Factory &factory):
+    data_(data),
+    factory_(factory)
+  {}
 
-  std::unordered_map<std::size_t, subject_type> data(capacity::value);
-  auto get = [&](std::size_t key) {
-    auto i = data.find(key);
-    if (i == data.end()) {
-      auto added = data.emplace(key, factory(key));
+  typename Data::mapped_type const &operator()(std::size_t key) {
+    auto i = data_.find(key);
+    if (i == data_.end()) {
+      auto added = data_.emplace(key, factory_(key));
       FATAL_ASSERT_TRUE(added.second);
       i = added.first;
     }
 
     return i->second;
   };
+
+private:
+  Data &data_;
+  Factory &factory_;
+};
+
+template <typename Subject, typename Factory>
+void check_circular_queue(Factory &&factory) {
+  using subject_type = Subject;
+  std::size_t ith = 0;
+  using capacity = std::integral_constant<std::size_t, 10>;
+  circular_queue<subject_type> q(capacity::value);
+
+  using map = std::unordered_map<std::size_t, subject_type>;
+  map data(capacity::value);
+
+  getter<map, Factory> get(data, factory);
+
   auto create = [&]() { return get(ith++); };
 
   q.push_back(create());
