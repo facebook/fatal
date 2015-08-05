@@ -8,17 +8,17 @@
  */
 
 #include <fatal/type/prefix_tree.h>
-#include <fatal/type/string.h>
+#include <fatal/type/sequence.h>
 
 #include <fatal/benchmark/driver.h>
 
-#include <string>
-#include <array>
-#include <vector>
-#include <set>
-#include <unordered_set>
 #include <algorithm>
+#include <array>
+#include <set>
+#include <string>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
 namespace fatal {
 

@@ -322,7 +322,7 @@ template <typename...> struct builder;
  * `TLessComparer` must represent a total order relation between the sequence
  * elements. It defaults to `comparison_transform::less_than` when omitted.
  *
- * See also: `type_string` and `FATAL_STR`
+ * See also: `constant_sequence` and `FATAL_STR`
  *
  * Example:
  *

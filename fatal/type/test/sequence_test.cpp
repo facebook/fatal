@@ -15,6 +15,7 @@
 #include <fatal/type/test/parse_sequence_input.h>
 
 #include <iterator>
+#include <type_traits>
 
 namespace fatal {
 
@@ -30,16 +31,61 @@ using s45 = int_seq<4, 5>;
 using s67 = int_seq<6, 7>;
 using s89 = int_seq<8, 9>;
 
-/////////////////////////////
-// constant_sequence::type //
-/////////////////////////////
+#define A_STR "a"
+#define Z_STR "a\0b\0c"
+#define EMPTY_STR ""
+#define HELLO_STR "hello"
+#define TEST_STR "this is a test"
+#define UTF8_STR u8"UTF-8 String"
+#define UTF16_STR u"UTF-16 String"
+#define UTF32_STR U"UTF-32 String"
+
+FATAL_STR(a_str, A_STR);
+FATAL_STR(z_str, Z_STR);
+FATAL_STR(empty_str, EMPTY_STR);
+FATAL_STR(hello_str, HELLO_STR);
+FATAL_STR(test_str, TEST_STR);
+FATAL_STR(utf8_str, UTF8_STR);
+FATAL_STR(utf16_str, UTF16_STR);
+FATAL_STR(utf32_str, UTF32_STR);
+
+FATAL_STR(u0, "0");
+FATAL_STR(u1, "1");
+FATAL_STR(u42, "42");
+FATAL_STR(s_56, "-56");
+
+FATAL_STR(wu0, L"0");
+FATAL_STR(wu1, L"1");
+FATAL_STR(wu42, L"42");
+FATAL_STR(ws_56, L"-56");
+
+#define FATAL_CREATE_TEST_CALLS_IMPL(Fn) \
+  Fn<a_str>(A_STR); \
+  Fn<z_str>(Z_STR); \
+  Fn<empty_str>(EMPTY_STR); \
+  Fn<hello_str>(HELLO_STR); \
+  Fn<test_str>(TEST_STR); \
+  Fn<utf8_str>(UTF8_STR); \
+  Fn<utf16_str>(UTF16_STR); \
+  Fn<utf32_str>(UTF32_STR)
+
+//////////////////////////////////////////
+// constant_sequence::type / value_type //
+//////////////////////////////////////////
 
 template <typename TExpected, typename TSequence>
 void check_type() {
   FATAL_EXPECT_SAME<TExpected, typename TSequence::type>();
+  FATAL_EXPECT_SAME<TExpected, typename TSequence::value_type>();
 }
 
-FATAL_TEST(constant_sequence, type) {
+template <typename TCSTR, typename TChar, std::size_t Size>
+void check_string_type(TChar const (&s)[Size]) {
+  FATAL_EXPECT_SAME<TChar, typename TCSTR::type>();
+  FATAL_EXPECT_SAME<TChar, typename TCSTR::value_type>();
+}
+
+FATAL_TEST(constant_sequence, type / value_type) {
   check_type<int, eis>();
   check_type<int, int_seq<1>>();
   check_type<int, int_seq<1, 2, 3, 4, 5>>();
@@ -47,6 +93,20 @@ FATAL_TEST(constant_sequence, type) {
   check_type<char, ecs>();
   check_type<char, char_seq<'1'>>();
   check_type<char, char_seq<'1', '2', '3', '4', '5'>>();
+
+  FATAL_CREATE_TEST_CALLS_IMPL(check_string_type);
+}
+
+///////////////////////////////////
+// constant_sequence::value_type //
+///////////////////////////////////
+
+template <typename TCSTR, typename TChar, std::size_t Size>
+void check_value_type(TChar const (&s)[Size]) {
+  FATAL_EXPECT_SAME<TChar, typename TCSTR::value_type>();
+}
+
+FATAL_TEST(constant_sequence, value_type) {
 }
 
 /////////////////////////////////
@@ -117,6 +177,11 @@ void check_size() {
   FATAL_EXPECT_EQ(sizeof...(Values), (constant_sequence<T, Values...>::size));
 }
 
+template <typename TString, std::size_t Expected>
+void check_str_size() {
+  FATAL_EXPECT_EQ(TString::size, Expected);
+}
+
 FATAL_TEST(constant_sequence, size) {
   check_size<int>();
   check_size<int, 1>();
@@ -125,6 +190,15 @@ FATAL_TEST(constant_sequence, size) {
   check_size<char>();
   check_size<char, '1'>();
   check_size<char, '1', '2', '3', '4', '5'>();
+
+  check_str_size<a_str, 1>();
+  check_str_size<z_str, 5>();
+  check_str_size<empty_str, 0>();
+  check_str_size<hello_str, 5>();
+  check_str_size<test_str, 14>();
+  check_str_size<utf8_str, 12>();
+  check_str_size<utf16_str, 13>();
+  check_str_size<utf32_str, 13>();
 }
 
 //////////////////////////////
@@ -727,7 +801,7 @@ FATAL_TEST(constant_sequence, parse) {
     >(); \
   } while (false)
 
-  FATAL_IMPLT_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
+  FATAL_IMPL_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
 
 # undef TEST_IMPL
 }
@@ -785,6 +859,29 @@ FATAL_TEST(constant_sequence, array_data) {
   check_array_data<char, 'z', '_', 'a', 'r', 'r', 'a', 'y'>();
 }
 
+
+///////////////////////////////
+// constant_sequence::string //
+///////////////////////////////
+
+template <typename TCSTR, typename TChar, std::size_t Size>
+void check_string(TChar const (&s)[Size]) {
+  static_assert(Size > 0, "expected a valid null-terminated string");
+  constexpr auto size = Size - 1;
+
+  typedef std::basic_string<TChar> string_t;
+
+  FATAL_EXPECT_SAME<string_t, typename TCSTR::template string_type<>>();
+
+  auto const string = TCSTR::string();
+
+  FATAL_EXPECT_EQ(size, string.size());
+  FATAL_EXPECT_EQ(string_t(s, size), string);
+}
+
+FATAL_TEST(constant_sequence, string) {
+  FATAL_CREATE_TEST_CALLS_IMPL(check_string);
+}
 /////////////////////////////
 // constant_sequence::init //
 /////////////////////////////
@@ -807,6 +904,24 @@ FATAL_TEST(constant_sequence, init) {
   TEST_IMPL(0, 10, 20, 30, 40, 50, 60, 70);
   TEST_IMPL(0, 10, 20, 30, 40, 50, 60, 70, 80);
   TEST_IMPL(0, 10, 20, 30, 40, 50, 60, 70, 80, 90);
+
+# undef TEST_IMPL
+}
+
+//////////////////////////
+// to_constant_sequence //
+//////////////////////////
+
+FATAL_TEST(to_constant_sequence, sanity_check) {
+# define TEST_IMPL(T, Value, TChar, ...) \
+  do { \
+    FATAL_EXPECT_SAME< \
+      constant_sequence<TChar, __VA_ARGS__>, \
+      to_constant_sequence<T, Value, TChar> \
+    >(); \
+  } while (false)
+
+  FATAL_IMPL_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
 
 # undef TEST_IMPL
 }

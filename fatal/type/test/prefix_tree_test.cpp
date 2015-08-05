@@ -8,7 +8,7 @@
  */
 
 #include <fatal/type/prefix_tree.h>
-#include <fatal/type/string.h>
+#include <fatal/type/sequence.h>
 
 #include <fatal/test/driver.h>
 

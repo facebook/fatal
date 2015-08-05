@@ -13,7 +13,7 @@
 #include <fatal/preprocessor.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
-#include <fatal/type/string.h>
+#include <fatal/type/sequence.h>
 #include <fatal/type/traits.h>
 
 #include <iterator>
@@ -104,7 +104,7 @@ public:
    *
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
    *
-   *  // yields `type_string<char, 'f', 'i', 'e', 'l', 'd', '0'>;
+   *  // yields `constant_sequence<char, 'f', 'i', 'e', 'l', 'd', '0'>;
    *  using result = enum_traits<my_enum>::str::field0;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
@@ -114,7 +114,7 @@ public:
   /**
    * A `type_map` from name to value for each known enumeration field.
    *
-   * Field names are represented as `type_string`, while field values are
+   * Field names are represented as `constant_sequence`, while field values are
    * represented as a `std::integral_constant` of the given enumeration.
    *
    * Example:
@@ -133,7 +133,7 @@ public:
   /**
    * A `type_map` from value to name for each known enumeration field.
    *
-   * Field names are represented as `type_string`, while field values are
+   * Field names are represented as `constant_sequence`, while field values are
    * represented as a `std::integral_constant` of the given enumeration.
    *
    * Example:

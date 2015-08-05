@@ -166,7 +166,7 @@ FATAL_TEST(operation, to_sequence) {
     >(); \
   } while (false)
 
-  FATAL_IMPLT_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
+  FATAL_IMPL_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
 
 # undef TEST_IMPL
 }
@@ -196,7 +196,7 @@ FATAL_TEST(operation, parse_sequence) {
     >(); \
   } while (false)
 
-  FATAL_IMPLT_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
+  FATAL_IMPL_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
 
 # undef TEST_IMPL
 }

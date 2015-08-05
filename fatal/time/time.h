@@ -12,7 +12,7 @@
 
 #include <fatal/type/map.h>
 #include <fatal/type/prefix_tree.h>
-#include <fatal/type/string.h>
+#include <fatal/type/sequence.h>
 #include <fatal/type/transform.h>
 
 #include <chrono>
@@ -32,26 +32,26 @@ namespace detail {
 
 // TODO: MOVE TO MATH
 using ratio_suffixes = build_type_map<
-  //std::yotta, type_string<char, 'Y'>,
-  //std::zetta, type_string<char, 'Z'>,
-  std::exa, type_string<char, 'E'>,
-  std::peta, type_string<char, 'P'>,
-  std::tera, type_string<char, 'T'>,
-  std::giga, type_string<char, 'G'>,
-  std::mega, type_string<char, 'M'>,
-  std::kilo, type_string<char, 'k'>,
-  std::hecto, type_string<char, 'h'>,
-  std::deca, type_string<char, 'd', 'a'>,
-  std::deci, type_string<char, 'd'>,
-  std::centi, type_string<char, 'c'>,
-  std::milli, type_string<char, 'm'>,
-  std::micro, type_string<char, 'u'>,
-  std::nano, type_string<char, 'n'>,
-  std::pico, type_string<char, 'p'>,
-  std::femto, type_string<char, 'f'>,
-  std::atto, type_string<char, 'a'>
-  //std::zepto, type_string<char, 'z'>,
-  //std::yocto, type_string<char, 'y'>
+  //std::yotta, constant_sequence<char, 'Y'>,
+  //std::zetta, constant_sequence<char, 'Z'>,
+  std::exa, constant_sequence<char, 'E'>,
+  std::peta, constant_sequence<char, 'P'>,
+  std::tera, constant_sequence<char, 'T'>,
+  std::giga, constant_sequence<char, 'G'>,
+  std::mega, constant_sequence<char, 'M'>,
+  std::kilo, constant_sequence<char, 'k'>,
+  std::hecto, constant_sequence<char, 'h'>,
+  std::deca, constant_sequence<char, 'd', 'a'>,
+  std::deci, constant_sequence<char, 'd'>,
+  std::centi, constant_sequence<char, 'c'>,
+  std::milli, constant_sequence<char, 'm'>,
+  std::micro, constant_sequence<char, 'u'>,
+  std::nano, constant_sequence<char, 'n'>,
+  std::pico, constant_sequence<char, 'p'>,
+  std::femto, constant_sequence<char, 'f'>,
+  std::atto, constant_sequence<char, 'a'>
+  //std::zepto, constant_sequence<char, 'z'>,
+  //std::yocto, constant_sequence<char, 'y'>
 >::sort<std::ratio_less>;
 
 template <typename T>
@@ -70,11 +70,11 @@ using week_ratio = std::ratio_multiply<day_ratio, std::ratio<7, 1>>;
 using suffixes = detail::ratio_suffixes::transform<
   detail::suffixes_impl_append_s
 >::push_back<
-  detail::week_ratio, type_string<char, 'w', 'k'>,
-  detail::day_ratio, type_string<char, 'd'>,
-  std::chrono::hours::period, type_string<char, 'h'>,
-  std::chrono::minutes::period, type_string<char, 'm', 'i', 'n'>,
-  std::chrono::seconds::period, type_string<char, 's'>
+  detail::week_ratio, constant_sequence<char, 'w', 'k'>,
+  detail::day_ratio, constant_sequence<char, 'd'>,
+  std::chrono::hours::period, constant_sequence<char, 'h'>,
+  std::chrono::minutes::period, constant_sequence<char, 'm', 'i', 'n'>,
+  std::chrono::seconds::period, constant_sequence<char, 's'>
 >::sort<std::ratio_less>;
 
 // TODO: DOCUMENT AND TEST

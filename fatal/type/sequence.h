@@ -11,20 +11,44 @@
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
 #include <fatal/container/constant_array.h>
+#include <fatal/preprocessor.h>
 #include <fatal/type/list.h>
+#include <fatal/type/operation.h>
 
 #include <type_traits>
 
 namespace fatal {
-namespace detail {
-namespace constant_sequence_impl {
 
-template <template <typename U, U...> class TSequence, typename T, T... Values>
-struct constant_sequence {
+/**
+ * A compile-time sequence of values for template metaprogramming.
+ *
+ * Most operations, unless noted otherwise, are compile-time evaluated.
+ *
+ * Compile-time operations have no side-effects. I.e.: Operations that would
+ * mutate the sequence upon which they are performed actually create a new
+ * sequence.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, T... Values>
+class constant_sequence {
+  using default_char_traits = std::char_traits<T>;
+  using default_allocator = std::allocator<T>;
+
+public:
   /**
-   * The type of this sequence's values.
+   * The type of the elements in this sequence.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   using type = T;
+
+  /**
+   * The type of the elements in this sequence.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using value_type = type;
 
   /**
    * Gets a `std::integral_constant` for the given value,
@@ -151,7 +175,7 @@ struct constant_sequence {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... UValues>
-  using push_back = TSequence<type, Values..., UValues...>;
+  using push_back = constant_sequence<type, Values..., UValues...>;
 
   /**
    * Adds values to the beginning of this sequence.
@@ -166,7 +190,7 @@ struct constant_sequence {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... UValues>
-  using push_front = TSequence<type, UValues..., Values...>;
+  using push_front = constant_sequence<type, UValues..., Values...>;
 
   /**
    * Appends the elements of the given sequences, in
@@ -190,7 +214,7 @@ struct constant_sequence {
   using concat = typename type_list<Args...>::template apply<
     list::template concat,
     get_member_type::list
-  >::template apply_typed_values<type, TSequence>;
+  >::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
    * Gets a sequence with all the elements positioned in the
@@ -214,7 +238,7 @@ struct constant_sequence {
    */
   template <std::size_t Offset>
   using tail = typename list::template tail<Offset>
-    ::template apply_typed_values<type, TSequence>;
+    ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
    * Gets a pair of sequences where the first one contains
@@ -250,9 +274,9 @@ struct constant_sequence {
   template <std::size_t Index = (size / 2)>
   using split = type_pair<
     typename list::template split<Index>::first
-      ::template apply_typed_values<type, TSequence>,
+      ::template apply_typed_values<type, fatal::constant_sequence>,
     typename list::template split<Index>::second
-      ::template apply_typed_values<type, TSequence>
+      ::template apply_typed_values<type, fatal::constant_sequence>
   >;
 
   /**
@@ -276,7 +300,7 @@ struct constant_sequence {
    */
   template <std::size_t Begin, std::size_t End>
   using slice = typename list::template slice<Begin, End>
-    ::template apply_typed_values<type, TSequence>;
+    ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
    * Gets a sequence with the leftmost `N` elements of this sequence.
@@ -298,7 +322,7 @@ struct constant_sequence {
    */
   template <std::size_t N>
   using left = typename list::template left<N>
-    ::template apply_typed_values<type, TSequence>;
+    ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
    * Gets a sequence with the rightmost `N` elements of this sequence.
@@ -320,7 +344,7 @@ struct constant_sequence {
    */
   template <std::size_t N>
   using right = typename list::template right<N>
-    ::template apply_typed_values<type, TSequence>;
+    ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
    * Applies the values of this sequence to the given template.
@@ -455,6 +479,41 @@ struct constant_sequence {
   static constexpr type const *z_data() { return z_array<>::data(); }
 
   /**
+   * The `std::basic_string` type returned by the `string()` method.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <
+    typename TTraits = default_char_traits,
+    typename TAllocator = default_allocator
+  >
+  using string_type = std::basic_string<value_type, TTraits, TAllocator>;
+
+  /**
+   * Constructs a `std::basic_string` corresponding to this
+   * `constant_sequence`, using the given character traits and allocator.
+   * Defaults to `std::char_traits` and `std::allocator`.
+   *
+   * Note: this is a runtime facility.
+   *
+   * Example:
+   *
+   *  using hi = constant_sequence<char, 'h', 'i'>;
+   *
+   *  // yields `std::string("hi")`
+   *  auto result = hi::string();
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <
+    typename TTraits = default_char_traits,
+    typename TAllocator = default_allocator
+  >
+  static string_type<TTraits, TAllocator> string() {
+    return string_type<TTraits, TAllocator>{Values...};
+  }
+
+  /**
    * Constructs the type `U`, passing the elements of
    * this sequence as the arguments to the constructor,
    * followed by a perfect forwardind of `args`.
@@ -477,36 +536,68 @@ struct constant_sequence {
   }
 };
 
+//////////////////////////
+// to_constant_sequence //
+//////////////////////////
+
+/**
+ * Converts an integral value to its string representation, as a type string.
+ *
+ * Parameters:
+ *
+ *  - T: the type of the integral value
+ *  - Value: the value to be converted
+ *  - TChar: the type of the string's character. Defaults to `char`.
+ *
+ * Example:
+ *
+ *  // yields `constant_sequence<char, '4', '2'>`
+ *  using result1 = to_constant_sequence<std::size_t, 42>;
+ *
+ *  // yields `constant_sequence<wchar_t, L'-', L'5', L'6'>`
+ *  using result2 = to_constant_sequence<int, -56, wchar_t>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, T Value, typename TChar = char>
+using to_constant_sequence = to_sequence<T, Value, constant_sequence, TChar>;
+
+///////////////
+// FATAL_STR //
+///////////////
+
+/**
+ * Instantiates a `constant_sequence` class template out of a regular string.
+ *
+ * Example:
+ *
+ *  // this is equivalent to
+ *  // `using hi = constant_sequence<char, 'h', 'i'>;`
+ *  FATAL_STR("hi") hi;
+ *
+ *  // this is equivalent to
+ *  // `using hey = constant_sequence<char32_t, U'h', U'e', U'y'>;`
+ *  FATAL_STR(U"hey") hey;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_STR(Id, String) \
+  FATAL_BUILD_STR_IMPL( \
+    Id, \
+    String, \
+    FATAL_UID(FATAL_CAT(constant_sequence_string_impl_, Id)), \
+    FATAL_UID(Indexes) \
+  )
+
 ///////////////////////////////
 // STATIC MEMBERS DEFINITION //
 ///////////////////////////////
 
-template <template <typename U, U...> class TSequence, typename T, T... Values>
-constexpr std::size_t constant_sequence<TSequence, T, Values...>::size;
-
-template <template <typename U, U...> class TSequence, typename T, T... Values>
-constexpr bool constant_sequence<TSequence, T, Values...>::empty;
-
-} // namespace constant_sequence_impl {
-} // namespace detail {
-
-/**
- * A compile-time sequence of values for template metaprogramming.
- *
- * Most operations, unless noted otherwise, are compile-time evaluated.
- *
- * Compile-time operations have no side-effects. I.e.: Operations that would
- * mutate the sequence upon which they are performed actually create a new
- * sequence.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
 template <typename T, T... Values>
-struct constant_sequence:
-  public detail::constant_sequence_impl::constant_sequence<
-    constant_sequence, T, Values...
-  >
-{};
+constexpr std::size_t constant_sequence<T, Values...>::size;
+
+template <typename T, T... Values>
+constexpr bool constant_sequence<T, Values...>::empty;
 
 // TODO: DOCUMENT AND TEST
 template <std::size_t... Values>
@@ -517,7 +608,7 @@ using size_sequence = constant_sequence<std::size_t, Values...>;
 ////////////////////////////////////////
 
 namespace detail {
-namespace range_builder_impl {
+namespace constant_sequence_impl {
 
 template <bool, bool, typename T, T, T> struct build;
 
@@ -551,7 +642,7 @@ template <bool, bool, typename T, T, T> struct build;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, T Begin, T End, bool OpenEnd = true>
-using constant_range = typename detail::range_builder_impl::build<
+using constant_range = typename detail::constant_sequence_impl::build<
   false, OpenEnd, T, Begin, End
 >::type;
 
@@ -576,7 +667,7 @@ using constant_range = typename detail::range_builder_impl::build<
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <std::size_t Size>
-using indexes_sequence = typename detail::range_builder_impl::build<
+using indexes_sequence = typename detail::constant_sequence_impl::build<
   false, true, std::size_t, 0, Size
 >::type;
 
@@ -585,7 +676,7 @@ using indexes_sequence = typename detail::range_builder_impl::build<
 ///////////////////////////////////////
 
 namespace detail {
-namespace range_builder_impl {
+namespace constant_sequence_impl {
 
 template <typename T, T End>
 struct build<false, true, T, End, End> {
@@ -604,6 +695,39 @@ struct build<false, OpenEnd, T, Current, End> {
   using type = typename build<false, OpenEnd, T, Current + 1, End>::type
     ::template push_front<Current>;
 };
+
+///////////////
+// FATAL_STR //
+///////////////
+
+template <typename T, std::size_t Size>
+constexpr std::size_t size(T const (&)[Size]) {
+  static_assert(
+    Size > 0,
+    "expecting a string containing at least the null terminator"
+  );
+  return Size - 1;
+}
+
+#define FATAL_BUILD_STR_IMPL(Id, String, Class, Indexes) \
+  template <::std::size_t... Indexes> \
+  struct Class { \
+    static_assert( \
+      !((String)[sizeof...(Indexes)]), \
+      "expecting a valid null-terminated string" \
+    ); \
+    \
+    using value_type = typename ::std::decay<decltype(*(String))>::type; \
+    \
+    using type = ::fatal::constant_sequence< \
+      value_type, \
+      (String)[Indexes]... \
+    >; \
+  }; \
+  \
+  using Id = typename ::fatal::constant_range< \
+    ::std::size_t, 0, ::fatal::detail::constant_sequence_impl::size(String) \
+  >::apply<Class>::type
 
 } // namespace constant_sequence_impl {
 } // namespace detail {

@@ -12,7 +12,7 @@
 #include <fatal/test/type.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
-#include <fatal/type/string.h>
+#include <fatal/type/sequence.h>
 
 #include <iostream>
 #include <sstream>
@@ -211,7 +211,7 @@ private:
     void operator ()(T &&instance, result_t &out, request_args &args) {
       using op_map = op_index::template find<typename std::decay<T>::type>;
 
-      auto found = op_map::template visit<TVerb>([&](auto op_pair) { // type_pair<type_string, operation>
+      auto found = op_map::template visit<TVerb>([&](auto op_pair) { // type_pair<constant_sequence, operation>
         using op = typename decltype(op_pair)::second;
 
         if (op::args::size != args.size()) { throw std::invalid_argument("arguments list size mismatch"); }
@@ -246,9 +246,9 @@ private:
       auto instance = args.next<std::string>();
       auto found = data_type_trie::match<>::exact(
         type.begin(), type.end(),
-        [&](auto data_type_name) { // type_tag<type_string>
+        [&](auto data_type_name) { // type_tag<constant_sequence>
           ctor_index::visit<typename decltype(data_type_name)::type>(
-            [&](auto ctor_pair) { // type_pair<type_string, constructor>
+            [&](auto ctor_pair) { // type_pair<constant_sequence, constructor>
               using ctor = fatal::type_get_second<decltype(ctor_pair)>;
               using arg_indexes = fatal::indexes_sequence<ctor::args::size>;
 

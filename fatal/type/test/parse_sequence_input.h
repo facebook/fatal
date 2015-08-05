@@ -13,7 +13,7 @@
 namespace fatal {
 
 // TODO: ADD EDGE CASES
-#define FATAL_IMPLT_PARSE_SEQUENCE_TEST_CALLS(Fn) \
+#define FATAL_IMPL_PARSE_SEQUENCE_TEST_CALLS(Fn) \
   Fn(unsigned, 0, char, '0'); \
   Fn(short, 1, char, '1'); \
   Fn(std::size_t, 42, char, '4', '2'); \
