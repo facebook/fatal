@@ -310,12 +310,14 @@ FATAL_TEST(circular_queue, shift_to_back_by) {
 
 template <typename Data, typename Factory>
 struct getter {
-  explicit getter(Data &data, Factory &factory):
+  getter(Data &data, Factory &factory):
     data_(data),
     factory_(factory)
   {}
 
-  typename Data::mapped_type const &operator()(std::size_t key) {
+  using type = typename Data::mapped_type const &;
+
+  type operator()(std::size_t key) {
     auto i = data_.find(key);
     if (i == data_.end()) {
       auto added = data_.emplace(key, factory_(key));
@@ -331,10 +333,23 @@ private:
   Factory &factory_;
 };
 
+template <typename Getter>
+struct creator {
+  explicit creator(Getter &get): get_(get) {}
+
+  typename Getter::type operator ()() {
+    return get_(ith++);
+  };
+
+  std::size_t ith = 0;
+
+private:
+  Getter &get_;
+};
+
 template <typename Subject, typename Factory>
 void check_circular_queue(Factory &&factory) {
   using subject_type = Subject;
-  std::size_t ith = 0;
   using capacity = std::integral_constant<std::size_t, 10>;
   circular_queue<subject_type> q(capacity::value);
 
@@ -342,8 +357,7 @@ void check_circular_queue(Factory &&factory) {
   map data(capacity::value);
 
   getter<map, Factory> get(data, factory);
-
-  auto create = [&]() { return get(ith++); };
+  creator<decltype(get)> create(get);
 
   q.push_back(create());
   q.emplace_back(create());
@@ -366,8 +380,8 @@ void check_circular_queue(Factory &&factory) {
 
   FATAL_EXPECT_FALSE(q.empty());
 
-  FATAL_EXPECT_EQ(6, ith);
-  FATAL_EXPECT_EQ(ith, q.size());
+  FATAL_EXPECT_EQ(6, create.ith);
+  FATAL_EXPECT_EQ(create.ith, q.size());
   FATAL_EXPECT_EQ(q.front(), get(0));
   FATAL_EXPECT_EQ(q.back(), get(5));
 
