@@ -40,28 +40,28 @@ namespace fatal {
   ::fatal::fn::static_caster<bool>, "is true", Value \
 )
 
+#define FATAL_IS_POSITIVE(Value) FATAL_UNARY_ASSUMPTION_IMPL( \
+  ::fatal::fn::is_positive, "is positive", Value \
+)
+
+#define FATAL_IS_NEGATIVE(Value) FATAL_UNARY_ASSUMPTION_IMPL( \
+  ::fatal::fn::is_negative, "is negative", Value \
+)
+
+#define FATAL_NOT_NEGATIVE(Value) FATAL_UNARY_ASSUMPTION_IMPL( \
+  ::fatal::fn::not_negative, "not negative", Value \
+)
+
+#define FATAL_NOT_POSITIVE(Value) FATAL_UNARY_ASSUMPTION_IMPL( \
+  ::fatal::fn::not_positive, "not positive", Value \
+)
+
 #define FATAL_IS_NULL(Value) FATAL_BINARY_ASSUMPTION_IMPL( \
   ::fatal::fn::equal, "is null", nullptr, Value \
 )
 
 #define FATAL_NOT_NULL(Value) FATAL_BINARY_ASSUMPTION_IMPL( \
   ::fatal::fn::not_equal, "not null", nullptr, Value \
-)
-
-#define FATAL_IS_POSITIVE(Value) FATAL_BINARY_ASSUMPTION_IMPL( \
-  ::fatal::fn::greater, "is positive", Value, 0 \
-)
-
-#define FATAL_IS_NEGATIVE(Value) FATAL_BINARY_ASSUMPTION_IMPL( \
-  ::fatal::fn::less, "is negative", Value, 0 \
-)
-
-#define FATAL_NOT_NEGATIVE(Value) FATAL_BINARY_ASSUMPTION_IMPL( \
-  ::fatal::fn::greater_equal, "not negative", Value, 0 \
-)
-
-#define FATAL_NOT_POSITIVE(Value) FATAL_BINARY_ASSUMPTION_IMPL( \
-  ::fatal::fn::less_equal, "not positive", Value, 0 \
 )
 
 ////////////////////////
@@ -137,16 +137,26 @@ namespace fatal {
 // standalone unary assumptions //
 //////////////////////////////////
 
-#define FATAL_ASSUME_ZERO(Value) FATAL_ASSUME_SINGLE(FATAL_IS_ZERO(Value))
-#define FATAL_ASSUME_NOT_ZERO(Value) FATAL_ASSUME_SINGLE(FATAL_NOT_ZERO(Value))
-#define FATAL_ASSUME_FALSE(Value) FATAL_ASSUME_SINGLE(FATAL_IS_FALSE(Value))
-#define FATAL_ASSUME_TRUE(Value) FATAL_ASSUME_SINGLE(FATAL_IS_TRUE(Value))
-#define FATAL_ASSUME_NULL(Value) FATAL_ASSUME_SINGLE(FATAL_IS_NULL(Value))
-#define FATAL_ASSUME_NOT_NULL(Value) FATAL_ASSUME_SINGLE(FATAL_NOT_NULL(Value))
-#define FATAL_ASSUME_POSITIVE(Value) FATAL_ASSUME_SINGLE(FATAL_IS_POSITIVE(Value))
-#define FATAL_ASSUME_NEGATIVE(Value) FATAL_ASSUME_SINGLE(FATAL_IS_NEGATIVE(Value))
-#define FATAL_ASSUME_NOT_NEGATIVE(Value) FATAL_ASSUME_SINGLE(FATAL_NOT_NEGATIVE(Value))
-#define FATAL_ASSUME_NOT_POSITIVE(Value) FATAL_ASSUME_SINGLE(FATAL_NOT_POSITIVE(Value))
+#define FATAL_ASSUME_ZERO(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_IS_ZERO(Value))
+#define FATAL_ASSUME_NOT_ZERO(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_NOT_ZERO(Value))
+#define FATAL_ASSUME_FALSE(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_IS_FALSE(Value))
+#define FATAL_ASSUME_TRUE(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_IS_TRUE(Value))
+#define FATAL_ASSUME_NULL(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_IS_NULL(Value))
+#define FATAL_ASSUME_NOT_NULL(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_NOT_NULL(Value))
+#define FATAL_ASSUME_POSITIVE(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_IS_POSITIVE(Value))
+#define FATAL_ASSUME_NEGATIVE(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_IS_NEGATIVE(Value))
+#define FATAL_ASSUME_NOT_NEGATIVE(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_NOT_NEGATIVE(Value))
+#define FATAL_ASSUME_NOT_POSITIVE(Value) \
+  FATAL_ASSUME_SINGLE(FATAL_NOT_POSITIVE(Value))
 
 ///////////////////////////////////
 // standalone binary assumptions //
