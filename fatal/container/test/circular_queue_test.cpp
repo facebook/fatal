@@ -310,9 +310,9 @@ FATAL_TEST(circular_queue, shift_to_back_by) {
 
 template <typename TSubject, typename TFactory>
 void check_circular_queue(TFactory &&factory) {
-  typedef TSubject subject_type;
+  using subject_type = TSubject;
   std::size_t ith = 0;
-  typedef std::integral_constant<std::size_t, 10> capacity;
+  using capacity = std::integral_constant<std::size_t, 10>;
   circular_queue<subject_type> q(capacity::value);
 
   std::unordered_map<std::size_t, subject_type> data(capacity::value);
@@ -366,14 +366,14 @@ void check_circular_queue(TFactory &&factory) {
 }
 
 FATAL_TEST(circular_queue, regression_long) {
-  typedef long subject_type;
+  using subject_type = long;
   check_circular_queue<subject_type>(
     [](std::size_t i) { return static_cast<subject_type>(i); }
   );
 }
 
 FATAL_TEST(circular_queue, regression_test_holder_long) {
-  typedef std::tuple<long> subject_type;
+  using subject_type = std::tuple<long>;
   check_circular_queue<subject_type>(
     [](std::size_t i) { return subject_type(static_cast<long>(i)); }
   );

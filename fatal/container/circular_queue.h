@@ -74,7 +74,10 @@ private:
     auto const index = offset_ + size_;
     auto const size = queue_.size();
     auto result = index < size ? index : index - size;
-    FATAL_ASSUME_ONE(FATAL_LT(result, size), FATAL_EQ(size, 0));
+    FATAL_ASSUME_ONE(
+      FATAL_LT(result, size),
+      FATAL_EQ(size, static_cast<size_type>(0))
+    );
     return result;
   }
 
@@ -135,7 +138,11 @@ private:
       }
     }
 
-    FATAL_ASSUME_EQ(size_, std::distance(grown.begin(), destination));
+    FATAL_ASSUME_NOT_NEGATIVE(std::distance(grown.begin(), destination));
+    FATAL_ASSUME_EQ(
+      size_,
+      static_cast<size_type>(std::distance(grown.begin(), destination))
+    );
     queue_ = std::move(grown);
     offset_ = 0;
 
@@ -426,12 +433,12 @@ public:
   }
 
   const_reference back() const {
-    FATAL_ASSUME_GT(size_, 0);
+    FATAL_ASSUME_POSITIVE(size_);
     return queue_[real_index(size_ - 1)].value;
   }
 
   reference back() {
-    FATAL_ASSUME_GT(size_, 0);
+    FATAL_ASSUME_POSITIVE(size_);
     return queue_[real_index(size_ - 1)].value;
   }
 
