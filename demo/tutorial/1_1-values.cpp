@@ -205,14 +205,68 @@ FATAL_TUTORIAL(representing values, part 4/4) {
 
   using t = std::true_type;
   PRINT << "t = " << type_str<t>();
-  PRINT << "t::value = " << t::value;
+  PRINT << "t::value = " << std::boolalpha << t::value;
   PRINT << "t::value_type = " << type_str<t::value_type>();
   NEW_LINE;
 
   using f = std::false_type;
   PRINT << "f = " << type_str<f>();
-  PRINT << "f::value = " << f::value;
+  PRINT << "f::value = " << std::boolalpha << f::value;
   PRINT << "f::value_type = " << type_str<f::value_type>();
+}
+
+/**
+ * TUTORIAL: overview on how to reduce verbosity through the use of convenience
+ * aliases.
+ *
+ * Some types will be extensively used throughout the examples in this tutorial.
+ * For instance, `std::integral_constant` for `int` values.
+ *
+ * For this reason, let's see how we can shorten the code we write when
+ * declaring an integral constant through the use of aliases.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+
+template <int Value>
+using int_value = std::integral_constant<int, Value>;
+
+FATAL_TUTORIAL(convenience aliases) {
+  /*
+    Let's start by going the verbose route and fully specifying `x` as an
+    `std::integral_constant`.
+  */
+
+  using x = std::integral_constant<int, 10>;
+
+  PRINT << "x = " << type_str<x>();
+  PRINT << "x::value = " << x::value;
+  NEW_LINE;
+
+  /*
+    Now let's use the convenient alias `int_value` to declare the same thing.
+  */
+
+  using y = int_value<10>;
+
+  PRINT << "y = " << type_str<y>();
+  PRINT << "y::value = " << y::value;
+
+  /*
+    The beauty of aliases is that they don't create new types. Instead, they're
+    just shortcuts to existing types. For instance, by checking the output of
+    this tutorial, it's easy to see that both `x` and `y` reference exactly the
+    same type: `std::integral_constant<int, 10>`.
+
+    The code below will be further explained in a later tutorial. For now, it
+    suffices to know that it will prevent the program from compiling correctly
+    if both `x` and `y` do not represent the same type.
+
+    This means that, if the line below doesn't result in a compilation error,
+    then both `x` and `y` are guaranteed to reference the same type.
+  */
+
+  static_assert(std::is_same<x, y>::value, "type mismatch");
 }
 
 } // namespace tutorial {
