@@ -10,8 +10,11 @@
 #ifndef FATAL_INCLUDE_fatal_functional_functional_h
 #define FATAL_INCLUDE_fatal_functional_functional_h
 
+#include <fatal/type/fast_pass.h>
+
 #include <memory>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 namespace fatal {

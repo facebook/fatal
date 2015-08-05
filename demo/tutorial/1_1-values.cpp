@@ -14,8 +14,8 @@
 namespace tutorial {
 
 /**
- * TUTORIAL: an overview on how values are represented. Subsequent tutorials
- * will elaborate on proper ways of achieving such representation.
+ * This tutorial gives an overview on how values are represented. Subsequent
+ * tutorials will elaborate on proper ways of achieving such representation.
  *
  * The goal, for now, is to come up with the intuition behind it without drowing
  * in syntax and correctness.
@@ -63,8 +63,8 @@ FATAL_TUTORIAL(representing values, part 1/4) {
 }
 
 /**
- * TUTORIAL: demonstrates proper ways to represent values that can be used at
- * compile time.
+ * This tutorial demonstrates proper ways to represent values that can be used
+ * at compile time.
  *
  * Let's modify the `int_constant` template to properly represent compile time
  * constants.
@@ -121,7 +121,8 @@ FATAL_TUTORIAL(representing values, part 2/4) {
 }
 
 /**
- * TUTORIAL: overview on the implementation of `std::integral_constant`.
+ * This tutorial gives an overview on the implementation of
+ * `std::integral_constant`.
  *
  * So far we've been limited to `int` constants. One could be interested in
  * employing other types for a constant, like `char` or `unsigned long`.
@@ -167,7 +168,8 @@ FATAL_TUTORIAL(representing values, part 3/4) {
 }
 
 /**
- * TUTORIAL: overview of what `std::integral_constant` has to offer.
+ * This tutorial gives an overview of some basic features that
+ * `std::integral_constant` offers.
  *
  * The implementation and library features built around `std::integral_constant`
  * are a bit more involved than what we've seen so far, but for the purposes of
@@ -216,8 +218,8 @@ FATAL_TUTORIAL(representing values, part 4/4) {
 }
 
 /**
- * TUTORIAL: overview on how to reduce verbosity through the use of convenience
- * aliases.
+ * This tutorial gives an overview on how to reduce verbosity through the use of
+ * convenience aliases.
  *
  * Some types will be extensively used throughout the examples in this tutorial.
  * For instance, `std::integral_constant` for `int` values.

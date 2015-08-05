@@ -14,7 +14,7 @@
 namespace tutorial {
 
 /**
- * TUTORIAL: demonstrates how to achieve, in metaprogramming, something
+ * This tutorial demonstrates how to achieve, in metaprogramming, something
  * similar to the notion of variables in procedural programming.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
@@ -80,7 +80,7 @@ FATAL_TUTORIAL(variables, part 1/2) {
     run at runtime, after compilation is done.
 
     There are some types that can represent values, like
-    std::integral_constant, but that's not necessarily true for every type.
+    `std::integral_constant`, but that's not necessarily true for every type.
 
     For instance, we could create an alias for the type `void`, or `int`, or
     even `std::string`:
@@ -125,7 +125,7 @@ FATAL_TUTORIAL(variables, part 1/2) {
 }
 
 /**
- * TUTORIAL: a follow up to the variables tutorial above.
+ * This tutorial is a follow up to the variables tutorial above.
  *
  * Declarations of classes and structures take place outside of the tutorial
  * block for reasons outside of the scope of this tutorial, but they should be
