@@ -99,6 +99,8 @@ private:
     FATAL_SOURCE_INFO() \
   )
 
+#define NEW_LINE PRINT << ""
+
 using fatal::type_str;
 
 ////////////
