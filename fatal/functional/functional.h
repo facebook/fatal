@@ -205,6 +205,139 @@ struct address_of {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+struct is_positive {
+  template <typename T>
+  static constexpr bool call(T &&value)
+    noexcept(noexcept(value > static_cast<T>(0)))
+  {
+    return value > static_cast<T>(0);
+  }
+
+  template <typename T>
+  constexpr bool operator ()(T &&value) const
+    noexcept(noexcept(call(std::forward<T>(value))))
+  {
+    return call(std::forward<T>(value));
+  }
+};
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct not_positive {
+  template <typename T>
+  static constexpr bool call(T &&value)
+    noexcept(noexcept(value <= static_cast<T>(0)))
+  {
+    return value <= static_cast<T>(0);
+  }
+
+  template <typename T>
+  constexpr bool operator ()(T &&value) const
+    noexcept(noexcept(call(std::forward<T>(value))))
+  {
+    return call(std::forward<T>(value));
+  }
+};
+
+namespace detail {
+namespace functional_impl {
+
+template <typename T, bool = std::is_unsigned<T>::value>
+struct is_negative {
+  static constexpr bool impl(fatal::fast_pass<T> value)
+    noexcept(noexcept(value >= static_cast<T>(0)))
+  {
+    return value < static_cast<T>(0);
+  }
+};
+
+template <typename T>
+struct is_negative<T, true> {
+  static constexpr bool impl(fatal::fast_pass<T> value) noexcept {
+    return false;
+  }
+};
+
+template <typename T, bool = std::is_unsigned<T>::value>
+struct not_negative {
+  static constexpr bool impl(fatal::fast_pass<T> value)
+    noexcept(noexcept(value >= static_cast<T>(0)))
+  {
+    return value >= static_cast<T>(0);
+  }
+};
+
+template <typename T>
+struct not_negative<T, true> {
+  static constexpr bool impl(fatal::fast_pass<T> value) noexcept {
+    return true;
+  }
+};
+
+} // namespace functional_impl {
+} // namespace detail {
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct is_negative {
+  template <typename T>
+  static constexpr bool call(T &&value)
+    noexcept(noexcept(
+      detail::functional_impl::is_negative<
+        typename std::decay<T>::type
+      >::impl(std::forward<T>(value))
+    ))
+  {
+    return detail::functional_impl::is_negative<
+      typename std::decay<T>::type
+    >::impl(std::forward<T>(value));
+  }
+
+  template <typename T>
+  constexpr bool operator ()(T &&value) const
+    noexcept(noexcept(call(std::forward<T>(value))))
+  {
+    return call(std::forward<T>(value));
+  }
+};
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct not_negative {
+  template <typename T>
+  static constexpr bool call(T &&value)
+    noexcept(noexcept(
+      detail::functional_impl::not_negative<
+        typename std::decay<T>::type
+      >::impl(std::forward<T>(value))
+    ))
+  {
+    return detail::functional_impl::not_negative<
+      typename std::decay<T>::type
+    >::impl(std::forward<T>(value));
+  }
+
+  template <typename T>
+  constexpr bool operator ()(T &&value) const
+    noexcept(noexcept(call(std::forward<T>(value))))
+  {
+    return call(std::forward<T>(value));
+  }
+};
+
+/**
+ * TODO: DOCUMENT AND TEST
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
 struct equal {
   template <typename LHS, typename RHS>
   constexpr auto operator ()(LHS &&lhs, RHS &&rhs) const
