@@ -1,6 +1,6 @@
 #!/bin/sh
 
 while [ "$1" ]; do
-  ./demo.sh tutorial/$1
+  DO_RUN=true ./compile.sh lesson/$1.cpp
   shift
 done
