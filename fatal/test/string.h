@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_test_string_h
 #define FATAL_INCLUDE_fatal_test_string_h
 
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 
