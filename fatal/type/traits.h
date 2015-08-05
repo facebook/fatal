@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_traits_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/type/fast_pass.h> // TODO: REMOVE AND FIX DEPENDENCIES
 #include <fatal/type/scalar.h>
 #include <fatal/type/string.h>
 #include <fatal/type/transform.h>
@@ -368,51 +369,6 @@ template <typename T>
 integral_of<typename std::decay<T>::type> as_integral(T value) noexcept {
   return detail::integral_of_impl<typename std::decay<T>::type>::convert(value);
 }
-
-//////////////////
-// is_fast_pass //
-//////////////////
-
-/**
- * is_fast_pass: tells if pass-by-value is the fastest way of passing a
- * given type as a read-only argument or return value.
- *
- * Pointers, integers and whatnot are passed by value while user defined
- * types are passed by reference to const.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-using is_fast_pass = bool_constant<
-  std::is_scalar<typename std::decay<T>::type>::value
->;
-
-///////////////
-// fast_pass //
-///////////////
-
-/**
- * fast_pass: resolves to the fastest way of passing a given type as a read-only
- * argument or return value.
- *
- * See is_fast_pass for details.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-using fast_pass = typename std::conditional<
-  is_fast_pass<
-    typename std::decay<T>::type
-  >::value,
-  typename std::add_const<
-    typename std::decay<T>::type
-  >::type,
-  typename std::add_lvalue_reference<
-    typename std::add_const<
-      typename std::decay<T>::type
-    >::type
-  >::type
->::type;
 
 /////////////////
 // is_callable //
