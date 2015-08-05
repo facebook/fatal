@@ -21,26 +21,37 @@ namespace fatal {
 
 struct source_info {
   source_info(char const *file, unsigned long line):
-    file_(
-      [](char const *p) {
-        for (auto i = p; *i; ++i) {
-          if (*i == '/') {
-            p = i + 1;
-          }
-        }
-        return p;
-      }(file)
-    ),
+    file_(basename(file)),
     line_(line)
   {}
 
   char const *file() const { return file_; }
   unsigned long line() const { return line_; }
 
+  static char const *basename(char const *path) {
+    for (auto i = path; *i; ++i) {
+      if (*i == '/') {
+        path = i + 1;
+      }
+    }
+    return path;
+  }
+
+  template <typename Out>
+  Out &print(Out &out) const {
+    out << file_ << ':' << line_;
+    return out;
+  }
+
 private:
   char const *const file_;
   unsigned long const line_;
 };
+
+template <typename Out>
+Out &operator <<(Out &out, source_info source) {
+  return source.print(out);
+}
 
 /////////////////
 // FATAL_EMPTY //
