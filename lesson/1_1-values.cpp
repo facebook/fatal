@@ -159,12 +159,16 @@ LESSON(
   COMMENT(
     "Now we can specify the type of the constant, as well as its value."
   );
-  using x = constant<int, -15>;
+  CODE(
+    using x = constant<int, -15>;
+  );
 
   PRINT("x = ", type_str<x>());
   PRINT("x::value = ", x::value);
 
-  using y = constant<bool, true>;
+  CODE(
+    using y = constant<bool, true>;
+  );
 
   PRINT("y = ", type_str<y>());
   PRINT("y::value = ", std::boolalpha, y::value);
@@ -173,7 +177,9 @@ LESSON(
     "Again, any expression that can be evaluated at compile time will do:"
   );
 
-  using z = constant<unsigned, (x::value > 0) ? x::value : -x::value>;
+  CODE(
+    using z = constant<unsigned, (x::value > 0) ? x::value : -x::value>;
+  );
 
   PRINT("z = ", type_str<z>());
   PRINT("z::value = ", z::value);
@@ -198,7 +204,9 @@ LESSON(
     "We already covered how to represent a compile time constant with a type, "
     "and how to access the constant's value."
   );
-  using x = std::integral_constant<int, -15>;
+  CODE(
+    using x = std::integral_constant<int, -15>;
+  );
 
   PRINT("x = ", type_str<x>());
   PRINT("x::value = ", x::value);
@@ -218,12 +226,16 @@ LESSON(
     "Shortcuts to boolean constants are also provided:"
   );
 
-  using t = std::true_type;
+  CODE(
+    using t = std::true_type;
+  );
   PRINT("t = ", type_str<t>());
   PRINT("t::value = ", std::boolalpha, t::value);
   PRINT("t::value_type = ", type_str<t::value_type>());
 
-  using f = std::false_type;
+  CODE(
+    using f = std::false_type;
+  );
   PRINT("f = ", type_str<f>());
   PRINT("f::value = ", std::boolalpha, f::value);
   PRINT("f::value_type = ", type_str<f::value_type>());
@@ -251,7 +263,9 @@ LESSON(
     "`std::integral_constant`."
   );
 
-  using x = std::integral_constant<int, 10>;
+  CODE(
+    using x = std::integral_constant<int, 10>;
+  );
 
   PRINT("x = ", type_str<x>());
   PRINT("x::value = ", x::value);
@@ -260,7 +274,9 @@ LESSON(
     "Now let's use the convenient alias `int_value` to declare the same thing."
   );
 
-  using y = int_value<10>;
+  CODE(
+    using y = int_value<10>;
+  );
 
   PRINT("y = ", type_str<y>());
   PRINT("y::value = ", y::value);
@@ -279,7 +295,9 @@ LESSON(
     "then both `x` and `y` are guaranteed to reference the same type."
   );
 
-  static_assert(std::is_same<x, y>::value, "type mismatch");
+  CODE(
+    static_assert(std::is_same<x, y>::value, "type mismatch");
+  );
 }
 
 } // namespace lesson {
