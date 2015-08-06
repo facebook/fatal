@@ -14,16 +14,14 @@
 #include <type_traits>
 #include <typeinfo>
 
-// for test purposes only
-#ifdef FATAL_USE_CXXABI
+#ifdef __GNUC__
 # include <cxxabi.h>
-#endif // FATAL_USE_CXXABI
+#endif // __GNUC__
 
 namespace fatal {
 
 std::string type_str(std::string &out, std::type_info const &type) {
-  // for test purposes only
-# ifdef FATAL_USE_CXXABI
+# ifdef __GNUC__
   int status;
   auto name = abi::__cxa_demangle(type.name(), 0, 0, &status);
 
@@ -32,7 +30,7 @@ std::string type_str(std::string &out, std::type_info const &type) {
     std::free(name);
     return out;
   }
-# endif // FATAL_USE_CXXABI
+# endif // __GNUC__
 
   out.append(type.name());
   return out;

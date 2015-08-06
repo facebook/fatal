@@ -47,7 +47,7 @@ fi
 
 echo -n "started: "; date
 set -x
-"$USE_CC" $CC_ARGS -Wall -Werror -DFATAL_USE_CXXABI "-std=$USE_STD" -I . "$file_name" 2>&1
+"$USE_CC" $CC_ARGS -Wall -Werror "-std=$USE_STD" -I . "$file_name" 2>&1
 set +x
 echo -n "finished: "; date
 
