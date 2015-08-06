@@ -1,5 +1,4 @@
 # Fatal: Facebook Template Library [![Build Status](https://secure.travis-ci.org/facebook/fatal.png?branch=dev "Build Status")](https://travis-ci.org/facebook/fatal)
-
 Fatal is a library for fast prototyping software in C++11 and up.
 
 It provides a broad range of template meta-programming tools for reflection and metadata manipulation.
@@ -13,8 +12,10 @@ Discussions group: https://www.facebook.com/groups/libfatal/
 [Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell): http://abel.web.elte.hu/shell/metashell
 
 
-## Examples
-Demonstration applications can be found under the `demo/` directory.
+## Documentation
+A learn-by-example guide is available under the `lesson/` directory.
+Demo programs are also available under the `demo/` directory.
+Extensive documentation with examples can be found inline in the source header files.
 
 
 ## Philosophy
@@ -25,14 +26,14 @@ The `master` branch is considered the stable version of the library and should n
 The `dev` branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
 
 
+## Building Fatal
+Fatal is a header only library, therefore no building is required.
+
+
 ## Requirements
 A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} and GCC {4.8, 4.9, 5.1}.
 
 There are no other external dependencies.
-
-
-## Building Fatal
-Fatal is a header only library, therefore no building is required.
 
 
 ## Installation
@@ -41,27 +42,6 @@ There's no need to install Fatal, as long as you add its base directory to the i
 For GCC and Clang, it suffices to either:
 - use the `-I path/to/fatal` flag
 - set the environment variable `CPLUS_INCLUDE_PATH=path/to/fatal`
-
-
-## Documentation
-Extensive documentation with examples can be found inline in the source header files.
-A demo program is also available under the `demo/` directory.
-
-
-## Requirements for Demos
-A compliant C++14 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} and GCC {4.9, 5.1}.
-
-
-## Building Demos
-```sh
-$ clang++ -Wall -Werror -O2 -std=c++1y -I path/to/fatal \
-  -o path/to/output/binary path/to/demo.cpp
-```
-or
-```sh
-$ g++ -Wall -Werror -O2 -std=c++1y -I path/to/fatal \
-  -o path/to/output/binary path/to/demo.cpp
-```
 
 
 ## Building Benchmarks and Unit Tests
