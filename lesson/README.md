@@ -5,7 +5,7 @@ The lessons gradually introduce idioms to better use Fatal when writing software
 
 Lessons source code is self-contained, presenting a full textual explanation of the lesson itself.
 
-The output of the lessons is also self-contained, presenting the full textual explanation and full source code.
+The output of the lessons is also self-contained, presenting the full textual explanation and source code.
 
 Lessons can be followed by reading the source code only, the lesson's output only, or both.
 

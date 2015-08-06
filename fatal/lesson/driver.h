@@ -11,6 +11,8 @@
 #define FATAL_INCLUDE_fatal_lesson_driver_h
 
 #include <fatal/lesson/lesson.h>
+#include <fatal/test/string.h>
+#include <fatal/test/type.h>
 
 #include <algorithm>
 #include <array>
