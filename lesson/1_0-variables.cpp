@@ -136,7 +136,7 @@ LESSON(
   "This lesson is a follow up to the variables lesson above."
   "\n\n"
   "Declarations of types below take place outside of the lesson block for "
-  "reasons outside of the scope of this guid, but they should be considered "
+  "reasons outside of the scope of this guide, but they should be considered "
   "part of it nevertheless.",
 
   struct m {
