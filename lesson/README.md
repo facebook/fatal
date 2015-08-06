@@ -1,4 +1,4 @@
-# Learn Fatal and Metaprogramming by example
+# Learn Fatal and Meta-programming by example
 This directory contains a set of lessons aimed at teaching the basics of meta-programming in C++.
 
 The lessons gradually introduce idioms to better use Fatal when writing software.

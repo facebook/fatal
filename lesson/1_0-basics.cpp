@@ -128,7 +128,6 @@ LESSON(
   );
 }
 
-// TODO: HOW TO PRINT THIS??
 /**
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
