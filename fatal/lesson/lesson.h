@@ -23,6 +23,8 @@
 
 #include <cstring>
 
+using fatal::type_str;
+
 namespace fatal {
 namespace lesson {
 

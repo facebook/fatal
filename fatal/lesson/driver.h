@@ -24,8 +24,6 @@
 #include <utility>
 #include <vector>
 
-using fatal::type_str;
-
 int main() {
   fatal::lesson::registry::run();
   return 0;
