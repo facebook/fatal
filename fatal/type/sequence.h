@@ -567,17 +567,27 @@ using to_constant_sequence = to_sequence<T, Value, constant_sequence, TChar>;
 ///////////////
 
 /**
- * Instantiates a `constant_sequence` class template out of a regular string.
+ * Instantiates compile time string out of a string literal, in the form of a
+ *`constant_sequence` class template instantiation.
+ *
+ * General form:
+ *
+ *  FATAL_STR(identifier, "string");
+ *
+ * Parameters:
+ *
+ *  identifier: the identifier for the type representing the compile time string
+ *  string: the string literal to be represented by the compile time string
  *
  * Example:
  *
  *  // this is equivalent to
  *  // `using hi = constant_sequence<char, 'h', 'i'>;`
- *  FATAL_STR("hi") hi;
+ *  FATAL_STR(hi, "hi");
  *
  *  // this is equivalent to
  *  // `using hey = constant_sequence<char32_t, U'h', U'e', U'y'>;`
- *  FATAL_STR(U"hey") hey;
+ *  FATAL_STR(hey, U"hey");
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
