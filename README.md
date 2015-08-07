@@ -7,13 +7,20 @@ The goal is to speed up prototyping of complex software, while abstracting the c
 
 
 ## Links
-- [Bleeding edge](https://github.com/facebook/fatal/tree/dev/) with latest features
-- [Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://www.facebook.com/Engineering)
-- [Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
+[Bleeding edge](https://github.com/facebook/fatal/tree/dev/) with latest features
+
+[Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://www.facebook.com/Engineering)
+
+[Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
 
 
-## Examples
-Demonstration applications can be found under the [`demo/`](demo/) directory.
+## Documentation and Examples
+A learn-by-example guide is available under the [`lesson/`](https://github.com/facebook/fatal/tree/dev/lesson/) directory in the [`dev`](https://github.com/facebook/fatal/tree/dev/) branch.
+
+Demo programs are also available under the [`demo/`](demo/) directory.
+
+Extensive documentation with examples can be found inline in the source header files.
+
 
 ## Philosophy
 Fatal moves fast, therefore it uses the latest and greatest in C++ standards. It aims to adopt new standard features as soon as they're officially out, as long as they provide benefits like performance, productivity and usability improvements.
@@ -38,8 +45,10 @@ In order to build and run Fatal's demos, you'll need:
 - Folly: Facebook Open-source LibrarY (https://github.com/facebook/folly/)
 - a compliant C++14 compiler. Currently tested under GCC 4.9 and Clang 3.4.
 
+
 ## Building Fatal
 Fatal is a header only library, therefore no building is required.
+
 
 ## Building Benchmarks and Unit Tests
 Provided that the dependencies are properly installed:
@@ -71,6 +80,7 @@ $ g++ -Wall -std=c++1y -I path/to/fatal \
   -lfolly -ldouble-conversion
 ```
 
+
 ## Installation
 There's no need to install Fatal, as long as you add its base directory to the include directories list.
 
@@ -78,8 +88,6 @@ For GCC and Clang, it suffices to either:
 - use the `-I path/to/fatal` flag
 - set the environment variable `CPLUS_INCLUDE_PATH=path/to/fatal`
 
-## Documentation
-Extensive documentation with examples can be found inline in the source header files.
 
 ## Join the Fatal community
 - Website: https://github.com/facebook/fatal/
@@ -87,6 +95,7 @@ Extensive documentation with examples can be found inline in the source header f
 - Talk at CppCon 2014: https://www.youtube.com/watch?v=0A9pYr8wevk
 
 See the CONTRIBUTING file for how to help out.
+
 
 ## License
 Fatal is BSD-licensed. We also provide an additional patent grant.
