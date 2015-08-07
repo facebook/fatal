@@ -12,7 +12,7 @@ Lessons can be followed by reading the source code only, the lesson's output onl
 
 ## Try it online
 
-These lessons can be [tried online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell): http://abel.web.elte.hu/shell/metashell.
+These lessons can be [tried online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell).
 
 Metashell allows you to easily inspect the type of an alias. Whenever you encounter `TYPE(T)` in a lesson, you can simply type `T` instead to print the type represented by it:
 

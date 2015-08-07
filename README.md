@@ -5,14 +5,14 @@ It provides a broad range of template meta-programming tools for reflection and 
 
 The goal is to speed up prototyping of complex software, while abstracting the complexity of template meta-programming and making its benefits available to a wider audience other than hard-core library writers.
 
-Bleeding edge: https://github.com/facebook/fatal/tree/dev/
 
-Discussions group: https://www.facebook.com/groups/libfatal/
+## Links
+- [Bleeding edge](https://github.com/facebook/fatal/tree/dev/) with latest features
+- [Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://www.facebook.com/Engineering)
+- [Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
 
-[Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell): http://abel.web.elte.hu/shell/metashell
 
-
-## Documentation
+## Documentation and Examples
 A learn-by-example guide is available under the [`lesson/`](lesson/) directory.
 
 Demo programs are also available under the [`demo/`](demo/) directory.
@@ -25,7 +25,7 @@ Fatal moves fast, therefore it uses the latest and greatest in C++ standards. It
 
 The [`master`](https://github.com/facebook/fatal/) branch is considered the stable version of the library and should not change often.
 
-The [`dev`](https://github.com/facebook/fatal/tree/dev) branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
+The [`dev`](https://github.com/facebook/fatal/tree/dev/) branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
 
 
 ## Building Fatal
@@ -41,7 +41,7 @@ There are no other external dependencies.
 ## Installation
 There's no need to install Fatal, as long as you add its base directory to the include directories list.
 
-For GCC and Clang, it suffices to either:
+For Clang and GCC, it suffices to either:
 - use the `-I path/to/fatal` flag
 - set the environment variable `CPLUS_INCLUDE_PATH=path/to/fatal`
 
