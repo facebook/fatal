@@ -7,9 +7,11 @@ The goal is to speed up prototyping of complex software, while abstracting the c
 
 
 ## Links
-- [Bleeding edge](https://github.com/facebook/fatal/tree/dev/) with latest features
-- [Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://www.facebook.com/Engineering)
-- [Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
+[Bleeding edge](https://github.com/facebook/fatal/tree/dev/) with latest features
+
+[Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://www.facebook.com/Engineering)
+
+[Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
 
 
 ## Documentation and Examples
