@@ -14,16 +14,18 @@ Discussions group: https://www.facebook.com/groups/libfatal/
 
 ## Documentation
 A learn-by-example guide is available under the [`lesson/`](lesson/) directory.
+
 Demo programs are also available under the [`demo/`](demo/) directory.
+
 Extensive documentation with examples can be found inline in the source header files.
 
 
 ## Philosophy
 Fatal moves fast, therefore it uses the latest and greatest in C++ standards. It aims to adopt new standard features as soon as they're officially out, as long as they provide benefits like performance, productivity and usability improvements.
 
-The `master` branch is considered the stable version of the library and should not change often.
+The [`master`](https://github.com/facebook/fatal/) branch is considered the stable version of the library and should not change often.
 
-The `dev` branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
+The [`dev`](https://github.com/facebook/fatal/tree/dev) branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
 
 
 ## Building Fatal
