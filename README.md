@@ -6,28 +6,12 @@ It provides a broad range of template meta-programming tools for reflection and 
 The goal is to speed up prototyping of complex software, while abstracting the complexity of template meta-programming and making its benefits available to a wider audience other than hard-core library writers.
 
 
-## Links
-[Bleeding edge](https://github.com/facebook/fatal/tree/dev/) with latest features
-
-[Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://www.facebook.com/Engineering)
-
-[Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
-
-
 ## Documentation and Examples
 A learn-by-example guide is available under the [`lesson/`](lesson/) directory.
 
 Demo programs are also available under the [`demo/`](demo/) directory.
 
 Extensive documentation with examples can be found inline in the source header files.
-
-
-## Philosophy
-Fatal moves fast, therefore it uses the latest and greatest in C++ standards. It aims to adopt new standard features as soon as they're officially out, as long as they provide benefits like performance, productivity and usability improvements.
-
-The [`master`](https://github.com/facebook/fatal/) branch is considered the stable version of the library and should not change often.
-
-The [`dev`](https://github.com/facebook/fatal/tree/dev/) branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
 
 
 ## Building Fatal
@@ -38,6 +22,22 @@ Fatal is a header only library, therefore no building is required.
 A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} and GCC {4.8, 4.9, 5.1}.
 
 There are no other external dependencies.
+
+
+## Links
+[Bleeding edge](https://github.com/facebook/fatal/tree/dev/) with latest features
+
+[Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://www.facebook.com/Engineering)
+
+[Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
+
+
+## Philosophy
+Fatal moves fast, therefore it uses the latest and greatest in C++ standards. It aims to adopt new standard features as soon as they're officially out, as long as they provide benefits like performance, productivity and usability improvements.
+
+The [`master`](https://github.com/facebook/fatal/) branch is considered the stable version of the library and should not change often.
+
+The [`dev`](https://github.com/facebook/fatal/tree/dev/) branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
 
 
 ## Installation
