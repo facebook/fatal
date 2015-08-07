@@ -40,8 +40,8 @@ LESSON(
     using x = int_constant<15>;
   );
 
-  PRINT("x = ", type_str<x>());
-  PRINT("x::value = ", x::value);
+  TYPE(x);
+  VALUE(x::value);
 
   COMMENT(
     "Note, however, that `int_constant::value` is a regular runtime variable "
@@ -53,7 +53,7 @@ LESSON(
     x::value = 30;
   );
 
-  PRINT("x::value = ", x::value);
+  VALUE(x::value);
 
   COMMENT(
     "This makes it illegal to use such variable as an argument to a template. "
@@ -100,8 +100,8 @@ LESSON(
     using x = int_constant_proper<15>;
   );
 
-  PRINT("x = ", type_str<x>());
-  PRINT("x::value = ", x::value);
+  TYPE(x);
+  VALUE(x::value);
 
   COMMENT(
     "As noted before, constants can be used as template parameters."
@@ -111,8 +111,8 @@ LESSON(
     using y = int_constant_proper<x::value>;
   );
 
-  PRINT("y = ", type_str<y>());
-  PRINT("y::value = ", y::value);
+  TYPE(y);
+  VALUE(y::value);
 
   COMMENT(
     "In fact, any expression that can be evaluated at compile time can be used "
@@ -123,15 +123,15 @@ LESSON(
     using z = int_constant_proper<x::value * 2>;
   );
 
-  PRINT("z = ", type_str<z>());
-  PRINT("z::value = ", z::value);
+  TYPE(z);
+  VALUE(z::value);
 
   CODE(
     using w = int_constant_proper<x::value + z::value - 3>;
   );
 
-  PRINT("w = ", type_str<w>());
-  PRINT("w::value = ", w::value);
+  TYPE(w);
+  VALUE(w::value);
 }
 
 /**
@@ -163,15 +163,15 @@ LESSON(
     using x = constant<int, -15>;
   );
 
-  PRINT("x = ", type_str<x>());
-  PRINT("x::value = ", x::value);
+  TYPE(x);
+  VALUE(x::value);
 
   CODE(
     using y = constant<bool, true>;
   );
 
-  PRINT("y = ", type_str<y>());
-  PRINT("y::value = ", std::boolalpha, y::value);
+  TYPE(y);
+  VALUE(y::value);
 
   COMMENT(
     "Again, any expression that can be evaluated at compile time will do:"
@@ -181,8 +181,8 @@ LESSON(
     using z = constant<unsigned, (x::value > 0) ? x::value : -x::value>;
   );
 
-  PRINT("z = ", type_str<z>());
-  PRINT("z::value = ", z::value);
+  TYPE(z);
+  VALUE(z::value);
 }
 
 /**
@@ -208,19 +208,19 @@ LESSON(
     using x = std::integral_constant<int, -15>;
   );
 
-  PRINT("x = ", type_str<x>());
-  PRINT("x::value = ", x::value);
+  TYPE(x);
+  VALUE(x::value);
 
   COMMENT(
     "For convenience purposes, `std::integral_constant` also provides an "
     "identity alias in the form of a member called `type`:"
   );
-  PRINT("x::type = ", type_str<x::type>());
+  TYPE(x::type);
 
   COMMENT(
     "It also exposes the type of the constant it represents:"
   );
-  PRINT("x::value_type = ", type_str<x::value_type>());
+  TYPE(x::value_type);
 
   COMMENT(
     "Shortcuts to boolean constants are also provided:"
@@ -229,16 +229,16 @@ LESSON(
   CODE(
     using t = std::true_type;
   );
-  PRINT("t = ", type_str<t>());
-  PRINT("t::value = ", std::boolalpha, t::value);
-  PRINT("t::value_type = ", type_str<t::value_type>());
+  TYPE(t);
+  VALUE(t::value);
+  TYPE(t::value_type);
 
   CODE(
     using f = std::false_type;
   );
-  PRINT("f = ", type_str<f>());
-  PRINT("f::value = ", std::boolalpha, f::value);
-  PRINT("f::value_type = ", type_str<f::value_type>());
+  TYPE(f);
+  VALUE(f::value);
+  TYPE(f::value_type);
 }
 
 /**
@@ -267,8 +267,8 @@ LESSON(
     using x = std::integral_constant<int, 10>;
   );
 
-  PRINT("x = ", type_str<x>());
-  PRINT("x::value = ", x::value);
+  TYPE(x);
+  VALUE(x::value);
 
   COMMENT(
     "Now let's use the convenient alias `int_value` to declare the same thing."
@@ -278,8 +278,8 @@ LESSON(
     using y = int_value<10>;
   );
 
-  PRINT("y = ", type_str<y>());
-  PRINT("y::value = ", y::value);
+  TYPE(y);
+  VALUE(y::value);
 
   COMMENT(
     "The beauty of aliases is that they don't create new types. Instead, "

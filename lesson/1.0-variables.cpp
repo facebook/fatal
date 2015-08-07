@@ -31,7 +31,7 @@ LESSON(
     "Whenever we want to retrieve the value stored in that variable, we "
     "reference it through its name:"
   )
-  PRINT("x = ", x);
+  VALUE(x);
 
   COMMENT(
     "A similar idiom can be achieved for metaprogramming. Take the following "
@@ -51,7 +51,7 @@ LESSON(
     "type alias:"
   );
 
-  PRINT("y = ", type_str<y>());
+  TYPE(y);
 
   COMMENT(
     "Note that we must use a helper function called `type_str()` to properly "
@@ -65,7 +65,7 @@ LESSON(
     "constant, not a type:"
   );
 
-  PRINT("y::value = ", y::value);
+  VALUE(y::value);
 
   ILLEGAL(
     "it's illegal to re-assign a value to a constant.",
@@ -100,9 +100,9 @@ LESSON(
     "sense at runtime."
   );
 
-  PRINT("z = ", type_str<z>());
-  PRINT("w = ", type_str<w>());
-  PRINT("k = ", type_str<k>());
+  TYPE(z);
+  TYPE(w);
+  TYPE(k);
 
   COMMENT(
     "The last thing to notice is that types are immutable. Once we assign a type "
@@ -161,11 +161,11 @@ LESSON(
     "can also be considered analogous to procedural programming's variables:"
   );
 
-  PRINT("m = ", type_str<m>());
-  PRINT("n = ", type_str<n>());
-  PRINT("u = ", type_str<u>());
-  PRINT("e = ", type_str<e>());
-  PRINT("c = ", type_str<c>());
+  TYPE(m);
+  TYPE(n);
+  TYPE(u);
+  TYPE(e);
+  TYPE(c);
 
   COMMENT(
     "And they can be assigned to aliases as well."
@@ -179,11 +179,11 @@ LESSON(
     using vc = c;
   );
 
-  PRINT("vm = ", type_str<vm>());
-  PRINT("vn = ", type_str<vn>());
-  PRINT("vu = ", type_str<vu>());
-  PRINT("ve = ", type_str<ve>());
-  PRINT("vc = ", type_str<vc>());
+  TYPE(vm);
+  TYPE(vn);
+  TYPE(vu);
+  TYPE(ve);
+  TYPE(vc);
 }
 
 } // namespace lesson {

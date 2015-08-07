@@ -23,8 +23,6 @@
 
 #include <cstring>
 
-using fatal::type_str;
-
 namespace fatal {
 namespace lesson {
 
@@ -52,7 +50,9 @@ namespace lesson {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define COMMENT(...) \
-  ::std::cout << __VA_ARGS__ << ::std::endl << ::std::endl;
+  ::std::cout << __VA_ARGS__ \
+    << ::std::endl \
+    << ::std::endl;
 
 /**
  * TODO: DOCUMENT
@@ -60,14 +60,16 @@ namespace lesson {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define CODE(...) \
-  ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" << ::std::endl \
+  ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" \
+    << ::std::endl \
     << ::fatal::lesson::detail::format(FATAL_TO_STR(__VA_ARGS__)) \
     << ::std::endl; \
   \
   __VA_ARGS__; \
   \
   ::std::cout << "<< --------" \
-    << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) << ::std::endl \
+    << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
+    << ::std::endl \
     << ::std::endl;
 
 /**
@@ -76,15 +78,46 @@ namespace lesson {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define PRINT(...) \
-  ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" << ::std::endl \
+  ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" \
+    << ::std::endl \
     << "print(" << FATAL_TO_STR(__VA_ARGS__) << ");" \
-    << ::std::endl << "-- output -" \
-    << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) << ::std::endl; \
+    << ::std::endl \
+    << "-- output -" << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
+    << ::std::endl; \
   \
   ::fatal::lesson::print(__VA_ARGS__); \
   \
   ::std::cout << "<< --------" \
-    << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) << ::std::endl \
+    << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
+    << ::std::endl \
+    << ::std::endl;
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define TYPE(...) \
+  ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" \
+    << ::std::endl \
+    << FATAL_TO_STR(__VA_ARGS__) << " = " << ::fatal::type_str<__VA_ARGS__>()\
+    << ::std::endl \
+    << "<< --------" << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
+    << ::std::endl \
+    << ::std::endl;
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define VALUE(...) \
+  ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" \
+    << ::std::endl \
+    << FATAL_TO_STR(__VA_ARGS__) << " = " << (__VA_ARGS__) \
+    << std::endl \
+    << "<< --------" << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
+    << ::std::endl \
     << ::std::endl;
 
 /**
