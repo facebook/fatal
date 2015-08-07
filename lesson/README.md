@@ -33,22 +33,22 @@ Here's an example of how to follow a lesson in Metashell (use a trailing backsla
 sequence_1<std::uint32_t, 3, 7, 31, 127, 8191, 131071, 524287>
 ```
 
-Due to its REPL nature it's a much more dynamic environment, highly recommended for learning.
+Due to its REPL nature, Metashell provides a much more dynamic environment than the text editor + compiler combo, highly recommended for learning.
 
 
-## Requirements
+## Requirements for lessons
 A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} and GCC {4.8, 4.9, 5.2}.
 
 There are no other external dependencies.
 
 
-## Building
+## Building lessons
 ```sh
-$ clang++ -Wall -Werror -O2 -std=c++11 -I path/to/fatal \
-  -o path/to/output/binary path/to/lesson.cpp
+$ clang++ -std=c++11 -I path/to/fatal \
+  -o path/to/output/binary lesson/lesson_filename.cpp
 ```
 or
 ```sh
-$ g++ -Wall -Werror -O2 -std=c++11 -I path/to/fatal \
-  -o path/to/output/binary path/to/lesson.cpp
+$ g++ -std=c++11 -I path/to/fatal \
+  -o path/to/output/binary lesson/lesson_filename.cpp
 ```

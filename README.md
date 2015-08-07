@@ -13,8 +13,8 @@ Discussions group: https://www.facebook.com/groups/libfatal/
 
 
 ## Documentation
-A learn-by-example guide is available under the `lesson/` directory.
-Demo programs are also available under the `demo/` directory.
+A learn-by-example guide is available under the [`lesson/`](lesson/) directory.
+Demo programs are also available under the [`demo/`](demo/) directory.
 Extensive documentation with examples can be found inline in the source header files.
 
 
