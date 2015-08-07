@@ -215,11 +215,12 @@ void run(bool first) {
   }
 
   std::cout << "== " << i.name << " == OVERVIEW ======"
-    << std::endl << i.overview;
+    << std::endl << std::endl << i.overview;
 
   if (i.declarations && *i.declarations) {
     std::cout << std::endl << "== " << i.name << " == DECLARATIONS =="
-      << std::endl << format(i.declarations);
+      << std::endl << std::endl << format(i.declarations)
+      << std::endl;
   }
 
   std::cout << std::endl << "== " << i.name << " == START ========="
