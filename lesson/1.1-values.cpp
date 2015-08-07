@@ -289,7 +289,7 @@ LESSON(
     "\n\n"
     "The code below will be further explained in a later lesson. For now, it "
     "suffices to know that it will prevent the program from compiling "
-    "correctly if both `x` and `y` do not represent the same type."
+    "if both `x` and `y` do not represent the same type."
     "\n\n"
     "This means that, if the line below doesn't result in a compilation error, "
     "then both `x` and `y` are guaranteed to reference the same type."

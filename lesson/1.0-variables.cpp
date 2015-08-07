@@ -173,10 +173,10 @@ LESSON(
 
   CODE(
     using vm = m;
-    using vn = m;
-    using vu = m;
-    using ve = m;
-    using vc = m;
+    using vn = n;
+    using vu = u;
+    using ve = e;
+    using vc = c;
   );
 
   PRINT("vm = ", type_str<vm>());
