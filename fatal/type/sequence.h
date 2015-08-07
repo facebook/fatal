@@ -567,7 +567,7 @@ using to_constant_sequence = to_sequence<T, Value, constant_sequence, TChar>;
 ///////////////
 
 /**
- * Instantiates compile time string out of a string literal, in the form of a
+ * Instantiates a compile time string out of a string literal, in the form of a
  *`constant_sequence` class template instantiation.
  *
  * General form:
