@@ -14,7 +14,7 @@ Lessons can be followed by reading the source code only, the lesson's output onl
 
 These lessons can be [tried online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell): http://abel.web.elte.hu/shell/metashell.
 
-Metashell allows you to easily inspect the type of an alias. Whenever you encounter `TYPE(T)` function in a lesson, you can simply type `T` instead to get the type represented by it:
+Metashell allows you to easily inspect the type of an alias. Whenever you encounter `TYPE(T)` in a lesson, you can simply type `T` instead to print the type represented by it:
 
 ```
 > using type = std::integral_constant<std::size_t, 42>;
@@ -22,7 +22,7 @@ Metashell allows you to easily inspect the type of an alias. Whenever you encoun
 std::integral_constant<std::size_t, 42>
 ```
 
-Here's an example of how to follow a lesson in Metashell:
+Here's an example of how to follow a lesson in Metashell (use a trailing backslash `\` for multi-line statements):
 
 ```
 > #include <fatal/lesson/lesson.h>
