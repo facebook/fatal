@@ -114,7 +114,7 @@ namespace lesson {
 #define VALUE(...) \
   ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" \
     << ::std::endl \
-    << FATAL_TO_STR(__VA_ARGS__) << " = " << (__VA_ARGS__) \
+    << FATAL_TO_STR(__VA_ARGS__) << " = " << ::std::boolalpha << (__VA_ARGS__) \
     << std::endl \
     << "<< --------" << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
     << ::std::endl \
