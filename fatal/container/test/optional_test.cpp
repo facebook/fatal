@@ -39,20 +39,20 @@ namespace fatal {
 FATAL_TEST(optional, default_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_DEFAULT_CTOR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     optional<refc> rc2;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 //////////////////
@@ -68,20 +68,20 @@ FATAL_TEST(optional, default_ctor) {
 FATAL_TEST(optional, emplace_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_EMPLACE_CTOR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     optional<refc> rc2(5.6);
-    FATAL_EXPECT_EQ(2, ref_counter::count());
-    FATAL_EXPECT_EQ(2, ref_counter::valid());
+    FATAL_EXPECT_EQ(2, refc::alive());
+    FATAL_EXPECT_EQ(2, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 ////////////////////////////////
@@ -298,20 +298,20 @@ FATAL_TEST(optional, ptr) {
 FATAL_TEST(optional, empty_copy_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_EMPTY_COPY_CTOR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     optional<refc> rc2(rc1);
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 ///////////////
@@ -333,20 +333,20 @@ FATAL_TEST(optional, empty_copy_ctor) {
 FATAL_TEST(optional, copy_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_COPY_CTOR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     optional<refc> rc2(rc1);
-    FATAL_EXPECT_EQ(2, ref_counter::count());
-    FATAL_EXPECT_EQ(2, ref_counter::valid());
+    FATAL_EXPECT_EQ(2, refc::alive());
+    FATAL_EXPECT_EQ(2, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 /////////////////////
@@ -365,20 +365,20 @@ FATAL_TEST(optional, copy_ctor) {
 FATAL_TEST(optional, empty_move_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_EMPTY_MOVE_CTOR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     optional<refc> rc2(std::move(rc1));
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 ///////////////
@@ -399,20 +399,20 @@ FATAL_TEST(optional, empty_move_ctor) {
 FATAL_TEST(optional, move_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_MOVE_CTOR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     optional<refc> rc2(std::move(rc1));
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 ///////////////////////
@@ -431,18 +431,18 @@ FATAL_TEST(optional, move_ctor) {
 FATAL_TEST(optional, copy_emplace_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_COPY_EMPLACE_CTOR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     auto n = 10;
     optional<refc> rc(n);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 ///////////////////////
@@ -463,18 +463,18 @@ FATAL_TEST(optional, copy_emplace_ctor) {
 FATAL_TEST(optional, move_emplace_ctor) {
   FATAL_IMPL_CALL(FATAL_IMPL_MOVE_EMPLACE_CTOR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     auto n = 10;
     optional<refc> rc(std::move(n));
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 //////////////////
@@ -495,21 +495,21 @@ FATAL_TEST(optional, move_emplace_ctor) {
 FATAL_TEST(optional, copy_emplace) {
   FATAL_IMPL_CALL(FATAL_IMPL_COPY_EMPLACE);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     auto n = 10;
     optional<refc> rc;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     rc.emplace(n);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 //////////////////
@@ -532,21 +532,21 @@ FATAL_TEST(optional, copy_emplace) {
 FATAL_TEST(optional, move_emplace) {
   FATAL_IMPL_CALL(FATAL_IMPL_MOVE_EMPLACE);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     auto n = 10;
     optional<refc> rc;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     rc.emplace(std::move(n));
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 /////////////
@@ -565,20 +565,20 @@ FATAL_TEST(optional, move_emplace) {
 FATAL_TEST(optional, emplace) {
   FATAL_IMPL_CALL(FATAL_IMPL_EMPLACE);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     rc.emplace(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 /////////////////
@@ -596,20 +596,20 @@ FATAL_TEST(optional, emplace) {
 FATAL_TEST(optional, empty_clear) {
   FATAL_IMPL_CALL(FATAL_IMPL_EMPTY_CLEAR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     rc.clear();
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 ///////////
@@ -629,20 +629,20 @@ FATAL_TEST(optional, empty_clear) {
 FATAL_TEST(optional, clear) {
   FATAL_IMPL_CALL(FATAL_IMPL_CLEAR);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     rc.clear();
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 ///////////////////////////
@@ -673,43 +673,43 @@ FATAL_TEST(optional, clear) {
 FATAL_TEST(optional, empty_copy_assignment) {
   FATAL_IMPL_CALL(FATAL_IMPL_EMPTY_COPY_ASSIGNMENT);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
 
     {
       optional<refc> rc2;
-      FATAL_EXPECT_EQ(0, ref_counter::count());
-      FATAL_EXPECT_EQ(0, ref_counter::valid());
+      FATAL_EXPECT_EQ(0, refc::alive());
+      FATAL_EXPECT_EQ(0, refc::valid());
 
       rc2 = rc1;
-      FATAL_EXPECT_EQ(0, ref_counter::count());
-      FATAL_EXPECT_EQ(0, ref_counter::valid());
+      FATAL_EXPECT_EQ(0, refc::alive());
+      FATAL_EXPECT_EQ(0, refc::valid());
     }
 
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
 
     {
       optional<refc> rc2(5.6);
-      FATAL_EXPECT_EQ(1, ref_counter::count());
-      FATAL_EXPECT_EQ(1, ref_counter::valid());
+      FATAL_EXPECT_EQ(1, refc::alive());
+      FATAL_EXPECT_EQ(1, refc::valid());
 
       rc2 = rc1;
-      FATAL_EXPECT_EQ(0, ref_counter::count());
-      FATAL_EXPECT_EQ(0, ref_counter::valid());
+      FATAL_EXPECT_EQ(0, refc::alive());
+      FATAL_EXPECT_EQ(0, refc::valid());
     }
 
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 /////////////////////
@@ -745,43 +745,43 @@ FATAL_TEST(optional, empty_copy_assignment) {
 FATAL_TEST(optional, copy_assignment) {
   FATAL_IMPL_CALL(FATAL_IMPL_COPY_ASSIGNMENT);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
 
     {
       optional<refc> rc2;
-      FATAL_EXPECT_EQ(1, ref_counter::count());
-      FATAL_EXPECT_EQ(1, ref_counter::valid());
+      FATAL_EXPECT_EQ(1, refc::alive());
+      FATAL_EXPECT_EQ(1, refc::valid());
 
       rc2 = rc1;
-      FATAL_EXPECT_EQ(2, ref_counter::count());
-      FATAL_EXPECT_EQ(2, ref_counter::valid());
+      FATAL_EXPECT_EQ(2, refc::alive());
+      FATAL_EXPECT_EQ(2, refc::valid());
     }
 
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
 
     {
       optional<refc> rc2(5.6);
-      FATAL_EXPECT_EQ(2, ref_counter::count());
-      FATAL_EXPECT_EQ(2, ref_counter::valid());
+      FATAL_EXPECT_EQ(2, refc::alive());
+      FATAL_EXPECT_EQ(2, refc::valid());
 
       rc2 = rc1;
-      FATAL_EXPECT_EQ(2, ref_counter::count());
-      FATAL_EXPECT_EQ(2, ref_counter::valid());
+      FATAL_EXPECT_EQ(2, refc::alive());
+      FATAL_EXPECT_EQ(2, refc::valid());
     }
 
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 ///////////////////////////
@@ -814,38 +814,38 @@ FATAL_TEST(optional, copy_assignment) {
 FATAL_TEST(optional, empty_move_assignment) {
   FATAL_IMPL_CALL(FATAL_IMPL_EMPTY_MOVE_ASSIGNMENT);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc1;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     optional<refc> rc2;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     rc2 = std::move(rc1);
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 
   {
     optional<refc> rc1;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     optional<refc> rc2(5.6);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     rc2 = std::move(rc1);
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 /////////////////////
@@ -882,38 +882,37 @@ FATAL_TEST(optional, empty_move_assignment) {
 FATAL_TEST(optional, move_assignment) {
   FATAL_IMPL_CALL(FATAL_IMPL_MOVE_ASSIGNMENT);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
 
   {
     optional<refc> rc1(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     optional<refc> rc2;
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     rc2 = std::move(rc1);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 
   {
     optional<refc> rc1(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     optional<refc> rc2(5.6);
-    FATAL_EXPECT_EQ(2, ref_counter::count());
-    FATAL_EXPECT_EQ(2, ref_counter::valid());
+    FATAL_EXPECT_EQ(2, refc::alive());
+    FATAL_EXPECT_EQ(2, refc::valid());
     rc2 = std::move(rc1);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 //////////////////////
@@ -945,32 +944,32 @@ FATAL_TEST(optional, move_assignment) {
 FATAL_TEST(optional, value_assignment) {
   FATAL_IMPL_CALL(FATAL_IMPL_VALUE_ASSIGNMENT);
 
-  ref_counter::reset();
-  using refc = ref_counter::global<>;
+  using refc = ref_counter<>;
+  refc::guard guard;
 
   {
     optional<refc> rc;
-    FATAL_EXPECT_EQ(0, ref_counter::count());
-    FATAL_EXPECT_EQ(0, ref_counter::valid());
+    FATAL_EXPECT_EQ(0, refc::alive());
+    FATAL_EXPECT_EQ(0, refc::valid());
     rc = 5.6;
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 
   {
     optional<refc> rc(10);
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
     rc = 5.6;
-    FATAL_EXPECT_EQ(1, ref_counter::count());
-    FATAL_EXPECT_EQ(1, ref_counter::valid());
+    FATAL_EXPECT_EQ(1, refc::alive());
+    FATAL_EXPECT_EQ(1, refc::valid());
   }
 
-  FATAL_EXPECT_EQ(0, ref_counter::count());
-  FATAL_EXPECT_EQ(0, ref_counter::valid());
+  FATAL_EXPECT_EQ(0, refc::alive());
+  FATAL_EXPECT_EQ(0, refc::valid());
 }
 
 /////////////////////

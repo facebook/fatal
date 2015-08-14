@@ -367,45 +367,46 @@ FATAL_TEST(variadic_union, ptr) {
 ///////////////////////////////
 
 template <typename... Args>
-using variadic_union_ctor_test = variadic_union<ref_counter::global<Args>...>;
+using variadic_union_ctor_test = variadic_union<ref_counter<Args>...>;
 
 struct construct_test {
   template <typename T, std::size_t Index, typename V>
   void operator ()(indexed_type_tag<T, Index>, V &&v) const {
-    FATAL_ASSERT_EQ(0, ref_counter::count());
-    using type = ref_counter::global<T>;
+    FATAL_ASSERT_EQ(0, ref_counter_alive());
+    using type = ref_counter<T>;
     new (v.template ptr<type>()) type();
-    FATAL_EXPECT_EQ(1, ref_counter::count());
+    FATAL_EXPECT_EQ(1, ref_counter_alive());
     v.template ref<type>().~type();
-    FATAL_EXPECT_EQ(0, ref_counter::count());
+    FATAL_EXPECT_EQ(0, ref_counter_alive());
   }
 };
 
 struct destroy_test {
   template <typename T, std::size_t Index, typename V>
   void operator ()(indexed_type_tag<T, Index>, V &&v) const {
-    FATAL_ASSERT_EQ(0, ref_counter::count());
-    using type = ref_counter::global<T>;
+    FATAL_ASSERT_EQ(0, ref_counter_alive());
+    using type = ref_counter<T>;
     v.template construct<type>();
-    FATAL_EXPECT_EQ(1, ref_counter::count());
+    FATAL_EXPECT_EQ(1, ref_counter_alive());
     v.template destroy<type>();
-    FATAL_EXPECT_EQ(0, ref_counter::count());
+    FATAL_EXPECT_EQ(0, ref_counter_alive());
   }
 };
 
 #define FATAL_IMPL_CHECK_CONSTRUCT_DESTROY(Which, ...) \
   do { \
-    FATAL_ASSERT_EQ(0, ref_counter::count()); \
+    FATAL_ASSERT_EQ(0, ref_counter_alive()); \
     variadic_union_ctor_test<__VA_ARGS__> v; \
     using list = type_list<__VA_ARGS__>; \
     list::foreach(Which##_test(), v); \
-    FATAL_EXPECT_EQ(0, ref_counter::count()); \
+    FATAL_EXPECT_EQ(0, ref_counter_alive()); \
   } while (false)
 
 #define FATAL_IMPL_CHECK_CONSTRUCT(...) \
   FATAL_IMPL_CHECK_CONSTRUCT_DESTROY(construct, __VA_ARGS__)
 
 FATAL_TEST(variadic_union, construct) {
+  ref_counter_guard guard;
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_CONSTRUCT);
 }
 
@@ -417,6 +418,7 @@ FATAL_TEST(variadic_union, construct) {
   FATAL_IMPL_CHECK_CONSTRUCT_DESTROY(destroy, __VA_ARGS__)
 
 FATAL_TEST(variadic_union, destroy) {
+  ref_counter_guard guard;
   FATAL_IMPL_CALL(FATAL_IMPL_CHECK_DESTROY);
 }
 
