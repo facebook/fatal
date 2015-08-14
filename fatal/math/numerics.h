@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -7,15 +7,16 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_math_numerics_h
+#define FATAL_INCLUDE_fatal_math_numerics_h
 
+#include <fatal/type/list.h>
 #include <fatal/type/traits.h>
 
 #include <type_traits>
 #include <limits>
 #include <stdexcept>
 
-#include <cstddef>
 #include <cstdint>
 #include <climits>
 
@@ -45,6 +46,18 @@ using data_bits = std::integral_constant<
     ? 1
     : sizeof(typename std::decay<T>::type) * CHAR_BIT
 >;
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+typename std::make_signed<T>::type signed_cast(T value) {
+  return static_cast<typename std::make_signed<T>::type>(value);
+}
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+typename std::make_unsigned<T>::type unsigned_cast(T value) {
+  return static_cast<typename std::make_unsigned<T>::type>(value);
+}
 
 /**
  * The maximum shift count that can be applied to a non-negative value of type
@@ -122,41 +135,221 @@ using shift_left_upperbound = std::integral_constant<
 >;
 
 /**
- * most_significant_bit_mp() returns the 1-based position of the
+ * most_significant_bit returns the 1-based position of the
  * most significant bit (0 for no bits set) for n
  *
  * This is the same as log_2(n) + 1, except for n = 0
  *
  * Usage:
  *
- * auto msb = most_significant_bit_mp<10>();
+ * auto msb = most_significant_bit<10>::value;
  *  // msb is now 4
  *
- * template <std::size_t msb>
+ * template <std::uintmax_t msb>
  * struct Foo { ... };
  *
- * Foo<most_significant_bit_mp<1024>()> foo;
+ * Foo<most_significant_bit<1024>::value> foo;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace detail {
 
-template <std::size_t n>
-struct msb_mp_impl:
-  public std::integral_constant<std::size_t, 1 + msb_mp_impl<(n >> 1)>::value>
-{};
+template <std::uintmax_t Value>
+struct msb_mp_impl {
+  using type = std::integral_constant<
+    std::size_t,
+    1 + msb_mp_impl<(Value >> 1)>::type::value
+  >;
+};
 
 template <>
-struct msb_mp_impl<0>:
-  public std::integral_constant<std::size_t, 0>
-{};
+struct msb_mp_impl<0> {
+  using type = std::integral_constant<std::size_t, 0>;
+};
 
 } // namespace detail {
 
-template <std::size_t n>
-constexpr std::size_t most_significant_bit_mp() {
-  return detail::msb_mp_impl<n>::value;
-}
+template <std::uintmax_t Value>
+using most_significant_bit = typename detail::msb_mp_impl<Value>::type;
+
+///////////////
+// pop_count //
+///////////////
+
+// TODO: DOCUMENT AND TEST
+namespace detail {
+
+template <std::uintmax_t Value>
+struct pop_count_impl {
+  using type = std::integral_constant<
+    std::size_t,
+    pop_count_impl<Value & (Value - 1)>::type::value + 1
+  >;
+};
+
+template <>
+struct pop_count_impl<0> {
+  using type = std::integral_constant<std::size_t, 0>;
+};
+
+} // namespace detail {
+
+template <std::uintmax_t Value>
+using pop_count = typename detail::pop_count_impl<Value>::type;
+
+////////////////////
+// known integers //
+////////////////////
+
+namespace detail {
+
+template <typename TList>
+using uniquify_list_by_bit_size_impl = typename TList::template unique<>
+  ::template sort<
+    variadic_transform<
+      comparison_transform::less_than,
+      data_bits,
+      data_bits
+    >::apply
+  >;
+
+template <typename... Args>
+using uniquify_args_by_bit_size_impl = uniquify_list_by_bit_size_impl<
+  type_list<Args...>
+>;
+
+} // namespace detail {
+
+// TODO: DOCUMENT AND TEST
+
+using known_signed_integers = detail::uniquify_args_by_bit_size_impl<
+  short, int, long, long long,
+  std::int8_t, std::int16_t, std::int32_t, std::int64_t
+>;
+
+static_assert(
+  known_signed_integers::apply<
+    logical_transform::all,
+    type_member_transform<std::is_signed>::apply
+  >::value,
+  "invalid signed integer"
+);
+
+using known_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
+  bool, unsigned short, unsigned int, unsigned long, unsigned long long,
+  std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t
+>;
+
+static_assert(
+  known_unsigned_integers::apply<
+    logical_transform::all,
+    type_member_transform<std::is_unsigned>::apply
+  >::value,
+  "invalid unsigned integer"
+);
+
+using known_fast_signed_integers = detail::uniquify_args_by_bit_size_impl<
+  std::int_fast8_t, std::int_fast16_t, std::int_fast32_t,
+  std::int_fast64_t, long long
+>;
+
+static_assert(
+  known_fast_signed_integers::apply<
+    logical_transform::all,
+    type_member_transform<std::is_signed>::apply
+  >::value,
+  "invalid fast signed integer"
+);
+
+using known_fast_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
+  bool, std::uint_fast8_t, std::uint_fast16_t, std::uint_fast32_t,
+  std::uint_fast64_t, unsigned long long
+>;
+
+static_assert(
+  known_fast_unsigned_integers::apply<
+    logical_transform::all,
+    type_member_transform<std::is_unsigned>::apply
+  >::value,
+  "invalid fast unsigned integer"
+);
+
+using known_least_signed_integers = detail::uniquify_args_by_bit_size_impl<
+  std::int_least8_t, std::int_least16_t, std::int_least32_t,
+  std::int_least64_t, long long
+>;
+
+static_assert(
+  known_least_signed_integers::apply<
+    logical_transform::all,
+    type_member_transform<std::is_signed>::apply
+  >::value,
+  "invalid least signed integer"
+);
+
+using known_least_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
+  bool, std::uint_least8_t, std::uint_least16_t, std::uint_least32_t,
+  std::uint_least64_t, unsigned long long
+>;
+
+static_assert(
+  known_least_unsigned_integers::apply<
+    logical_transform::all,
+    type_member_transform<std::is_unsigned>::apply
+  >::value,
+  "invalid least unsigned integer"
+);
+
+///////////////////////////
+// known_floating_points //
+///////////////////////////
+
+// TODO: DOCUMENT AND TEST
+
+using known_floating_points = detail::uniquify_args_by_bit_size_impl<
+  float, double, long double
+>;
+
+static_assert(
+  known_floating_points::apply<
+    logical_transform::all,
+    type_member_transform<std::is_floating_point>::apply
+  >::value,
+  "invalid floating point"
+);
+
+/////////////////////////////////
+// smallest_type_for_bit_count //
+/////////////////////////////////
+
+// TODO: DOCUMENT AND TEST
+
+namespace detail {
+
+template <typename TList, std::size_t BitCount>
+struct smallest_for_impl {
+  using type = typename detail::uniquify_list_by_bit_size_impl<TList>
+    ::template search<
+      transform_aggregator<
+        comparison_transform::less_than_equal,
+        constant_transform<std::size_t, BitCount>::template apply,
+        data_bits
+      >::template apply
+    >;
+
+  static_assert(
+    !std::is_same<type_not_found_tag, type>::value
+      && BitCount <= data_bits<type>::value,
+    "there's no known type to hold that many bits"
+  );
+};
+
+} // namespace detail
+
+template <typename TList, std::size_t BitCount>
+using smallest_type_for_bit_count = typename detail::smallest_for_impl<
+  TList, BitCount
+>::type;
 
 /**
  * smallest_signed_integral & friends allow you to get the smallest possible
@@ -181,69 +374,35 @@ constexpr std::size_t most_significant_bit_mp() {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace detail  {
+template <std::size_t BitCount>
+using smallest_signed_integral = smallest_type_for_bit_count<
+  known_signed_integers, BitCount
+>;
 
-template <std::size_t bits_size, typename... Args>
-struct smallest_integral_impl;
+template <std::size_t BitCount>
+using smallest_unsigned_integral = smallest_type_for_bit_count<
+  known_unsigned_integers, BitCount
+>;
 
-template <std::size_t bits_size, typename T, typename... Args>
-struct smallest_integral_impl<bits_size, T, Args...> {
-  typedef typename std::conditional<
-    bits_size <= data_bits<T>::value,
-    T,
-    typename smallest_integral_impl<bits_size, Args...>::type
-  >::type type;
-};
+template <std::size_t BitCount>
+using smallest_fast_signed_integral = smallest_type_for_bit_count<
+  known_fast_signed_integers, BitCount
+>;
 
-template <std::size_t bits_size, typename T>
-struct smallest_integral_impl<bits_size, T> {
-  static_assert(
-    bits_size <= data_bits<T>::value,
-    "there's no known type to hold that many bits"
-  );
-  typedef T type;
-};
+template <std::size_t BitCount>
+using smallest_fast_unsigned_integral = smallest_type_for_bit_count<
+  known_fast_unsigned_integers, BitCount
+>;
 
-} // namespace detail
+template <std::size_t BitCount>
+using smallest_least_signed_integral = smallest_type_for_bit_count<
+  known_least_signed_integers, BitCount
+>;
 
-template <std::size_t bits_size>
-using smallest_signed_integral = typename detail::smallest_integral_impl<
-  bits_size, int8_t, int16_t,
-  int32_t, int64_t, long long
->::type;
-
-template <std::size_t bits_size>
-using smallest_fast_signed_integral = typename detail::smallest_integral_impl<
-  bits_size, int_fast8_t, int_fast16_t,
-  int_fast32_t, int_fast64_t, long long
->::type;
-
-template <std::size_t bits_size>
-using smallest_least_signed_integral = typename detail::smallest_integral_impl<
-  bits_size, int_least8_t, int_least16_t,
-  int_least32_t, int_least64_t, long long
->::type;
-
-template <std::size_t bits_size>
-using smallest_unsigned_integral = typename detail::smallest_integral_impl<
-  bits_size, bool, uint8_t, uint16_t,
-  uint32_t, uint64_t, unsigned long long
->::type;
-
-template <std::size_t bits_size>
-using smallest_fast_unsigned_integral = typename detail::smallest_integral_impl<
-  bits_size,
-  bool, uint_fast8_t, uint_fast16_t,
-  uint_fast32_t, uint_fast64_t, unsigned long long
->::type;
-
-template <std::size_t bits_size>
-using smallest_least_unsigned_integral
-= typename detail::smallest_integral_impl<
-  bits_size,
-  bool, uint_least8_t, uint_least16_t,
-  uint_least32_t, uint_least64_t, unsigned long long
->::type;
+template <std::size_t BitCount>
+using smallest_least_unsigned_integral = smallest_type_for_bit_count<
+  known_least_unsigned_integers, BitCount
+>;
 
 /**
  * smallest_uint_for_value gives you the smallest possible unsigned integer type
@@ -261,9 +420,9 @@ using smallest_least_unsigned_integral
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <unsigned long long value>
+template <unsigned long long Value>
 using smallest_uint_for_value = smallest_unsigned_integral<
-  most_significant_bit_mp<value>()
+  most_significant_bit<Value>::value
 >;
 
 /**
@@ -426,7 +585,7 @@ struct mersenne_number:
 {
   typedef std::integral_constant<
     smallest_fast_unsigned_integral<
-      most_significant_bit_mp<Exponent>()
+      most_significant_bit<Exponent>::value
     >,
     Exponent
   > exponent;
@@ -440,7 +599,7 @@ struct mersenne_prime_impl:
 {
   typedef std::integral_constant<
     smallest_fast_unsigned_integral<
-      most_significant_bit_mp<Nth>()
+      most_significant_bit<Nth>::value
     >,
     Nth
   > nth;
@@ -608,3 +767,5 @@ private:
 };
 
 } // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_math_numerics_h

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -8,17 +8,17 @@
  */
 
 #include <fatal/type/prefix_tree.h>
-#include <fatal/type/string.h>
+#include <fatal/type/sequence.h>
 
 #include <fatal/benchmark/driver.h>
 
-#include <string>
-#include <array>
-#include <vector>
-#include <set>
-#include <unordered_set>
 #include <algorithm>
+#include <array>
+#include <set>
+#include <string>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
 namespace fatal {
 
@@ -38,8 +38,7 @@ template <typename TString, typename... TStrings>
 struct sequential_ifs_impl<TString, TStrings...> {
   template <typename TInput>
   static void match(TInput &&input, unsigned &count) {
-    static auto const array = TString::z_array();
-    if (input == array.data()) {
+    if (input == TString::z_data()) {
       count += input.size();
     } else {
       sequential_ifs_impl<TStrings...>::match(
@@ -54,7 +53,7 @@ struct visitor {
   template <typename TString>
   void operator ()(
     type_tag<TString>,
-    fast_pass<std::string> s,
+    std::string const &s,
     unsigned &count
   ) {
     count += s.size();
@@ -63,18 +62,19 @@ struct visitor {
 
 template <typename... TStrings>
 struct benchmark_impl {
-  typedef type_list<TStrings...> list;
+  using list = type_list<TStrings...>;
 
   static std::array<std::string, sizeof...(TStrings)> const str;
 
-  typedef typename list::template apply<
-    type_prefix_tree_builder<>::template build
-  > prefix_tree;
+  using prefix_tree = typename list::template apply<
+    build_type_prefix_tree<>::template from
+  >;
 
-  static void prefix_tree_benchmark() {
+  template <typename TController>
+  static void prefix_tree_benchmark(TController &benchmark) {
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {}
+    FATAL_BENCHMARK_SUSPEND {}
 
     for (auto const &s: str) {
       prefix_tree::template match<>::exact(
@@ -82,26 +82,28 @@ struct benchmark_impl {
       );
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void sequential_ifs_benchmark() {
+  template <typename TController>
+  static void sequential_ifs_benchmark(TController &benchmark) {
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {}
+    FATAL_BENCHMARK_SUSPEND {}
 
     for (auto const &s: str) {
       sequential_ifs_impl<TStrings...>::match(s, count);
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void sorted_std_array_benchmark() {
+  template <typename TController>
+  static void sorted_std_array_benchmark(TController &benchmark) {
     std::array<std::string, list::size> c = str;
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {
+    FATAL_BENCHMARK_SUSPEND {
       std::sort(c.begin(), c.end());
     }
 
@@ -109,14 +111,15 @@ struct benchmark_impl {
       count += std::binary_search(c.begin(), c.end(), s);
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void sorted_std_vector_benchmark() {
+  template <typename TController>
+  static void sorted_std_vector_benchmark(TController &benchmark) {
     std::vector<std::string> c;
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {
+    FATAL_BENCHMARK_SUSPEND {
       for (auto const &s: str) {
         c.push_back(s);
       }
@@ -128,14 +131,15 @@ struct benchmark_impl {
       count += std::binary_search(c.begin(), c.end(), s);
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void std_set_benchmark() {
+  template <typename TController>
+  static void std_set_benchmark(TController &benchmark) {
     std::set<std::string> c;
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {
+    FATAL_BENCHMARK_SUSPEND {
       for (auto const &s: str) {
         c.insert(s);
       }
@@ -146,14 +150,15 @@ struct benchmark_impl {
       count += i->size();
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 
-  static void std_unordered_set_benchmark() {
+  template <typename TController>
+  static void std_unordered_set_benchmark(TController &benchmark) {
     std::unordered_set<std::string> c;
     unsigned count = 0;
 
-    BENCHMARK_SUSPEND {
+    FATAL_BENCHMARK_SUSPEND {
       for (auto const &s: str) {
         c.insert(s);
       }
@@ -164,7 +169,7 @@ struct benchmark_impl {
       count += i->size();
     }
 
-    folly::doNotOptimizeAway(count);
+    prevent_optimization(count);
   }
 };
 
@@ -181,39 +186,39 @@ std::array<std::string, sizeof...(TStrings)> const benchmark_impl<
 // BENCHMARKS INSTANTIATION //
 //////////////////////////////
 
-#define CREATE_BENCHMARK(name, ...) \
-  typedef benchmark_impl<__VA_ARGS__> name##_impl; \
-  auto name##_warmup = []() { \
+#define CREATE_BENCHMARK(Name, ...) \
+  typedef benchmark_impl<__VA_ARGS__> Name##_impl; \
+  auto Name##_warmup = []() { \
     unsigned count = 0; \
-    for (auto const &i: name##_impl::str) { \
+    for (auto const &i: Name##_impl::str) { \
       count += i.size(); \
     } \
-    folly::doNotOptimizeAway(count); \
+    prevent_optimization(count); \
     return count; \
   }(); \
-  BENCHMARK(name##_type_prefix_tree) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::prefix_tree_benchmark(); \
+  FATAL_BENCHMARK(Name, type_prefix_tree) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::prefix_tree_benchmark(benchmark); \
   } \
-  BENCHMARK_RELATIVE(name##_sorted_std_array) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::sorted_std_array_benchmark(); \
+  FATAL_BENCHMARK(Name, sorted_std_array) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::sorted_std_array_benchmark(benchmark); \
   } \
-  BENCHMARK_RELATIVE(name##_sorted_std_vector) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::sorted_std_vector_benchmark(); \
+  FATAL_BENCHMARK(Name, sorted_std_vector) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::sorted_std_vector_benchmark(benchmark); \
   } \
-  BENCHMARK_RELATIVE(name##_std_unordered_set) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::std_unordered_set_benchmark(); \
+  FATAL_BENCHMARK(Name, std_unordered_set) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::std_unordered_set_benchmark(benchmark); \
   } \
-  BENCHMARK_RELATIVE(name##_std_set) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::std_set_benchmark(); \
+  FATAL_BENCHMARK(Name, std_set) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::std_set_benchmark(benchmark); \
   } \
-  BENCHMARK_RELATIVE(name##_sequential_ifs) { \
-    folly::doNotOptimizeAway(name##_warmup); \
-    name##_impl::sequential_ifs_benchmark(); \
+  FATAL_BENCHMARK(Name, sequential_ifs) { \
+    prevent_optimization(Name##_warmup); \
+    Name##_impl::sequential_ifs_benchmark(benchmark); \
   }
 
 /////////////////////////
@@ -364,7 +369,6 @@ CREATE_BENCHMARK(n1_len5, s5_00);
 CREATE_BENCHMARK(n1_len10, s10_00);
 CREATE_BENCHMARK(n1_len20, s20_00);
 CREATE_BENCHMARK(n1_len30, s30_00);
-BENCHMARK_DRAW_LINE();
 
 ///////////
 // n = 2 //
@@ -374,7 +378,6 @@ CREATE_BENCHMARK(n2_len5, s5_00, s5_01);
 CREATE_BENCHMARK(n2_len10, s10_00, s10_01);
 CREATE_BENCHMARK(n2_len20, s20_00, s20_01);
 CREATE_BENCHMARK(n2_len30, s30_00, s30_01);
-BENCHMARK_DRAW_LINE();
 
 ///////////
 // n = 3 //
@@ -384,7 +387,6 @@ CREATE_BENCHMARK(n3_len5, s5_00, s5_01, s5_02);
 CREATE_BENCHMARK(n3_len10, s10_00, s10_01, s10_02);
 CREATE_BENCHMARK(n3_len20, s20_00, s20_01, s20_02);
 CREATE_BENCHMARK(n3_len30, s30_00, s30_01, s30_02);
-BENCHMARK_DRAW_LINE();
 
 ///////////
 // n = 4 //
@@ -394,7 +396,6 @@ CREATE_BENCHMARK(n4_len5, s5_00, s5_01, s5_02, s5_03);
 CREATE_BENCHMARK(n4_len10, s10_00, s10_01, s10_02, s10_03);
 CREATE_BENCHMARK(n4_len20, s20_00, s20_01, s20_02, s20_03);
 CREATE_BENCHMARK(n4_len30, s30_00, s30_01, s30_02, s30_03);
-BENCHMARK_DRAW_LINE();
 
 ///////////
 // n = 5 //
@@ -404,7 +405,6 @@ CREATE_BENCHMARK(n5_len5, s5_00, s5_01, s5_02, s5_03, s5_04);
 CREATE_BENCHMARK(n5_len10, s10_00, s10_01, s10_02, s10_03, s10_04);
 CREATE_BENCHMARK(n5_len20, s20_00, s20_01, s20_02, s20_03, s20_04);
 CREATE_BENCHMARK(n5_len30, s30_00, s30_01, s30_02, s30_03, s30_04);
-BENCHMARK_DRAW_LINE();
 
 ////////////
 // n = 10 //
@@ -429,8 +429,6 @@ CREATE_BENCHMARK(n10_len30,
   s30_00, s30_01, s30_02, s30_03, s30_04,
   s30_05, s30_06, s30_07, s30_08, s30_09
 );
-
-BENCHMARK_DRAW_LINE();
 
 ////////////
 // n = 20 //
@@ -463,8 +461,6 @@ CREATE_BENCHMARK(n20_len30,
   s30_10, s30_11, s30_12, s30_13, s30_14,
   s30_15, s30_16, s30_17, s30_18, s30_19
 );
-
-BENCHMARK_DRAW_LINE();
 
 ////////////
 // n = 30 //

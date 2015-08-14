@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -46,11 +46,11 @@ fx const x051423s(x0, x5, x1, x4, x2, x3);
 
 template <typename TExpectedType, typename TActual, typename TExpectedValue>
 void check(TExpectedValue &&expected, TActual &&actual) {
-  expect_same<
+  FATAL_EXPECT_SAME<
     typename std::decay<TExpectedType>::type,
     typename std::decay<TActual>::type
   >();
-  EXPECT_EQ(expected, actual.get());
+  FATAL_EXPECT_EQ(expected, actual.get());
 }
 
 #define X_COPY(suffix) \
@@ -61,255 +61,267 @@ void check(TExpectedValue &&expected, TActual &&actual) {
   fx x543210##suffix(x543210s); \
   fx x051423##suffix(x051423s);
 
-TEST(flag_set, default_ctor) {
-  EXPECT_EQ(0, (flag_set<>().get()));
-  EXPECT_EQ(0, (flag_set<std::string>().get()));
-  EXPECT_EQ(0, (flag_set<int, bool>().get()));
+//////////
+// ctor //
+//////////
+
+FATAL_TEST(flag_set, default_ctor) {
+  FATAL_EXPECT_EQ(0, (flag_set<>().get()));
+  FATAL_EXPECT_EQ(0, (flag_set<std::string>().get()));
+  FATAL_EXPECT_EQ(0, (flag_set<int, bool>().get()));
 }
 
-TEST(flag_set, tags_ctor) {
-  EXPECT_EQ(x0, x0s.get());
-  EXPECT_EQ(x1, x1s.get());
-  EXPECT_EQ(x2, x2s.get());
-  EXPECT_EQ(x3, x3s.get());
-  EXPECT_EQ(x4, x4s.get());
-  EXPECT_EQ(x5, x5s.get());
+FATAL_TEST(flag_set, tags_ctor) {
+  FATAL_EXPECT_EQ(x0, x0s.get());
+  FATAL_EXPECT_EQ(x1, x1s.get());
+  FATAL_EXPECT_EQ(x2, x2s.get());
+  FATAL_EXPECT_EQ(x3, x3s.get());
+  FATAL_EXPECT_EQ(x4, x4s.get());
+  FATAL_EXPECT_EQ(x5, x5s.get());
 
-  EXPECT_EQ(x0 | x1, x01s.get());
-  EXPECT_EQ(x2 | x3, x23s.get());
-  EXPECT_EQ(x4 | x5, x45s.get());
+  FATAL_EXPECT_EQ(x0 | x1, x01s.get());
+  FATAL_EXPECT_EQ(x2 | x3, x23s.get());
+  FATAL_EXPECT_EQ(x4 | x5, x45s.get());
 
-  EXPECT_NE(x0, x01s.get());
-  EXPECT_NE(x1, x01s.get());
-  EXPECT_NE(x2, x23s.get());
-  EXPECT_NE(x3, x23s.get());
-  EXPECT_NE(x4, x45s.get());
-  EXPECT_NE(x5, x45s.get());
+  FATAL_EXPECT_NE(x0, x01s.get());
+  FATAL_EXPECT_NE(x1, x01s.get());
+  FATAL_EXPECT_NE(x2, x23s.get());
+  FATAL_EXPECT_NE(x3, x23s.get());
+  FATAL_EXPECT_NE(x4, x45s.get());
+  FATAL_EXPECT_NE(x5, x45s.get());
 
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, x012345s.get());
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, x543210s.get());
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, x051423s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, x012345s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, x543210s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, x051423s.get());
 }
 
-TEST(flag_set, copy_ctor) {
-  EXPECT_EQ(x0s.get(), fx(x0s).get());
-  EXPECT_EQ(x1s.get(), fx(x1s).get());
-  EXPECT_EQ(x2s.get(), fx(x2s).get());
-  EXPECT_EQ(x3s.get(), fx(x3s).get());
-  EXPECT_EQ(x4s.get(), fx(x4s).get());
-  EXPECT_EQ(x5s.get(), fx(x5s).get());
+FATAL_TEST(flag_set, copy_ctor) {
+  FATAL_EXPECT_EQ(x0s.get(), fx(x0s).get());
+  FATAL_EXPECT_EQ(x1s.get(), fx(x1s).get());
+  FATAL_EXPECT_EQ(x2s.get(), fx(x2s).get());
+  FATAL_EXPECT_EQ(x3s.get(), fx(x3s).get());
+  FATAL_EXPECT_EQ(x4s.get(), fx(x4s).get());
+  FATAL_EXPECT_EQ(x5s.get(), fx(x5s).get());
 
-  EXPECT_EQ(x01s.get(), fx(x01s).get());
-  EXPECT_EQ(x23s.get(), fx(x23s).get());
-  EXPECT_EQ(x45s.get(), fx(x45s).get());
+  FATAL_EXPECT_EQ(x01s.get(), fx(x01s).get());
+  FATAL_EXPECT_EQ(x23s.get(), fx(x23s).get());
+  FATAL_EXPECT_EQ(x45s.get(), fx(x45s).get());
 
-  EXPECT_EQ(x012345s.get(), fx(x012345s).get());
-  EXPECT_EQ(x543210s.get(), fx(x543210s).get());
-  EXPECT_EQ(x051423s.get(), fx(x051423s).get());
+  FATAL_EXPECT_EQ(x012345s.get(), fx(x012345s).get());
+  FATAL_EXPECT_EQ(x543210s.get(), fx(x543210s).get());
+  FATAL_EXPECT_EQ(x051423s.get(), fx(x051423s).get());
 }
 
-TEST(flag_set, move_ctor) {
+FATAL_TEST(flag_set, move_ctor) {
   X_COPY(c);
 
-  EXPECT_EQ(x0s.get(), fx(std::move(x0c)).get());
-  EXPECT_EQ(x1s.get(), fx(std::move(x1c)).get());
-  EXPECT_EQ(x2s.get(), fx(std::move(x2c)).get());
-  EXPECT_EQ(x3s.get(), fx(std::move(x3c)).get());
-  EXPECT_EQ(x4s.get(), fx(std::move(x4c)).get());
-  EXPECT_EQ(x5s.get(), fx(std::move(x5c)).get());
+  FATAL_EXPECT_EQ(x0s.get(), fx(std::move(x0c)).get());
+  FATAL_EXPECT_EQ(x1s.get(), fx(std::move(x1c)).get());
+  FATAL_EXPECT_EQ(x2s.get(), fx(std::move(x2c)).get());
+  FATAL_EXPECT_EQ(x3s.get(), fx(std::move(x3c)).get());
+  FATAL_EXPECT_EQ(x4s.get(), fx(std::move(x4c)).get());
+  FATAL_EXPECT_EQ(x5s.get(), fx(std::move(x5c)).get());
 
-  EXPECT_EQ(x01s.get(), fx(std::move(x01c)).get());
-  EXPECT_EQ(x23s.get(), fx(std::move(x23c)).get());
-  EXPECT_EQ(x45s.get(), fx(std::move(x45c)).get());
+  FATAL_EXPECT_EQ(x01s.get(), fx(std::move(x01c)).get());
+  FATAL_EXPECT_EQ(x23s.get(), fx(std::move(x23c)).get());
+  FATAL_EXPECT_EQ(x45s.get(), fx(std::move(x45c)).get());
 
-  EXPECT_EQ(x012345s.get(), fx(std::move(x012345c)).get());
-  EXPECT_EQ(x543210s.get(), fx(std::move(x543210c)).get());
-  EXPECT_EQ(x051423s.get(), fx(std::move(x051423c)).get());
+  FATAL_EXPECT_EQ(x012345s.get(), fx(std::move(x012345c)).get());
+  FATAL_EXPECT_EQ(x543210s.get(), fx(std::move(x543210c)).get());
+  FATAL_EXPECT_EQ(x051423s.get(), fx(std::move(x051423c)).get());
 }
 
-TEST(flag_set, foreign_ctor) {
-  EXPECT_EQ(y0, fy(x0s).get());
-  EXPECT_EQ(y1, fy(x1s).get());
-  EXPECT_EQ(y2, fy(x2s).get());
-  EXPECT_EQ(y3, fy(x3s).get());
-  EXPECT_EQ(y4, fy(x4s).get());
-  EXPECT_EQ(y5, fy(x5s).get());
+FATAL_TEST(flag_set, foreign_ctor) {
+  FATAL_EXPECT_EQ(y0, fy(x0s).get());
+  FATAL_EXPECT_EQ(y1, fy(x1s).get());
+  FATAL_EXPECT_EQ(y2, fy(x2s).get());
+  FATAL_EXPECT_EQ(y3, fy(x3s).get());
+  FATAL_EXPECT_EQ(y4, fy(x4s).get());
+  FATAL_EXPECT_EQ(y5, fy(x5s).get());
 
-  EXPECT_EQ(y0 | y1, fy(x01s).get());
-  EXPECT_EQ(y2 | y3, fy(x23s).get());
-  EXPECT_EQ(y4 | y5, fy(x45s).get());
+  FATAL_EXPECT_EQ(y0 | y1, fy(x01s).get());
+  FATAL_EXPECT_EQ(y2 | y3, fy(x23s).get());
+  FATAL_EXPECT_EQ(y4 | y5, fy(x45s).get());
 
-  EXPECT_EQ(y0 | y1 | y2 | y3 | y4 | y5, fy(x012345s).get());
-  EXPECT_EQ(y0 | y1 | y2 | y3 | y4 | y5, fy(x543210s).get());
-  EXPECT_EQ(y0 | y1 | y2 | y3 | y4 | y5, fy(x051423s).get());
+  FATAL_EXPECT_EQ(y0 | y1 | y2 | y3 | y4 | y5, fy(x012345s).get());
+  FATAL_EXPECT_EQ(y0 | y1 | y2 | y3 | y4 | y5, fy(x543210s).get());
+  FATAL_EXPECT_EQ(y0 | y1 | y2 | y3 | y4 | y5, fy(x051423s).get());
 }
 
-TEST(flag_set, set_lvalue_tags) {
+/////////
+// set //
+/////////
+
+FATAL_TEST(flag_set, set_lvalue_tags) {
   fx s;
-  EXPECT_EQ(0, s.get());
+  FATAL_EXPECT_EQ(0, s.get());
 
   s.set(x0);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   s.set(x0);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   s.set(x1, x2);
-  EXPECT_EQ(x0 | x1 | x2, s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2, s.get());
 
   s.set(x3).set(x4);
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
 
   fx r;
-  EXPECT_EQ(0, r.get());
+  FATAL_EXPECT_EQ(0, r.get());
 
   r.set(x0).set(x1);
-  EXPECT_EQ(x0 | x1, r.get());
+  FATAL_EXPECT_EQ(x0 | x1, r.get());
 
   r.set(x2).set(x3, x4);
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
 }
 
-TEST(flag_set, set_rvalue_tags) {
+FATAL_TEST(flag_set, set_rvalue_tags) {
   fx s;
-  EXPECT_EQ(0, s.get());
+  FATAL_EXPECT_EQ(0, s.get());
 
   std::move(s).set(x0);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   std::move(s).set(x0);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   std::move(s).set(x1, x2);
-  EXPECT_EQ(x0 | x1 | x2, s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2, s.get());
 
   std::move(s).set(x3).set(x4);
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
 
   fx r;
-  EXPECT_EQ(0, r.get());
+  FATAL_EXPECT_EQ(0, r.get());
 
   std::move(r).set(x0).set(x1);
-  EXPECT_EQ(x0 | x1, r.get());
+  FATAL_EXPECT_EQ(x0 | x1, r.get());
 
   std::move(r).set(x2).set(x3, x4);
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
 
-  EXPECT_EQ(x1 | x3 | x5, fx().set(x1).set(x3).set(x5).get());
+  FATAL_EXPECT_EQ(x1 | x3 | x5, (fx().set(x1).set(x3, x5).get()));
 }
 
-TEST(flag_set, set_lvalue) {
+FATAL_TEST(flag_set, set_lvalue) {
   fx s;
-  EXPECT_EQ(0, s.get());
+  FATAL_EXPECT_EQ(0, s.get());
 
   s.set<x0t>();
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   s.set<x0t>();
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   s.set<x1t, x2t>();
-  EXPECT_EQ(x0 | x1 | x2, s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2, s.get());
 
   s.set<x3t>().set<x4t>();
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
 
   fx r;
-  EXPECT_EQ(0, r.get());
+  FATAL_EXPECT_EQ(0, r.get());
 
   r.set<x0t>().set<x1t>();
-  EXPECT_EQ(x0 | x1, r.get());
+  FATAL_EXPECT_EQ(x0 | x1, r.get());
 
   r.set<x2t>().set<x3t, x4t>();
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
 }
 
-TEST(flag_set, set_rvalue) {
+FATAL_TEST(flag_set, set_rvalue) {
   fx s;
-  EXPECT_EQ(0, s.get());
+  FATAL_EXPECT_EQ(0, s.get());
 
   std::move(s).set<x0t>();
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   std::move(s).set<x0t>();
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   std::move(s).set<x1t, x2t>();
-  EXPECT_EQ(x0 | x1 | x2, s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2, s.get());
 
   std::move(s).set<x3t>().set<x4t>();
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
 
   fx r;
-  EXPECT_EQ(0, r.get());
+  FATAL_EXPECT_EQ(0, r.get());
 
   std::move(r).set<x0t>().set<x1t>();
-  EXPECT_EQ(x0 | x1, r.get());
+  FATAL_EXPECT_EQ(x0 | x1, r.get());
 
   std::move(r).set<x2t>().set<x3t, x4t>();
-  EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
 
-  EXPECT_EQ(x1 | x3 | x5, fx().set<x1t>().set<x3t>().set<x5t>().get());
+  FATAL_EXPECT_EQ(x1 | x3 | x5, (fx().set<x1t>().set<x3t, x5t>().get()));
 }
 
-TEST(flag_set, set_if_lvalue) {
+////////////
+// set_if //
+////////////
+
+FATAL_TEST(flag_set, set_if_lvalue) {
   fx s;
-  EXPECT_EQ(0, s.get());
+  FATAL_EXPECT_EQ(0, s.get());
 
   s.set_if<x0t>(false);
-  EXPECT_EQ(0, s.get());
+  FATAL_EXPECT_EQ(0, s.get());
 
   s.set_if<x0t>(true);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   s.set_if<x0t>(false);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   s.set_if<x0t>(true);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   s.set_if<x5t>(false);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   s.set_if<x5t>(true);
-  EXPECT_EQ(x0 | x5, s.get());
+  FATAL_EXPECT_EQ(x0 | x5, s.get());
 
   s.set_if<x3t>(false).set_if<x4t>(true);
-  EXPECT_EQ(x0 | x4 | x5, s.get());
+  FATAL_EXPECT_EQ(x0 | x4 | x5, s.get());
 
   s.set_if<x3t>(true).set_if<x2t>(true);
-  EXPECT_EQ(x0 | x2 | x3 | x4 | x5, s.get());
+  FATAL_EXPECT_EQ(x0 | x2 | x3 | x4 | x5, s.get());
 }
 
-TEST(flag_set, set_if_rvalue) {
+FATAL_TEST(flag_set, set_if_rvalue) {
   fx s;
-  EXPECT_EQ(0, s.get());
+  FATAL_EXPECT_EQ(0, s.get());
 
   std::move(s).set_if<x0t>(false);
-  EXPECT_EQ(0, s.get());
+  FATAL_EXPECT_EQ(0, s.get());
 
   std::move(s).set_if<x0t>(true);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   std::move(s).set_if<x0t>(false);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   std::move(s).set_if<x0t>(true);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   std::move(s).set_if<x5t>(false);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x0, s.get());
 
   std::move(s).set_if<x5t>(true);
-  EXPECT_EQ(x0 | x5, s.get());
+  FATAL_EXPECT_EQ(x0 | x5, s.get());
 
   std::move(s).set_if<x3t>(false).set_if<x4t>(true);
-  EXPECT_EQ(x0 | x4 | x5, s.get());
+  FATAL_EXPECT_EQ(x0 | x4 | x5, s.get());
 
   std::move(s).set_if<x3t>(true).set_if<x2t>(true);
-  EXPECT_EQ(x0 | x2 | x3 | x4 | x5, s.get());
+  FATAL_EXPECT_EQ(x0 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(
     x1 | x3 | x5,
     fx().set_if<x0t>(false)
       .set_if<x1t>(true)
@@ -321,173 +333,656 @@ TEST(flag_set, set_if_rvalue) {
   );
 }
 
-TEST(flag_set, reset_tags) {
-  fx s;
-  EXPECT_EQ(0, s.get());
+///////////
+// reset //
+///////////
+
+FATAL_TEST(flag_set, reset_lvalue_tags) {
+  auto s = x012345s;
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, s.get());
 
   s.reset(x0);
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  s.reset(x1);
-  EXPECT_EQ(x1, s.get());
+  s.reset(x0);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  s.reset(x0, x2);
-  EXPECT_EQ(x0 | x2, s.get());
+  s.reset(x1, x2);
+  FATAL_EXPECT_EQ(x3 | x4 | x5, s.get());
 
-  s.reset(x1, x3, x5);
-  EXPECT_EQ(x1 | x3 | x5, s.get());
+  s.reset(x3).reset(x4);
+  FATAL_EXPECT_EQ(x5, s.get());
 
-  s.reset();
-  EXPECT_EQ(0, s.get());
+  fx r;
+  FATAL_EXPECT_EQ(0, r.get());
+
+  r.reset(x0).reset(x1);
+  FATAL_EXPECT_EQ(0, r.get());
+
+  r.reset(x2).reset(x3, x4);
+  FATAL_EXPECT_EQ(0, r.get());
 }
 
-TEST(flag_set, reset) {
-  fx s;
-  EXPECT_EQ(0, s.get());
+FATAL_TEST(flag_set, reset_rvalue_tags) {
+  auto s = x012345s;
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset(x0);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset(x0);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset(x1, x2);
+  FATAL_EXPECT_EQ(x3 | x4 | x5, s.get());
+
+  std::move(s).reset(x3).reset(x4);
+  FATAL_EXPECT_EQ(x5, s.get());
+
+  fx r;
+  FATAL_EXPECT_EQ(0, r.get());
+
+  std::move(r).reset(x0).reset(x1);
+  FATAL_EXPECT_EQ(0, r.get());
+
+  std::move(r).reset(x2).reset(x3, x4);
+  FATAL_EXPECT_EQ(0, r.get());
+
+  FATAL_EXPECT_EQ(
+    x0 | x2 | x4,
+    (fx(x012345s).reset(x1).reset(x3, x5).get())
+  );
+}
+
+FATAL_TEST(flag_set, reset_lvalue) {
+  auto s = x012345s;
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, s.get());
 
   s.reset<x0t>();
-  EXPECT_EQ(x0, s.get());
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  s.reset<x1t>();
-  EXPECT_EQ(x1, s.get());
+  s.reset<x0t>();
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  s.reset<x0t, x2t>();
-  EXPECT_EQ(x0 | x2, s.get());
+  s.reset<x1t, x2t>();
+  FATAL_EXPECT_EQ(x3 | x4 | x5, s.get());
 
-  s.reset<x1t, x3t, x5t>();
-  EXPECT_EQ(x1 | x3 | x5, s.get());
+  s.reset<x3t>().reset<x4t>();
+  FATAL_EXPECT_EQ(x5, s.get());
 
-  s.reset<>();
-  EXPECT_EQ(0, s.get());
+  fx r;
+  FATAL_EXPECT_EQ(0, r.get());
+
+  r.reset<x0t>().reset(x1);
+  FATAL_EXPECT_EQ(0, r.get());
+
+  r.reset<x2t>().reset<x3t, x4t>();
+  FATAL_EXPECT_EQ(0, r.get());
 }
 
-TEST(flag_set, is_set_tags) {
-  EXPECT_TRUE((x0s.is_set(x0)));
-  EXPECT_FALSE((x0s.is_set(x1)));
-  EXPECT_FALSE((x0s.is_set(x2)));
-  EXPECT_FALSE((x0s.is_set(x3)));
-  EXPECT_FALSE((x0s.is_set(x4)));
-  EXPECT_FALSE((x0s.is_set(x5)));
+FATAL_TEST(flag_set, reset_rvalue) {
+  auto s = x012345s;
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x1s.is_set(x1)));
-  EXPECT_FALSE((x1s.is_set(x0)));
-  EXPECT_FALSE((x1s.is_set(x2)));
-  EXPECT_FALSE((x1s.is_set(x3)));
-  EXPECT_FALSE((x1s.is_set(x4)));
-  EXPECT_FALSE((x1s.is_set(x5)));
+  std::move(s).reset<x0t>();
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x2s.is_set(x2)));
-  EXPECT_FALSE((x2s.is_set(x0)));
-  EXPECT_FALSE((x2s.is_set(x1)));
-  EXPECT_FALSE((x2s.is_set(x3)));
-  EXPECT_FALSE((x2s.is_set(x4)));
-  EXPECT_FALSE((x2s.is_set(x5)));
+  std::move(s).reset<x0t>();
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x3s.is_set(x3)));
-  EXPECT_FALSE((x3s.is_set(x0)));
-  EXPECT_FALSE((x3s.is_set(x1)));
-  EXPECT_FALSE((x3s.is_set(x2)));
-  EXPECT_FALSE((x3s.is_set(x4)));
-  EXPECT_FALSE((x3s.is_set(x5)));
+  std::move(s).reset<x1t, x2t>();
+  FATAL_EXPECT_EQ(x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x4s.is_set(x4)));
-  EXPECT_FALSE((x4s.is_set(x0)));
-  EXPECT_FALSE((x4s.is_set(x1)));
-  EXPECT_FALSE((x4s.is_set(x2)));
-  EXPECT_FALSE((x4s.is_set(x3)));
-  EXPECT_FALSE((x4s.is_set(x5)));
+  std::move(s).reset<x3t>().reset<x4t>();
+  FATAL_EXPECT_EQ(x5, s.get());
 
-  EXPECT_TRUE((x5s.is_set(x5)));
-  EXPECT_FALSE((x5s.is_set(x0)));
-  EXPECT_FALSE((x5s.is_set(x1)));
-  EXPECT_FALSE((x5s.is_set(x2)));
-  EXPECT_FALSE((x5s.is_set(x3)));
-  EXPECT_FALSE((x5s.is_set(x4)));
+  fx r;
+  FATAL_EXPECT_EQ(0, r.get());
 
-  EXPECT_TRUE((x01s.is_set(x0)));
-  EXPECT_TRUE((x01s.is_set(x1)));
-  EXPECT_FALSE((x01s.is_set(x2)));
-  EXPECT_FALSE((x01s.is_set(x3)));
-  EXPECT_FALSE((x01s.is_set(x4)));
-  EXPECT_FALSE((x01s.is_set(x5)));
-  EXPECT_TRUE((x01s.is_set(x0, x1)));
-  EXPECT_FALSE((x01s.is_set(x0, x2)));
-  EXPECT_FALSE((x01s.is_set(x0, x3)));
-  EXPECT_FALSE((x01s.is_set(x1, x4)));
+  std::move(r).reset<x0t>().reset(x1);
+  FATAL_EXPECT_EQ(0, r.get());
 
-  EXPECT_TRUE((x012345s.is_set(x0)));
-  EXPECT_TRUE((x012345s.is_set(x0, x1)));
-  EXPECT_TRUE((x012345s.is_set(x0, x1, x2)));
-  EXPECT_TRUE((x012345s.is_set(x0, x1, x2, x3)));
-  EXPECT_TRUE((x012345s.is_set(x0, x1, x2, x3, x4)));
-  EXPECT_TRUE((x012345s.is_set(x0, x1, x2, x3, x4, x5)));
-  EXPECT_TRUE((x012345s.is_set(x5, x4, x3, x2, x1, x0)));
+  std::move(r).reset<x2t>().reset<x3t, x4t>();
+  FATAL_EXPECT_EQ(0, r.get());
+
+  FATAL_EXPECT_EQ(
+    x0 | x2 | x4,
+    (fx(x012345s).reset<x1t>().reset<x3t, x5t>().get())
+  );
 }
 
-TEST(flag_set, is_set) {
-  EXPECT_TRUE((x0s.is_set<x0t>()));
-  EXPECT_FALSE((x0s.is_set<x1t>()));
-  EXPECT_FALSE((x0s.is_set<x2t>()));
-  EXPECT_FALSE((x0s.is_set<x3t>()));
-  EXPECT_FALSE((x0s.is_set<x4t>()));
-  EXPECT_FALSE((x0s.is_set<x5t>()));
+//////////////
+// reset_if //
+//////////////
 
-  EXPECT_TRUE((x1s.is_set<x1t>()));
-  EXPECT_FALSE((x1s.is_set<x0t>()));
-  EXPECT_FALSE((x1s.is_set<x2t>()));
-  EXPECT_FALSE((x1s.is_set<x3t>()));
-  EXPECT_FALSE((x1s.is_set<x4t>()));
-  EXPECT_FALSE((x1s.is_set<x5t>()));
+FATAL_TEST(flag_set, reset_if_lvalue) {
+  auto s = x012345s;
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x2s.is_set<x2t>()));
-  EXPECT_FALSE((x2s.is_set<x0t>()));
-  EXPECT_FALSE((x2s.is_set<x1t>()));
-  EXPECT_FALSE((x2s.is_set<x3t>()));
-  EXPECT_FALSE((x2s.is_set<x4t>()));
-  EXPECT_FALSE((x2s.is_set<x5t>()));
+  s.reset_if<x0t>(false);
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x3s.is_set<x3t>()));
-  EXPECT_FALSE((x3s.is_set<x0t>()));
-  EXPECT_FALSE((x3s.is_set<x1t>()));
-  EXPECT_FALSE((x3s.is_set<x2t>()));
-  EXPECT_FALSE((x3s.is_set<x4t>()));
-  EXPECT_FALSE((x3s.is_set<x5t>()));
+  s.reset_if<x0t>(true);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x4s.is_set<x4t>()));
-  EXPECT_FALSE((x4s.is_set<x0t>()));
-  EXPECT_FALSE((x4s.is_set<x1t>()));
-  EXPECT_FALSE((x4s.is_set<x2t>()));
-  EXPECT_FALSE((x4s.is_set<x3t>()));
-  EXPECT_FALSE((x4s.is_set<x5t>()));
+  s.reset_if<x0t>(false);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x5s.is_set<x5t>()));
-  EXPECT_FALSE((x5s.is_set<x0t>()));
-  EXPECT_FALSE((x5s.is_set<x1t>()));
-  EXPECT_FALSE((x5s.is_set<x2t>()));
-  EXPECT_FALSE((x5s.is_set<x3t>()));
-  EXPECT_FALSE((x5s.is_set<x4t>()));
+  s.reset_if<x0t>(true);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x01s.is_set<x0t>()));
-  EXPECT_TRUE((x01s.is_set<x1t>()));
-  EXPECT_FALSE((x01s.is_set<x2t>()));
-  EXPECT_FALSE((x01s.is_set<x3t>()));
-  EXPECT_FALSE((x01s.is_set<x4t>()));
-  EXPECT_FALSE((x01s.is_set<x5t>()));
-  EXPECT_TRUE((x01s.is_set<x0t, x1t>()));
-  EXPECT_FALSE((x01s.is_set<x0t, x2t>()));
-  EXPECT_FALSE((x01s.is_set<x0t, x3t>()));
-  EXPECT_FALSE((x01s.is_set<x1t, x4t>()));
+  s.reset_if<x5t>(false);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
 
-  EXPECT_TRUE((x012345s.is_set<x0t>()));
-  EXPECT_TRUE((x012345s.is_set<x0t, x1t>()));
-  EXPECT_TRUE((x012345s.is_set<x0t, x1t, x2t>()));
-  EXPECT_TRUE((x012345s.is_set<x0t, x1t, x2t, x3t>()));
-  EXPECT_TRUE((x012345s.is_set<x0t, x1t, x2t, x3t, x4t>()));
-  EXPECT_TRUE((x012345s.is_set<x0t, x1t, x2t, x3t, x4t, x5t>()));
-  EXPECT_TRUE((x012345s.is_set<x5t, x4t, x3t, x2t, x1t, x0t>()));
+  s.reset_if<x5t>(true);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  s.reset_if<x3t>(false).reset_if<x4t>(true);
+  FATAL_EXPECT_EQ(x1 | x2 | x3, s.get());
+
+  s.reset_if<x3t>(true).reset_if<x2t>(true);
+  FATAL_EXPECT_EQ(x1, s.get());
 }
 
-TEST(flag_set, expand) {
+FATAL_TEST(flag_set, reset_if_rvalue) {
+  auto s = x012345s;
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset_if<x0t>(false);
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset_if<x0t>(true);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset_if<x0t>(false);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset_if<x0t>(true);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset_if<x5t>(false);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).reset_if<x5t>(true);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  std::move(s).reset_if<x3t>(false).reset_if<x4t>(true);
+  FATAL_EXPECT_EQ(x1 | x2 | x3, s.get());
+
+  std::move(s).reset_if<x3t>(true).reset_if<x2t>(true);
+  FATAL_EXPECT_EQ(x1, s.get());
+
+  FATAL_EXPECT_EQ(
+    x0 | x2 | x4,
+    fx(x012345s).reset_if<x0t>(false)
+      .reset_if<x1t>(true)
+      .reset_if<x2t>(false)
+      .reset_if<x3t>(true)
+      .reset_if<x4t>(false)
+      .reset_if<x5t>(true)
+      .get()
+  );
+}
+
+//////////
+// flip //
+//////////
+
+FATAL_TEST(flag_set, flip_lvalue_tags) {
+  fx s;
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s.flip(x0);
+  FATAL_EXPECT_EQ(x0, s.get());
+
+  s.flip(x0);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s.flip(x1, x2);
+  FATAL_EXPECT_EQ(x1 | x2, s.get());
+
+  s.flip(x3).flip(x4);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  s.flip(x0);
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
+
+  s.flip(x0);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  s.flip(x1, x2);
+  FATAL_EXPECT_EQ(x3 | x4, s.get());
+
+  s.flip(x3).flip(x4);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  fx r;
+  FATAL_EXPECT_EQ(0, r.get());
+
+  r.flip(x0).flip(x1);
+  FATAL_EXPECT_EQ(x0 | x1, r.get());
+
+  r.flip(x2).flip(x3, x4);
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
+
+  r.flip(x5).flip(x3, x1);
+  FATAL_EXPECT_EQ(x0 | x2 | x4 | x5, r.get());
+}
+
+FATAL_TEST(flag_set, flip_rvalue_tags) {
+  fx s;
+  FATAL_EXPECT_EQ(0, s.get());
+
+  std::move(s).flip(x0);
+  FATAL_EXPECT_EQ(x0, s.get());
+
+  std::move(s).flip(x0);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  std::move(s).flip(x1, x2);
+  FATAL_EXPECT_EQ(x1 | x2, s.get());
+
+  std::move(s).flip(x3).flip(x4);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  std::move(s).flip(x0);
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
+
+  std::move(s).flip(x0);
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  std::move(s).flip(x1, x2);
+  FATAL_EXPECT_EQ(x3 | x4, s.get());
+
+  std::move(s).flip(x3).flip(x4);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  fx r;
+  FATAL_EXPECT_EQ(0, r.get());
+
+  std::move(r).flip(x0).flip(x1);
+  FATAL_EXPECT_EQ(x0 | x1, r.get());
+
+  std::move(r).flip(x2).flip(x3, x4);
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
+
+  std::move(r).flip(x5).flip(x3, x1);
+  FATAL_EXPECT_EQ(x0 | x2 | x4 | x5, r.get());
+
+  FATAL_EXPECT_EQ(
+    x1 | x3 | x5,
+    (fx().flip(x1).flip(x3, x5).get())
+  );
+
+  FATAL_EXPECT_EQ(
+    x0 | x2 | x4,
+    (fx(x012345s).flip(x1).flip(x3, x5).get())
+  );
+}
+
+FATAL_TEST(flag_set, flip_lvalue) {
+  fx s;
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s.flip<x0t>();
+  FATAL_EXPECT_EQ(x0, s.get());
+
+  s.flip<x0t>();
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s.flip(x1, x2);
+  FATAL_EXPECT_EQ(x1 | x2, s.get());
+
+  s.flip<x3t>().flip<x4t>();
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  s.flip<x0t>();
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
+
+  s.flip<x0t>();
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  s.flip(x1, x2);
+  FATAL_EXPECT_EQ(x3 | x4, s.get());
+
+  s.flip<x3t>().flip<x4t>();
+  FATAL_EXPECT_EQ(0, s.get());
+
+  fx r;
+  FATAL_EXPECT_EQ(0, r.get());
+
+  r.flip<x0t>().flip<x1t>();
+  FATAL_EXPECT_EQ(x0 | x1, r.get());
+
+  r.flip<x2t>().flip(x3, x4);
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
+
+  r.flip<x5t>().flip(x3, x1);
+  FATAL_EXPECT_EQ(x0 | x2 | x4 | x5, r.get());
+}
+
+FATAL_TEST(flag_set, flip_rvalue) {
+  fx s;
+  FATAL_EXPECT_EQ(0, s.get());
+
+  std::move(s).flip<x0t>();
+  FATAL_EXPECT_EQ(x0, s.get());
+
+  std::move(s).flip<x0t>();
+  FATAL_EXPECT_EQ(0, s.get());
+
+  std::move(s).flip(x1, x2);
+  FATAL_EXPECT_EQ(x1 | x2, s.get());
+
+  std::move(s).flip<x3t>().flip<x4t>();
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  std::move(s).flip<x0t>();
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, s.get());
+
+  std::move(s).flip<x0t>();
+  FATAL_EXPECT_EQ(x1 | x2 | x3 | x4, s.get());
+
+  std::move(s).flip(x1, x2);
+  FATAL_EXPECT_EQ(x3 | x4, s.get());
+
+  std::move(s).flip<x3t>().flip<x4t>();
+  FATAL_EXPECT_EQ(0, s.get());
+
+  fx r;
+  FATAL_EXPECT_EQ(0, r.get());
+
+  std::move(r).flip<x0t>().flip<x1t>();
+  FATAL_EXPECT_EQ(x0 | x1, r.get());
+
+  std::move(r).flip<x2t>().flip(x3, x4);
+  FATAL_EXPECT_EQ(x0 | x1 | x2 | x3 | x4, r.get());
+
+  std::move(r).flip<x5t>().flip(x3, x1);
+  FATAL_EXPECT_EQ(x0 | x2 | x4 | x5, r.get());
+
+  FATAL_EXPECT_EQ(
+    x1 | x3 | x5,
+    (fx().flip<x1t>().flip<x3t, x5t>().get())
+  );
+
+  FATAL_EXPECT_EQ(
+    x0 | x2 | x4,
+    (fx(x012345s).flip<x1t>().flip<x3t, x5t>().get())
+  );
+}
+
+/////////////
+// flip_if //
+/////////////
+
+FATAL_TEST(flag_set, flip_if_lvalue) {
+  fx s;
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s.flip_if<x0t>(false);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s.flip_if<x0t>(true);
+  FATAL_EXPECT_EQ(x0, s.get());
+
+  s.flip_if<x0t>(false);
+  FATAL_EXPECT_EQ(x0, s.get());
+
+  s.flip_if<x0t>(true);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s.flip_if<x5t>(false);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s.flip_if<x5t>(true);
+  FATAL_EXPECT_EQ(x5, s.get());
+
+  s.flip_if<x3t>(false).flip_if<x4t>(true);
+  FATAL_EXPECT_EQ(x4 | x5, s.get());
+
+  s.flip_if<x3t>(true).flip_if<x2t>(true);
+  FATAL_EXPECT_EQ(x2 | x3 | x4 | x5, s.get());
+
+  s.flip_if<x0t>(false);
+  FATAL_EXPECT_EQ(x2 | x3 | x4 | x5, s.get());
+
+  s.flip_if<x0t>(true);
+  FATAL_EXPECT_EQ(x0 | x2 | x3 | x4 | x5, s.get());
+
+  s.flip_if<x0t>(false);
+  FATAL_EXPECT_EQ(x0 | x2 | x3 | x4 | x5, s.get());
+
+  s.flip_if<x0t>(true);
+  FATAL_EXPECT_EQ(x2 | x3 | x4 | x5, s.get());
+
+  s.flip_if<x5t>(false);
+  FATAL_EXPECT_EQ(x2 | x3 | x4 | x5, s.get());
+
+  s.flip_if<x5t>(true);
+  FATAL_EXPECT_EQ(x2 | x3 | x4, s.get());
+
+  s.flip_if<x3t>(false).flip_if<x4t>(true);
+  FATAL_EXPECT_EQ(x2 | x3, s.get());
+
+  s.flip_if<x3t>(true).flip_if<x2t>(true);
+  FATAL_EXPECT_EQ(0, s.get());
+}
+
+FATAL_TEST(flag_set, flip_if_rvalue) {
+  fx s;
+  FATAL_EXPECT_EQ(0, s.get());
+
+  std::move(s).flip_if<x0t>(false);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  std::move(s).flip_if<x0t>(true);
+  FATAL_EXPECT_EQ(x0, s.get());
+
+  std::move(s).flip_if<x0t>(false);
+  FATAL_EXPECT_EQ(x0, s.get());
+
+  std::move(s).flip_if<x0t>(true);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  std::move(s).flip_if<x5t>(false);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  std::move(s).flip_if<x5t>(true);
+  FATAL_EXPECT_EQ(x5, s.get());
+
+  std::move(s).flip_if<x3t>(false).flip_if<x4t>(true);
+  FATAL_EXPECT_EQ(x4 | x5, s.get());
+
+  std::move(s).flip_if<x3t>(true).flip_if<x2t>(true);
+  FATAL_EXPECT_EQ(x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).flip_if<x0t>(false);
+  FATAL_EXPECT_EQ(x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).flip_if<x0t>(true);
+  FATAL_EXPECT_EQ(x0 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).flip_if<x0t>(false);
+  FATAL_EXPECT_EQ(x0 | x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).flip_if<x0t>(true);
+  FATAL_EXPECT_EQ(x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).flip_if<x5t>(false);
+  FATAL_EXPECT_EQ(x2 | x3 | x4 | x5, s.get());
+
+  std::move(s).flip_if<x5t>(true);
+  FATAL_EXPECT_EQ(x2 | x3 | x4, s.get());
+
+  std::move(s).flip_if<x3t>(false).flip_if<x4t>(true);
+  FATAL_EXPECT_EQ(x2 | x3, s.get());
+
+  std::move(s).flip_if<x3t>(true).flip_if<x2t>(true);
+  FATAL_EXPECT_EQ(0, s.get());
+
+  FATAL_EXPECT_EQ(
+    x2 | x3 | x5,
+    fx().flip_if<x0t>(false)
+      .flip_if<x1t>(true)
+      .flip_if<x2t>(false)
+      .flip_if<x3t>(true)
+      .flip_if<x4t>(false)
+      .flip_if<x5t>(true)
+      .flip_if<x2t>(true)
+      .flip_if<x1t>(true)
+      .get()
+  );
+
+  FATAL_EXPECT_EQ(
+    x0 | x1 | x4,
+    fx(x012345s).flip_if<x0t>(false)
+      .flip_if<x1t>(true)
+      .flip_if<x2t>(false)
+      .flip_if<x3t>(true)
+      .flip_if<x4t>(false)
+      .flip_if<x5t>(true)
+      .flip_if<x2t>(true)
+      .flip_if<x1t>(true)
+      .get()
+  );
+}
+
+//////////
+// test //
+//////////
+
+FATAL_TEST(flag_set, test_tags) {
+  FATAL_EXPECT_TRUE((x0s.test(x0)));
+  FATAL_EXPECT_FALSE((x0s.test(x1)));
+  FATAL_EXPECT_FALSE((x0s.test(x2)));
+  FATAL_EXPECT_FALSE((x0s.test(x3)));
+  FATAL_EXPECT_FALSE((x0s.test(x4)));
+  FATAL_EXPECT_FALSE((x0s.test(x5)));
+
+  FATAL_EXPECT_TRUE((x1s.test(x1)));
+  FATAL_EXPECT_FALSE((x1s.test(x0)));
+  FATAL_EXPECT_FALSE((x1s.test(x2)));
+  FATAL_EXPECT_FALSE((x1s.test(x3)));
+  FATAL_EXPECT_FALSE((x1s.test(x4)));
+  FATAL_EXPECT_FALSE((x1s.test(x5)));
+
+  FATAL_EXPECT_TRUE((x2s.test(x2)));
+  FATAL_EXPECT_FALSE((x2s.test(x0)));
+  FATAL_EXPECT_FALSE((x2s.test(x1)));
+  FATAL_EXPECT_FALSE((x2s.test(x3)));
+  FATAL_EXPECT_FALSE((x2s.test(x4)));
+  FATAL_EXPECT_FALSE((x2s.test(x5)));
+
+  FATAL_EXPECT_TRUE((x3s.test(x3)));
+  FATAL_EXPECT_FALSE((x3s.test(x0)));
+  FATAL_EXPECT_FALSE((x3s.test(x1)));
+  FATAL_EXPECT_FALSE((x3s.test(x2)));
+  FATAL_EXPECT_FALSE((x3s.test(x4)));
+  FATAL_EXPECT_FALSE((x3s.test(x5)));
+
+  FATAL_EXPECT_TRUE((x4s.test(x4)));
+  FATAL_EXPECT_FALSE((x4s.test(x0)));
+  FATAL_EXPECT_FALSE((x4s.test(x1)));
+  FATAL_EXPECT_FALSE((x4s.test(x2)));
+  FATAL_EXPECT_FALSE((x4s.test(x3)));
+  FATAL_EXPECT_FALSE((x4s.test(x5)));
+
+  FATAL_EXPECT_TRUE((x5s.test(x5)));
+  FATAL_EXPECT_FALSE((x5s.test(x0)));
+  FATAL_EXPECT_FALSE((x5s.test(x1)));
+  FATAL_EXPECT_FALSE((x5s.test(x2)));
+  FATAL_EXPECT_FALSE((x5s.test(x3)));
+  FATAL_EXPECT_FALSE((x5s.test(x4)));
+
+  FATAL_EXPECT_TRUE((x01s.test(x0)));
+  FATAL_EXPECT_TRUE((x01s.test(x1)));
+  FATAL_EXPECT_FALSE((x01s.test(x2)));
+  FATAL_EXPECT_FALSE((x01s.test(x3)));
+  FATAL_EXPECT_FALSE((x01s.test(x4)));
+  FATAL_EXPECT_FALSE((x01s.test(x5)));
+  FATAL_EXPECT_TRUE((x01s.test(x0, x1)));
+  FATAL_EXPECT_FALSE((x01s.test(x0, x2)));
+  FATAL_EXPECT_FALSE((x01s.test(x0, x3)));
+  FATAL_EXPECT_FALSE((x01s.test(x1, x4)));
+
+  FATAL_EXPECT_TRUE((x012345s.test(x0)));
+  FATAL_EXPECT_TRUE((x012345s.test(x0, x1)));
+  FATAL_EXPECT_TRUE((x012345s.test(x0, x1, x2)));
+  FATAL_EXPECT_TRUE((x012345s.test(x0, x1, x2, x3)));
+  FATAL_EXPECT_TRUE((x012345s.test(x0, x1, x2, x3, x4)));
+  FATAL_EXPECT_TRUE((x012345s.test(x0, x1, x2, x3, x4, x5)));
+  FATAL_EXPECT_TRUE((x012345s.test(x5, x4, x3, x2, x1, x0)));
+}
+
+FATAL_TEST(flag_set, test) {
+  FATAL_EXPECT_TRUE((x0s.test<x0t>()));
+  FATAL_EXPECT_FALSE((x0s.test<x1t>()));
+  FATAL_EXPECT_FALSE((x0s.test<x2t>()));
+  FATAL_EXPECT_FALSE((x0s.test<x3t>()));
+  FATAL_EXPECT_FALSE((x0s.test<x4t>()));
+  FATAL_EXPECT_FALSE((x0s.test<x5t>()));
+
+  FATAL_EXPECT_TRUE((x1s.test<x1t>()));
+  FATAL_EXPECT_FALSE((x1s.test<x0t>()));
+  FATAL_EXPECT_FALSE((x1s.test<x2t>()));
+  FATAL_EXPECT_FALSE((x1s.test<x3t>()));
+  FATAL_EXPECT_FALSE((x1s.test<x4t>()));
+  FATAL_EXPECT_FALSE((x1s.test<x5t>()));
+
+  FATAL_EXPECT_TRUE((x2s.test<x2t>()));
+  FATAL_EXPECT_FALSE((x2s.test<x0t>()));
+  FATAL_EXPECT_FALSE((x2s.test<x1t>()));
+  FATAL_EXPECT_FALSE((x2s.test<x3t>()));
+  FATAL_EXPECT_FALSE((x2s.test<x4t>()));
+  FATAL_EXPECT_FALSE((x2s.test<x5t>()));
+
+  FATAL_EXPECT_TRUE((x3s.test<x3t>()));
+  FATAL_EXPECT_FALSE((x3s.test<x0t>()));
+  FATAL_EXPECT_FALSE((x3s.test<x1t>()));
+  FATAL_EXPECT_FALSE((x3s.test<x2t>()));
+  FATAL_EXPECT_FALSE((x3s.test<x4t>()));
+  FATAL_EXPECT_FALSE((x3s.test<x5t>()));
+
+  FATAL_EXPECT_TRUE((x4s.test<x4t>()));
+  FATAL_EXPECT_FALSE((x4s.test<x0t>()));
+  FATAL_EXPECT_FALSE((x4s.test<x1t>()));
+  FATAL_EXPECT_FALSE((x4s.test<x2t>()));
+  FATAL_EXPECT_FALSE((x4s.test<x3t>()));
+  FATAL_EXPECT_FALSE((x4s.test<x5t>()));
+
+  FATAL_EXPECT_TRUE((x5s.test<x5t>()));
+  FATAL_EXPECT_FALSE((x5s.test<x0t>()));
+  FATAL_EXPECT_FALSE((x5s.test<x1t>()));
+  FATAL_EXPECT_FALSE((x5s.test<x2t>()));
+  FATAL_EXPECT_FALSE((x5s.test<x3t>()));
+  FATAL_EXPECT_FALSE((x5s.test<x4t>()));
+
+  FATAL_EXPECT_TRUE((x01s.test<x0t>()));
+  FATAL_EXPECT_TRUE((x01s.test<x1t>()));
+  FATAL_EXPECT_FALSE((x01s.test<x2t>()));
+  FATAL_EXPECT_FALSE((x01s.test<x3t>()));
+  FATAL_EXPECT_FALSE((x01s.test<x4t>()));
+  FATAL_EXPECT_FALSE((x01s.test<x5t>()));
+  FATAL_EXPECT_TRUE((x01s.test<x0t, x1t>()));
+  FATAL_EXPECT_FALSE((x01s.test<x0t, x2t>()));
+  FATAL_EXPECT_FALSE((x01s.test<x0t, x3t>()));
+  FATAL_EXPECT_FALSE((x01s.test<x1t, x4t>()));
+
+  FATAL_EXPECT_TRUE((x012345s.test<x0t>()));
+  FATAL_EXPECT_TRUE((x012345s.test<x0t, x1t>()));
+  FATAL_EXPECT_TRUE((x012345s.test<x0t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((x012345s.test<x0t, x1t, x2t, x3t>()));
+  FATAL_EXPECT_TRUE((x012345s.test<x0t, x1t, x2t, x3t, x4t>()));
+  FATAL_EXPECT_TRUE((x012345s.test<x0t, x1t, x2t, x3t, x4t, x5t>()));
+  FATAL_EXPECT_TRUE((x012345s.test<x5t, x4t, x3t, x2t, x1t, x0t>()));
+}
+
+////////////
+// expand //
+////////////
+
+FATAL_TEST(flag_set, expand) {
   flag_set<> f;
 
   auto f0 = f.expand<x0t>();
@@ -531,7 +1026,11 @@ TEST(flag_set, expand) {
   );
 }
 
-TEST(flag_set, expand_if) {
+///////////////
+// expand_if //
+///////////////
+
+FATAL_TEST(flag_set, expand_if) {
   {
     flag_set<> f;
 
@@ -648,95 +1147,157 @@ TEST(flag_set, expand_if) {
   }
 }
 
-TEST(flag_set, operator_assignment) {
-  fx s;
-  EXPECT_EQ(0, s.get());
+FATAL_TEST(flag_set, equals) {
+  auto s = fx().set<x1t, x2t, x4t>();
 
-  s = x0s;
-  EXPECT_EQ(x0s.get(), s.get());
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x1t, x4t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t>()));
 
-  s = x1s;
-  EXPECT_EQ(x1s.get(), s.get());
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x1t, x4t, x2t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x1t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x4t, x1t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x2t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t, x1t>()));
 
-  s = x2s;
-  EXPECT_EQ(x2s.get(), s.get());
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x1t, x4t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x1t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x4t, x1t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t, x1t>()));
 
-  s = x3s;
-  EXPECT_EQ(x3s.get(), s.get());
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x2t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x1t, x2t, x4t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x2t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x2t, x2t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x2t, x1t>()));
 
-  s = x4s;
-  EXPECT_EQ(x4s.get(), s.get());
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x2t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x1t, x4t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x1t, x4t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x2t, x4t, x1t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x4t, x1t, x2t>()));
+  FATAL_EXPECT_TRUE((s.equals<x4t, x4t, x2t, x1t>()));
 
-  s = x5s;
-  EXPECT_EQ(x5s.get(), s.get());
+  FATAL_EXPECT_FALSE((s.equals<x1t, x2t, x0t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x2t, x3t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x2t, x5t>()));
 
-  s = x01s;
-  EXPECT_EQ(x01s.get(), s.get());
+  FATAL_EXPECT_FALSE((s.equals<x1t, x0t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x2t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x3t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x4t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t, x5t>()));
 
-  s = x23s;
-  EXPECT_EQ(x23s.get(), s.get());
+  FATAL_EXPECT_FALSE((s.equals<x0t>()));
+  FATAL_EXPECT_FALSE((s.equals<x1t>()));
+  FATAL_EXPECT_FALSE((s.equals<x2t>()));
+  FATAL_EXPECT_FALSE((s.equals<x3t>()));
+  FATAL_EXPECT_FALSE((s.equals<x4t>()));
+  FATAL_EXPECT_FALSE((s.equals<x5t>()));
 
-  s = x45s;
-  EXPECT_EQ(x45s.get(), s.get());
-
-  s = x012345s;
-  EXPECT_EQ(x012345s.get(), s.get());
-
-  s = x543210s;
-  EXPECT_EQ(x543210s.get(), s.get());
-
-  s = x051423s;
-  EXPECT_EQ(x051423s.get(), s.get());
+  FATAL_EXPECT_FALSE((s.equals<>()));
 }
 
-TEST(flag_set, operator_assignment_foreign) {
+/////////////////////////
+// operator assignment //
+/////////////////////////
+
+FATAL_TEST(flag_set, operator_assignment) {
+  fx s;
+  FATAL_EXPECT_EQ(0, s.get());
+
+  s = x0s;
+  FATAL_EXPECT_EQ(x0s.get(), s.get());
+
+  s = x1s;
+  FATAL_EXPECT_EQ(x1s.get(), s.get());
+
+  s = x2s;
+  FATAL_EXPECT_EQ(x2s.get(), s.get());
+
+  s = x3s;
+  FATAL_EXPECT_EQ(x3s.get(), s.get());
+
+  s = x4s;
+  FATAL_EXPECT_EQ(x4s.get(), s.get());
+
+  s = x5s;
+  FATAL_EXPECT_EQ(x5s.get(), s.get());
+
+  s = x01s;
+  FATAL_EXPECT_EQ(x01s.get(), s.get());
+
+  s = x23s;
+  FATAL_EXPECT_EQ(x23s.get(), s.get());
+
+  s = x45s;
+  FATAL_EXPECT_EQ(x45s.get(), s.get());
+
+  s = x012345s;
+  FATAL_EXPECT_EQ(x012345s.get(), s.get());
+
+  s = x543210s;
+  FATAL_EXPECT_EQ(x543210s.get(), s.get());
+
+  s = x051423s;
+  FATAL_EXPECT_EQ(x051423s.get(), s.get());
+}
+
+FATAL_TEST(flag_set, operator_assignment_foreign) {
   {
     flag_set<> s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x0s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x1s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x2s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x3s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x4s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x5s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x01s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x23s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x45s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x012345s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x543210s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
 
     s = x051423s;
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
   }
 
   {
     fx s(x23s);
-    EXPECT_EQ(x23s.get(), s.get());
+    FATAL_EXPECT_EQ(x23s.get(), s.get());
 
     s = flag_set<>();
-    EXPECT_EQ(0, s.get());
+    FATAL_EXPECT_EQ(0, s.get());
   }
 
   {
@@ -755,13 +1316,17 @@ TEST(flag_set, operator_assignment_foreign) {
   }
 }
 
-TEST(flag_set, clear) {
+///////////
+// clear //
+///////////
+
+FATAL_TEST(flag_set, clear) {
   X_COPY(c);
 
 # define TEST_CLEAR(s) \
   do { \
     s.clear(); \
-    EXPECT_EQ(0, s.get()); \
+    FATAL_EXPECT_EQ(0, s.get()); \
   } while (false)
 
   TEST_CLEAR(x0c);

@@ -1,25 +1,37 @@
-# Fatal: Facebook Template Library
-Fatal is a library for fast prototyping of software in C++11 and up.
+# Facebook Template Library [![Build Status](https://secure.travis-ci.org/facebook/fatal.png?branch=master "Build Status")](https://travis-ci.org/facebook/fatal)
+Fatal (Facebook Template Library) is a library for fast prototyping software in modern C++.
 
-It provides a broad range of template meta-programming tools for reflection and metadata manipulation.
+It provides facilities heavily based on template meta-programming, while keeping most of the complexity under-the-hood, to enhance the expressive power of C++.
 
-The goal is to speed up prototyping of complex software, while abstracting the complexity of template meta-programming and making its benefits available to a wider audience other than hard-core library writers.
+Fatal also provides lessons on how to write meta-programs, as well as on how to make the best use of the library, starting at beginner levels.
+
+The goal is make its benefits available to a wider audience other than just hard-core library writers.
+
+
+## Documentation and Examples
+A learn-by-example guide is available under the [`lesson/`](lesson/) directory.
+
+Demo programs are also available under the [`demo/`](demo/) directory.
+
+Extensive documentation with examples can be found inline in the source header files.
+
+
+## Building Fatal
+Fatal is a header only library, therefore no building is required.
+
+
+## Requirements
+A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} and GCC {4.8, 4.9, 5.1}.
+
+There are no other external dependencies.
 
 
 ## Links
 [Bleeding edge](https://github.com/facebook/fatal/tree/dev/) with latest features
 
-[Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://www.facebook.com/Engineering)
+[Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://code.facebook.com/)
 
 [Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
-
-
-## Documentation and Examples
-A learn-by-example guide is available under the [`lesson/`](https://github.com/facebook/fatal/tree/dev/lesson/) directory in the [`dev`](https://github.com/facebook/fatal/tree/dev/) branch.
-
-Demo programs are also available under the [`demo/`](demo/) directory.
-
-Extensive documentation with examples can be found inline in the source header files.
 
 
 ## Philosophy
@@ -30,68 +42,29 @@ The [`master`](https://github.com/facebook/fatal/) branch is considered the stab
 The [`dev`](https://github.com/facebook/fatal/tree/dev/) branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
 
 
-## Requirements
-There are no external dependencies in order to use Fatal as a library.
-
-In order to build and run Fatal's benchmarks and unit tests, you'll need:
-
-- Folly: Facebook Open-source LibrarY (https://github.com/facebook/folly/)
-- GTest: Google C++ Testing Framework (https://code.google.com/p/googletest/)
-- GLog: Google Logging Library for C++ (https://code.google.com/p/google-glog/)
-- a compliant C++11 compiler. Currently tested under GCC 4.8, GCC 4.9 and Clang 3.4.
-
-In order to build and run Fatal's demos, you'll need:
-
-- Folly: Facebook Open-source LibrarY (https://github.com/facebook/folly/)
-- a compliant C++14 compiler. Currently tested under GCC 4.9 and Clang 3.4.
-
-
-## Building Fatal
-Fatal is a header only library, therefore no building is required.
-
-
-## Building Benchmarks and Unit Tests
-Provided that the dependencies are properly installed:
-
-```sh
-$ clang++ -Wall -std=c++11 -I path/to/fatal \
-  -o path/to/output/binary path/to/test/or/benchmark.cpp \
-  -lfolly -lfollybenchmark -ldouble-conversion -lglog
-```
-or
-```sh
-$ g++ -Wall -std=c++11 -I path/to/fatal \
-  -o path/to/output/binary path/to/test/or/benchmark.cpp \
-  -lfolly -lfollybenchmark -ldouble-conversion -lglog
-```
-
-## Building Demos
-Provided that the dependencies are properly installed:
-
-```sh
-$ clang++ -Wall -std=c++1y -I path/to/fatal \
-  -o path/to/output/binary path/to/demo.cpp \
-  -lfolly -ldouble-conversion
-```
-or
-```sh
-$ g++ -Wall -std=c++1y -I path/to/fatal \
-  -o path/to/output/binary path/to/demo.cpp \
-  -lfolly -ldouble-conversion
-```
-
-
 ## Installation
 There's no need to install Fatal, as long as you add its base directory to the include directories list.
 
-For GCC and Clang, it suffices to either:
+For Clang and GCC, it suffices to either:
 - use the `-I path/to/fatal` flag
 - set the environment variable `CPLUS_INCLUDE_PATH=path/to/fatal`
 
 
+## Building Benchmarks and Unit Tests
+```sh
+$ clang++ -Wall -Werror -O2 -std=c++11 -I path/to/fatal \
+  -o path/to/output/binary path/to/test/or/benchmark.cpp \
+```
+or
+```sh
+$ g++ -Wall -Werror -O2 -std=c++11 -I path/to/fatal \
+  -o path/to/output/binary path/to/test/or/benchmark.cpp \
+```
+
+
 ## Join the Fatal community
 - Website: https://github.com/facebook/fatal/
-- Facebook Page: https://www.facebook.com/libfatal
+- Facebook Group: https://www.facebook.com/groups/libfatal/
 - Talk at CppCon 2014: https://www.youtube.com/watch?v=0A9pYr8wevk
 
 See the CONTRIBUTING file for how to help out.

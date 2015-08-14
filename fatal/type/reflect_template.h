@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_type_reflect_template_h
+#define FATAL_INCLUDE_fatal_type_reflect_template_h
 
 #include <fatal/type/list.h>
 #include <fatal/type/sequence.h>
@@ -125,17 +126,17 @@ struct reflect_template<T<Types...>> {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef T<Types...> type;
+  using type = T<Types...>;
 
   /**
    * The category of the reflected class template.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef std::integral_constant<
+  using category = std::integral_constant<
     reflect_template_category,
     reflect_template_category::type_list
-  > category;
+  >;
 
   /**
    * Rebinds the reflected class template with new types.
@@ -150,7 +151,7 @@ struct reflect_template<T<Types...>> {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef type_list<Types...> types;
+  using types = type_list<Types...>;
 
   /**
    * Tells if the original reflected type was instantiated from the same
@@ -198,17 +199,17 @@ struct reflect_template<T<V, Values...>> {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef T<V, Values...> type;
+  using type = T<V, Values...>;
 
   /**
    * The category of the reflected class template.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef std::integral_constant<
+  using category = std::integral_constant<
     reflect_template_category,
     reflect_template_category::typed_value_list
-  > category;
+  >;
 
   /**
    * The type of the values.
@@ -225,7 +226,7 @@ struct reflect_template<T<V, Values...>> {
   template <typename U = V>
   struct rebind {
     template <U... UValues>
-    using type = T<U, UValues...>;
+    using apply = T<U, UValues...>;
   };
 
   /**
@@ -275,4 +276,14 @@ struct reflect_template<T<V, Values...>> {
   using is_same_tvl = std::is_same<type, U<V, Values...>>;
 };
 
-} // namespace fatal
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using reflect_values = typename reflect_template<T>::values;
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using reflect_types = typename reflect_template<T>::types;
+
+} // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_reflect_template_h

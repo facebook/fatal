@@ -1,2 +1,2 @@
-TARGETS
 .*.sw?
+.gdb_history

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -28,11 +28,11 @@ template <typename TFirst, typename TSecond>
 void check_type_pair_types() {
   typedef type_pair<TFirst, TSecond> pair_t;
 
-  expect_same<TFirst, typename pair_t::first>();
-  expect_same<TSecond, typename pair_t::second>();
+  FATAL_EXPECT_SAME<TFirst, typename pair_t::first>();
+  FATAL_EXPECT_SAME<TSecond, typename pair_t::second>();
 }
 
-TEST(type_pair, types) {
+FATAL_TEST(type_pair, types) {
   check_type_pair_types<int, double>();
   check_type_pair_types<int, int>();
   check_type_pair_types<void, long>();
@@ -50,10 +50,10 @@ template <typename TFirst, typename TSecond>
 void check_invert() {
   typedef type_pair<TFirst, TSecond> pair;
   typedef type_pair<TSecond, TFirst> expected;
-  expect_same<expected, typename pair::invert>();
+  FATAL_EXPECT_SAME<expected, typename pair::invert>();
 }
 
-TEST(type_pair, invert) {
+FATAL_TEST(type_pair, invert) {
   check_invert<int, double>();
   check_invert<int, int>();
   check_invert<void, long>();
@@ -72,8 +72,8 @@ template <
   typename TSecond,
   typename TExpectedFirst,
   typename TExpectedSecond,
-  template <typename...> class TFirstTransform = transform::identity,
-  template <typename...> class TSecondTransform = transform::identity
+  template <typename...> class TFirstTransform = identity_transform,
+  template <typename...> class TSecondTransform = identity_transform
 >
 void check_transform() {
   typedef type_pair<TExpectedFirst, TExpectedSecond> expected;
@@ -81,10 +81,10 @@ void check_transform() {
     TFirstTransform, TSecondTransform
   > actual;
 
-  expect_same<expected, actual>();
+  FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(type_pair, transform) {
+FATAL_TEST(type_pair, transform) {
   check_transform<int, double, int, double>();
   check_transform<int, double, T1<int>, double, T1>();
   check_transform<int, double, T1<int>, T2<double>, T1, T2>();
@@ -102,8 +102,8 @@ template <
   typename T,
   typename TExpectedFirst,
   typename TExpectedSecond,
-  template <typename...> class TFirstTransform = transform::identity,
-  template <typename...> class TSecondTransform = transform::identity
+  template <typename...> class TFirstTransform = identity_transform,
+  template <typename...> class TSecondTransform = identity_transform
 >
 void check_type_pair_from() {
   typedef type_pair<TExpectedFirst, TExpectedSecond> expected;
@@ -111,10 +111,10 @@ void check_type_pair_from() {
     TFirstTransform, TSecondTransform
   >::template type<T> actual;
 
-  expect_same<expected, actual>();
+  FATAL_EXPECT_SAME<expected, actual>();
 }
 
-TEST(type_pair_from, list) {
+FATAL_TEST(type_pair_from, list) {
   check_type_pair_from<int, int, int>();
   check_type_pair_from<int, T1<int>, int, T1>();
   check_type_pair_from<int, T1<int>, T2<int>, T1, T2>();
@@ -132,14 +132,18 @@ template <typename TFirst, typename TSecond>
 void check_type_get() {
   typedef type_pair<TFirst, TSecond> pair_t;
 
-  expect_same<typename pair_t::first, type_get<0>::template type<pair_t>>();
-  expect_same<typename pair_t::second, type_get<1>::template type<pair_t>>();
+  FATAL_EXPECT_SAME<
+    typename pair_t::first, type_get<0>::template from<pair_t>
+  >();
+  FATAL_EXPECT_SAME<
+    typename pair_t::second, type_get<1>::template from<pair_t>
+  >();
 
-  expect_same<typename pair_t::first, type_get_first<pair_t>>();
-  expect_same<typename pair_t::second, type_get_second<pair_t>>();
+  FATAL_EXPECT_SAME<typename pair_t::first, type_get_first<pair_t>>();
+  FATAL_EXPECT_SAME<typename pair_t::second, type_get_second<pair_t>>();
 }
 
-TEST(type_get, type_pair) {
+FATAL_TEST(type_get, type_pair) {
   check_type_get<int, double>();
   check_type_get<int, int>();
   check_type_get<void, long>();
@@ -166,28 +170,30 @@ class Foo {
   > rhs;
 
 public:
-  template <template <typename, typename> class TComparer>
+  template <template <typename...> class TComparer>
   using comparison = std::integral_constant<
     bool, TComparer<lhs, rhs>::value
   >;
 };
 
-TEST(type_get, first_comparer) {
-  EXPECT_TRUE((
+FATAL_TEST(type_get, first_comparer) {
+  FATAL_EXPECT_TRUE((
     Foo<5, 99, 8, 1>::comparison<
-      type_get_first_comparer<>::template type
+      type_get_first_comparer<>::template compare
     >::value
   ));
 
-  EXPECT_TRUE((
+  FATAL_EXPECT_TRUE((
     Foo<5, 99, 8, 1>::comparison<
-      type_get_first_comparer<constants_comparison_lt>::template type
+      type_get_first_comparer<comparison_transform::less_than>::template compare
     >::value
   ));
 
-  EXPECT_FALSE((
+  FATAL_EXPECT_FALSE((
     Foo<5, 99, 8, 1>::comparison<
-      type_get_first_comparer<constants_comparison_gt>::template type
+      type_get_first_comparer<
+        comparison_transform::greater_than
+      >::template compare
     >::value
   ));
 }
@@ -196,22 +202,26 @@ TEST(type_get, first_comparer) {
 // type_get_second_comparer //
 //////////////////////////////
 
-TEST(type_get, second_comparer) {
-  EXPECT_TRUE((
+FATAL_TEST(type_get, second_comparer) {
+  FATAL_EXPECT_TRUE((
     Foo<99, 5, 1, 8>::comparison<
-      type_get_second_comparer<>::template type
+      type_get_second_comparer<>::template compare
     >::value
   ));
 
-  EXPECT_TRUE((
+  FATAL_EXPECT_TRUE((
     Foo<99, 5, 1, 8>::comparison<
-      type_get_second_comparer<constants_comparison_lt>::template type
+      type_get_second_comparer<
+        comparison_transform::less_than
+      >::template compare
     >::value
   ));
 
-  EXPECT_FALSE((
+  FATAL_EXPECT_FALSE((
     Foo<99, 5, 1, 8>::comparison<
-      type_get_second_comparer<constants_comparison_gt>::template type
+      type_get_second_comparer<
+        comparison_transform::greater_than
+      >::template compare
     >::value
   ));
 }

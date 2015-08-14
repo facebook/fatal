@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -18,55 +18,123 @@ struct Bar {};
 struct Baz {};
 struct Gaz {};
 
-TEST(tuple_tags, tags) {
+template <typename> struct Tag {};
+
+template <std::size_t Id>
+using tag = std::integral_constant<std::size_t, Id>;
+
+FATAL_TEST(tuple_tags, tags) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
 
-  expect_same<type_list<Foo, Bar, Baz, Gaz>, tags::tags>();
+  FATAL_EXPECT_SAME<type_list<Foo, Bar, Baz, Gaz>, tags::list>();
 }
 
-TEST(tuple_tags, tag_map) {
+FATAL_TEST(tuple_tags, map) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   typedef std::tuple<int, double, bool, long> tuple;
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     type_map<
       type_pair<Foo, int>,
       type_pair<Bar, double>,
       type_pair<Baz, bool>,
       type_pair<Gaz, long>
     >,
-    tags::tag_map<tuple>
+    tags::map<tuple>
   >();
 }
 
-TEST(tuple_tags, index_of) {
+FATAL_TEST(tuple_tags, index_of) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   std::tuple<int, double, bool, long> tuple(10, 5.6, true, 999);
 
-  EXPECT_EQ(10, std::get<tags::index_of<Foo>::value>(tuple));
-  EXPECT_EQ(5.6, std::get<tags::index_of<Bar>::value>(tuple));
-  EXPECT_EQ(true, std::get<tags::index_of<Baz>::value>(tuple));
-  EXPECT_EQ(999, std::get<tags::index_of<Gaz>::value>(tuple));
+  FATAL_EXPECT_EQ(10, std::get<tags::index_of<Foo>::value>(tuple));
+  FATAL_EXPECT_EQ(5.6, std::get<tags::index_of<Bar>::value>(tuple));
+  FATAL_EXPECT_EQ(true, std::get<tags::index_of<Baz>::value>(tuple));
+  FATAL_EXPECT_EQ(999, std::get<tags::index_of<Gaz>::value>(tuple));
 }
 
-TEST(tuple_tags, type_of) {
+FATAL_TEST(tuple_tags, type_of) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   typedef std::tuple<int, double, bool, long> tuple;
 
-  expect_same<int, tags::type_of<Foo, tuple>>();
-  expect_same<double, tags::type_of<Bar, tuple>>();
-  expect_same<bool, tags::type_of<Baz, tuple>>();
-  expect_same<long, tags::type_of<Gaz, tuple>>();
+  FATAL_EXPECT_SAME<int, tags::type_of<Foo, tuple>>();
+  FATAL_EXPECT_SAME<double, tags::type_of<Bar, tuple>>();
+  FATAL_EXPECT_SAME<bool, tags::type_of<Baz, tuple>>();
+  FATAL_EXPECT_SAME<long, tags::type_of<Gaz, tuple>>();
 }
 
-TEST(tuple_tags, get) {
+FATAL_TEST(tuple_tags, get) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
   std::tuple<int, double, bool, long> tuple(10, 5.6, true, 999);
 
-  EXPECT_EQ(10, tags::get<Foo>(tuple));
-  EXPECT_EQ(5.6, tags::get<Bar>(tuple));
-  EXPECT_EQ(true, tags::get<Baz>(tuple));
-  EXPECT_EQ(999, tags::get<Gaz>(tuple));
+  FATAL_EXPECT_EQ(10, tags::get<Foo>(tuple));
+  FATAL_EXPECT_EQ(5.6, tags::get<Bar>(tuple));
+  FATAL_EXPECT_EQ(true, tags::get<Baz>(tuple));
+  FATAL_EXPECT_EQ(999, tags::get<Gaz>(tuple));
+}
+
+struct foreach_visitor {
+  template <typename TTag, std::size_t Index, typename T>
+  void operator ()(
+    indexed_type_tag<TTag, Index>,
+    T &&element,
+    std::vector<std::size_t> &indexes,
+    std::vector<std::string> &elements
+  ) const {
+    indexes.push_back(Index);
+    elements.push_back(element);
+  }
+};
+
+template <typename T>
+using is_even_predicate = std::integral_constant<bool, T::value % 2 == 0>;
+
+FATAL_TEST(tuple_tags, foreach_if) {
+  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
+
+  auto tuple = std::make_tuple("hello", "world", "!");
+
+  std::vector<std::size_t> indexes;
+  std::vector<std::string> elements;
+
+  FATAL_EXPECT_EQ(
+    2,
+    tags::foreach_if<is_even_predicate>(
+      tuple, foreach_visitor(), indexes, elements
+    )
+  );
+
+  FATAL_EXPECT_EQ((std::vector<std::size_t>{0, 2}), indexes);
+  FATAL_EXPECT_EQ((std::vector<std::string>{"hello", "!"}), elements);
+}
+
+FATAL_TEST(tuple_tags, foreach) {
+  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
+
+  auto tuple = std::make_tuple("hello", "world", "!");
+
+  std::vector<std::size_t> indexes;
+  std::vector<std::string> elements;
+
+  FATAL_EXPECT_TRUE(tags::foreach(tuple, foreach_visitor(), indexes, elements));
+
+  FATAL_EXPECT_EQ((std::vector<std::size_t>{0, 1, 2}), indexes);
+  FATAL_EXPECT_EQ((std::vector<std::string>{"hello", "world", "!"}), elements);
+}
+
+FATAL_TEST(tuple_tags, tuple_tags_from) {
+  FATAL_EXPECT_SAME<tuple_tags<>, tuple_tags_from<std::tuple<>>>();
+
+  FATAL_EXPECT_SAME<
+    tuple_tags<int, double>,
+    tuple_tags_from<std::tuple<int, double>>
+  >();
+
+  FATAL_EXPECT_SAME<
+    tuple_tags<Tag<int>, Tag<double>>,
+    tuple_tags_from<std::tuple<int, double>, Tag>
+  >();
 }
 
 } // namespace fatal {

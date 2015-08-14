@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -11,511 +11,517 @@
 
 #include <fatal/test/driver.h>
 
+#include <memory>
+#include <set>
 #include <string>
 #include <tuple>
 #include <utility>
-#include <map>
-#include <memory>
+#include <vector>
 
 namespace fatal {
 
 template <std::size_t> struct T {};
 template <std::size_t> struct S {};
+enum class Ell: long long { a = 5, b = 7, c = 9 };
 
-//////////////
-// currying //
-//////////////
+/////////////////////////////
+// remove_rvalue_reference //
+/////////////////////////////
 
-template <
-  typename TLHS,
-  typename TRHS,
-  template <typename, typename> class TUncurried,
-  template <typename> class TCurried
->
-void check_value_currying() {
-  EXPECT_EQ(
-    (TUncurried<TLHS, TRHS>::value),
-    (TCurried<TLHS>::template type<TRHS>::value)
-  );
+FATAL_TEST(traits, remove_rvalue_reference) {
+# define TEST_IMPL(Type, Expected) \
+  do { \
+    FATAL_EXPECT_SAME<Expected, remove_rvalue_reference<Type>::type>(); \
+  } while (false)
+
+  TEST_IMPL(int &&, int);
+  TEST_IMPL(int &, int &);
+  TEST_IMPL(int, int);
+  TEST_IMPL(int *&&, int *);
+  TEST_IMPL(int *&, int *&);
+  TEST_IMPL(int *, int*);
+  TEST_IMPL(int const &&, int const);
+  TEST_IMPL(int const &, int const &);
+  TEST_IMPL(int const, int const);
+  TEST_IMPL(int const *&&, int const *);
+  TEST_IMPL(int const *&, int const *&);
+  TEST_IMPL(int const *, int const *);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(traits, same_reference_as) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    same_reference_as<FATAL_UNPARENTHESIZE(T), From>::type \
+  >();
+
+  TEST_IMPL(int &&, int &&, int &&);
+  TEST_IMPL(int &&, int &, int &&);
+  TEST_IMPL(int &&, int, int &&);
+  TEST_IMPL(int &&, int *&&, int *&&);
+  TEST_IMPL(int &&, int *&, int *&&);
+  TEST_IMPL(int &&, int *, int *&&);
+  TEST_IMPL(int &&, int *const &&, int *const &&);
+  TEST_IMPL(int &&, int *const &, int *const &&);
+  TEST_IMPL(int &&, int *const, int *const &&);
+  TEST_IMPL(int &&, int const &&, int const &&);
+  TEST_IMPL(int &&, int const &, int const &&);
+  TEST_IMPL(int &&, int const, int const &&);
+  TEST_IMPL(int &&, int const *&&, int const *&&);
+  TEST_IMPL(int &&, int const *&, int const *&&);
+  TEST_IMPL(int &&, int const *, int const *&&);
+  TEST_IMPL(int &&, int const *const &&, int const *const &&);
+  TEST_IMPL(int &&, int const *const &, int const *const &&);
+  TEST_IMPL(int &&, int const *const, int const *const &&);
+
+  TEST_IMPL(int &, int &&, int &);
+  TEST_IMPL(int &, int &, int &);
+  TEST_IMPL(int &, int, int &);
+  TEST_IMPL(int &, int *&&, int *&);
+  TEST_IMPL(int &, int *&, int *&);
+  TEST_IMPL(int &, int *, int *&);
+  TEST_IMPL(int &, int *const &&, int *const &);
+  TEST_IMPL(int &, int *const &, int *const &);
+  TEST_IMPL(int &, int *const, int *const &);
+  TEST_IMPL(int &, int const &&, int const &);
+  TEST_IMPL(int &, int const &, int const &);
+  TEST_IMPL(int &, int const, int const &);
+  TEST_IMPL(int &, int const *&&, int const *&);
+  TEST_IMPL(int &, int const *&, int const *&);
+  TEST_IMPL(int &, int const *, int const *&);
+  TEST_IMPL(int &, int const *const &&, int const *const &);
+  TEST_IMPL(int &, int const *const &, int const *const &);
+  TEST_IMPL(int &, int const *const, int const *const &);
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int *const &&, int *const &&);
+  TEST_IMPL(int, int *const &, int *const &);
+  TEST_IMPL(int, int *const, int *const);
+  TEST_IMPL(int, int const &&, int const &&);
+  TEST_IMPL(int, int const &, int const &);
+  TEST_IMPL(int, int const, int const);
+  TEST_IMPL(int, int const *&&, int const *&&);
+  TEST_IMPL(int, int const *&, int const *&);
+  TEST_IMPL(int, int const *, int const *);
+  TEST_IMPL(int, int const *const &&, int const *const &&);
+  TEST_IMPL(int, int const *const &, int const *const &);
+  TEST_IMPL(int, int const *const, int const *const);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(traits, add_reference_from) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    add_reference_from<FATAL_UNPARENTHESIZE(T), From>::type \
+  >();
+
+  TEST_IMPL(int &&, int &&, int &&);
+  TEST_IMPL(int &&, int &, int &);
+  TEST_IMPL(int &&, int, int &&);
+  TEST_IMPL(int &&, int *&&, int *&&);
+  TEST_IMPL(int &&, int *&, int *&);
+  TEST_IMPL(int &&, int *, int * &&);
+  TEST_IMPL(int &&, int *const &&, int *const &&);
+  TEST_IMPL(int &&, int *const &, int *const &);
+  TEST_IMPL(int &&, int *const, int *const &&);
+  TEST_IMPL(int &&, int const &&, int const &&);
+  TEST_IMPL(int &&, int const &, int const &);
+  TEST_IMPL(int &&, int const, int const &&);
+  TEST_IMPL(int &&, int const *&&, int const *&&);
+  TEST_IMPL(int &&, int const *&, int const *&);
+  TEST_IMPL(int &&, int const *, int const * &&);
+  TEST_IMPL(int &&, int const *const &&, int const *const &&);
+  TEST_IMPL(int &&, int const *const &, int const *const &);
+  TEST_IMPL(int &&, int const *const, int const *const &&);
+
+  TEST_IMPL(int &, int &&, int &);
+  TEST_IMPL(int &, int &, int &);
+  TEST_IMPL(int &, int, int &);
+  TEST_IMPL(int &, int *&&, int *&);
+  TEST_IMPL(int &, int *&, int *&);
+  TEST_IMPL(int &, int *, int *&);
+  TEST_IMPL(int &, int *const &&, int *const &);
+  TEST_IMPL(int &, int *const &, int *const &);
+  TEST_IMPL(int &, int *const, int *const &);
+  TEST_IMPL(int &, int const &&, int const &);
+  TEST_IMPL(int &, int const &, int const &);
+  TEST_IMPL(int &, int const, int const &);
+  TEST_IMPL(int &, int const *&&, int const *&);
+  TEST_IMPL(int &, int const *&, int const *&);
+  TEST_IMPL(int &, int const *, int const *&);
+  TEST_IMPL(int &, int const *const &&, int const *const &);
+  TEST_IMPL(int &, int const *const &, int const *const &);
+  TEST_IMPL(int &, int const *const, int const *const &);
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int *const &&, int *const &&);
+  TEST_IMPL(int, int *const &, int *const &);
+  TEST_IMPL(int, int *const, int *const);
+  TEST_IMPL(int, int const &&, int const &&);
+  TEST_IMPL(int, int const &, int const &);
+  TEST_IMPL(int, int const, int const);
+  TEST_IMPL(int, int const *&&, int const *&&);
+  TEST_IMPL(int, int const *&, int const *&);
+  TEST_IMPL(int, int const *, int const *);
+  TEST_IMPL(int, int const *const &&, int const *const &&);
+  TEST_IMPL(int, int const *const &, int const *const &);
+  TEST_IMPL(int, int const *const, int const *const);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(traits, add_const_from) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    add_const_from<FATAL_UNPARENTHESIZE(T), From>::type \
+  >();
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *const &&, int *const &&);
+  TEST_IMPL(int, int *const &, int *const &);
+  TEST_IMPL(int, int *const, int *const);
+  TEST_IMPL(int, int const &&, int const &&);
+  TEST_IMPL(int, int const &, int const &);
+  TEST_IMPL(int, int const *&&, int const *&&);
+  TEST_IMPL(int, int const *&, int const *&);
+  TEST_IMPL(int, int const *, int const *);
+  TEST_IMPL(int, int const *const &&, int const *const &&);
+  TEST_IMPL(int, int const *const &, int const *const &);
+  TEST_IMPL(int, int const *const, int const *const);
+  TEST_IMPL(int, int const, int const);
+
+  TEST_IMPL(int const, int &&, int &&);
+  TEST_IMPL(int const, int &, int &);
+  TEST_IMPL(int const, int, int const);
+  TEST_IMPL(int const, int *&&, int *&&);
+  TEST_IMPL(int const, int *&, int *&);
+  TEST_IMPL(int const, int *, int *const);
+  TEST_IMPL(int const, int *const &&, int *const &&);
+  TEST_IMPL(int const, int *const &, int *const &);
+  TEST_IMPL(int const, int *const, int *const);
+  TEST_IMPL(int const, int const &&, int const &&);
+  TEST_IMPL(int const, int const &, int const &);
+  TEST_IMPL(int const, int const, int const);
+  TEST_IMPL(int const, int const *&&, int const *&&);
+  TEST_IMPL(int const, int const *&, int const *&);
+  TEST_IMPL(int const, int const *, int const *const);
+  TEST_IMPL(int const, int const *const &&, int const *const &&);
+  TEST_IMPL(int const, int const *const &, int const *const &);
+  TEST_IMPL(int const, int const *const, int const *const);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(traits, constify) {
+# define TEST_IMPL(T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    constify<FATAL_UNPARENTHESIZE(T)>::type \
+  >();
+
+  TEST_IMPL(int &&, int const &&);
+  TEST_IMPL(int &, int const &);
+  TEST_IMPL(int, int const);
+  TEST_IMPL(int *&&, int *const &&);
+  TEST_IMPL(int *&, int *const &);
+  TEST_IMPL(int *, int *const);
+  TEST_IMPL(int *const &&, int *const &&);
+  TEST_IMPL(int *const &, int *const &);
+  TEST_IMPL(int *const, int *const);
+
+  TEST_IMPL(int const &&, int const &&);
+  TEST_IMPL(int const &, int const &);
+  TEST_IMPL(int const, int const);
+  TEST_IMPL(int const *&&, int const *const &&);
+  TEST_IMPL(int const *&, int const *const &);
+  TEST_IMPL(int const *, int const *const);
+  TEST_IMPL(int const *const &&, int const *const &&);
+  TEST_IMPL(int const *const &, int const *const &);
+  TEST_IMPL(int const *const, int const *const);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(traits, constify_from) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME< \
+    __VA_ARGS__, \
+    constify_from<FATAL_UNPARENTHESIZE(T), From>::type \
+  >();
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int *const &&, int *const &&);
+  TEST_IMPL(int, int *const &, int *const &);
+  TEST_IMPL(int, int *const, int *const);
+  TEST_IMPL(int, int const &&, int const &&);
+  TEST_IMPL(int, int const &, int const &);
+  TEST_IMPL(int, int const, int const);
+  TEST_IMPL(int, int const *&&, int const *&&);
+  TEST_IMPL(int, int const *&, int const *&);
+  TEST_IMPL(int, int const *, int const *);
+  TEST_IMPL(int, int const *const &&, int const *const &&);
+  TEST_IMPL(int, int const *const &, int const *const &);
+  TEST_IMPL(int, int const *const, int const *const);
+
+  TEST_IMPL(int const, int &&, int const &&);
+  TEST_IMPL(int const, int &, int const &);
+  TEST_IMPL(int const, int, int const);
+  TEST_IMPL(int const, int *&&, int *const &&);
+  TEST_IMPL(int const, int *&, int *const &);
+  TEST_IMPL(int const, int *, int *const);
+  TEST_IMPL(int const, int *const &&, int *const &&);
+  TEST_IMPL(int const, int *const &, int *const &);
+  TEST_IMPL(int const, int *const, int *const);
+  TEST_IMPL(int const, int const &&, int const &&);
+  TEST_IMPL(int const, int const &, int const &);
+  TEST_IMPL(int const, int const, int const);
+  TEST_IMPL(int const, int const *&&, int const *const &&);
+  TEST_IMPL(int const, int const *&, int const *const &);
+  TEST_IMPL(int const, int const *, int const *const);
+  TEST_IMPL(int const, int const *const &&, int const *const &&);
+  TEST_IMPL(int const, int const *const &, int const *const &);
+  TEST_IMPL(int const, int const *const, int const *const);
+
+# undef TEST_IMPL
 }
 
 /////////////////
 // is_template //
 /////////////////
 
-template <template <typename...> class TTemplate, typename T, bool Expected>
+template <typename T, bool Expected, template <typename...> class... TTemplates>
 void check_is_template() {
-  bool b = Expected;
-  EXPECT_EQ(b, (is_template<TTemplate>::template instantiation<T>::value));
+  bool expected = Expected;
+  using checker = is_template<TTemplates...>;
+  bool actual = checker::template type<T>::value;
+  if (expected != actual) {
+    FATAL_LOG(ERROR) << "checker: " << type_str<checker>();
+    FATAL_LOG(ERROR) << "type: " << type_str<T>();
+    FATAL_EXPECT_EQ(expected, actual);
+  }
 }
 
-TEST(type_traits, is_template) {
-  check_is_template<std::basic_string, std::string, true>();
-  check_is_template<std::basic_string, std::wstring, true>();
-  check_is_template<std::basic_string, std::basic_string<int>, true>();
-  check_is_template<std::basic_string, std::pair<int, double>, false>();
-  check_is_template<std::basic_string, std::vector<int>, false>();
-  check_is_template<std::basic_string, std::tuple<int>, false>();
-  check_is_template<std::basic_string, std::tuple<int, double>, false>();
+template <typename, typename...> struct X0 {};
+template <typename, typename, typename...> struct X1 {};
+template <typename, typename, typename, typename...> struct X2 {};
+template <typename, typename, typename, typename, typename...> struct X3 {};
 
-  check_is_template<std::tuple, std::string, false>();
-  check_is_template<std::tuple, std::wstring, false>();
-  check_is_template<std::tuple, std::basic_string<int>, false>();
-  check_is_template<std::tuple, std::pair<int, double>, false>();
-  check_is_template<std::tuple, std::vector<int>, false>();
-  check_is_template<std::tuple, std::tuple<int>, true>();
-  check_is_template<std::tuple, std::tuple<int, double>, true>();
+FATAL_TEST(traits, is_template) {
+  check_is_template<X0<void>, true, X0>();
+  check_is_template<X0<void, int>, true, X0>();
+  check_is_template<X0<void, int, bool>, true, X0>();
+  check_is_template<std::string, false, X0>();
+  check_is_template<void, false, X0>();
+  check_is_template<int, false, X0>();
+
+  check_is_template<X1<void, double>, true, X1>();
+  check_is_template<X1<void, double, int>, true, X1>();
+  check_is_template<X1<void, double, int, bool>, true, X1>();
+  check_is_template<std::string, false, X1>();
+  check_is_template<void, false, X1>();
+  check_is_template<int, false, X1>();
+
+  check_is_template<X2<void, double, short>, true, X2>();
+  check_is_template<X2<void, double, short, int>, true, X2>();
+  check_is_template<X2<void, double, short, int, bool>, true, X2>();
+  check_is_template<std::string, false, X2>();
+  check_is_template<void, false, X2>();
+  check_is_template<int, false, X2>();
+
+  check_is_template<X3<void, double, short, float>, true, X3>();
+  check_is_template<X3<void, double, short, float, int>, true, X3>();
+  check_is_template<X3<void, double, short, float, int, bool>, true, X3>();
+  check_is_template<std::string, false, X3>();
+  check_is_template<void, false, X3>();
+  check_is_template<int, false, X3>();
+
+  check_is_template<std::string, false, std::tuple>();
+  check_is_template<std::wstring, false, std::tuple>();
+  check_is_template<std::basic_string<int>, false, std::tuple>();
+  check_is_template<std::pair<int, double>, false, std::tuple>();
+  check_is_template<std::vector<int>, false, std::tuple>();
+  check_is_template<std::tuple<int>, true, std::tuple>();
+  check_is_template<std::tuple<int, double>, true, std::tuple>();
+
+  check_is_template<std::string, false, std::vector>();
+  check_is_template<std::wstring, false, std::vector>();
+  check_is_template<std::basic_string<int>, false, std::vector>();
+  check_is_template<std::pair<int, double>, false, std::vector>();
+  check_is_template<std::vector<int>, true, std::vector>();
+  check_is_template<std::tuple<int>, false, std::vector>();
+  check_is_template<std::tuple<int, double>, false, std::vector>();
+
+  check_is_template<std::string, true, std::basic_string>();
+  check_is_template<std::wstring, true, std::basic_string>();
+  check_is_template<std::basic_string<int>, true, std::basic_string>();
+  check_is_template<std::pair<int, double>, false, std::basic_string>();
+  check_is_template<std::vector<int>, false, std::basic_string>();
+  check_is_template<std::tuple<int>, false, std::basic_string>();
+  check_is_template<std::tuple<int, double>, false, std::basic_string>();
+
+  check_is_template<std::string, false, std::tuple, std::vector>();
+  check_is_template<std::wstring, false, std::tuple, std::vector>();
+  check_is_template<std::basic_string<int>, false, std::tuple, std::vector>();
+  check_is_template<std::pair<int, double>, false, std::tuple, std::vector>();
+  check_is_template<std::vector<int>, true, std::tuple, std::vector>();
+  check_is_template<std::tuple<int>, true, std::tuple, std::vector>();
+  check_is_template<std::tuple<int, double>, true, std::tuple, std::vector>();
+
+  check_is_template<std::string, true, std::tuple, std::basic_string>();
+  check_is_template<std::wstring, true, std::tuple, std::basic_string>();
+  check_is_template<
+    std::basic_string<int>, true,
+    std::tuple, std::basic_string
+  >();
+  check_is_template<
+    std::pair<int, double>, false,
+    std::tuple, std::basic_string
+  >();
+  check_is_template<std::vector<int>, false, std::tuple, std::basic_string>();
+  check_is_template<std::tuple<int>, true, std::tuple, std::basic_string>();
+  check_is_template<
+    std::tuple<int, double>, true,
+    std::tuple, std::basic_string
+  >();
 }
 
 /////////////////
-// is_complete //
+// integral_of //
 /////////////////
 
-struct complete_type {};
-struct incomplete_type;
-
-TEST(type_traits, is_complete) {
-  EXPECT_TRUE((is_complete<int>::value));
-  EXPECT_TRUE((is_complete<std::string>::value));
-  EXPECT_TRUE((is_complete<complete_type>::value));
-  EXPECT_FALSE((is_complete<incomplete_type>::value));
+FATAL_TEST(traits, integral_of) {
+  FATAL_EXPECT_SAME<bool, integral_of<bool>>();
+  FATAL_EXPECT_SAME<char, integral_of<char>>();
+  FATAL_EXPECT_SAME<short, integral_of<short>>();
+  FATAL_EXPECT_SAME<unsigned, integral_of<unsigned>>();
+  FATAL_EXPECT_SAME<std::underlying_type<Ell>::type, integral_of<Ell>>();
+  FATAL_EXPECT_SAME<std::true_type::value_type, integral_of<std::true_type>>();
 }
 
-////////////////////////
-// get_member_typedef //
-////////////////////////
+/////////////////
+// as_integral //
+/////////////////
 
-TEST(type_traits, get_member_typedef) {
-# define CREATE_TEST(Member, Type) \
+template <typename T, T... Values>
+struct as_integral_constant_test {
+  static_assert(sizeof...(Values) == 0, "wrong specialization");
+
+  as_integral_constant_test() {
+    {
+      using type = std::integral_constant<T, std::numeric_limits<T>::min()>;
+      FATAL_EXPECT_SAME<T, decltype(as_integral(type()))>();
+      FATAL_EXPECT_EQ(type::value, as_integral(type()));
+    }
+    {
+      using type = std::integral_constant<T, std::numeric_limits<T>::max()>;
+      FATAL_EXPECT_SAME<T, decltype(as_integral(type()))>();
+      FATAL_EXPECT_EQ(type::value, as_integral(type()));
+    }
+  }
+};
+
+template <typename T, T Value, T... Values>
+struct as_integral_constant_test<T, Value, Values...> {
+  as_integral_constant_test() {
+    using type = std::integral_constant<T, Value>;
+    FATAL_EXPECT_SAME<T, decltype(as_integral(type()))>();
+    FATAL_EXPECT_EQ(Value, as_integral(type()));
+  }
+
+private:
+  as_integral_constant_test<T, Values...> tail_;
+};
+
+FATAL_TEST(traits, as_integral) {
+# define TEST_IMPL(ExpectedValue, ExpectedType, Value) \
   do { \
-    expect_same<Type::Member, get_member_typedef::Member<Type>>(); \
+    FATAL_EXPECT_SAME<ExpectedType, decltype(as_integral(Value))>(); \
+    FATAL_EXPECT_EQ(ExpectedValue, as_integral(Value)); \
   } while (false)
 
-  typedef std::add_const<int> a_c;
-  CREATE_TEST(type, a_c);
+  {
+    int v = 10;
+    TEST_IMPL(10, int, v);
 
-  typedef std::pair<double, long> pair;
-  CREATE_TEST(first_type, pair);
-  CREATE_TEST(second_type, pair);
+    int const c = 10;
+    TEST_IMPL(10, int, c);
+  }
 
-  typedef std::map<std::string, bool> map;
-  CREATE_TEST(key_type, map);
-  CREATE_TEST(mapped_type, map);
-  CREATE_TEST(value_type, map);
+  {
+    long long v = 20;
+    TEST_IMPL(20, long long, v);
 
-  typedef std::shared_ptr<float> ptr;
-  CREATE_TEST(element_type, ptr);
+    long long const c = 20;
+    TEST_IMPL(20, long long, c);
+  }
 
-  typedef std::string str;
-  CREATE_TEST(traits_type, str);
-  CREATE_TEST(allocator_type, str);
+  TEST_IMPL(5, std::underlying_type<Ell>::type, Ell::a);
 
-  CREATE_TEST(size_type, str);
-  CREATE_TEST(difference_type, str);
+# undef TEST_IMPL
 
-  CREATE_TEST(reference, str);
-  CREATE_TEST(const_reference, str);
+  as_integral_constant_test<bool, true, false>();
 
-  CREATE_TEST(pointer, str);
-  CREATE_TEST(const_pointer, str);
+  as_integral_constant_test<char, ' ', 'h', 'e', 'l', 'o'>();
+  as_integral_constant_test<unsigned char, ' ', 'h', 'e', 'l', 'o'>();
 
-  CREATE_TEST(iterator, str);
-  CREATE_TEST(const_iterator, str);
-  CREATE_TEST(reverse_iterator, str);
-  CREATE_TEST(const_reverse_iterator, str);
-# undef CREATE_TEST
-}
-
-/////////////
-// type_of //
-/////////////
-
-TEST(type_traits, type_of) {
-  typedef std::integral_constant<int, 5> i5;
-  expect_same<int, type_of<i5>>();
-
-  expect_same<bool, type_of<std::true_type>>();
-}
-
-//////////////////
-// add_const_if //
-//////////////////
-
-template <typename T, typename TWhenTrue, typename TWhenFalse>
-void check_add_const_if() {
-  expect_same<TWhenTrue, add_const_if<T, true>>();
-  expect_same<TWhenFalse, add_const_if<T, false>>();
-}
-
-TEST(type_traits, add_const_if) {
-  check_add_const_if<int, int const, int>();
-  check_add_const_if<int const, int const, int const>();
-  check_add_const_if<int &, int &, int &>();
-  check_add_const_if<int const &, int const &, int const &>();
-}
-
-/////////////////////
-// negate_constant //
-/////////////////////
-
-TEST(type_traits, negate_constant) {
-  EXPECT_TRUE(negate_constant<std::false_type>::value);
-  EXPECT_FALSE(negate_constant<std::true_type>::value);
-}
-
-template <typename A, typename B, typename C>
-using all_equal_test_impl = logical_and_constants<
-  std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
->;
-
-///////////////////////////
-// logical_and_constants //
-///////////////////////////
-
-TEST(type_traits, logical_and_constants) {
-  EXPECT_FALSE((all_equal_test_impl<int, bool, double>::value));
-  EXPECT_FALSE((all_equal_test_impl<int, bool, int>::value));
-  EXPECT_TRUE((all_equal_test_impl<int, int, int>::value));
-}
-
-//////////////////////////
-// logical_or_constants //
-//////////////////////////
-
-template <typename A, typename B, typename C>
-using has_duplicate_test_impl = logical_or_constants<
-  std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
->;
-
-TEST(type_traits, logical_or_constants) {
-  EXPECT_FALSE((has_duplicate_test_impl<int, bool, double>::value));
-  EXPECT_TRUE((has_duplicate_test_impl<int, bool, int>::value));
-  EXPECT_TRUE((has_duplicate_test_impl<int, int, int>::value));
-}
-
-/////////////////////////
-// complement_constant //
-/////////////////////////
-
-TEST(type_traits, complement_constant) {
-# define CHECK_COMPLEMENT_CONSTANT(x) \
-  do { \
-    EXPECT_EQ( \
-      ~static_cast<unsigned>(x), \
-      (complement_constant<std::integral_constant<unsigned, (x)>>::value) \
-    );\
-  } while(false)
-
-  CHECK_COMPLEMENT_CONSTANT(0);
-  CHECK_COMPLEMENT_CONSTANT(2);
-  CHECK_COMPLEMENT_CONSTANT(3);
-  CHECK_COMPLEMENT_CONSTANT(99);
-
-  EXPECT_EQ(
-    static_cast<uint8_t>(0xf0),
-    (complement_constant<std::integral_constant<uint8_t, 0xf>>::value)
-  );
-
-# undef CHECK_COMPLEMENT_CONSTANT
-}
-
-///////////////////////////
-// bitwise_and_constants //
-///////////////////////////
-
-template <int... Args>
-using bitwise_and_test_impl = bitwise_and_constants<
-  std::integral_constant<int, Args>...
->;
-
-TEST(type_traits, bitwise_and_constants) {
-  EXPECT_EQ(99, (bitwise_and_test_impl<99>::value));
-  EXPECT_EQ(0, (bitwise_and_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(3, (bitwise_and_test_impl<7, 11>::value));
-  EXPECT_EQ(8 & 9 & 57, (bitwise_and_test_impl<8, 9, 57>::value));
-}
-
-//////////////////////////
-// bitwise_or_constants //
-//////////////////////////
-
-template <int... Args>
-using bitwise_or_test_impl = bitwise_or_constants<
-  std::integral_constant<int, Args>...
->;
-
-TEST(type_traits, bitwise_or_constants) {
-  EXPECT_EQ(99, (bitwise_or_test_impl<99>::value));
-  EXPECT_EQ(7, (bitwise_or_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(8 | 9 | 57, (bitwise_or_test_impl<8, 9, 57>::value));
-}
-
-///////////////////////////
-// bitwise_xor_constants //
-///////////////////////////
-
-template <int... Args>
-using bitwise_xor_test_impl = bitwise_xor_constants<
-  std::integral_constant<int, Args>...
->;
-
-TEST(type_traits, bitwise_xor_constants) {
-  EXPECT_EQ(99, (bitwise_xor_test_impl<99>::value));
-  EXPECT_EQ(3, (bitwise_xor_test_impl<1, 2>::value));
-  EXPECT_EQ(12, (bitwise_xor_test_impl<7, 11>::value));
-  EXPECT_EQ(1 ^ 2 ^ 4, (bitwise_xor_test_impl<1, 2, 4>::value));
-  EXPECT_EQ(8 ^ 9 ^ 57, (bitwise_xor_test_impl<8, 9, 57>::value));
-}
-
-/////////////////////////////
-// constants_comparison_lt //
-/////////////////////////////
-
-TEST(type_traits, constants_comparison_lt) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_TRUE((constants_comparison_lt<A, B>::value));
-  EXPECT_FALSE((constants_comparison_lt<B, A>::value));
-  EXPECT_FALSE((constants_comparison_lt<A, A>::value));
-}
-
-/////////////////////////////
-// constants_comparison_gt //
-/////////////////////////////
-
-TEST(type_traits, constants_comparison_gt) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_FALSE((constants_comparison_gt<A, B>::value));
-  EXPECT_TRUE((constants_comparison_gt<B, A>::value));
-  EXPECT_FALSE((constants_comparison_gt<A, A>::value));
-}
-
-/////////////////////////////
-// constants_comparison_eq //
-/////////////////////////////
-
-TEST(type_traits, constants_comparison_eq) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_FALSE((constants_comparison_eq<A, B>::value));
-  EXPECT_FALSE((constants_comparison_eq<B, A>::value));
-  EXPECT_TRUE((constants_comparison_eq<A, A>::value));
-}
-
-//////////////////////////////
-// constants_comparison_lte //
-//////////////////////////////
-
-TEST(type_traits, constants_comparison_lte) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_TRUE((constants_comparison_lte<A, B>::value));
-  EXPECT_FALSE((constants_comparison_lte<B, A>::value));
-  EXPECT_TRUE((constants_comparison_lte<A, A>::value));
-}
-
-//////////////////////////////
-// constants_comparison_gte //
-//////////////////////////////
-
-TEST(type_traits, constants_comparison_gte) {
-  typedef std::integral_constant<int, 10> A;
-  typedef std::integral_constant<int, 20> B;
-
-  EXPECT_FALSE((constants_comparison_gte<A, B>::value));
-  EXPECT_TRUE((constants_comparison_gte<B, A>::value));
-  EXPECT_TRUE((constants_comparison_gte<A, A>::value));
-}
-
-///////////////////////////
-// curried_type_comparer //
-///////////////////////////
-
-template <typename LHS, typename RHS>
-struct curried_type_comparer_foo {
-  template <template <typename, typename> class TComparer>
-  using comparison = std::integral_constant<
-    bool, TComparer<LHS, RHS>::value
-  >;
-};
-
-template <int X>
-struct curried_type_comparer_bar {
-  typedef std::integral_constant<int, X> type;
-};
-
-TEST(type_traits, curried_type_comparer) {
-  typedef curried_type_comparer_foo<
-    std::integral_constant<int, 5>,
-    std::integral_constant<int, 8>
-  > values_5_8;
-
-  EXPECT_TRUE((
-    values_5_8::comparison<
-      curried_type_comparer<>::template type
-    >::value
-  ));
-
-  EXPECT_FALSE((
-    values_5_8::comparison<
-      curried_type_comparer<
-        constants_comparison_gt
-      >::template type
-    >::value
-  ));
-
-  typedef curried_type_comparer_foo<
-    curried_type_comparer_bar<80>,
-    curried_type_comparer_bar<10>
-  > values_80_10;
-
-  EXPECT_TRUE((
-    values_80_10::comparison<
-      curried_type_comparer<
-        constants_comparison_gt,
-        get_member_typedef::template type
-      >::template type
-    >::value
-  ));
-}
-
-////////////////////////
-// fast_pass_by_value //
-////////////////////////
-
-TEST(type_traits, fast_pass_by_value) {
-  EXPECT_TRUE(fast_pass_by_value<bool>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool &>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const &&>::value);
-
-  EXPECT_TRUE(fast_pass_by_value<bool *>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool *const &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<bool const *const &&>::value);
-
-  EXPECT_TRUE(fast_pass_by_value<int>::value);
-  EXPECT_TRUE(fast_pass_by_value<int &>::value);
-  EXPECT_TRUE(fast_pass_by_value<int &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const &&>::value);
-
-  EXPECT_TRUE(fast_pass_by_value<int *>::value);
-  EXPECT_TRUE(fast_pass_by_value<int *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<int *const &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<int const *const &&>::value);
-
-  EXPECT_FALSE(fast_pass_by_value<std::string>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string &>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string &&>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string const>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string const &>::value);
-  EXPECT_FALSE(fast_pass_by_value<std::string const &&>::value);
-
-  EXPECT_TRUE(fast_pass_by_value<std::string *>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string *const &&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *&&>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *const &>::value);
-  EXPECT_TRUE(fast_pass_by_value<std::string const *const &&>::value);
-}
-
-///////////////
-// fast_pass //
-///////////////
-
-TEST(type_traits, fast_pass) {
-  expect_same<bool const, fast_pass<bool>>();
-  expect_same<bool const, fast_pass<bool &>>();
-  expect_same<bool const, fast_pass<bool &&>>();
-  expect_same<bool const, fast_pass<bool const>>();
-  expect_same<bool const, fast_pass<bool const &>>();
-  expect_same<bool const, fast_pass<bool const &&>>();
-
-  expect_same<bool *const, fast_pass<bool *>>();
-  expect_same<bool *const, fast_pass<bool *&>>();
-  expect_same<bool *const, fast_pass<bool *&&>>();
-  expect_same<bool *const, fast_pass<bool * const &>>();
-  expect_same<bool *const, fast_pass<bool * const &&>>();
-  expect_same<bool const *const, fast_pass<bool const *>>();
-  expect_same<bool const *const, fast_pass<bool const *&>>();
-  expect_same<bool const *const, fast_pass<bool const *&&>>();
-  expect_same<bool const *const, fast_pass<bool const * const &>>();
-  expect_same<bool const *const, fast_pass<bool const * const &&>>();
-
-  expect_same<int const, fast_pass<int>>();
-  expect_same<int const, fast_pass<int &>>();
-  expect_same<int const, fast_pass<int &&>>();
-  expect_same<int const, fast_pass<int const>>();
-  expect_same<int const, fast_pass<int const &>>();
-  expect_same<int const, fast_pass<int const &&>>();
-
-  expect_same<int *const, fast_pass<int *>>();
-  expect_same<int *const, fast_pass<int *&>>();
-  expect_same<int *const, fast_pass<int *&&>>();
-  expect_same<int *const, fast_pass<int * const &>>();
-  expect_same<int *const, fast_pass<int * const &&>>();
-  expect_same<int const *const, fast_pass<int const *>>();
-  expect_same<int const *const, fast_pass<int const *&>>();
-  expect_same<int const *const, fast_pass<int const *&&>>();
-  expect_same<int const *const, fast_pass<int const * const &>>();
-  expect_same<int const *const, fast_pass<int const * const &&>>();
-
-  expect_same<std::string const &, fast_pass<std::string>>();
-  expect_same<std::string const &, fast_pass<std::string &>>();
-  expect_same<std::string const &, fast_pass<std::string &&>>();
-  expect_same<std::string const &, fast_pass<std::string const>>();
-  expect_same<std::string const &, fast_pass<std::string const &>>();
-  expect_same<std::string const &, fast_pass<std::string const &&>>();
-
-  expect_same<std::string *const, fast_pass<std::string *>>();
-  expect_same<std::string *const, fast_pass<std::string *&>>();
-  expect_same<std::string *const, fast_pass<std::string *&&>>();
-  expect_same<std::string *const, fast_pass<std::string * const &>>();
-  expect_same<std::string *const, fast_pass<std::string * const &&>>();
-  expect_same<std::string const *const, fast_pass<std::string const *>>();
-  expect_same<std::string const *const, fast_pass<std::string const *&>>();
-  expect_same<
-    std::string const *const,
-    fast_pass<std::string const *&&>
+  as_integral_constant_test<std::size_t, 0, 1, 2, 3, 5, 8, 13, 21, 1000>();
+  as_integral_constant_test<unsigned short, 0, 1, 2, 3, 5, 8, 13, 21, 1000>();
+  as_integral_constant_test<unsigned, 0, 1, 2, 3, 5, 8, 13, 21, 1000>();
+  as_integral_constant_test<unsigned long, 0, 1, 2, 3, 5, 8, 13, 21, 1000>();
+  as_integral_constant_test<
+    unsigned long long, 0, 1, 2, 3, 5, 8, 13, 21, 1000
   >();
-  expect_same<
-    std::string const *const,
-    fast_pass<std::string const * const &>
+
+  as_integral_constant_test<
+    short,
+    0, 1, 2, 3, 5, 8, 13, 21, 1000,
+    -1, -2, -3, -5, -8, -13, -21, -1000
   >();
-  expect_same<
-    std::string const *const,
-    fast_pass<std::string const * const &&>
+  as_integral_constant_test<
+    int,
+    0, 1, 2, 3, 5, 8, 13, 21, 1000,
+    -1, -2, -3, -5, -8, -13, -21, -1000
+  >();
+  as_integral_constant_test<
+    long,
+    0, 1, 2, 3, 5, 8, 13, 21, 1000,
+    -1, -2, -3, -5, -8, -13, -21, -1000
+  >();
+  as_integral_constant_test<
+    long long,
+    0, 1, 2, 3, 5, 8, 13, 21, 1000,
+    -1, -2, -3, -5, -8, -13, -21, -1000
   >();
 }
 
-////////////////
-// is_functor //
-////////////////
+/////////////////
+// is_callable //
+/////////////////
 
 struct foonctor {
   void operator ()() {}
@@ -525,145 +531,687 @@ struct foonctor {
 typedef void(*foonction)();
 typedef void(*foonction_is)(int, std::string);
 
-TEST(type_traits, is_functor) {
+FATAL_TEST(traits, is_callable) {
   auto const lambda = []() {};
   auto const lambda_is = [](int, std::string) {};
 
-  EXPECT_TRUE((is_functor<foonctor>::value));
-  EXPECT_FALSE((is_functor<foonctor, int>::value));
-  EXPECT_FALSE((is_functor<foonctor, int, double>::value));
-  EXPECT_TRUE((is_functor<foonctor, int, std::string>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonctor>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonctor, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonctor, int, double>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonctor, int, std::string>::value));
 
-  EXPECT_TRUE((is_functor<decltype(lambda)>::value));
-  EXPECT_FALSE((is_functor<decltype(lambda), int>::value));
-  EXPECT_FALSE((is_functor<decltype(lambda), int, double>::value));
-  EXPECT_FALSE((is_functor<decltype(lambda), int, std::string>::value));
+  FATAL_EXPECT_TRUE((is_callable<decltype(lambda)>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int, double>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda), int, std::string>::value));
 
-  EXPECT_FALSE((is_functor<decltype(lambda_is)>::value));
-  EXPECT_FALSE((is_functor<decltype(lambda_is), int>::value));
-  EXPECT_FALSE((is_functor<decltype(lambda_is), int, double>::value));
-  EXPECT_TRUE((is_functor<decltype(lambda_is), int, std::string>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is)>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is), int>::value));
+  FATAL_EXPECT_FALSE((is_callable<decltype(lambda_is), int, double>::value));
+  FATAL_EXPECT_TRUE((
+    is_callable<decltype(lambda_is), int, std::string>::value
+  ));
 
-  EXPECT_FALSE((is_functor<foonction>::value));
-  EXPECT_FALSE((is_functor<foonction, int>::value));
-  EXPECT_FALSE((is_functor<foonction, int, double>::value));
-  EXPECT_FALSE((is_functor<foonction, int, std::string>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonction>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int, double>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction, int, std::string>::value));
 
-  EXPECT_FALSE((is_functor<foonction_is>::value));
-  EXPECT_FALSE((is_functor<foonction_is, int>::value));
-  EXPECT_FALSE((is_functor<foonction_is, int, double>::value));
-  EXPECT_FALSE((is_functor<foonction_is, int, std::string>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction_is>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction_is, int>::value));
+  FATAL_EXPECT_FALSE((is_callable<foonction_is, int, double>::value));
+  FATAL_EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
 }
 
-/////////////////
-// is_callable //
-/////////////////
+//////////////////////////
+// enable_when::is_true //
+//////////////////////////
 
-TEST(type_traits, is_callable) {
-  auto const lambda = []() {};
-  auto const lambda_is = [](int, std::string) {};
+FATAL_TEST(enable_when, is_true) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_true, std::is_const<int const>
+  );
 
-  EXPECT_TRUE((is_callable<foonctor>::value));
-  EXPECT_FALSE((is_callable<foonctor, int>::value));
-  EXPECT_FALSE((is_callable<foonctor, int, double>::value));
-  EXPECT_TRUE((is_callable<foonctor, int, std::string>::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int>
+  );
 
-  EXPECT_TRUE((is_callable<decltype(lambda)>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int, double>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda), int, std::string>::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int const &>
+  );
 
-  EXPECT_FALSE((is_callable<decltype(lambda_is)>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda_is), int>::value));
-  EXPECT_FALSE((is_callable<decltype(lambda_is), int, double>::value));
-  EXPECT_TRUE((is_callable<decltype(lambda_is), int, std::string>::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int &>
+  );
 
-  EXPECT_TRUE((is_callable<foonction>::value));
-  EXPECT_FALSE((is_callable<foonction, int>::value));
-  EXPECT_FALSE((is_callable<foonction, int, double>::value));
-  EXPECT_FALSE((is_callable<foonction, int, std::string>::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int const &&>
+  );
 
-  EXPECT_FALSE((is_callable<foonction_is>::value));
-  EXPECT_FALSE((is_callable<foonction_is, int>::value));
-  EXPECT_FALSE((is_callable<foonction_is, int, double>::value));
-  EXPECT_TRUE((is_callable<foonction_is, int, std::string>::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_true, std::is_const<int &&>
+  );
 }
 
-/////////////////////////////////////////////
-// FATAL_CREATE_HAS_MEMBER_FUNCTION_TRAITS //
-/////////////////////////////////////////////
+///////////////////////////
+// enable_when::all_true //
+///////////////////////////
 
-namespace fbhmft {
-  FATAL_CREATE_HAS_MEMBER_FUNCTION_TRAITS(traits, fn);
+FATAL_TEST(enable_when, all_true) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::all_true, std::is_const<int const>
+  );
 
-  struct A {};
-  struct B {};
-  struct F {
-    int fn() { return 0; }
-    float fn(char) { return 0; }
-    short fn(double, A &) { return 0; }
-    double fn(A &&) { return 0; }
-    double fn(B const &&) { return 0; }
-    bool doit(std::string) { return false; }
-  };
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::all_true, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::all_true,
+    std::is_const<int const>, std::is_integral<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_true,
+    std::is_const<double const>, std::is_integral<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::all_true,
+    std::is_const<int const>,
+    std::is_integral<int const>,
+    std::is_signed<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_true,
+    std::is_const<unsigned const>,
+    std::is_integral<unsigned const>,
+    std::is_signed<unsigned const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_true,
+    std::is_const<double const>,
+    std::is_integral<double const>,
+    std::is_signed<double const>
+  );
+}
+
+///////////////////////////
+// enable_when::any_true //
+///////////////////////////
+
+FATAL_TEST(enable_when, any_true) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::any_true, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::any_true, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<int const>, std::is_integral<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<double const>, std::is_integral<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::any_true,
+    std::is_const<double>, std::is_integral<double>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<int const>,
+    std::is_integral<int const>,
+    std::is_unsigned<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<unsigned const>,
+    std::is_integral<unsigned const>,
+    std::is_unsigned<unsigned const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_true,
+    std::is_const<double const>,
+    std::is_integral<double const>,
+    std::is_unsigned<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::any_true,
+    std::is_const<double>,
+    std::is_integral<double>,
+    std::is_unsigned<double>
+  );
+}
+
+///////////////////////////
+// enable_when::is_false //
+///////////////////////////
+
+FATAL_TEST(enable_when, is_false) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_false, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int const &>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int &>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int const &&>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_false, std::is_const<int &&>
+  );
+}
+
+////////////////////////////
+// enable_when::all_false //
+////////////////////////////
+
+FATAL_TEST(enable_when, all_false) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::all_false, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::all_false, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<int const>, std::is_integral<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<double const>, std::is_integral<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::all_false,
+    std::is_const<double>, std::is_integral<double>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<int const>,
+    std::is_integral<int const>,
+    std::is_unsigned<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<unsigned const>,
+    std::is_integral<unsigned const>,
+    std::is_unsigned<unsigned const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::all_false,
+    std::is_const<double const>,
+    std::is_integral<double const>,
+    std::is_unsigned<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::all_false,
+    std::is_const<double>,
+    std::is_integral<double>,
+    std::is_unsigned<double>
+  );
+}
+
+////////////////////////////
+// enable_when::any_false //
+////////////////////////////
+
+FATAL_TEST(enable_when, any_false) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::any_false, std::is_const<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::any_false, std::is_const<int>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::any_false,
+    std::is_const<int const>, std::is_integral<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_false,
+    std::is_const<double const>, std::is_integral<double const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    variadic, enable_when::any_false,
+    std::is_const<int const>,
+    std::is_integral<int const>,
+    std::is_signed<int const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_false,
+    std::is_const<unsigned const>,
+    std::is_integral<unsigned const>,
+    std::is_signed<unsigned const>
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    variadic, enable_when::any_false,
+    std::is_const<double const>,
+    std::is_integral<double const>,
+    std::is_signed<double const>
+  );
+}
+
+///////////////////////////
+// enable_when::is_const //
+///////////////////////////
+
+FATAL_TEST(enable_when, is_const) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_const, int const
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_const, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_const, int const &
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_const, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::is_const, int const &&
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::is_const, int &&
+  );
+}
+
+////////////////////////////
+// enable_when::non_const //
+////////////////////////////
+
+FATAL_TEST(enable_when, non_const) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::non_const, int const
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::non_const, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::non_const, int const &
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::non_const, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::non_const, int const &&
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::non_const, int &&
+  );
+}
+
+///////////////////////////////////
+// enable_when::forwarded_rvalue //
+///////////////////////////////////
+
+FATAL_TEST(enable_when, forwarded_rvalue) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_rvalue, int const
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_rvalue, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::forwarded_rvalue, int const &
+  )
+  ;
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::forwarded_rvalue, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_rvalue, int const &&
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::forwarded_rvalue, int &&
+  );
+}
+
+//////////////////////////
+// enable_when::movable //
+//////////////////////////
+
+FATAL_TEST(enable_when, movable) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::movable, int const
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::movable, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::movable, int const &
+  )
+  ;
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::movable, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    unary, enable_when::movable, int const &&
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    unary, enable_when::movable, int &&
+  );
+}
+
+///////////////////////////
+// enable_when::callable //
+///////////////////////////
+
+struct non_callable {};
+
+FATAL_TEST(enable_when, callable [non-callable object]) {
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, std::string, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, non_callable, int
+  );
+}
+
+struct callable_nullary { void operator ()(); };
+struct callable_i { void operator ()(int); };
+struct callable_d { void operator ()(double); };
+struct callable_id { void operator ()(int, double); };
+struct callable_overloaded_i_d {
+  void operator ()(int);
+  void operator ()(double);
+};
+struct callable_overloaded_f_id {
+  void operator ()(float);
+  void operator ()(int, double);
 };
 
-TEST(type_traits, create_has_member_function_traits) {
-  using namespace fbhmft;
+FATAL_TEST(enable_when, callable [callable object]) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_nullary
+  );
 
-  EXPECT_TRUE((traits<F>::has_member::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_nullary, int
+  );
 
-  EXPECT_TRUE((traits<F, int>::has_member::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_nullary, std::string
+  );
 
-  EXPECT_TRUE((traits<F, char>::has_member::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_nullary, int, double
+  );
 
-  EXPECT_TRUE((traits<F, double>::has_member::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_nullary, int, int
+  );
 
-  EXPECT_FALSE((traits<F, double, A>::has_member::value));
-  EXPECT_TRUE((traits<F, double, A &>::has_member::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_i
+  );
 
-  EXPECT_TRUE((traits<F, A>::has_member::value));
-  EXPECT_FALSE((traits<F, A &>::has_member::value));
-  EXPECT_FALSE((traits<F, A const &>::has_member::value));
-  EXPECT_TRUE((traits<F, A &&>::has_member::value));
-  EXPECT_FALSE((traits<F, A const &&>::has_member::value));
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_i, int
+  );
 
-  EXPECT_TRUE((traits<F, B>::has_member::value));
-  EXPECT_FALSE((traits<F, B &>::has_member::value));
-  EXPECT_FALSE((traits<F, B const &>::has_member::value));
-  EXPECT_TRUE((traits<F, B &&>::has_member::value));
-  EXPECT_TRUE((traits<F, B const &&>::has_member::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_i, std::string
+  );
 
-  EXPECT_FALSE((traits<F, std::string>::has_member::value));
-  EXPECT_FALSE((traits<F, std::string &>::has_member::value));
-  EXPECT_FALSE((traits<F, std::string const &>::has_member::value));
-  EXPECT_FALSE((traits<F, std::string &&>::has_member::value));
-  EXPECT_FALSE((traits<F, std::string const &&>::has_member::value));
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_i, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_i, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_d
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_d, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_d, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_d, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_d, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_i_d
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_overloaded_i_d, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_i_d, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_i_d, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_i_d, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_f_id
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_overloaded_f_id, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_overloaded_f_id, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_overloaded_f_id, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_overloaded_f_id, int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_id
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_id, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, callable_id, std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_id, int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, callable_id, int, int
+  );
 }
 
-////////////////////////
-// safe_ctor_overload //
-////////////////////////
+void fun_nullary();
+void fun_i(int);
+void fun_d(double);
+void fun_id(int, double);
+
+FATAL_TEST(enable_when, callable [function]) {
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_nullary)
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_nullary), int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_nullary), std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_nullary), int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_nullary), int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_i)
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_i), int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_i), std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_i), int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_i), int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_d)
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_d), int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_d), std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_d), int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_d), int, int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_id)
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_id), int
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    t_variadic, enable_when::callable, decltype(fun_id), std::string
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_id), int, double
+  );
+
+  FATAL_EXPECT_TEMPLATE_COMPILES(
+    t_variadic, enable_when::callable, decltype(fun_id), int, int
+  );
+}
+
+///////////////////
+// safe_overload //
+///////////////////
 
 struct Base {};
 struct Derived: public Base {};
 struct Foo {};
 enum class ctor { def, copy, move, universal };
 
-TEST(type_traits, safe_ctor_overload) {
-  EXPECT_FALSE((safe_ctor_overload<Base, Base>::value));
-  EXPECT_FALSE((safe_ctor_overload<Base, Derived>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, int, int>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, void, void, void>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, Foo, Foo, Foo>::value));
-  EXPECT_TRUE((safe_ctor_overload<Base, int, void, Foo, bool>::value));
+FATAL_TEST(traits, safe_overload) {
+  FATAL_EXPECT_FALSE((safe_overload<Base, Base>::value));
+  FATAL_EXPECT_FALSE((safe_overload<Base, Derived>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, int>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, void>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, Foo>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, int, int>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, void, void>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, Foo, Foo>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, int, int, int>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, void, void, void>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, Foo, Foo, Foo>::value));
+  FATAL_EXPECT_TRUE((safe_overload<Base, int, void, Foo, bool>::value));
 }
 
 struct overloading_test {
@@ -672,8 +1220,8 @@ struct overloading_test {
   overloading_test(overloading_test &&) noexcept: type(ctor::move) {}
   template <
     typename T,
-    typename X = typename std::enable_if<
-      safe_ctor_overload<overloading_test, T>::value, void
+    typename = typename std::enable_if<
+      safe_overload<overloading_test, T>::value, void
     >::type
   >
   explicit overloading_test(T &&): type(ctor::universal) {}
@@ -681,17 +1229,17 @@ struct overloading_test {
   ctor type;
 };
 
-TEST(type_traits, safe_ctor_overload_nonvariadic) {
+FATAL_TEST(traits, safe_overload_nonvariadic) {
   overloading_test def;
-  EXPECT_EQ(ctor::def, def.type);
+  FATAL_EXPECT_EQ(ctor::def, def.type);
   overloading_test copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
+  FATAL_EXPECT_EQ(ctor::copy, copy.type);
   overloading_test move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
+  FATAL_EXPECT_EQ(ctor::move, move.type);
   overloading_test universal(0);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_EQ(ctor::universal, universal.type);
   overloading_test foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
+  FATAL_EXPECT_EQ(ctor::universal, foo.type);
 }
 
 struct variadic_overloading_test {
@@ -704,8 +1252,8 @@ struct variadic_overloading_test {
   {}
   template <
     typename... Args,
-    typename X = typename std::enable_if<
-      safe_ctor_overload<variadic_overloading_test, Args...>::value, void
+    typename = typename std::enable_if<
+      safe_overload<variadic_overloading_test, Args...>::value, void
     >::type
   >
   explicit variadic_overloading_test(Args &&...): type(ctor::universal) {}
@@ -713,19 +1261,19 @@ struct variadic_overloading_test {
   ctor type;
 };
 
-TEST(type_traits, safe_ctor_overload_variadic) {
+FATAL_TEST(traits, safe_overload_variadic) {
   variadic_overloading_test def;
-  EXPECT_EQ(ctor::def, def.type);
+  FATAL_EXPECT_EQ(ctor::def, def.type);
   variadic_overloading_test copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
+  FATAL_EXPECT_EQ(ctor::copy, copy.type);
   variadic_overloading_test move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
+  FATAL_EXPECT_EQ(ctor::move, move.type);
   variadic_overloading_test i(0);
-  EXPECT_EQ(ctor::universal, i.type);
+  FATAL_EXPECT_EQ(ctor::universal, i.type);
   variadic_overloading_test foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
+  FATAL_EXPECT_EQ(ctor::universal, foo.type);
   variadic_overloading_test universal(copy, move);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_EQ(ctor::universal, universal.type);
 }
 
 struct overloading_test_t {
@@ -734,23 +1282,23 @@ struct overloading_test_t {
   overloading_test_t(overloading_test_t &&) noexcept: type(ctor::move) {}
   template <
     typename T,
-    typename X = safe_ctor_overload_t<overloading_test_t, T>
+    typename = safe_overload_t<overloading_test_t, T>
   >
   explicit overloading_test_t(T &&): type(ctor::universal) {}
   ctor type;
 };
 
-TEST(type_traits, safe_ctor_overload_nonvariadic_t) {
+FATAL_TEST(traits, safe_overload_nonvariadic_t) {
   overloading_test_t def;
-  EXPECT_EQ(ctor::def, def.type);
+  FATAL_EXPECT_EQ(ctor::def, def.type);
   overloading_test_t copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
+  FATAL_EXPECT_EQ(ctor::copy, copy.type);
   overloading_test_t move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
+  FATAL_EXPECT_EQ(ctor::move, move.type);
   overloading_test_t universal(0);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_EQ(ctor::universal, universal.type);
   overloading_test_t foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
+  FATAL_EXPECT_EQ(ctor::universal, foo.type);
 }
 
 struct variadic_overloading_test_t {
@@ -763,73 +1311,587 @@ struct variadic_overloading_test_t {
   {}
   template <
     typename... Args,
-    typename X = safe_ctor_overload_t<variadic_overloading_test_t, Args...>
+    typename = safe_overload_t<variadic_overloading_test_t, Args...>
   >
   explicit variadic_overloading_test_t(Args &&...): type(ctor::universal) {}
   ctor type;
 };
 
-TEST(type_traits, safe_ctor_overload_variadic_t) {
+FATAL_TEST(traits, safe_overload_variadic_t) {
   variadic_overloading_test_t def;
-  EXPECT_EQ(ctor::def, def.type);
+  FATAL_EXPECT_EQ(ctor::def, def.type);
   variadic_overloading_test_t copy(def);
-  EXPECT_EQ(ctor::copy, copy.type);
+  FATAL_EXPECT_EQ(ctor::copy, copy.type);
   variadic_overloading_test_t move(std::move(def));
-  EXPECT_EQ(ctor::move, move.type);
+  FATAL_EXPECT_EQ(ctor::move, move.type);
   variadic_overloading_test_t i(0);
-  EXPECT_EQ(ctor::universal, i.type);
+  FATAL_EXPECT_EQ(ctor::universal, i.type);
   variadic_overloading_test_t foo{Foo()};
-  EXPECT_EQ(ctor::universal, foo.type);
+  FATAL_EXPECT_EQ(ctor::universal, foo.type);
   variadic_overloading_test_t universal(copy, move);
-  EXPECT_EQ(ctor::universal, universal.type);
+  FATAL_EXPECT_EQ(ctor::universal, universal.type);
 }
 
-template <typename, std::size_t, typename...> struct check_type_get_impl;
+//////////////////////////////
+// FATAL_HAS_MEMBER_TYPEDEF //
+//////////////////////////////
 
-template <typename T, std::size_t Index, typename TExpected, typename... Args>
-struct check_type_get_impl<T, Index, TExpected, Args...> {
-  static void check() {
-    typedef typename type_get<Index>::template type<T> TActual;
-    expect_same<TExpected, TActual>();
-    check_type_get_impl<T, Index + 1, Args...>::check();
-  }
-};
+namespace has_member_type_test {
+  struct foo { using xyz = int; };
+  struct bar { typedef int xyz; };
+  struct baz {};
 
-template <typename T, std::size_t Index>
-struct check_type_get_impl<T, Index> {
-  static void check() {}
-};
+  FATAL_HAS_MEMBER_TYPE(has_xyz, xyz);
+} // namespace has_member_type_test {
 
-template <typename... Args>
-void check_type_get_std_pair() {
-  check_type_get_impl<std::pair<Args...>, 0, Args...>::check();
-}
-
-TEST(type_get, std_pair) {
-  check_type_get_std_pair<bool, bool>();
-  check_type_get_std_pair<bool, int>();
-  check_type_get_std_pair<int, double>();
-  check_type_get_std_pair<int, std::string>();
-  check_type_get_std_pair<bool, int>();
-  check_type_get_std_pair<std::string, std::string>();
-  check_type_get_std_pair<std::string, float>();
-}
-
-template <typename... Args>
-void check_type_get_std_tuple() {
-  check_type_get_impl<std::tuple<Args...>, 0, Args...>::check();
-}
-
-TEST(type_get, std_tuple) {
-  check_type_get_std_tuple<>();
-  check_type_get_std_tuple<bool>();
-  check_type_get_std_tuple<int, double>();
-  check_type_get_std_tuple<int, int, float>();
-  check_type_get_std_tuple<
-    std::tuple<bool, int>,
-    std::tuple<std::string, std::string>,
-    std::tuple<std::string, std::string, bool>
+FATAL_TEST(traits, has_member_type) {
+  FATAL_EXPECT_SAME<
+    std::true_type,
+    has_member_type_test::has_xyz::check<has_member_type_test::foo>
   >();
+
+  FATAL_EXPECT_SAME<
+    std::true_type,
+    has_member_type_test::has_xyz::check<has_member_type_test::bar>
+  >();
+
+  FATAL_EXPECT_SAME<
+    std::false_type,
+    has_member_type_test::has_xyz::check<has_member_type_test::baz>
+  >();
+}
+
+//////////////////////////////
+// FATAL_DATA_MEMBER_GETTER //
+//////////////////////////////
+
+namespace data_member_getter_test {
+
+struct data {
+  data(
+    int i, std::string const &s, long &&l, double const d,
+    bool &b, std::vector<short> v, float const &&f
+  ):
+    i(i), s(s), l(std::move(l)), d(d), b(b), v(v), f(std::move(f))
+  {}
+
+  int i;
+  std::string const &s;
+  long &&l;
+  double const d;
+  bool &b;
+  std::vector<short> v;
+  float const &&f;
+};
+
+struct getter {
+# define TEST_IMPL(...) \
+  FATAL_DATA_MEMBER_GETTER(__VA_ARGS__, __VA_ARGS__)
+
+  TEST_IMPL(i);
+  TEST_IMPL(s);
+  TEST_IMPL(l);
+  TEST_IMPL(d);
+  TEST_IMPL(b);
+  TEST_IMPL(v);
+  TEST_IMPL(f);
+
+# undef TEST_IMPL
+};
+
+} // namespace data_member_getter_test {
+
+FATAL_TEST(data_member_getter, type) {
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data>>();\
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &>>();\
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &&>>();\
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &&>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short>);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(data_member_getter, reference) {
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data>>();\
+  } while (false)
+
+  TEST_IMPL(i, int &&);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const &&);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short> &&);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &>>();\
+  } while (false)
+
+  TEST_IMPL(i, int &);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &);
+  TEST_IMPL(d, double const &);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short> &);
+  TEST_IMPL(f, float const &);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &&>>();\
+  } while (false)
+
+  TEST_IMPL(i, int &&);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long &&);
+  TEST_IMPL(d, double const &&);
+  TEST_IMPL(b, bool &);
+  TEST_IMPL(v, std::vector<short> &&);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const &&);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long const &&);
+  TEST_IMPL(d, double const &&);
+  TEST_IMPL(b, bool const &);
+  TEST_IMPL(v, std::vector<short> const &&);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const &>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const &);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long const &);
+  TEST_IMPL(d, double const &);
+  TEST_IMPL(b, bool const &);
+  TEST_IMPL(v, std::vector<short> const &);
+  TEST_IMPL(f, float const &);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const &&>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const &&);
+  TEST_IMPL(s, std::string const &);
+  TEST_IMPL(l, long const &&);
+  TEST_IMPL(d, double const &&);
+  TEST_IMPL(b, bool const &);
+  TEST_IMPL(v, std::vector<short> const &&);
+  TEST_IMPL(f, float const &&);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(data_member_getter, pointer) {
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data>>();\
+  } while (false)
+
+  TEST_IMPL(i, int *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool *);
+  TEST_IMPL(v, std::vector<short> *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &>>();\
+  } while (false)
+
+  TEST_IMPL(i, int *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool *);
+  TEST_IMPL(v, std::vector<short> *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &&>>();\
+  } while (false)
+
+  TEST_IMPL(i, int *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool *);
+  TEST_IMPL(v, std::vector<short> *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long const *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool const *);
+  TEST_IMPL(v, std::vector<short> const *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const &>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long const *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool const *);
+  TEST_IMPL(v, std::vector<short> const *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Field, ...) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const &&>>(); \
+  } while (false)
+
+  TEST_IMPL(i, int const *);
+  TEST_IMPL(s, std::string const *);
+  TEST_IMPL(l, long const *);
+  TEST_IMPL(d, double const *);
+  TEST_IMPL(b, bool const *);
+  TEST_IMPL(v, std::vector<short> const *);
+  TEST_IMPL(f, float const *);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(data_member_getter, get_ptr) {
+  int i = 99;
+  std::string const s("hello, world!");
+  long l = 27;
+  double const d = 5.6;
+  bool b = true;
+  std::vector<short> v{1, 2, 3, 4, 5, 6};
+  float const f = 7.2;
+
+  data_member_getter_test::data x(i, s, std::move(l), d, b, v, std::move(f));
+  auto const &y = x;
+
+  FATAL_ASSERT_EQ(i, x.i);
+  FATAL_ASSERT_EQ(s, x.s);
+  FATAL_ASSERT_EQ(l, x.l);
+  FATAL_ASSERT_EQ(d, x.d);
+  FATAL_ASSERT_EQ(b, x.b);
+  FATAL_ASSERT_EQ(v, x.v);
+  FATAL_ASSERT_EQ(f, x.f);
+
+# define TEST_IMPL(Data, Field) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    \
+    FATAL_EXPECT_EQ(Field, getter::Field::ref(Data)); \
+    FATAL_EXPECT_EQ(Field, getter::Field::ref_getter()(Data)); \
+    \
+    FATAL_EXPECT_EQ(Data.Field, getter::Field::ref(Data)); \
+    FATAL_EXPECT_EQ(Data.Field, getter::Field::ref_getter()(Data)); \
+    \
+    FATAL_EXPECT_EQ( \
+      std::addressof(Data.Field), \
+      std::addressof(getter::Field::ref(Data)) \
+    ); \
+    \
+    FATAL_EXPECT_EQ( \
+      std::addressof(Data.Field), \
+      std::addressof(getter::Field::ref_getter()(Data)) \
+    ); \
+    \
+    FATAL_EXPECT_SAME< \
+      std::add_lvalue_reference< \
+        constify_from< \
+          decltype(Data.Field), \
+          std::remove_reference<decltype(Data)>::type \
+        >::type \
+      >::type, \
+      decltype(getter::Field::ref(Data)) \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      std::add_lvalue_reference< \
+        constify_from< \
+          decltype(Data.Field), \
+          std::remove_reference<decltype(Data)>::type \
+        >::type \
+      >::type, \
+      decltype(getter::Field::ref_getter()(Data)) \
+    >(); \
+  } while (false)
+
+  TEST_IMPL(x, i);
+  TEST_IMPL(x, s);
+  TEST_IMPL(x, l);
+  TEST_IMPL(x, d);
+  TEST_IMPL(x, b);
+  TEST_IMPL(x, v);
+  TEST_IMPL(x, f);
+
+  TEST_IMPL(y, i);
+  TEST_IMPL(y, s);
+  TEST_IMPL(y, l);
+  TEST_IMPL(y, d);
+  TEST_IMPL(y, b);
+  TEST_IMPL(y, v);
+  TEST_IMPL(y, f);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Data, Field) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    \
+    FATAL_EXPECT_EQ(Field, getter::Field::ref(std::move(Data))); \
+    FATAL_EXPECT_EQ(Field, getter::Field::ref_getter()(std::move(Data))); \
+    \
+    FATAL_EXPECT_EQ( \
+      std::move(Data).Field, \
+      getter::Field::ref(std::move(Data)) \
+    ); \
+    FATAL_EXPECT_EQ( \
+      std::move(Data).Field, \
+      getter::Field::ref_getter()(std::move(Data)) \
+    ); \
+    \
+    FATAL_EXPECT_SAME< \
+      std::add_rvalue_reference< \
+        constify_from< \
+          decltype(std::move(Data).Field), \
+          std::remove_reference<decltype(std::move(Data))>::type \
+        >::type \
+      >::type, \
+      decltype(getter::Field::ref(std::move(Data))) \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      std::add_rvalue_reference< \
+        constify_from< \
+          decltype(std::move(Data).Field), \
+          std::remove_reference<decltype(std::move(Data))>::type \
+        >::type \
+      >::type, \
+      decltype(getter::Field::ref_getter()(std::move(Data))) \
+    >(); \
+  } while (false)
+
+  TEST_IMPL(x, i);
+  TEST_IMPL(x, s);
+  TEST_IMPL(x, l);
+  TEST_IMPL(x, d);
+  TEST_IMPL(x, b);
+  TEST_IMPL(x, v);
+  TEST_IMPL(x, f);
+
+  TEST_IMPL(y, i);
+  TEST_IMPL(y, s);
+  TEST_IMPL(y, l);
+  TEST_IMPL(y, d);
+  TEST_IMPL(y, b);
+  TEST_IMPL(y, v);
+  TEST_IMPL(y, f);
+
+# undef TEST_IMPL
+# define TEST_IMPL(Data, Field) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    \
+    FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::Field::ptr(Data)); \
+    FATAL_EXPECT_EQ( \
+      std::addressof(Data.Field), \
+      getter::Field::ptr_getter()(Data) \
+    ); \
+    \
+    FATAL_EXPECT_SAME< \
+      constify_from< \
+        std::remove_pointer<decltype(std::addressof(Data.Field))>::type, \
+        std::remove_reference<decltype(Data)>::type \
+      >::type *, \
+      decltype(getter::Field::ptr(Data)) \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      constify_from< \
+        std::remove_pointer<decltype(std::addressof(Data.Field))>::type, \
+        std::remove_reference<decltype(Data)>::type \
+      >::type *, \
+      decltype(getter::Field::ptr_getter()(Data)) \
+    >(); \
+  } while (false)
+
+  TEST_IMPL(x, i);
+  TEST_IMPL(x, s);
+  TEST_IMPL(x, l);
+  TEST_IMPL(x, d);
+  TEST_IMPL(x, b);
+  TEST_IMPL(x, v);
+  TEST_IMPL(x, f);
+
+  TEST_IMPL(y, i);
+  TEST_IMPL(y, s);
+  TEST_IMPL(y, l);
+  TEST_IMPL(y, d);
+  TEST_IMPL(y, b);
+  TEST_IMPL(y, v);
+  TEST_IMPL(y, f);
+
+# undef TEST_IMPL
 }
 
 } // namespace fatal {

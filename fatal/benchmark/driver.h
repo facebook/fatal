@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -7,21 +7,21 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#pragma once
+#ifndef FATAL_INCLUDE_fatal_benchmark_driver_h
+#define FATAL_INCLUDE_fatal_benchmark_driver_h
 
-#include <folly/Benchmark.h>
+#include <fatal/benchmark/benchmark.h>
 
-#include <glog/logging.h>
+#include <iostream>
 
 ////////////
 // DRIVER //
 ////////////
 
-int main(int argc, char **argv) {
-  google::InitGoogleLogging(argc > 0 ? argv[0] : "unknown");
-  google::ParseCommandLineFlags(&argc, &argv, true);
-
-  folly::runBenchmarks();
+int main() {
+  fatal::benchmark::run(std::cout);
 
   return 0;
 }
+
+#endif // FATAL_INCLUDE_fatal_benchmark_driver_h

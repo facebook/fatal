@@ -1,20 +1,51 @@
 language: cpp
 
+os:
+  - linux
+
+compiler:
+  - clang
+
+sudo: false
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - bash
+    - coreutils
+    - g++-4.8
+    - g++-4.9
+    - g++-5
+    - clang-3.4
+    - clang-3.5
+
+before_install:
+  - echo $LANG
+  - echo $LC_ALL
+  - lsb_release -a
+  - uname -a
+
+install:
+  - apt-cache search '^g\+\+|^clang'
+
 before_script:
   - echo $LANG
   - echo $LC_ALL
-  - if [ $TRAVIS_OS_NAME == linux ]; then lsb_release -a; uname -a; sudo apt-get update && apt-cache search '^g\+\+|^clang' && sudo apt-get install -y bash coreutils ncurses-bin clang-3.4; fi
+  - lsb_release -a
+  - uname -a
+  - apt-cache search '^g\+\+|^clang'
 
-script: bash -c 'pwd && ls && USE_CC=clang++-3.4 ./validate.sh'
+script:
+  - ./contbuild.sh
 
 branches:
   only:
+    - master
     - dev
 
 notifications:
   email:
     on_success: change
     on_failure: always
-
-os:
-  - linux

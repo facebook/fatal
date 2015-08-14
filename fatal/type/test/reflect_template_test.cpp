@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -38,116 +38,122 @@ template <long... values> using lseq = seq<long, values...>;
 // reflect_template - non_template //
 /////////////////////////////////////
 
-TEST(reflect_template_non_template, type) {
-  expect_same<
+FATAL_TEST(reflect_template_non_template, type) {
+  FATAL_EXPECT_SAME<
     foo,
     reflect_template<foo>::type
   >();
 }
 
-TEST(reflect_template_non_template, tag) {
-  EXPECT_EQ(
+FATAL_TEST(reflect_template_non_template, tag) {
+  FATAL_EXPECT_EQ(
     reflect_template_category::non_template,
     (reflect_template<foo>::category::value)
   );
 }
 
-TEST(reflect_template_non_template, is_same_tl) {
-  EXPECT_FALSE((reflect_template<foo>::is_same_tl<lst>::value));
-  EXPECT_FALSE((reflect_template<foo>::is_same_tl<lst2>::value));
+FATAL_TEST(reflect_template_non_template, is_same_tl) {
+  FATAL_EXPECT_FALSE((reflect_template<foo>::is_same_tl<lst>::value));
+  FATAL_EXPECT_FALSE((reflect_template<foo>::is_same_tl<lst2>::value));
 }
 
-TEST(reflect_template_non_template, is_same_tvl) {
-  EXPECT_FALSE((reflect_template<foo>::is_same_tvl<seq>::value));
-  EXPECT_FALSE((reflect_template<foo>::is_same_tvl<seq2>::value));
+FATAL_TEST(reflect_template_non_template, is_same_tvl) {
+  FATAL_EXPECT_FALSE((reflect_template<foo>::is_same_tvl<seq>::value));
+  FATAL_EXPECT_FALSE((reflect_template<foo>::is_same_tvl<seq2>::value));
 }
 
 //////////////////////////////////
 // reflect_template - type_list //
 //////////////////////////////////
 
-TEST(reflect_template_type_list, type) {
-  expect_same<
+FATAL_TEST(reflect_template_type_list, type) {
+  FATAL_EXPECT_SAME<
     ilstt<0, 1, 2>,
     reflect_template<ilstt<0, 1, 2>>::type
   >();
 }
 
-TEST(reflect_template_type_list, tag) {
-  EXPECT_EQ(
+FATAL_TEST(reflect_template_type_list, tag) {
+  FATAL_EXPECT_EQ(
     reflect_template_category::type_list,
     (reflect_template<ilstt<0, 1, 2>>::category::value)
   );
 }
 
-TEST(reflect_template_type_list, rebind) {
-  expect_same<
+FATAL_TEST(reflect_template_type_list, rebind) {
+  FATAL_EXPECT_SAME<
     ilsts<0, 1, 2>,
     reflect_template<ilstt<0, 1, 2>>::rebind<S<0>, S<1>, S<2>>
   >();
 }
 
-TEST(reflect_template_type_list, types) {
-  expect_same<
+FATAL_TEST(reflect_template_type_list, types) {
+  FATAL_EXPECT_SAME<
     type_list<T<0>, T<1>, T<2>>,
     reflect_template<ilstt<0, 1, 2>>::types
   >();
 }
 
-TEST(reflect_template_type_list, is_same_tl) {
-  EXPECT_TRUE((reflect_template<ilstt<0, 1, 2>>::is_same_tl<lst>::value));
-  EXPECT_FALSE((reflect_template<ilstt<0, 1, 2>>::is_same_tl<lst2>::value));
+FATAL_TEST(reflect_template_type_list, is_same_tl) {
+  FATAL_EXPECT_TRUE((reflect_template<ilstt<0, 1, 2>>::is_same_tl<lst>::value));
+  FATAL_EXPECT_FALSE(
+    (reflect_template<ilstt<0, 1, 2>>::is_same_tl<lst2>::value)
+  );
 }
 
-TEST(reflect_template_type_list, is_same_tvl) {
-  EXPECT_FALSE((reflect_template<ilstt<0, 1, 2>>::is_same_tvl<seq>::value));
-  EXPECT_FALSE((reflect_template<ilstt<0, 1, 2>>::is_same_tvl<seq2>::value));
+FATAL_TEST(reflect_template_type_list, is_same_tvl) {
+  FATAL_EXPECT_FALSE(
+    (reflect_template<ilstt<0, 1, 2>>::is_same_tvl<seq>::value)
+  );
+  FATAL_EXPECT_FALSE(
+    (reflect_template<ilstt<0, 1, 2>>::is_same_tvl<seq2>::value)
+  );
 }
 
 /////////////////////////////////////////
 // reflect_template - typed_value_list //
 /////////////////////////////////////////
 
-TEST(reflect_template_typed_value_list, type) {
-  expect_same<
+FATAL_TEST(reflect_template_typed_value_list, type) {
+  FATAL_EXPECT_SAME<
     iseq<0, 1, 2>,
     reflect_template<iseq<0, 1, 2>>::type
   >();
 }
 
-TEST(reflect_template_typed_value_list, tag) {
-  EXPECT_EQ(
+FATAL_TEST(reflect_template_typed_value_list, tag) {
+  FATAL_EXPECT_EQ(
     reflect_template_category::typed_value_list,
     (reflect_template<iseq<0, 1, 2>>::category::value)
   );
 }
 
-TEST(reflect_template_typed_value_list, value_type) {
-  expect_same<reflect_template<iseq<0, 1, 2>>::value_type, int>();
-  expect_same<reflect_template<lseq<0, 1, 2>>::value_type, long>();
+FATAL_TEST(reflect_template_typed_value_list, value_type) {
+  FATAL_EXPECT_SAME<reflect_template<iseq<0, 1, 2>>::value_type, int>();
+  FATAL_EXPECT_SAME<reflect_template<lseq<0, 1, 2>>::value_type, long>();
 }
 
-TEST(reflect_template_typed_value_list, rebind) {
-  expect_same<
+FATAL_TEST(reflect_template_typed_value_list, rebind) {
+  FATAL_EXPECT_SAME<
     iseq<3, 4, 5>,
-    reflect_template<iseq<0, 1, 2>>::rebind<>::type<3, 4, 5>
+    reflect_template<iseq<0, 1, 2>>::rebind<>::apply<3, 4, 5>
   >();
 
-  expect_same<
+  FATAL_EXPECT_SAME<
     lseq<3, 4, 5>,
-    reflect_template<iseq<0, 1, 2>>::rebind<long>::type<3, 4, 5>
+    reflect_template<iseq<0, 1, 2>>::rebind<long>::apply<3, 4, 5>
   >();
 }
 
-TEST(reflect_template_typed_value_list, values) {
-  expect_same<
+FATAL_TEST(reflect_template_typed_value_list, values) {
+  FATAL_EXPECT_SAME<
     constant_sequence<int, 0, 1, 2>,
     reflect_template<iseq<0, 1, 2>>::values
   >();
 }
 
-TEST(reflect_template_typed_value_list, types) {
-  expect_same<
+FATAL_TEST(reflect_template_typed_value_list, types) {
+  FATAL_EXPECT_SAME<
     type_list<
       std::integral_constant<int, 0>,
       std::integral_constant<int, 1>,
@@ -157,14 +163,18 @@ TEST(reflect_template_typed_value_list, types) {
   >();
 }
 
-TEST(reflect_template_typed_value_list, is_same_tl) {
-  EXPECT_FALSE((reflect_template<iseq<0, 1, 2>>::is_same_tl<lst>::value));
-  EXPECT_FALSE((reflect_template<iseq<0, 1, 2>>::is_same_tl<lst2>::value));
+FATAL_TEST(reflect_template_typed_value_list, is_same_tl) {
+  FATAL_EXPECT_FALSE((reflect_template<iseq<0, 1, 2>>::is_same_tl<lst>::value));
+  FATAL_EXPECT_FALSE(
+    (reflect_template<iseq<0, 1, 2>>::is_same_tl<lst2>::value)
+  );
 }
 
-TEST(reflect_template_typed_value_list, is_same_tvl) {
-  EXPECT_TRUE((reflect_template<iseq<0, 1, 2>>::is_same_tvl<seq>::value));
-  EXPECT_FALSE((reflect_template<iseq<0, 1, 2>>::is_same_tvl<seq2>::value));
+FATAL_TEST(reflect_template_typed_value_list, is_same_tvl) {
+  FATAL_EXPECT_TRUE((reflect_template<iseq<0, 1, 2>>::is_same_tvl<seq>::value));
+  FATAL_EXPECT_FALSE(
+    (reflect_template<iseq<0, 1, 2>>::is_same_tvl<seq2>::value)
+  );
 }
 
 } // namespace fatal {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2015, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -11,14 +11,12 @@
 
 #include <fatal/test/driver.h>
 
-#include <folly/Arena.h>
-#include <folly/Memory.h>
-#include <folly/Optional.h>
-#include <folly/String.h>
-#include <folly/dynamic.h>
+#include <fatal/container/optional.h>
 
+#include <algorithm>
 #include <initializer_list>
 #include <map>
+#include <memory>
 #include <queue>
 #include <stdexcept>
 #include <string>
@@ -28,95 +26,187 @@
 #include <utility>
 #include <vector>
 
+#include <cassert>
+
 namespace fatal {
 
-using namespace folly;
+static std::uintmax_t allocated = 0;
+static std::uintmax_t freed = 0;
 
-static unsigned long long allocated = 0;
-static unsigned long long freed = 0;
+struct free_deleter {
+  void operator ()(void *p) const {
+    assert(p);
+    std::free(p);
+  }
+};
 
-template <typename Allocator, typename T>
-struct MemoryLeakCheckerAllocator {
-  typedef T value_type;
-  typedef value_type *pointer;
-  typedef value_type const *const_pointer;
-  typedef value_type &reference;
-  typedef value_type const *const_reference;
+template <typename T>
+struct test_allocator {
+  using value_type = T;
+  using pointer = value_type *;
+  using const_pointer = value_type const *;
+  using reference = value_type &;
+  using const_reference = value_type const *;
 
-  typedef std::ptrdiff_t difference_type;
-  typedef std::size_t size_type;
+  using difference_type = std::ptrdiff_t;
+  using size_type = std::ptrdiff_t;
+
+private:
+  using chunk_t = std::unique_ptr<void, free_deleter>;
+  using chunk_map = std::unordered_map<void *, chunk_t>;
+  using shared_chunk = std::shared_ptr<chunk_map>;
+
+public:
+  test_allocator(): chunks_(std::make_shared<chunk_map>()) {}
+
+  template <typename U>
+  explicit test_allocator(test_allocator<U> const &rhs):
+    chunks_(rhs.chunks())
+  {}
+
+  template <typename U>
+  explicit test_allocator(test_allocator<U> &&rhs):
+    chunks_(std::move(rhs.chunks()))
+  {}
+
+  pointer allocate(size_type n, void const * = nullptr) {
+    for (auto tries = 3; tries--; ) {
+      chunk_t buffer(std::malloc(sizeof(value_type) * n));
+      auto p = buffer.get();
+
+      // TODO: use std::align() when available
+      if (!p || reinterpret_cast<std::uintptr_t>(p) % alignof(value_type)) {
+        continue;
+      }
+
+      assert(chunks_->find(p) == chunks_->end());
+      (*chunks_)[p] = std::move(buffer);
+      return static_cast<pointer>(p);
+    }
+
+    return nullptr;
+  }
+
+  void deallocate(pointer p, size_type n) {
+    assert(chunks_->find(p) != chunks_->end());
+    chunks_->erase(p);
+  }
+
+  size_type max_size() const { return std::numeric_limits<size_type>::max(); }
+
+  template <typename... Args>
+  void construct(pointer p, Args &&...args) {
+    new (p) value_type(std::forward<Args>(args)...);
+  }
+
+  void destroy(pointer p) {
+    assert(p);
+    p->~value_type();
+  }
+
+  template <typename U>
+  struct rebind {
+    using other = test_allocator<U>;
+  };
+
+  bool operator !=(test_allocator const &rhs) const {
+    return chunks_ != rhs.chunks_;
+  }
+
+  bool operator ==(test_allocator const &rhs) const {
+    return chunks_ == rhs.chunks_;
+  }
+
+  shared_chunk const &chunks() const { return chunks_; }
+  shared_chunk &chunks() { return chunks_; }
+
+private:
+  shared_chunk chunks_;
+};
+
+template <
+  typename TAllocator,
+  typename T = typename std::allocator_traits<TAllocator>::value_type
+>
+struct checked_allocator {
+  using allocator_type = TAllocator;
+  using value_type = T;
+  using pointer = value_type *;
+  using const_pointer = value_type const *;
+  using reference = value_type &;
+  using const_reference = value_type const *;
+
+  using difference_type = std::ptrdiff_t;
+  using size_type = std::size_t;
 
   static_assert(
-    std::is_same<value_type, typename Allocator::value_type>::value,
+    std::is_same<value_type, typename allocator_type::value_type>::value,
     "wrapped allocator has a different value_type"
   );
 
-  explicit MemoryLeakCheckerAllocator() {}
+  checked_allocator() = default;
 
-  explicit MemoryLeakCheckerAllocator(Allocator allocator):
-    allocator_(allocator)
-  {}
+  explicit checked_allocator(allocator_type allocator): allocator_(allocator) {}
 
   template <typename UAllocator, typename U>
-  MemoryLeakCheckerAllocator(
-    MemoryLeakCheckerAllocator<UAllocator, U> const &other
-  ):
+  checked_allocator(checked_allocator<UAllocator, U> const &other):
     allocator_(other.allocator())
   {}
 
-  value_type* allocate(size_t n, const void* hint = nullptr) {
+  pointer allocate(size_type n, void const *hint = nullptr) {
     auto p = allocator_.allocate(n, hint);
     allocated += n * sizeof(value_type);
     return p;
   }
 
-  void deallocate(value_type* p, size_t n) {
+  void deallocate(pointer p, size_type n) {
     allocator_.deallocate(p, n);
     freed += n * sizeof(value_type);
   }
 
-  size_t max_size() const { return allocator_.max_size(); }
+  size_type max_size() const { return allocator_.max_size(); }
 
   template <typename... Args>
-  void construct(value_type* p, Args&&... args) {
+  void construct(pointer p, Args &&...args) {
     allocator_.construct(p, std::forward<Args>(args)...);
   }
 
-  void destroy(value_type* p) { allocator_.destroy(p); }
+  void destroy(pointer p) { allocator_.destroy(p); }
 
   template <typename U>
   struct rebind {
-    typedef MemoryLeakCheckerAllocator<
-      typename std::allocator_traits<Allocator>::template rebind_alloc<U>,
+    using other = checked_allocator<
+      typename std::allocator_traits<allocator_type>::template rebind_alloc<U>,
       U
-    > other;
+    >;
   };
 
-  Allocator const &allocator() const { return allocator_; }
+  allocator_type const &allocator() const { return allocator_; }
 
-  bool operator !=(MemoryLeakCheckerAllocator const &other) const {
+  bool operator !=(checked_allocator const &other) const {
     return allocator_ != other.allocator_;
   }
 
-  bool operator ==(MemoryLeakCheckerAllocator const &other) const {
+  bool operator ==(checked_allocator const &other) const {
     return allocator_ == other.allocator_;
   }
 
 private:
-  Allocator allocator_;
+  allocator_type allocator_;
 };
 
-MemoryLeakCheckerAllocator<
-  typename default_storage_policy<>::allocator_type::rebind<int>::other, int
+checked_allocator<
+  typename default_storage_policy<>::allocator_type::rebind<int>::other
 > allocator{
   typename default_storage_policy<>::allocator_type::rebind<int>::other()
 };
 
+using test_policy = default_storage_policy<decltype(allocator)>;
+
 template <typename... Args>
-using test_variant = variant<
-  default_storage_policy<decltype(allocator)>,
-  Args...
->;
+using test_variant = variant<test_policy, Args...>;
+
+using empty_var = test_variant<>;
 
 template <typename T>
 using basic_test_string = std::basic_string<
@@ -125,7 +215,7 @@ using basic_test_string = std::basic_string<
   typename decltype(allocator)::template rebind<char>::other
 >;
 
-typedef basic_test_string<char> test_string;
+using test_string = basic_test_string<char>;
 
 template <typename T>
 using test_vector = std::vector<
@@ -137,49 +227,179 @@ using test_vector = std::vector<
 // UNIT TESTS //
 ////////////////
 
-TEST(variant, is_variant) {
-  LOG(INFO) << "is_variant -> variant";
-  EXPECT_TRUE((is_variant<test_variant<>>::value));
-  EXPECT_TRUE((is_variant<test_variant<bool>>::value));
-  EXPECT_TRUE((is_variant<test_variant<int>>::value));
-  EXPECT_TRUE((is_variant<test_variant<double>>::value));
-  EXPECT_TRUE((is_variant<test_variant<long>>::value));
-  EXPECT_TRUE((is_variant<test_variant<test_string>>::value));
-  EXPECT_TRUE((is_variant<test_variant<int, double, long>>::value));
-  EXPECT_TRUE((is_variant<test_variant<int, double, test_string>>::value));
+FATAL_TEST(variant, is_variant) {
+  FATAL_VLOG(1) << "is_variant -> variant";
+  FATAL_EXPECT_TRUE((is_variant<test_variant<>>::value));
+  FATAL_EXPECT_TRUE((is_variant<test_variant<bool>>::value));
+  FATAL_EXPECT_TRUE((is_variant<test_variant<int>>::value));
+  FATAL_EXPECT_TRUE((is_variant<test_variant<double>>::value));
+  FATAL_EXPECT_TRUE((is_variant<test_variant<long>>::value));
+  FATAL_EXPECT_TRUE((is_variant<test_variant<test_string>>::value));
+  FATAL_EXPECT_TRUE((is_variant<test_variant<int, double, long>>::value));
+  FATAL_EXPECT_TRUE(
+    (is_variant<test_variant<int, double, test_string>>::value)
+  );
 
-  LOG(INFO) << "is_variant -> single types";
-  EXPECT_FALSE((is_variant<bool>::value));
-  EXPECT_FALSE((is_variant<int>::value));
-  EXPECT_FALSE((is_variant<double>::value));
-  EXPECT_FALSE((is_variant<long>::value));
-  EXPECT_FALSE((is_variant<test_string>::value));
+  FATAL_VLOG(1) << "is_variant -> single types";
+  FATAL_EXPECT_FALSE((is_variant<bool>::value));
+  FATAL_EXPECT_FALSE((is_variant<int>::value));
+  FATAL_EXPECT_FALSE((is_variant<double>::value));
+  FATAL_EXPECT_FALSE((is_variant<long>::value));
+  FATAL_EXPECT_FALSE((is_variant<test_string>::value));
 
-  LOG(INFO) << "is_variant -> tuple";
-  EXPECT_FALSE((is_variant<std::tuple<>>::value));
-  EXPECT_FALSE((is_variant<std::tuple<bool>>::value));
-  EXPECT_FALSE((is_variant<std::tuple<int>>::value));
-  EXPECT_FALSE((is_variant<std::tuple<double>>::value));
-  EXPECT_FALSE((is_variant<std::tuple<long>>::value));
-  EXPECT_FALSE((is_variant<std::tuple<test_string>>::value));
-  EXPECT_FALSE((is_variant<std::tuple<int, double, long>>::value));
-  EXPECT_FALSE((is_variant<std::tuple<int, double, test_string>>::value));
+  FATAL_VLOG(1) << "is_variant -> tuple";
+  FATAL_EXPECT_FALSE((is_variant<std::tuple<>>::value));
+  FATAL_EXPECT_FALSE((is_variant<std::tuple<bool>>::value));
+  FATAL_EXPECT_FALSE((is_variant<std::tuple<int>>::value));
+  FATAL_EXPECT_FALSE((is_variant<std::tuple<double>>::value));
+  FATAL_EXPECT_FALSE((is_variant<std::tuple<long>>::value));
+  FATAL_EXPECT_FALSE((is_variant<std::tuple<test_string>>::value));
+  FATAL_EXPECT_FALSE((is_variant<std::tuple<int, double, long>>::value));
+  FATAL_EXPECT_FALSE((is_variant<std::tuple<int, double, test_string>>::value));
 }
 
-TEST(variant, default_ctor) {
+FATAL_TEST(variant, default_ctor) {
   test_variant<int, test_string, double> v(allocator);
-  typedef decltype(v) var;
-  EXPECT_EQ(var::no_tag(), v.tag());
-  EXPECT_TRUE(v.empty());
+  using var = decltype(v);
+  FATAL_EXPECT_EQ(var::no_tag(), v.tag());
+  FATAL_EXPECT_TRUE(v.empty());
 }
 
-TEST(variant, getters) {
+test_variant<int, test_string, double> make_variant() {
+  return test_variant<int, test_string, double>(allocator, 10);
+}
+
+FATAL_TEST(variant, getters) {
   test_variant<int, test_string, double> v(allocator, 10);
 
-  EXPECT_TRUE(v.is_of<int>());
-  EXPECT_EQ(10, (v.unchecked_get<int>()));
-  EXPECT_EQ(10, (v.get<int>()));
-  EXPECT_THROW((v.get<double>()), std::invalid_argument);
+  FATAL_EXPECT_TRUE(v.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v.unchecked_get<int>()));
+  FATAL_EXPECT_EQ(10, (make_variant().unchecked_get<int>()));
+  FATAL_EXPECT_EQ(10, (v.get<int>()));
+  FATAL_EXPECT_EQ(10, (make_variant().get<int>()));
+  FATAL_EXPECT_THROW(std::invalid_argument) {
+    v.get<double>();
+  };
+  FATAL_EXPECT_THROW(std::invalid_argument) {
+    make_variant().get<double>();
+  };
+}
+
+FATAL_TEST(variant, lvalue_setters) {
+  test_variant<int> v;
+  static_assert(std::is_lvalue_reference<decltype(v.set(0))>::value,
+      "set must return a lvalue reference when the variant is a lvalue.");
+  static_assert(std::is_lvalue_reference<decltype(v.emplace<int>(0))>::value,
+      "emplace must return a lvalue reference when the variant is a lvalue.");
+  static_assert(std::is_lvalue_reference<decltype(v = 0)>::value,
+      "operator= must return a lvalue reference when the variant is a lvalue.");
+  auto& x = v.set(10);
+  FATAL_EXPECT_EQ(10, (v.get<int>()));
+  x = 9;
+  FATAL_EXPECT_EQ(9, (v.get<int>()));
+
+  auto& y = v = 8;
+  FATAL_EXPECT_EQ(8, (v.get<int>()));
+  y = 7;
+  FATAL_EXPECT_EQ(7, (v.get<int>()));
+
+  auto& z = v.emplace<int>(6);
+  FATAL_EXPECT_EQ(6, (v.get<int>()));
+  z = 5;
+  FATAL_EXPECT_EQ(5, (v.get<int>()));
+}
+
+FATAL_TEST(variant, rvalue_setters) {
+  static_assert(std::is_rvalue_reference<
+        decltype(make_variant().set(0))
+      >::value,
+      "set must return a rvalue reference when the variant is a rvalue.");
+  static_assert(std::is_rvalue_reference<
+        decltype(make_variant().emplace<int>(0))
+      >::value,
+      "emplace must return a rvalue reference when the variant is a rvalue.");
+  static_assert(std::is_rvalue_reference<
+        decltype(make_variant() = 0)
+      >::value,
+      "set must return a rvalue reference when the variant is a rvalue.");
+  FATAL_EXPECT_EQ(10, (make_variant().set(10)));
+  FATAL_EXPECT_EQ(10, (make_variant().emplace<int>(10)));
+  FATAL_EXPECT_EQ(10, (make_variant() = 10));
+}
+
+struct copyable {
+  copyable() {}
+
+  copyable(copyable const &) = default;
+  copyable(copyable &&) = delete;
+
+  copyable &operator =(copyable const &) { return *this; }
+  copyable &operator =(copyable &&) = delete;
+};
+
+FATAL_TEST(variant, universal_lvalue_setters) {
+  test_variant<copyable> v(allocator);
+
+  copyable x;
+  v.set(x);
+
+  const copyable y;
+  v.set(y);
+
+  test_variant<copyable>().set(x);
+  test_variant<copyable>().set(y);
+
+  v = x;
+  v = y;
+
+  test_variant<copyable>() = x;
+  test_variant<copyable>() = y;
+}
+
+struct movable {
+  movable() = default;
+
+  movable(movable const &) = delete;
+  movable(movable &&) = default;
+
+  movable &operator =(movable const &) = delete;
+  movable &operator =(movable &&) { return *this; }
+};
+
+FATAL_TEST(variant, universal_rvalue_setters) {
+  test_variant<movable, copyable> v(allocator);
+
+  movable a;
+  v.set(std::move(a));
+
+  const copyable ca;
+  v.set(std::move(ca));
+
+  v.set(movable());
+
+  movable b;
+  test_variant<movable, copyable>().set(std::move(b));
+
+  const copyable cb;
+  test_variant<movable, copyable>().set(std::move(cb));
+
+  test_variant<movable, copyable>().set(movable());
+
+  movable c;
+  v = std::move(c);
+
+  const copyable cc;
+  v = std::move(cc);
+
+  v = movable();
+
+  movable d;
+  test_variant<movable, copyable>() = std::move(d);
+
+  const copyable cd;
+  test_variant<movable, copyable>() = std::move(cd);
+
+  test_variant<movable, copyable>() = movable();
 }
 
 struct FooCopyCtorTest {
@@ -191,34 +411,36 @@ struct FooCopyCtorTest {
 
 struct BarCopyCtorTest {
   explicit BarCopyCtorTest(int) {}
-  BarCopyCtorTest() { EXPECT_TRUE(false); }
+  BarCopyCtorTest() { FATAL_EXPECT_TRUE(false); }
   BarCopyCtorTest(BarCopyCtorTest const &) {}
-  /* may throw */ BarCopyCtorTest(BarCopyCtorTest &&) { EXPECT_TRUE(false); }
+  /* may throw */ BarCopyCtorTest(BarCopyCtorTest &&) {
+    FATAL_EXPECT_TRUE(false);
+  }
 };
 
-TEST(variant, copy_ctor) {
+FATAL_TEST(variant, copy_ctor) {
   test_variant<FooCopyCtorTest, BarCopyCtorTest> v(allocator);
-  EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_TRUE(v.empty());
 
   v.emplace<FooCopyCtorTest>(17);
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(0, v.tag());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(0, v.tag());
 
   decltype(v) u(static_cast<decltype(v) const &>(v));
-  EXPECT_FALSE(v.empty());
-  EXPECT_FALSE(u.empty());
-  EXPECT_EQ(0, v.tag());
-  EXPECT_EQ(0, u.tag());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_FALSE(u.empty());
+  FATAL_EXPECT_EQ(0, v.tag());
+  FATAL_EXPECT_EQ(0, u.tag());
 
   v.emplace<BarCopyCtorTest>(37);
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(1, v.tag());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(1, v.tag());
 
   decltype(v) z(static_cast<decltype(v) const &>(v));
-  EXPECT_FALSE(v.empty());
-  EXPECT_FALSE(z.empty());
-  EXPECT_EQ(1, v.tag());
-  EXPECT_EQ(1, z.tag());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_FALSE(z.empty());
+  FATAL_EXPECT_EQ(1, v.tag());
+  FATAL_EXPECT_EQ(1, z.tag());
 }
 
 struct FooMoveCtor {
@@ -230,101 +452,356 @@ struct FooMoveCtor {
 
 struct BarMoveCtor {
   explicit BarMoveCtor(int) {}
-  BarMoveCtor() { EXPECT_TRUE(false); }
-  BarMoveCtor(BarMoveCtor const &) { EXPECT_TRUE(false); }
+  BarMoveCtor() { FATAL_EXPECT_TRUE(false); }
+  BarMoveCtor(BarMoveCtor const &) { FATAL_EXPECT_TRUE(false); }
   BarMoveCtor(BarMoveCtor &&) noexcept {}
 };
 
-TEST(variant, move_ctor) {
+FATAL_TEST(variant, move_ctor) {
   test_variant<FooMoveCtor, BarMoveCtor> v(allocator);
-  EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_TRUE(v.empty());
 
   v.emplace<FooMoveCtor>(17);
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(0, v.tag());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(0, v.tag());
 
   decltype(v) u(std::move(v));
-  EXPECT_TRUE(v.empty());
-  EXPECT_FALSE(u.empty());
-  EXPECT_EQ(0, u.tag());
+  FATAL_EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_FALSE(u.empty());
+  FATAL_EXPECT_EQ(0, u.tag());
 
   v.emplace<BarMoveCtor>(37);
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(1, v.tag());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(1, v.tag());
 
   decltype(v) z(std::move(v));
-  EXPECT_TRUE(v.empty());
-  EXPECT_FALSE(z.empty());
-  EXPECT_EQ(1, z.tag());
+  FATAL_EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_FALSE(z.empty());
+  FATAL_EXPECT_EQ(1, z.tag());
 }
 
-TEST(variant, value_copy_ctor) {
+struct throw_foo {
+  throw_foo() { throw nullptr; }
+  throw_foo(throw_foo const &) { throw nullptr; }
+  throw_foo(throw_foo &&) { throw nullptr; }
+  throw_foo &operator =(throw_foo const &) { throw nullptr; }
+  throw_foo &operator =(throw_foo &&) { throw nullptr; }
+};
+
+static_assert(!std::is_nothrow_default_constructible<throw_foo>::value, "");
+static_assert(!std::is_nothrow_copy_constructible<throw_foo>::value, "");
+static_assert(!std::is_nothrow_move_constructible<throw_foo>::value, "");
+static_assert(!std::is_nothrow_copy_assignable<throw_foo>::value, "");
+static_assert(!std::is_nothrow_move_assignable<throw_foo>::value, "");
+
+struct throw_large {
+  throw_large() { throw nullptr; }
+  throw_large(throw_large const &) { throw nullptr; }
+  throw_large(throw_large &&) { throw nullptr; }
+  throw_large &operator =(throw_large const &) { throw nullptr; }
+  throw_large &operator =(throw_large &&) { throw nullptr; }
+  std::array<char, 8192> payload;
+};
+
+static_assert(!std::is_nothrow_default_constructible<throw_large>::value, "");
+static_assert(!std::is_nothrow_copy_constructible<throw_large>::value, "");
+static_assert(!std::is_nothrow_move_constructible<throw_large>::value, "");
+static_assert(!std::is_nothrow_copy_assignable<throw_large>::value, "");
+static_assert(!std::is_nothrow_move_assignable<throw_large>::value, "");
+
+struct nothrow_foo {
+  nothrow_foo() noexcept {}
+  nothrow_foo(nothrow_foo const &) noexcept {}
+  nothrow_foo(nothrow_foo &&) noexcept {}
+  nothrow_foo &operator =(nothrow_foo const &) noexcept { return *this; }
+  nothrow_foo &operator =(nothrow_foo &&) noexcept { return *this; }
+};
+
+static_assert(std::is_nothrow_default_constructible<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_copy_constructible<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_move_constructible<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_copy_assignable<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_move_assignable<nothrow_foo>::value, "");
+
+FATAL_TEST(variant, noexcept) {
+  static_assert(std::is_nothrow_default_constructible<empty_var>::value, "");
+  static_assert(std::is_nothrow_copy_constructible<empty_var>::value, "");
+  static_assert(std::is_nothrow_move_constructible<empty_var>::value, "");
+  static_assert(std::is_nothrow_copy_assignable<empty_var>::value, "");
+  static_assert(std::is_nothrow_move_assignable<empty_var>::value, "");
+
+# define TEST_IMPL(MayThrow, DefaultMoveMayThrow, ...) \
+  do { \
+    using default_var = default_variant<__VA_ARGS__>; \
+    \
+    default_var default_v; \
+    FATAL_EXPECT_NOT_NULL(std::addressof(default_v)); \
+    \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_constructible<default_var>::value, \
+      "unexpected noexcept declaration for copy constructor (default)" \
+    ); \
+    static_assert( \
+      !DefaultMoveMayThrow == std::is_nothrow_move_constructible< \
+        default_var \
+      >::value, \
+      "unexpected noexcept declaration for move constructor (default)" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_assignable<default_var>::value, \
+      "unexpected noexcept declaration for copy assignment operator (default)" \
+    ); \
+    static_assert( \
+      !DefaultMoveMayThrow == std::is_nothrow_move_assignable< \
+        default_var \
+      >::value, \
+      "unexpected noexcept declaration for move assignment operator (default)" \
+    ); \
+    \
+    using auto_var = auto_variant<__VA_ARGS__>; \
+    \
+    auto_var auto_v; \
+    FATAL_EXPECT_NOT_NULL(std::addressof(auto_v)); \
+    \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_constructible<auto_var>::value, \
+      "unexpected noexcept declaration for copy constructor (auto)" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_move_constructible<auto_var>::value, \
+      "unexpected noexcept declaration for move constructor (auto)" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_copy_assignable<auto_var>::value, \
+      "unexpected noexcept declaration for copy assignment operator (auto)" \
+    ); \
+    static_assert( \
+      !MayThrow == std::is_nothrow_move_assignable<auto_var>::value, \
+      "unexpected noexcept declaration for move assignment operator (auto)" \
+    ); \
+    \
+    using dynamic_var = default_dynamic_variant<__VA_ARGS__>; \
+    \
+    dynamic_var dynamic_v; \
+    FATAL_EXPECT_NOT_NULL(std::addressof(dynamic_v)); \
+    \
+    static_assert( \
+      !std::is_nothrow_copy_constructible<dynamic_var>::value, \
+      "unexpected noexcept declaration for copy constructor (dynamic)" \
+    ); \
+    static_assert( \
+      std::is_nothrow_move_constructible<dynamic_var>::value, \
+      "unexpected noexcept declaration for move constructor (dynamic)" \
+    ); \
+    static_assert( \
+      !std::is_nothrow_copy_assignable<dynamic_var>::value, \
+      "unexpected noexcept declaration for copy assignment operator (dynamic)" \
+    ); \
+    static_assert( \
+      std::is_nothrow_move_assignable<dynamic_var>::value, \
+      "unexpected noexcept declaration for move assignment operator (dynamic)" \
+    ); \
+  } while (false)
+
+  TEST_IMPL(false, false, int);
+  TEST_IMPL(true,  true,  throw_foo);
+  TEST_IMPL(true,  false, throw_large);
+  TEST_IMPL(false, false, nothrow_foo);
+
+  TEST_IMPL(true,  true,  int, throw_foo);
+  TEST_IMPL(true,  false, int, throw_large);
+  TEST_IMPL(false, false, int, nothrow_foo);
+  TEST_IMPL(true,  true,  throw_foo, int);
+  TEST_IMPL(true,  true,  throw_foo, throw_large);
+  TEST_IMPL(true,  true,  throw_foo, nothrow_foo);
+  TEST_IMPL(true,  false, throw_large, int);
+  TEST_IMPL(true,  true,  throw_large, throw_foo);
+  TEST_IMPL(true,  false, throw_large, nothrow_foo);
+  TEST_IMPL(false, false, nothrow_foo, int);
+  TEST_IMPL(true,  true,  nothrow_foo, throw_foo);
+  TEST_IMPL(true,  false, nothrow_foo, throw_large);
+
+  TEST_IMPL(true,  true,  int, throw_foo, throw_large);
+  TEST_IMPL(true,  true,  int, throw_foo, nothrow_foo);
+  TEST_IMPL(true,  false, int, throw_large, nothrow_foo);
+  TEST_IMPL(true,  true,  throw_foo, throw_large, nothrow_foo);
+
+  TEST_IMPL(true,  true,  int, throw_foo, throw_large, nothrow_foo);
+
+# undef TEST_IMPL
+}
+
+struct recursive_nothrow;
+
+using recursive_nothrow_var = test_variant<recursive_nothrow>;
+
+struct recursive_nothrow {
+  recursive_nothrow() noexcept: var(allocator) {}
+  recursive_nothrow(recursive_nothrow const &rhs) noexcept: var(rhs.var) {}
+  recursive_nothrow(recursive_nothrow &&rhs) noexcept:
+    var(std::move(rhs.var))
+  {}
+
+  recursive_nothrow &operator =(recursive_nothrow const &rhs) noexcept {
+    var = rhs.var;
+    return *this;
+  }
+  recursive_nothrow &operator =(recursive_nothrow &&rhs) noexcept {
+    var = std::move(rhs.var);
+    return *this;
+  }
+
+  recursive_nothrow_var var;
+};
+
+static_assert(
+  std::is_nothrow_default_constructible<recursive_nothrow>::value, ""
+);
+static_assert(std::is_nothrow_copy_constructible<recursive_nothrow>::value, "");
+static_assert(std::is_nothrow_move_constructible<recursive_nothrow>::value, "");
+static_assert(std::is_nothrow_copy_assignable<recursive_nothrow>::value, "");
+static_assert(std::is_nothrow_move_assignable<recursive_nothrow>::value, "");
+
+struct recursive_pair;
+
+using recursive_pair_var = test_variant<recursive_pair>;
+using recursive_pair_base = std::pair<recursive_pair_var, recursive_pair_var>;
+
+struct recursive_pair:
+  recursive_pair_base
+{
+  recursive_pair() noexcept:
+    recursive_pair_base(
+      recursive_pair_var(allocator),
+      recursive_pair_var(allocator)
+    )
+  {}
+
+  recursive_pair(recursive_pair const &rhs) noexcept:
+    recursive_pair_base(rhs.first, rhs.second)
+  {}
+
+  recursive_pair(recursive_pair &&rhs) noexcept:
+    recursive_pair_base(std::move(rhs.first), std::move(rhs.second))
+  {}
+
+  recursive_pair &operator =(recursive_pair const &rhs) noexcept {
+    first = rhs.first;
+    second = rhs.second;
+    return *this;
+  }
+  recursive_pair &operator =(recursive_pair &&rhs) noexcept {
+    first = std::move(rhs.first);
+    second = std::move(rhs.second);
+    return *this;
+  }
+};
+
+static_assert(
+  std::is_nothrow_default_constructible<recursive_pair>::value, ""
+);
+static_assert(std::is_nothrow_copy_constructible<recursive_pair>::value, "");
+static_assert(std::is_nothrow_move_constructible<recursive_pair>::value, "");
+static_assert(std::is_nothrow_copy_assignable<recursive_pair>::value, "");
+static_assert(std::is_nothrow_move_assignable<recursive_pair>::value, "");
+
+FATAL_TEST(variant, noexcept (recursive)) {
+# define TEST_IMPL(Variant) \
+  do { \
+    Variant v; \
+    FATAL_EXPECT_NOT_NULL(std::addressof(v)); \
+    \
+    static_assert( \
+      !std::is_nothrow_copy_constructible<Variant>::value, \
+      "unexpected noexcept declaration for copy constructor" \
+    ); \
+    static_assert( \
+      std::is_nothrow_move_constructible<Variant>::value, \
+      "unexpected noexcept declaration for move constructor" \
+    ); \
+    static_assert( \
+      !std::is_nothrow_copy_assignable<Variant>::value, \
+      "unexpected noexcept declaration for copy assignment operator" \
+    ); \
+    static_assert( \
+      std::is_nothrow_move_assignable<Variant>::value, \
+      "unexpected noexcept declaration for move assignment operator" \
+    ); \
+  } while (false)
+
+  TEST_IMPL(recursive_nothrow_var);
+  TEST_IMPL(recursive_pair_var);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(variant, value_copy_ctor) {
   test_variant<int, test_string, double> i(
     allocator, static_cast<int const &>(10)
   );
-  EXPECT_FALSE(i.empty());
-  EXPECT_EQ(0, i.tag());
+  FATAL_EXPECT_FALSE(i.empty());
+  FATAL_EXPECT_EQ(0, i.tag());
 
   test_variant<int, test_string, double> s(
     allocator, static_cast<test_string const &>(test_string(allocator))
   );
-  EXPECT_FALSE(s.empty());
-  EXPECT_EQ(1, s.tag());
+  FATAL_EXPECT_FALSE(s.empty());
+  FATAL_EXPECT_EQ(1, s.tag());
 
   test_variant<int, test_string, double> d(
     allocator, static_cast<double const &>(1.0)
   );
-  EXPECT_FALSE(d.empty());
-  EXPECT_EQ(2, d.tag());
+  FATAL_EXPECT_FALSE(d.empty());
+  FATAL_EXPECT_EQ(2, d.tag());
 }
 
-TEST(variant, value_move_ctor) {
+FATAL_TEST(variant, value_move_ctor) {
   test_variant<int, test_string, double> i(
     allocator, std::move(10)
   );
-  EXPECT_FALSE(i.empty());
-  EXPECT_EQ(0, i.tag());
+  FATAL_EXPECT_FALSE(i.empty());
+  FATAL_EXPECT_EQ(0, i.tag());
 
   test_variant<int, test_string, double> s(
-    allocator, std::move(test_string(allocator))
+    allocator, test_string(allocator)
   );
-  EXPECT_FALSE(s.empty());
-  EXPECT_EQ(1, s.tag());
+  FATAL_EXPECT_FALSE(s.empty());
+  FATAL_EXPECT_EQ(1, s.tag());
 
   test_variant<int, test_string, double> d(
     allocator, std::move(1.0)
   );
-  EXPECT_FALSE(d.empty());
-  EXPECT_EQ(2, d.tag());
+  FATAL_EXPECT_FALSE(d.empty());
+  FATAL_EXPECT_EQ(2, d.tag());
 }
 
-TEST(variant, copy_ctor_different_variant) {
-  typedef test_variant<bool, test_string, double, int> source_var;
+FATAL_TEST(variant, copy_ctor_different_variant) {
+  using source_var = test_variant<bool, test_string, double, int>;
 
   {
     source_var v1(allocator, 10);
     test_variant<int> v2(static_cast<source_var const &>(v1));
-    ASSERT_TRUE(v2.is_of<int>());
-    EXPECT_EQ(10, v2.get<int>());
+    FATAL_ASSERT_TRUE(v2.is_of<int>());
+    FATAL_EXPECT_EQ(10, v2.get<int>());
   }
 
   {
     source_var v1(allocator, 5.0);
     test_variant<double> v2(static_cast<source_var const &>(v1));
-    ASSERT_TRUE(v2.is_of<double>());
-    EXPECT_EQ(5.0, v2.get<double>());
+    FATAL_ASSERT_TRUE(v2.is_of<double>());
+    FATAL_EXPECT_EQ(5.0, v2.get<double>());
   }
 
   {
     source_var v1(allocator, test_string("test", allocator));
     test_variant<test_string> v2(static_cast<source_var const &>(v1));
-    ASSERT_TRUE(v2.is_of<test_string>());
-    EXPECT_EQ("test", v2.get<test_string>());
+    FATAL_ASSERT_TRUE(v2.is_of<test_string>());
+    FATAL_EXPECT_EQ("test", v2.get<test_string>());
   }
 }
 
-TEST(variant, copy_ctor_different_variant_and_allocator) {
-  typedef test_variant<bool, test_string, double, int> source_var;
+FATAL_TEST(variant, copy_ctor_different_variant_and_allocator) {
+  using source_var = test_variant<bool, test_string, double, int>;
 
   {
     source_var v1(allocator, 10);
@@ -332,8 +809,8 @@ TEST(variant, copy_ctor_different_variant_and_allocator) {
       allocator,
       static_cast<source_var const &>(v1)
     );
-    ASSERT_TRUE(v2.is_of<int>());
-    EXPECT_EQ(10, v2.get<int>());
+    FATAL_ASSERT_TRUE(v2.is_of<int>());
+    FATAL_EXPECT_EQ(10, v2.get<int>());
   }
 
   {
@@ -342,8 +819,8 @@ TEST(variant, copy_ctor_different_variant_and_allocator) {
       allocator,
       static_cast<source_var const &>(v1)
     );
-    ASSERT_TRUE(v2.is_of<double>());
-    EXPECT_EQ(5.0, v2.get<double>());
+    FATAL_ASSERT_TRUE(v2.is_of<double>());
+    FATAL_EXPECT_EQ(5.0, v2.get<double>());
   }
 
   {
@@ -352,80 +829,81 @@ TEST(variant, copy_ctor_different_variant_and_allocator) {
       allocator,
       static_cast<source_var const &>(v1)
     );
-    ASSERT_TRUE(v2.is_of<test_string>());
-    EXPECT_EQ("test", v2.get<test_string>());
+    FATAL_ASSERT_TRUE(v2.is_of<test_string>());
+    FATAL_EXPECT_EQ("test", v2.get<test_string>());
   }
 }
 
-TEST(variant, copy_assignment) {
-  typedef test_variant<int, double, test_string> VAR;
+FATAL_TEST(variant, copy_assignment) {
+  using VAR = test_variant<int, double, test_string>;
 
   VAR v1(allocator, 10);
-  EXPECT_TRUE(v1.is_of<int>());
-  EXPECT_EQ(10, (v1.get<int>()));
+  FATAL_EXPECT_TRUE(v1.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v1.get<int>()));
 
   VAR v2;
-  EXPECT_TRUE(v2.empty());
+  FATAL_EXPECT_TRUE(v2.empty());
 
   v2 = v1;
-  EXPECT_TRUE(v1.is_of<int>());
-  EXPECT_EQ(10, (v1.get<int>()));
-  EXPECT_TRUE((v2.is_of<int>()));
-  EXPECT_EQ(10, (v2.get<int>()));
+  FATAL_EXPECT_TRUE(v1.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v1.get<int>()));
+  FATAL_EXPECT_TRUE((v2.is_of<int>()));
+  FATAL_EXPECT_EQ(10, (v2.get<int>()));
 }
 
-TEST(variant, move_assignment) {
-  typedef test_variant<int, double, test_string> VAR;
+FATAL_TEST(variant, move_assignment) {
+  using VAR = test_variant<int, double, test_string>;
 
   VAR v1(allocator, 10);
-  EXPECT_TRUE(v1.is_of<int>());
-  EXPECT_EQ(10, (v1.get<int>()));
+  FATAL_EXPECT_TRUE(v1.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v1.get<int>()));
 
   VAR v2;
-  EXPECT_TRUE(v2.empty());
+  FATAL_EXPECT_TRUE(v2.empty());
 
   v2 = std::move(v1);
-  EXPECT_TRUE(v1.empty());
-  EXPECT_TRUE(v2.is_of<int>());
-  EXPECT_EQ(10, (v2.get<int>()));
+  FATAL_EXPECT_TRUE(v1.empty());
+  FATAL_EXPECT_TRUE(v2.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v2.get<int>()));
 }
 
-TEST(variant, self_assignment) {
-  typedef test_variant<int, double, test_string> VAR;
+FATAL_TEST(variant, self_assignment) {
+  using VAR = test_variant<int, double, test_string>;
 
   VAR v1(allocator, 10);
-  EXPECT_TRUE(v1.is_of<int>());
-  EXPECT_EQ(10, (v1.get<int>()));
+  auto p = std::addressof(v1);
+  FATAL_EXPECT_TRUE(v1.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v1.get<int>()));
 
-  v1 = v1;
-  EXPECT_TRUE(v1.is_of<int>());
-  EXPECT_EQ(10, (v1.get<int>()));
+  *p = v1;
+  FATAL_EXPECT_TRUE(v1.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v1.get<int>()));
 
-  v1 = std::move(v1);
-  EXPECT_TRUE(v1.is_of<int>());
-  EXPECT_EQ(10, (v1.get<int>()));
+  *p = std::move(v1);
+  FATAL_EXPECT_TRUE(v1.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v1.get<int>()));
 }
 
 template <typename T, typename TStoragePolicy, typename ...Args>
 T const &copyset_constget_helper(
   variant<TStoragePolicy, Args...> &v, T const &value
 ) {
-  typedef typename std::remove_reference<T>::type type;
+  using type = typename std::remove_reference<T>::type;
   v.template set<type>(value);
   return static_cast<variant<TStoragePolicy, Args...> const &>(v)
     .template get<type>();
 }
 
-TEST(variant, copyset_get) {
+FATAL_TEST(variant, copyset_get) {
   test_variant<int, test_string, double> v(allocator);
-  EXPECT_EQ(10, copyset_constget_helper<int>(v, 10));
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(10, copyset_constget_helper<int>(v, 10));
+  FATAL_EXPECT_EQ(
     "It's alive! ALIVE!",
     copyset_constget_helper<test_string>(
       v, test_string("It's alive! ALIVE!", allocator)
     )
   );
-  EXPECT_EQ(1.2, copyset_constget_helper<double>(v, 1.2));
+  FATAL_EXPECT_EQ(1.2, copyset_constget_helper<double>(v, 1.2));
 }
 
 template <typename T, typename TStoragePolicy, typename ...Args>
@@ -435,142 +913,142 @@ T &moveset_get_helper(variant<TStoragePolicy, Args...> &v, T &&value) {
     "T can't be const"
   );
 
-  typedef typename std::remove_reference<T>::type type;
+  using type = typename std::remove_reference<T>::type;
   v.template set<type>(std::move(value));
   return v.template get<type>();
 }
 
-TEST(variant, moveset_get) {
+FATAL_TEST(variant, moveset_get) {
   test_variant<int, test_string, double> v(allocator);
-  EXPECT_EQ(10, moveset_get_helper<int>(v, 10));
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(10, moveset_get_helper<int>(v, 10));
+  FATAL_EXPECT_EQ(
     "It's alive! ALIVE!",
     moveset_get_helper<test_string>(
       v, test_string("It's alive! ALIVE!", allocator)
     )
   );
-  EXPECT_EQ(1.2, moveset_get_helper<double>(v, 1.2));
+  FATAL_EXPECT_EQ(1.2, moveset_get_helper<double>(v, 1.2));
 }
 
 template <typename T, typename V, typename ...Args>
 T const &emplace_constget_helper(V &v, Args &&...args) {
-  typedef typename std::remove_reference<T>::type type;
+  using type = typename std::remove_reference<T>::type;
   v.template emplace<type>(std::forward<Args>(args)...);
   return static_cast<V const &>(v).template get<type>();
 }
 
-TEST(variant, emplace_constget) {
+FATAL_TEST(variant, emplace_constget) {
   test_variant<int, test_string, double> v(allocator);
-  EXPECT_EQ(10, emplace_constget_helper<int>(v, 10));
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(10, emplace_constget_helper<int>(v, 10));
+  FATAL_EXPECT_EQ(
     "It's alive! ALIVE!",
     emplace_constget_helper<test_string>(
       v, test_string("It's alive! ALIVE!", allocator)
     )
   );
-  EXPECT_EQ(1.2, emplace_constget_helper<double>(v, 1.2));
+  FATAL_EXPECT_EQ(1.2, emplace_constget_helper<double>(v, 1.2));
 }
 
-TEST(variant, try_get) {
+FATAL_TEST(variant, try_get) {
   test_variant<int, double> v(allocator);
-  EXPECT_EQ(nullptr, v.try_get<int>());
-  EXPECT_EQ(nullptr, v.try_get<double>());
+  FATAL_EXPECT_EQ(nullptr, v.try_get<int>());
+  FATAL_EXPECT_EQ(nullptr, v.try_get<double>());
 
   v = 10;
-  EXPECT_NE(nullptr, v.try_get<int>());
-  EXPECT_EQ(10, *v.try_get<int>());
-  EXPECT_EQ(nullptr, v.try_get<double>());
+  FATAL_EXPECT_NE(nullptr, v.try_get<int>());
+  FATAL_EXPECT_EQ(10, *v.try_get<int>());
+  FATAL_EXPECT_EQ(nullptr, v.try_get<double>());
 
   v = 5.0;
-  EXPECT_EQ(nullptr, v.try_get<int>());
-  EXPECT_NE(nullptr, v.try_get<double>());
-  EXPECT_EQ(5.0, *v.try_get<double>());
+  FATAL_EXPECT_EQ(nullptr, v.try_get<int>());
+  FATAL_EXPECT_NE(nullptr, v.try_get<double>());
+  FATAL_EXPECT_EQ(5.0, *v.try_get<double>());
 }
 
-TEST(variant, clear_empty) {
+FATAL_TEST(variant, clear_empty) {
   test_variant<int, test_string, double> v(allocator);
-  EXPECT_TRUE(v.empty());
-  EXPECT_EQ(3, v.tag());
+  FATAL_EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_EQ(3, v.tag());
 
   v.clear();
-  EXPECT_TRUE(v.empty());
-  EXPECT_EQ(3, v.tag());
+  FATAL_EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_EQ(3, v.tag());
 
   v.set(10);
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(0, v.tag());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(0, v.tag());
 
   v.clear();
-  EXPECT_TRUE(v.empty());
-  EXPECT_EQ(3, v.tag());
+  FATAL_EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_EQ(3, v.tag());
 }
 
-TEST(variant, swap) {
+FATAL_TEST(variant, swap) {
   test_variant<int, test_string> v(allocator, 10);
   test_variant<int, test_string> u(allocator, test_string("5.0", allocator));
   test_variant<int, test_string> e(allocator);
-  LOG(INFO) << "initial";
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(10, v.get<int>());
-  EXPECT_FALSE(u.empty());
-  EXPECT_EQ(test_string("5.0", allocator), u.get<test_string>());
-  EXPECT_TRUE(e.empty());
+  FATAL_VLOG(1) << "initial";
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(10, v.get<int>());
+  FATAL_EXPECT_FALSE(u.empty());
+  FATAL_EXPECT_EQ(test_string("5.0", allocator), u.get<test_string>());
+  FATAL_EXPECT_TRUE(e.empty());
 
-  LOG(INFO) << "v.swap(u);";
+  FATAL_VLOG(1) << "v.swap(u);";
   v.swap(u);
-  EXPECT_FALSE(u.empty());
-  EXPECT_EQ(10, u.get<int>());
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ("5.0", v.get<test_string>());
-  EXPECT_TRUE(e.empty());
+  FATAL_EXPECT_FALSE(u.empty());
+  FATAL_EXPECT_EQ(10, u.get<int>());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ("5.0", v.get<test_string>());
+  FATAL_EXPECT_TRUE(e.empty());
 
-  LOG(INFO) << "v.swap(u);";
+  FATAL_VLOG(1) << "v.swap(u);";
   v.swap(u);
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(10, v.get<int>());
-  EXPECT_FALSE(u.empty());
-  EXPECT_EQ("5.0", u.get<test_string>());
-  EXPECT_TRUE(e.empty());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(10, v.get<int>());
+  FATAL_EXPECT_FALSE(u.empty());
+  FATAL_EXPECT_EQ("5.0", u.get<test_string>());
+  FATAL_EXPECT_TRUE(e.empty());
 
-  LOG(INFO) << "u.swap(e);";
+  FATAL_VLOG(1) << "u.swap(e);";
   u.swap(e);
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(10, v.get<int>());
-  EXPECT_FALSE(e.empty());
-  EXPECT_EQ("5.0", e.get<test_string>());
-  EXPECT_TRUE(u.empty());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(10, v.get<int>());
+  FATAL_EXPECT_FALSE(e.empty());
+  FATAL_EXPECT_EQ("5.0", e.get<test_string>());
+  FATAL_EXPECT_TRUE(u.empty());
 
-  LOG(INFO) << "e.swap(v);";
+  FATAL_VLOG(1) << "e.swap(v);";
   e.swap(v);
-  EXPECT_FALSE(e.empty());
-  EXPECT_EQ(10, e.get<int>());
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ("5.0", v.get<test_string>());
-  EXPECT_TRUE(u.empty());
+  FATAL_EXPECT_FALSE(e.empty());
+  FATAL_EXPECT_EQ(10, e.get<int>());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ("5.0", v.get<test_string>());
+  FATAL_EXPECT_TRUE(u.empty());
 }
 
 template <typename T>
 struct visit_if_visitor {
   visit_if_visitor() = default;
-  visit_if_visitor(T expected): expected_(std::move(expected)) {}
+  explicit visit_if_visitor(T expected): expected_(std::move(expected)) {}
 
   void operator ()(T const &actual) const {
-    ASSERT_TRUE(expected_.hasValue());
-    EXPECT_EQ(*expected_, actual);
+    FATAL_ASSERT_FALSE(expected_.empty());
+    FATAL_EXPECT_EQ(*expected_, actual);
   }
 
 private:
-  folly::Optional<T> const expected_;
+  optional<T> const expected_;
 };
 
 template <typename T, typename TVariant, typename... Args>
-void check_visit_if(TVariant &&variant, Args &&...args) {
-  variant.template visit_if<transform::alias<std::is_same, T>::template  type>(
+void check_visit_if (TVariant &&variant, Args &&...args) {
+  variant.template visit_if<transform_alias<std::is_same, T>::template apply>(
     visit_if_visitor<T>(std::forward<Args>(args)...)
   );
 }
 
-TEST(variant, visit_if) {
+FATAL_TEST(variant, visit_if) {
   test_variant<int, test_string, double> v(allocator);
 
   check_visit_if<int>(v);
@@ -592,17 +1070,17 @@ struct type_checker_visitor {
   template <typename U, bool>
   struct comparer {
     static void compare(T const &expected, U const &actual) {
-      EXPECT_EQ(expected, actual);
+      FATAL_EXPECT_EQ(expected, actual);
     }
   };
 
   template <typename U>
   struct comparer<U, false> {
     static void compare(T const &expected, U const &actual) {
-      LOG(INFO) << "visited \"" << actual << "\" ["
-        << demangle(typeid(U).name()) << ", expecting \""
-        << expected << "\" [" << demangle(typeid(T).name()) << ']';
-      EXPECT_TRUE(false);
+      FATAL_VLOG(1) << "visited \"" << actual << "\" ["
+        << type_str<U>() << ", expecting \""
+        << expected << "\" [" << type_str<T>() << ']';
+      FATAL_EXPECT_TRUE(false);
     }
   };
 
@@ -630,10 +1108,10 @@ private:
 template <>
 struct type_checker_visitor<void, true> {
   template <typename U>
-  void operator ()(U &&) { EXPECT_TRUE(false); }
+  void operator ()(U &&) { FATAL_EXPECT_TRUE(false); }
 };
 
-TEST(variant, visit) {
+FATAL_TEST(variant, visit) {
   test_variant<int, test_string, double> v(allocator);
   v.visit(type_checker_visitor<void, true>());
 
@@ -647,526 +1125,526 @@ TEST(variant, visit) {
   v.visit(type_checker_visitor<double>(5.0));
 }
 
-TEST(variant, tag) {
+FATAL_TEST(variant, tag) {
   test_variant<int, test_string, double> v(allocator);
-  EXPECT_EQ(3, v.tag());
+  FATAL_EXPECT_EQ(3, v.tag());
 
   v.set(10);
-  EXPECT_EQ(0, v.tag());
+  FATAL_EXPECT_EQ(0, v.tag());
 
   v.set(test_string(allocator));
-  EXPECT_EQ(1, v.tag());
+  FATAL_EXPECT_EQ(1, v.tag());
 
   v.set(1.0);
-  EXPECT_EQ(2, v.tag());
+  FATAL_EXPECT_EQ(2, v.tag());
 
   v.clear();
-  EXPECT_EQ(3, v.tag());
+  FATAL_EXPECT_EQ(3, v.tag());
 }
 
-TEST(variant, is_of) {
+FATAL_TEST(variant, is_of) {
   test_variant<int, double> v(allocator);
-  EXPECT_FALSE(v.is_of<int>());
-  EXPECT_FALSE(v.is_of<double>());
+  FATAL_EXPECT_FALSE(v.is_of<int>());
+  FATAL_EXPECT_FALSE(v.is_of<double>());
 
   v = 10;
-  EXPECT_TRUE(v.is_of<int>());
-  EXPECT_FALSE(v.is_of<double>());
+  FATAL_EXPECT_TRUE(v.is_of<int>());
+  FATAL_EXPECT_FALSE(v.is_of<double>());
 
   v = 5.0;
-  EXPECT_FALSE(v.is_of<int>());
-  EXPECT_TRUE(v.is_of<double>());
+  FATAL_EXPECT_FALSE(v.is_of<int>());
+  FATAL_EXPECT_TRUE(v.is_of<double>());
 }
 
-TEST(variant, is_supported) {
-  typedef test_variant<int, double, int const *, test_string> var;
+FATAL_TEST(variant, is_supported) {
+  using var = test_variant<int, double, int const *, test_string>;
 
-  EXPECT_TRUE((var::is_supported<int>()));
-  EXPECT_TRUE((var::is_supported<double>()));
-  EXPECT_TRUE((var::is_supported<int const *>()));
-  EXPECT_TRUE((var::is_supported<test_string>()));
+  FATAL_EXPECT_TRUE((var::is_supported<int>()));
+  FATAL_EXPECT_TRUE((var::is_supported<double>()));
+  FATAL_EXPECT_TRUE((var::is_supported<int const *>()));
+  FATAL_EXPECT_TRUE((var::is_supported<test_string>()));
 
-  EXPECT_FALSE((var::is_supported<int *>()));
-  EXPECT_FALSE((var::is_supported<long *>()));
-  EXPECT_FALSE((var::is_supported<test_vector<int>>()));
-  EXPECT_FALSE((var::is_supported<bool>()));
-  EXPECT_FALSE((var::is_supported<long>()));
-  EXPECT_FALSE((var::is_supported<short>()));
-  EXPECT_FALSE((var::is_supported<void>()));
-  EXPECT_FALSE((var::is_supported<void *>()));
+  FATAL_EXPECT_FALSE((var::is_supported<int *>()));
+  FATAL_EXPECT_FALSE((var::is_supported<long *>()));
+  FATAL_EXPECT_FALSE((var::is_supported<test_vector<int>>()));
+  FATAL_EXPECT_FALSE((var::is_supported<bool>()));
+  FATAL_EXPECT_FALSE((var::is_supported<long>()));
+  FATAL_EXPECT_FALSE((var::is_supported<short>()));
+  FATAL_EXPECT_FALSE((var::is_supported<void>()));
+  FATAL_EXPECT_FALSE((var::is_supported<void *>()));
 }
 
-TEST(variant, operator_equals) {
+FATAL_TEST(variant, operator_equals) {
   test_variant<int, double> const i10(allocator, 10);
   test_variant<int, double> const i5(allocator, 5);
   test_variant<int, double> const d10(allocator, 10.0);
   test_variant<int, double> const d5(allocator, 5.0);
   test_variant<int, double> const e(allocator);
 
-  EXPECT_TRUE(i10 == i10);
-  EXPECT_FALSE(i10 == i5);
-  EXPECT_FALSE(i10 == d10);
-  EXPECT_FALSE(d10 == i10);
-  EXPECT_TRUE(d10 == d10);
-  EXPECT_FALSE(d10 == d5);
-  EXPECT_TRUE(e == e);
-  EXPECT_FALSE(i10 == e);
-  EXPECT_FALSE(e == i10);
-  EXPECT_FALSE(d10 == e);
-  EXPECT_FALSE(e == d10);
+  FATAL_EXPECT_TRUE(i10 == i10);
+  FATAL_EXPECT_FALSE(i10 == i5);
+  FATAL_EXPECT_FALSE(i10 == d10);
+  FATAL_EXPECT_FALSE(d10 == i10);
+  FATAL_EXPECT_TRUE(d10 == d10);
+  FATAL_EXPECT_FALSE(d10 == d5);
+  FATAL_EXPECT_TRUE(e == e);
+  FATAL_EXPECT_FALSE(i10 == e);
+  FATAL_EXPECT_FALSE(e == i10);
+  FATAL_EXPECT_FALSE(d10 == e);
+  FATAL_EXPECT_FALSE(e == d10);
 }
 
-TEST(variant, operator_not_equals) {
+FATAL_TEST(variant, operator_not_equals) {
   test_variant<int, double> const i10(allocator, 10);
   test_variant<int, double> const i5(allocator, 5);
   test_variant<int, double> const d10(allocator, 10.0);
   test_variant<int, double> const d5(allocator, 5.0);
   test_variant<int, double> const e(allocator);
 
-  EXPECT_FALSE(i10 != i10);
-  EXPECT_TRUE(i10 != i5);
-  EXPECT_TRUE(i10 != d10);
-  EXPECT_TRUE(d10 != i10);
-  EXPECT_FALSE(d10 != d10);
-  EXPECT_TRUE(d10 != d5);
-  EXPECT_FALSE(e != e);
-  EXPECT_TRUE(i10 != e);
-  EXPECT_TRUE(e != i10);
-  EXPECT_TRUE(d10 != e);
-  EXPECT_TRUE(e != d10);
+  FATAL_EXPECT_FALSE(i10 != i10);
+  FATAL_EXPECT_TRUE(i10 != i5);
+  FATAL_EXPECT_TRUE(i10 != d10);
+  FATAL_EXPECT_TRUE(d10 != i10);
+  FATAL_EXPECT_FALSE(d10 != d10);
+  FATAL_EXPECT_TRUE(d10 != d5);
+  FATAL_EXPECT_FALSE(e != e);
+  FATAL_EXPECT_TRUE(i10 != e);
+  FATAL_EXPECT_TRUE(e != i10);
+  FATAL_EXPECT_TRUE(d10 != e);
+  FATAL_EXPECT_TRUE(e != d10);
 }
 
-TEST(variant, operator_less_than) {
+FATAL_TEST(variant, operator_less_than) {
   test_variant<int, double> const i10(allocator, 10);
   test_variant<int, double> const i5(allocator, 5);
   test_variant<int, double> const d10(allocator, 10.0);
   test_variant<int, double> const d5(allocator, 5.0);
   test_variant<int, double> const e(allocator);
 
-  EXPECT_FALSE(i10 < i10);
-  EXPECT_FALSE(i10 < i5);
-  EXPECT_TRUE(i5 < i10);
-  EXPECT_TRUE(i10 < d10);
-  EXPECT_FALSE(d10 < i10);
-  EXPECT_FALSE(d10 < d10);
-  EXPECT_FALSE(d10 < d5);
-  EXPECT_TRUE(d5 < d10);
-  EXPECT_FALSE(e < e);
-  EXPECT_TRUE(i10 < e);
-  EXPECT_FALSE(e < i10);
-  EXPECT_TRUE(d10 < e);
-  EXPECT_FALSE(e < d10);
+  FATAL_EXPECT_FALSE(i10 < i10);
+  FATAL_EXPECT_FALSE(i10 < i5);
+  FATAL_EXPECT_TRUE(i5 < i10);
+  FATAL_EXPECT_TRUE(i10 < d10);
+  FATAL_EXPECT_FALSE(d10 < i10);
+  FATAL_EXPECT_FALSE(d10 < d10);
+  FATAL_EXPECT_FALSE(d10 < d5);
+  FATAL_EXPECT_TRUE(d5 < d10);
+  FATAL_EXPECT_FALSE(e < e);
+  FATAL_EXPECT_TRUE(i10 < e);
+  FATAL_EXPECT_FALSE(e < i10);
+  FATAL_EXPECT_TRUE(d10 < e);
+  FATAL_EXPECT_FALSE(e < d10);
 }
 
-TEST(variant, operator_less_than_or_equal) {
+FATAL_TEST(variant, operator_less_than_or_equal) {
   test_variant<int, double> const i10(allocator, 10);
   test_variant<int, double> const i5(allocator, 5);
   test_variant<int, double> const d10(allocator, 10.0);
   test_variant<int, double> const d5(allocator, 5.0);
   test_variant<int, double> const e(allocator);
 
-  EXPECT_TRUE(i10 <= i10);
-  EXPECT_FALSE(i10 <= i5);
-  EXPECT_TRUE(i5 <= i10);
-  EXPECT_TRUE(i10 <= d10);
-  EXPECT_FALSE(d10 <= i10);
-  EXPECT_TRUE(d10 <= d10);
-  EXPECT_FALSE(d10 <= d5);
-  EXPECT_TRUE(d5 <= d10);
-  EXPECT_TRUE(e <= e);
-  EXPECT_TRUE(i10 <= e);
-  EXPECT_FALSE(e <= i10);
-  EXPECT_TRUE(d10 <= e);
-  EXPECT_FALSE(e <= d10);
+  FATAL_EXPECT_TRUE(i10 <= i10);
+  FATAL_EXPECT_FALSE(i10 <= i5);
+  FATAL_EXPECT_TRUE(i5 <= i10);
+  FATAL_EXPECT_TRUE(i10 <= d10);
+  FATAL_EXPECT_FALSE(d10 <= i10);
+  FATAL_EXPECT_TRUE(d10 <= d10);
+  FATAL_EXPECT_FALSE(d10 <= d5);
+  FATAL_EXPECT_TRUE(d5 <= d10);
+  FATAL_EXPECT_TRUE(e <= e);
+  FATAL_EXPECT_TRUE(i10 <= e);
+  FATAL_EXPECT_FALSE(e <= i10);
+  FATAL_EXPECT_TRUE(d10 <= e);
+  FATAL_EXPECT_FALSE(e <= d10);
 }
 
-TEST(variant, operator_greater_than) {
+FATAL_TEST(variant, operator_greater_than) {
   test_variant<int, double> const i10(allocator, 10);
   test_variant<int, double> const i5(allocator, 5);
   test_variant<int, double> const d10(allocator, 10.0);
   test_variant<int, double> const d5(allocator, 5.0);
   test_variant<int, double> const e(allocator);
 
-  EXPECT_FALSE(i10 > i10);
-  EXPECT_TRUE(i10 > i5);
-  EXPECT_FALSE(i5 > i10);
-  EXPECT_FALSE(i10 > d10);
-  EXPECT_TRUE(d10 > i10);
-  EXPECT_FALSE(d10 > d10);
-  EXPECT_TRUE(d10 > d5);
-  EXPECT_FALSE(d5 > d10);
-  EXPECT_FALSE(e > e);
-  EXPECT_FALSE(i10 > e);
-  EXPECT_TRUE(e > i10);
-  EXPECT_FALSE(d10 > e);
-  EXPECT_TRUE(e > d10);
+  FATAL_EXPECT_FALSE(i10 > i10);
+  FATAL_EXPECT_TRUE(i10 > i5);
+  FATAL_EXPECT_FALSE(i5 > i10);
+  FATAL_EXPECT_FALSE(i10 > d10);
+  FATAL_EXPECT_TRUE(d10 > i10);
+  FATAL_EXPECT_FALSE(d10 > d10);
+  FATAL_EXPECT_TRUE(d10 > d5);
+  FATAL_EXPECT_FALSE(d5 > d10);
+  FATAL_EXPECT_FALSE(e > e);
+  FATAL_EXPECT_FALSE(i10 > e);
+  FATAL_EXPECT_TRUE(e > i10);
+  FATAL_EXPECT_FALSE(d10 > e);
+  FATAL_EXPECT_TRUE(e > d10);
 }
 
-TEST(variant, operator_greater_than_or_equal) {
+FATAL_TEST(variant, operator_greater_than_or_equal) {
   test_variant<int, double> const i10(allocator, 10);
   test_variant<int, double> const i5(allocator, 5);
   test_variant<int, double> const d10(allocator, 10.0);
   test_variant<int, double> const d5(allocator, 5.0);
   test_variant<int, double> const e(allocator);
 
-  EXPECT_TRUE(i10 >= i10);
-  EXPECT_TRUE(i10 >= i5);
-  EXPECT_FALSE(i5 >= i10);
-  EXPECT_FALSE(i10 >= d10);
-  EXPECT_TRUE(d10 >= i10);
-  EXPECT_TRUE(d10 >= d10);
-  EXPECT_TRUE(d10 >= d5);
-  EXPECT_FALSE(d5 >= d10);
-  EXPECT_TRUE(e >= e);
-  EXPECT_FALSE(i10 >= e);
-  EXPECT_TRUE(e >= i10);
-  EXPECT_FALSE(d10 >= e);
-  EXPECT_TRUE(e >= d10);
+  FATAL_EXPECT_TRUE(i10 >= i10);
+  FATAL_EXPECT_TRUE(i10 >= i5);
+  FATAL_EXPECT_FALSE(i5 >= i10);
+  FATAL_EXPECT_FALSE(i10 >= d10);
+  FATAL_EXPECT_TRUE(d10 >= i10);
+  FATAL_EXPECT_TRUE(d10 >= d10);
+  FATAL_EXPECT_TRUE(d10 >= d5);
+  FATAL_EXPECT_FALSE(d5 >= d10);
+  FATAL_EXPECT_TRUE(e >= e);
+  FATAL_EXPECT_FALSE(i10 >= e);
+  FATAL_EXPECT_TRUE(e >= i10);
+  FATAL_EXPECT_FALSE(d10 >= e);
+  FATAL_EXPECT_TRUE(e >= d10);
 }
 
-TEST(variant, operator_copy_assignment_clvref) {
+FATAL_TEST(variant, operator_copy_assignment_clvref) {
   test_variant<int, double> const idce;
-  EXPECT_TRUE(idce.empty());
+  FATAL_EXPECT_TRUE(idce.empty());
 
   test_variant<int, double> const idc50_1(allocator, 50.1);
-  EXPECT_EQ(50.1, idc50_1.get<double>());
+  FATAL_EXPECT_EQ(50.1, idc50_1.get<double>());
 
   test_variant<int, double> const idc10(allocator, 10);
-  EXPECT_EQ(10, idc10.get<int>());
+  FATAL_EXPECT_EQ(10, idc10.get<int>());
 
   test_variant<int> const ic11(allocator, 11);
-  EXPECT_EQ(11, ic11.get<int>());
+  FATAL_EXPECT_EQ(11, ic11.get<int>());
 
   test_variant<int> const ice;
-  EXPECT_TRUE(ice.empty());
+  FATAL_EXPECT_TRUE(ice.empty());
 
   test_variant<int, double> id(allocator, 7);
-  EXPECT_EQ(7, id.get<int>());
+  FATAL_EXPECT_EQ(7, id.get<int>());
 
   id = idce;
-  EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(id.empty());
 
   id = idc50_1;
-  EXPECT_EQ(50.1, id.get<double>());
+  FATAL_EXPECT_EQ(50.1, id.get<double>());
 
   id = idc10;
-  EXPECT_EQ(10, id.get<int>());
+  FATAL_EXPECT_EQ(10, id.get<int>());
 
   id = ic11;
-  EXPECT_EQ(11, id.get<int>());
+  FATAL_EXPECT_EQ(11, id.get<int>());
 
   id = ice;
-  EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(id.empty());
 
   test_variant<int> i(allocator, 9);
-  EXPECT_EQ(9, i.get<int>());
+  FATAL_EXPECT_EQ(9, i.get<int>());
 
   i = idce;
-  EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(i.empty());
 
   i = idc10;
-  EXPECT_EQ(10, i.get<int>());
+  FATAL_EXPECT_EQ(10, i.get<int>());
 
   i = ic11;
-  EXPECT_EQ(11, i.get<int>());
+  FATAL_EXPECT_EQ(11, i.get<int>());
 
   i = ice;
-  EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(i.empty());
 }
 
-TEST(variant, operator_copy_assignment_lvref) {
+FATAL_TEST(variant, operator_copy_assignment_lvref) {
   test_variant<int, double> ide;
-  EXPECT_TRUE(ide.empty());
+  FATAL_EXPECT_TRUE(ide.empty());
 
   test_variant<int, double> id6_7(allocator, 6.7);
-  EXPECT_EQ(6.7, id6_7.get<double>());
+  FATAL_EXPECT_EQ(6.7, id6_7.get<double>());
 
   test_variant<int, double> id5(allocator, 5);
-  EXPECT_EQ(5, id5.get<int>());
+  FATAL_EXPECT_EQ(5, id5.get<int>());
 
   test_variant<int> i4(allocator, 4);
-  EXPECT_EQ(4, i4.get<int>());
+  FATAL_EXPECT_EQ(4, i4.get<int>());
 
   test_variant<int> ie;
-  EXPECT_TRUE(ie.empty());
+  FATAL_EXPECT_TRUE(ie.empty());
 
   test_variant<int, double> id(allocator, 7);
-  EXPECT_EQ(7, id.get<int>());
+  FATAL_EXPECT_EQ(7, id.get<int>());
 
   id = ide;
-  EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(id.empty());
 
   id = id6_7;
-  EXPECT_EQ(6.7, id.get<double>());
+  FATAL_EXPECT_EQ(6.7, id.get<double>());
 
   id = id5;
-  EXPECT_EQ(5, id.get<int>());
+  FATAL_EXPECT_EQ(5, id.get<int>());
 
   id = i4;
-  EXPECT_EQ(4, id.get<int>());
+  FATAL_EXPECT_EQ(4, id.get<int>());
 
   id = ie;
-  EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(id.empty());
 
   test_variant<int> i(allocator, 9);
-  EXPECT_EQ(9, i.get<int>());
+  FATAL_EXPECT_EQ(9, i.get<int>());
 
   i = ide;
-  EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(i.empty());
 
   i = id5;
-  EXPECT_EQ(5, i.get<int>());
+  FATAL_EXPECT_EQ(5, i.get<int>());
 
   i = i4;
-  EXPECT_EQ(4, i.get<int>());
+  FATAL_EXPECT_EQ(4, i.get<int>());
 
   i = ie;
-  EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(i.empty());
 }
 
-TEST(variant, operator_copy_assignment_rvref) {
+FATAL_TEST(variant, operator_copy_assignment_rvref) {
   test_variant<int, double> ide;
-  EXPECT_TRUE(ide.empty());
+  FATAL_EXPECT_TRUE(ide.empty());
 
   test_variant<int, double> id6_7(allocator, 6.7);
-  EXPECT_EQ(6.7, id6_7.get<double>());
+  FATAL_EXPECT_EQ(6.7, id6_7.get<double>());
 
   test_variant<int, double> id5(allocator, 5);
-  EXPECT_EQ(5, id5.get<int>());
+  FATAL_EXPECT_EQ(5, id5.get<int>());
 
   test_variant<int> i4(allocator, 4);
-  EXPECT_EQ(4, i4.get<int>());
+  FATAL_EXPECT_EQ(4, i4.get<int>());
 
   test_variant<int, double> id3(nullptr, 3);
-  EXPECT_EQ(3, id3.get<int>());
+  FATAL_EXPECT_EQ(3, id3.get<int>());
 
   test_variant<int> i2(nullptr, 2);
-  EXPECT_EQ(2, i2.get<int>());
+  FATAL_EXPECT_EQ(2, i2.get<int>());
 
   test_variant<int> ie;
-  EXPECT_TRUE(ie.empty());
+  FATAL_EXPECT_TRUE(ie.empty());
 
   test_variant<int, double> id(allocator, 7);
-  EXPECT_EQ(7, id.get<int>());
+  FATAL_EXPECT_EQ(7, id.get<int>());
 
   id = std::move(ide);
-  EXPECT_TRUE(id.empty());
-  EXPECT_TRUE(ide.empty());
+  FATAL_EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(ide.empty());
 
   id = std::move(id6_7);
-  EXPECT_EQ(6.7, id.get<double>());
-  EXPECT_TRUE(id6_7.empty());
+  FATAL_EXPECT_EQ(6.7, id.get<double>());
+  FATAL_EXPECT_TRUE(id6_7.empty());
 
   id = std::move(id5);
-  EXPECT_EQ(5, id.get<int>());
-  EXPECT_TRUE(id5.empty());
+  FATAL_EXPECT_EQ(5, id.get<int>());
+  FATAL_EXPECT_TRUE(id5.empty());
 
   id = std::move(i4);
-  EXPECT_EQ(4, id.get<int>());
-  EXPECT_TRUE(i4.empty());
+  FATAL_EXPECT_EQ(4, id.get<int>());
+  FATAL_EXPECT_TRUE(i4.empty());
 
   id = std::move(ie);
-  EXPECT_TRUE(id.empty());
-  EXPECT_TRUE(ie.empty());
+  FATAL_EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(ie.empty());
 
   test_variant<int> i(allocator, 9);
-  EXPECT_EQ(9, i.get<int>());
+  FATAL_EXPECT_EQ(9, i.get<int>());
 
   i = std::move(ide);
-  EXPECT_TRUE(i.empty());
-  EXPECT_TRUE(ide.empty());
+  FATAL_EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(ide.empty());
 
   i = std::move(id3);
-  EXPECT_EQ(3, i.get<int>());
-  EXPECT_TRUE(id3.empty());
+  FATAL_EXPECT_EQ(3, i.get<int>());
+  FATAL_EXPECT_TRUE(id3.empty());
 
   i = std::move(i2);
-  EXPECT_EQ(2, i.get<int>());
-  EXPECT_TRUE(i2.empty());
+  FATAL_EXPECT_EQ(2, i.get<int>());
+  FATAL_EXPECT_TRUE(i2.empty());
 
   i = std::move(ie);
-  EXPECT_TRUE(i.empty());
-  EXPECT_TRUE(ie.empty());
+  FATAL_EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(ie.empty());
 }
 
-TEST(variant, operator_copy_assignment_heterogeneous_policy_clvref) {
+FATAL_TEST(variant, operator_copy_assignment_heterogeneous_policy_clvref) {
   auto_variant<int, double> const idce;
-  EXPECT_TRUE(idce.empty());
+  FATAL_EXPECT_TRUE(idce.empty());
 
   auto_variant<int, double> const idc50_1(nullptr, 50.1);
-  EXPECT_EQ(50.1, idc50_1.get<double>());
+  FATAL_EXPECT_EQ(50.1, idc50_1.get<double>());
 
   auto_variant<int, double> const idc10(nullptr, 10);
-  EXPECT_EQ(10, idc10.get<int>());
+  FATAL_EXPECT_EQ(10, idc10.get<int>());
 
   auto_variant<int> const ic11(nullptr, 11);
-  EXPECT_EQ(11, ic11.get<int>());
+  FATAL_EXPECT_EQ(11, ic11.get<int>());
 
   auto_variant<int> const ice;
-  EXPECT_TRUE(ice.empty());
+  FATAL_EXPECT_TRUE(ice.empty());
 
   auto_variant<int, double> id(nullptr, 7);
-  EXPECT_EQ(7, id.get<int>());
+  FATAL_EXPECT_EQ(7, id.get<int>());
 
   id = idce;
-  EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(id.empty());
 
   id = idc50_1;
-  EXPECT_EQ(50.1, id.get<double>());
+  FATAL_EXPECT_EQ(50.1, id.get<double>());
 
   id = idc10;
-  EXPECT_EQ(10, id.get<int>());
+  FATAL_EXPECT_EQ(10, id.get<int>());
 
   id = ic11;
-  EXPECT_EQ(11, id.get<int>());
+  FATAL_EXPECT_EQ(11, id.get<int>());
 
   id = ice;
-  EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(id.empty());
 
   test_variant<int> i(allocator, 9);
-  EXPECT_EQ(9, i.get<int>());
+  FATAL_EXPECT_EQ(9, i.get<int>());
 
   i = idce;
-  EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(i.empty());
 
   i = idc10;
-  EXPECT_EQ(10, i.get<int>());
+  FATAL_EXPECT_EQ(10, i.get<int>());
 
   i = ic11;
-  EXPECT_EQ(11, i.get<int>());
+  FATAL_EXPECT_EQ(11, i.get<int>());
 
   i = ice;
-  EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(i.empty());
 }
 
-TEST(variant, operator_copy_assignment_heterogeneous_policy_lvref) {
+FATAL_TEST(variant, operator_copy_assignment_heterogeneous_policy_lvref) {
   auto_variant<int, double> ide;
-  EXPECT_TRUE(ide.empty());
+  FATAL_EXPECT_TRUE(ide.empty());
 
   auto_variant<int, double> id6_7(nullptr, 6.7);
-  EXPECT_EQ(6.7, id6_7.get<double>());
+  FATAL_EXPECT_EQ(6.7, id6_7.get<double>());
 
   auto_variant<int, double> id5(nullptr, 5);
-  EXPECT_EQ(5, id5.get<int>());
+  FATAL_EXPECT_EQ(5, id5.get<int>());
 
   auto_variant<int> i4(nullptr, 4);
-  EXPECT_EQ(4, i4.get<int>());
+  FATAL_EXPECT_EQ(4, i4.get<int>());
 
   auto_variant<int> ie;
-  EXPECT_TRUE(ie.empty());
+  FATAL_EXPECT_TRUE(ie.empty());
 
   auto_variant<int, double> id(nullptr, 7);
-  EXPECT_EQ(7, id.get<int>());
+  FATAL_EXPECT_EQ(7, id.get<int>());
 
   id = ide;
-  EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(id.empty());
 
   id = id6_7;
-  EXPECT_EQ(6.7, id.get<double>());
+  FATAL_EXPECT_EQ(6.7, id.get<double>());
 
   id = id5;
-  EXPECT_EQ(5, id.get<int>());
+  FATAL_EXPECT_EQ(5, id.get<int>());
 
   id = i4;
-  EXPECT_EQ(4, id.get<int>());
+  FATAL_EXPECT_EQ(4, id.get<int>());
 
   id = ie;
-  EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(id.empty());
 
   test_variant<int> i(allocator, 9);
-  EXPECT_EQ(9, i.get<int>());
+  FATAL_EXPECT_EQ(9, i.get<int>());
 
   i = ide;
-  EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(i.empty());
 
   i = id5;
-  EXPECT_EQ(5, i.get<int>());
+  FATAL_EXPECT_EQ(5, i.get<int>());
 
   i = i4;
-  EXPECT_EQ(4, i.get<int>());
+  FATAL_EXPECT_EQ(4, i.get<int>());
 
   i = ie;
-  EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(i.empty());
 }
 
-TEST(variant, operator_copy_assignment_heterogeneous_policy_rvref) {
+FATAL_TEST(variant, operator_copy_assignment_heterogeneous_policy_rvref) {
   auto_variant<int, double> ide;
-  EXPECT_TRUE(ide.empty());
+  FATAL_EXPECT_TRUE(ide.empty());
 
   auto_variant<int, double> id6_7(nullptr, 6.7);
-  EXPECT_EQ(6.7, id6_7.get<double>());
+  FATAL_EXPECT_EQ(6.7, id6_7.get<double>());
 
   auto_variant<int, double> id5(nullptr, 5);
-  EXPECT_EQ(5, id5.get<int>());
+  FATAL_EXPECT_EQ(5, id5.get<int>());
 
   auto_variant<int> i4(nullptr, 4);
-  EXPECT_EQ(4, i4.get<int>());
+  FATAL_EXPECT_EQ(4, i4.get<int>());
 
   auto_variant<int, double> id3(nullptr, 3);
-  EXPECT_EQ(3, id3.get<int>());
+  FATAL_EXPECT_EQ(3, id3.get<int>());
 
   auto_variant<int> i2(nullptr, 2);
-  EXPECT_EQ(2, i2.get<int>());
+  FATAL_EXPECT_EQ(2, i2.get<int>());
 
   auto_variant<int, double> id(nullptr, 7);
-  EXPECT_EQ(7, id.get<int>());
+  FATAL_EXPECT_EQ(7, id.get<int>());
 
   auto_variant<int> ie;
-  EXPECT_TRUE(ie.empty());
+  FATAL_EXPECT_TRUE(ie.empty());
 
   id = std::move(ide);
-  EXPECT_TRUE(id.empty());
-  EXPECT_TRUE(ide.empty());
+  FATAL_EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(ide.empty());
 
   id = std::move(id6_7);
-  EXPECT_EQ(6.7, id.get<double>());
-  EXPECT_TRUE(id6_7.empty());
+  FATAL_EXPECT_EQ(6.7, id.get<double>());
+  FATAL_EXPECT_TRUE(id6_7.empty());
 
   id = std::move(id5);
-  EXPECT_EQ(5, id.get<int>());
-  EXPECT_TRUE(id5.empty());
+  FATAL_EXPECT_EQ(5, id.get<int>());
+  FATAL_EXPECT_TRUE(id5.empty());
 
   id = std::move(i4);
-  EXPECT_EQ(4, id.get<int>());
-  EXPECT_TRUE(i4.empty());
+  FATAL_EXPECT_EQ(4, id.get<int>());
+  FATAL_EXPECT_TRUE(i4.empty());
 
   id = std::move(ie);
-  EXPECT_TRUE(id.empty());
-  EXPECT_TRUE(ie.empty());
+  FATAL_EXPECT_TRUE(id.empty());
+  FATAL_EXPECT_TRUE(ie.empty());
 
   test_variant<int> i(allocator, 9);
-  EXPECT_EQ(9, i.get<int>());
+  FATAL_EXPECT_EQ(9, i.get<int>());
 
   i = std::move(ide);
-  EXPECT_TRUE(i.empty());
-  EXPECT_TRUE(ide.empty());
+  FATAL_EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(ide.empty());
 
   i = std::move(id3);
-  EXPECT_EQ(3, i.get<int>());
-  EXPECT_TRUE(id3.empty());
+  FATAL_EXPECT_EQ(3, i.get<int>());
+  FATAL_EXPECT_TRUE(id3.empty());
 
   i = std::move(i2);
-  EXPECT_EQ(2, i.get<int>());
-  EXPECT_TRUE(i2.empty());
+  FATAL_EXPECT_EQ(2, i.get<int>());
+  FATAL_EXPECT_TRUE(i2.empty());
 
   i = std::move(ie);
-  EXPECT_TRUE(i.empty());
-  EXPECT_TRUE(ie.empty());
+  FATAL_EXPECT_TRUE(i.empty());
+  FATAL_EXPECT_TRUE(ie.empty());
 }
 
 template <typename Expected, typename ...Args>
 void check_type_tag_size() {
-  typedef variant<default_storage_policy<>, Args...> var;
-  if(!std::is_same<Expected, typename var::type_tag>::value) {
-    LOG(INFO) << "expected \"" << demangle(typeid(Expected).name())
-      << "\", got \"" << demangle(typeid(typename var::type_tag).name())
+  using var = variant<default_storage_policy<>, Args...>;
+  if (!std::is_same<Expected, typename var::type_tag>::value) {
+    FATAL_VLOG(1) << "expected \"" << type_str<Expected>()
+      << "\", got \"" << type_str<typename var::type_tag>()
       << "\" for " << sizeof...(Args) << " types";
-    EXPECT_TRUE(false);
+    FATAL_EXPECT_TRUE(false);
   }
 }
 
 template <int> struct X {};
-TEST(variant, type_tag_size) {
+FATAL_TEST(variant, type_tag_size) {
 #define TAG_SIZE_TEST(Expected,...) \
   check_type_tag_size<Expected, __VA_ARGS__>();
 
@@ -1226,8 +1704,8 @@ TEST(variant, type_tag_size) {
 #undef TAG_SIZE_TEST
 }
 
-TEST(variant, id) {
-  typedef variant<
+FATAL_TEST(variant, id) {
+  using var = variant<
     default_storage_policy<>,
     int,
     short,
@@ -1236,88 +1714,81 @@ TEST(variant, id) {
     test_vector<double>,
     test_vector<test_string>,
     std::map<test_string, test_string>
-  > var;
+  >;
 
-  EXPECT_EQ(var::tag<int>(), 0);
-  EXPECT_EQ(var::tag<short>(), 1);
-  EXPECT_EQ(var::tag<test_string>(), 2);
-  EXPECT_EQ(var::tag<test_vector<int>>(), 3);
-  EXPECT_EQ(var::tag<test_vector<double>>(), 4);
-  EXPECT_EQ(var::tag<test_vector<test_string>>(), 5);
-  typedef std::map<
-    test_string, test_string
-  > map_string_string;
-  EXPECT_EQ(var::tag<map_string_string>(), 6);
-  typedef std::map<test_string, int> map_string_int;
-  EXPECT_EQ(var::tag<map_string_int>(), 7);
-  typedef std::map<short, bool> map_short_bool;
-  EXPECT_EQ(var::tag<map_short_bool>(), 7);
-  EXPECT_EQ(var::tag<bool>(), 7);
-  EXPECT_EQ(var::tag<unsigned int>(), 7);
-  EXPECT_EQ(var::tag<unsigned short>(), 7);
-  EXPECT_EQ(var::no_tag(), 7);
+  FATAL_EXPECT_EQ(var::tag<int>(), 0);
+  FATAL_EXPECT_EQ(var::tag<short>(), 1);
+  FATAL_EXPECT_EQ(var::tag<test_string>(), 2);
+  FATAL_EXPECT_EQ(var::tag<test_vector<int>>(), 3);
+  FATAL_EXPECT_EQ(var::tag<test_vector<double>>(), 4);
+  FATAL_EXPECT_EQ(var::tag<test_vector<test_string>>(), 5);
+  using map_string_string = std::map<test_string, test_string>;
+  FATAL_EXPECT_EQ(var::tag<map_string_string>(), 6);
+  using map_string_int = std::map<test_string, int>;
+  FATAL_EXPECT_EQ(var::tag<map_string_int>(), 7);
+  using map_short_bool = std::map<short, bool>;
+  FATAL_EXPECT_EQ(var::tag<map_short_bool>(), 7);
+  FATAL_EXPECT_EQ(var::tag<bool>(), 7);
+  FATAL_EXPECT_EQ(var::tag<unsigned int>(), 7);
+  FATAL_EXPECT_EQ(var::tag<unsigned short>(), 7);
+  FATAL_EXPECT_EQ(var::no_tag(), 7);
 }
 
-TEST(variant, arena_allocator) {
-  SysArena arena;
-  MemoryLeakCheckerAllocator<StlAllocator<SysArena, int>, int> alloc{
-    StlAllocator<SysArena, int>(&arena)
-  };
+FATAL_TEST(variant, arena_allocator) {
+  test_allocator<int> arena;
+  checked_allocator<test_allocator<int>> alloc{arena};
 
   variant<
     default_storage_policy<decltype(alloc), dynamic_allocation_policy>,
     int, double, std::string, std::vector<int>
   > v(alloc);
-  EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_TRUE(v.empty());
 
   v = std::string("hello, world");
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ("hello, world", v.get<std::string>());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ("hello, world", v.get<std::string>());
 
   v = 10;
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(10, v.get<int>());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(10, v.get<int>());
 
   v = 5.6;
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(5.6, v.get<double>());
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(5.6, v.get<double>());
 
   v = std::vector<int>{1, 2, 3, 4, 5};
-  EXPECT_FALSE(v.empty());
-  EXPECT_EQ(5, v.get<std::vector<int>>().size());
-  for(int i = 1; i <= 5; ++i) {
-    EXPECT_EQ(i, v.get<std::vector<int>>()[i - 1]);
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_EQ(5, v.get<std::vector<int>>().size());
+  for (int i = 1; i <= 5; ++i) {
+    FATAL_EXPECT_EQ(i, v.get<std::vector<int>>()[i - 1]);
   }
 
   v.clear();
-  EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_TRUE(v.empty());
 }
 
-template <typename StoragePolicy = default_storage_policy<decltype(allocator)>>
-struct t_nested_vector;
-template <typename StoragePolicy = default_storage_policy<decltype(allocator)>>
+template <typename StoragePolicy = test_policy> struct t_nested_vector;
+template <typename StoragePolicy = test_policy>
 using t_nested_variant = variant<StoragePolicy, int, t_nested_vector<>>;
 template <typename StoragePolicy>
 struct t_nested_vector: public test_vector<t_nested_variant<StoragePolicy>> {};
 
-TEST(variant, templated_nested_variant) {
+FATAL_TEST(variant, templated_nested_variant) {
   t_nested_variant<> v(allocator);
-  EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_TRUE(v.empty());
 
   v = 10;
-  EXPECT_EQ(10, v.get<int>());
+  FATAL_EXPECT_EQ(10, v.get<int>());
 
   t_nested_vector<> x;
   x.emplace_back(allocator, 5);
   v = std::move(x);
-  EXPECT_EQ(1, v.get<decltype(x)>().size());
-  EXPECT_EQ(5, v.get<decltype(x)>()[0].get<int>());
+  FATAL_EXPECT_EQ(1, v.get<decltype(x)>().size());
+  FATAL_EXPECT_EQ(5, v.get<decltype(x)>()[0].get<int>());
 }
 
 struct nested_vector;
-typedef variant<
-  default_storage_policy<decltype(allocator)>, int, nested_vector
-> nested_variant;
+using nested_variant = variant<test_policy, int, nested_vector>;
 struct nested_vector:
   public test_vector<nested_variant>
 {
@@ -1327,18 +1798,18 @@ struct nested_vector:
   {}
 };
 
-TEST(variant, nested_variant) {
+FATAL_TEST(variant, nested_variant) {
   nested_variant v(allocator);
-  EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_TRUE(v.empty());
 
   v = 10;
-  EXPECT_EQ(10, v.get<int>());
+  FATAL_EXPECT_EQ(10, v.get<int>());
 
   nested_vector x;
   x.emplace_back(allocator, 5);
   v = std::move(x);
-  EXPECT_EQ(1, v.get<decltype(x)>().size());
-  EXPECT_EQ(5, v.get<decltype(x)>()[0].get<int>());
+  FATAL_EXPECT_EQ(1, v.get<decltype(x)>().size());
+  FATAL_EXPECT_EQ(5, v.get<decltype(x)>()[0].get<int>());
 }
 
 /*
@@ -1357,28 +1828,28 @@ struct nested_visitor {
   nested_visitor(std::initializer_list<int> list): expected_(list) {}
 
   void operator ()(nested_vector const &v) {
-    LOG(INFO) << "push" << " expected.size() = " << expected_.size()
+    FATAL_VLOG(1) << "push" << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
-    ASSERT_NE(0, expected_.size());
-    EXPECT_EQ(-1, expected_.front());
+    FATAL_ASSERT_NE(0, expected_.size());
+    FATAL_EXPECT_EQ(-1, expected_.front());
     expected_.pop();
 
-    for(auto &i: v) {
+    for (auto &i: v) {
       i.visit(*this);
     }
 
-    LOG(INFO) << "pop" << " expected.size() = " << expected_.size()
+    FATAL_VLOG(1) << "pop" << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
-    ASSERT_NE(0, expected_.size());
-    EXPECT_EQ(-2, expected_.front());
+    FATAL_ASSERT_NE(0, expected_.size());
+    FATAL_EXPECT_EQ(-2, expected_.front());
     expected_.pop();
   }
 
   void operator ()(int i) {
-    LOG(INFO) << "int " << i << " expected.size() = " << expected_.size()
+    FATAL_VLOG(1) << "int " << i << " expected.size() = " << expected_.size()
       << " with front = " << expected_.front();
-    ASSERT_NE(0, expected_.size());
-    EXPECT_EQ(expected_.front(), i);
+    FATAL_ASSERT_NE(0, expected_.size());
+    FATAL_EXPECT_EQ(expected_.front(), i);
     expected_.pop();
   }
 
@@ -1389,13 +1860,13 @@ private:
   std::queue<int> expected_;
 };
 
-TEST(variant, nested_visitor_0) {
+FATAL_TEST(variant, nested_visitor_0) {
   nested_visitor visitor{5};
   nested_variant(allocator, 5).visit(visitor);
-  EXPECT_TRUE(visitor.empty());
+  FATAL_EXPECT_TRUE(visitor.empty());
 }
 
-TEST(variant, nested_visitor_1) {
+FATAL_TEST(variant, nested_visitor_1) {
   nested_visitor visitor{-1, 9, -2};
   nested_variant(
     allocator,
@@ -1403,10 +1874,10 @@ TEST(variant, nested_visitor_1) {
       nested_variant(allocator, 9)
     }
   ).visit(visitor);
-  EXPECT_TRUE(visitor.empty());
+  FATAL_EXPECT_TRUE(visitor.empty());
 }
 
-TEST(variant, nested_visitor_5) {
+FATAL_TEST(variant, nested_visitor_5) {
   nested_visitor visitor{
     -1, 10,
       -1, 20,
@@ -1447,7 +1918,7 @@ TEST(variant, nested_visitor_5) {
     }),
     nested_variant(allocator, 12)
   }).visit(visitor);
-  EXPECT_TRUE(visitor.empty());
+  FATAL_EXPECT_TRUE(visitor.empty());
 }
 
 template <typename T, T returnValue>
@@ -1461,59 +1932,71 @@ struct visitor_that_returns {
   T operator()(U&&) const { return returnValue; }
 };
 
-TEST(variant, visitor_that_return) {
-  typedef test_variant<int, double> var;
+FATAL_TEST(variant, visitor_that_return) {
+  using var = test_variant<int, double>;
 
-  typedef visitor_that_returns<int, 99> visitor_type;
+  using visitor_type = visitor_that_returns<int, 99>;
   visitor_type visitor;
   visitor_type const cvisitor;
 
-  EXPECT_THROW((visit<int>(var(), visitor_type())), std::logic_error);
-  EXPECT_EQ(111, (visit_def<int>(var(), visitor_type(), 111)));
-  EXPECT_THROW((visit<int>(var(), visitor)), std::logic_error);
-  EXPECT_EQ(111, (visit_def<int>(var(), visitor, 111)));
-  EXPECT_THROW((visit<int>(var(), cvisitor)), std::logic_error);
-  EXPECT_EQ(111, (visit_def<int>(var(), cvisitor, 111)));
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<int>(var(), visitor_type());
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<int>(var(), visitor_type(), 111)));
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<int>(var(), visitor);
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<int>(var(), visitor, 111)));
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<int>(var(), cvisitor);
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<int>(var(), cvisitor, 111)));
 
-  EXPECT_EQ(99, (visit<int>(var(allocator, 10), visitor_type())));
-  EXPECT_EQ(99, (visit<int>(var(allocator, 10), visitor)));
-  EXPECT_EQ(99, (visit<int>(var(allocator, 10), cvisitor)));
+  FATAL_EXPECT_EQ(99, (visit<int>(var(allocator, 10), visitor_type())));
+  FATAL_EXPECT_EQ(99, (visit<int>(var(allocator, 10), visitor)));
+  FATAL_EXPECT_EQ(99, (visit<int>(var(allocator, 10), cvisitor)));
 
-  EXPECT_EQ(99, (visit<int>(var(allocator, 3.2), visitor_type())));
-  EXPECT_EQ(99, (visit<int>(var(allocator, 3.2), visitor)));
-  EXPECT_EQ(99, (visit<int>(var(allocator, 3.2), cvisitor)));
+  FATAL_EXPECT_EQ(99, (visit<int>(var(allocator, 3.2), visitor_type())));
+  FATAL_EXPECT_EQ(99, (visit<int>(var(allocator, 3.2), visitor)));
+  FATAL_EXPECT_EQ(99, (visit<int>(var(allocator, 3.2), cvisitor)));
 
   var const c(allocator, 123);
 
-  EXPECT_TRUE(c.is_of<int>());
-  EXPECT_EQ(99, (visit<int>(c, visitor_type())));
-  EXPECT_EQ(99, (visit_def<int>(c, visitor_type(), 111)));
-  EXPECT_EQ(99, (visit<int>(c, visitor)));
-  EXPECT_EQ(99, (visit_def<int>(c, visitor, 111)));
-  EXPECT_EQ(99, (visit<int>(c, cvisitor)));
-  EXPECT_EQ(99, (visit_def<int>(c, cvisitor, 111)));
+  FATAL_EXPECT_TRUE(c.is_of<int>());
+  FATAL_EXPECT_EQ(99, (visit<int>(c, visitor_type())));
+  FATAL_EXPECT_EQ(99, (visit_def<int>(c, visitor_type(), 111)));
+  FATAL_EXPECT_EQ(99, (visit<int>(c, visitor)));
+  FATAL_EXPECT_EQ(99, (visit_def<int>(c, visitor, 111)));
+  FATAL_EXPECT_EQ(99, (visit<int>(c, cvisitor)));
+  FATAL_EXPECT_EQ(99, (visit_def<int>(c, cvisitor, 111)));
 
   var v(allocator);
 
-  EXPECT_TRUE(v.empty());
-  EXPECT_THROW((visit<int>(v, visitor_type())), std::logic_error);
-  EXPECT_EQ(111, (visit_def<int>(v, visitor_type(), 111)));
-  EXPECT_THROW((visit<int>(v, visitor)), std::logic_error);
-  EXPECT_EQ(111, (visit_def<int>(v, visitor, 111)));
-  EXPECT_THROW((visit<int>(v, cvisitor)), std::logic_error);
-  EXPECT_EQ(111, (visit_def<int>(v, cvisitor, 111)));
+  FATAL_EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<int>(v, visitor_type());
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<int>(v, visitor_type(), 111)));
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<int>(v, visitor);
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<int>(v, visitor, 111)));
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<int>(v, cvisitor);
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<int>(v, cvisitor, 111)));
 
   v = 10;
-  EXPECT_TRUE(v.is_of<int>());
-  EXPECT_EQ(99, (visit<int>(v, visitor_type())));
-  EXPECT_EQ(99, (visit<int>(v, visitor)));
-  EXPECT_EQ(99, (visit<int>(v, cvisitor)));
+  FATAL_EXPECT_TRUE(v.is_of<int>());
+  FATAL_EXPECT_EQ(99, (visit<int>(v, visitor_type())));
+  FATAL_EXPECT_EQ(99, (visit<int>(v, visitor)));
+  FATAL_EXPECT_EQ(99, (visit<int>(v, cvisitor)));
 
   v = 3.2;
-  EXPECT_TRUE(v.is_of<double>());
-  EXPECT_EQ(99, (visit<int>(v, visitor_type())));
-  EXPECT_EQ(99, (visit<int>(v, visitor)));
-  EXPECT_EQ(99, (visit<int>(v, cvisitor)));
+  FATAL_EXPECT_TRUE(v.is_of<double>());
+  FATAL_EXPECT_EQ(99, (visit<int>(v, visitor_type())));
+  FATAL_EXPECT_EQ(99, (visit<int>(v, visitor)));
+  FATAL_EXPECT_EQ(99, (visit<int>(v, cvisitor)));
 }
 
 template <typename variant_type>
@@ -1526,58 +2009,39 @@ struct visitor_that_returns_type_tag {
   }
 };
 
-TEST(variant, visitor_that_return_on_arena_variant) {
-  SysArena arena;
-  MemoryLeakCheckerAllocator<StlAllocator<SysArena, int>, int> allocator{
-    StlAllocator<SysArena, int>(&arena)
-  };
-  typedef variant<
+FATAL_TEST(variant, visitor_that_return_on_arena_variant) {
+  test_allocator<int> arena;
+  checked_allocator<test_allocator<int>> alloc{arena};
+
+  using var = variant<
     default_storage_policy<decltype(allocator), dynamic_allocation_policy>,
     int, double, std::string
-  > var;
-  typedef visitor_that_returns_type_tag<var> visitor_type;
+  >;
+  using visitor_type = visitor_that_returns_type_tag<var>;
 
   var v(allocator);
-  EXPECT_TRUE(v.empty());
-  EXPECT_THROW((visit<var::type_tag>(v, visitor_type())), std::logic_error);
+  FATAL_EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<var::type_tag>(v, visitor_type());
+  };
 
   v = 10;
-  EXPECT_TRUE(v.is_of<int>());
-  EXPECT_EQ((var::tag<int>()), (visit<var::type_tag>(v, visitor_type())));
+  FATAL_EXPECT_TRUE(v.is_of<int>());
+  FATAL_EXPECT_EQ((var::tag<int>()), (visit<var::type_tag>(v, visitor_type())));
 
   v = 5.6;
-  EXPECT_TRUE(v.is_of<double>());
-  EXPECT_EQ((var::tag<double>()), (visit<var::type_tag>(v, visitor_type())));
+  FATAL_EXPECT_TRUE(v.is_of<double>());
+  FATAL_EXPECT_EQ(
+    (var::tag<double>()),
+    (visit<var::type_tag>(v, visitor_type()))
+  );
 
   v = std::string();
-  EXPECT_TRUE(v.is_of<std::string>());
-  EXPECT_EQ(
+  FATAL_EXPECT_TRUE(v.is_of<std::string>());
+  FATAL_EXPECT_EQ(
     (var::tag<std::string>()),
     (visit<var::type_tag>(v, visitor_type()))
   );
-}
-
-struct visitor_that_return_folly_dynamic {
-  template <typename U>
-  folly::dynamic operator()(U &&value) {
-    return folly::dynamic(value);
-  }
-};
-
-TEST(variant, visitor_that_return_folly_dynamic) {
-  typedef test_variant<int, double> var;
-  visitor_that_return_folly_dynamic visitor;
-  var v(allocator);
-
-  v = 10;
-  auto i = visit<folly::dynamic>(v, visitor);
-  EXPECT_TRUE(i.isInt());
-  EXPECT_EQ(10, i.asInt());
-
-  v = 5.6;
-  auto d = visit<folly::dynamic>(v, visitor);
-  EXPECT_TRUE(d.isDouble());
-  EXPECT_EQ(5.6, d.asDouble());
 }
 
 template <typename return_type>
@@ -1591,129 +2055,146 @@ struct visitor_with_additional_parameters {
   }
 };
 
-TEST(variant, visitor_with_additional_parameters) {
-  typedef test_variant<int, double> var;
+FATAL_TEST(variant, visitor_with_additional_parameters) {
+  using var = test_variant<int, double>;
 
-  typedef visitor_with_additional_parameters<double> visitor_type;
+  using visitor_type = visitor_with_additional_parameters<double>;
   visitor_type visitor;
 
-  EXPECT_THROW(
-    (visit<double>(var(), visitor_type(), 1.9, 54)),
-    std::logic_error
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<double>(var(), visitor_type(), 1.9, 54);
+  };
+  FATAL_EXPECT_EQ(
+    111,
+    (visit_def<double>(var(), visitor_type(), 111, 1.9, 54))
   );
-  EXPECT_EQ(111, (visit_def<double>(var(), visitor_type(), 111, 1.9, 54)));
-  EXPECT_THROW((visit<double>(var(), visitor, 1.9, 54)), std::logic_error);
-  EXPECT_EQ(111, (visit_def<double>(var(), visitor, 111)));
-  EXPECT_EQ(
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<double>(var(), visitor, 1.9, 54);
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<double>(var(), visitor, 111)));
+  FATAL_EXPECT_EQ(
     10 + 1.9 + 54,
     (visit<double>(var(allocator, 10), visitor_type(), 1.9, 54))
   );
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(
     10 + 1.9 + 54,
     (visit<double>(var(allocator, 10), visitor, 1.9, 54))
   );
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(
     3.2 + 1.9 + 54,
     (visit<double>(var(allocator, 3.2), visitor_type(), 1.9, 54))
   );
-  EXPECT_EQ(
+  FATAL_EXPECT_EQ(
     3.2 + 1.9 + 54,
     (visit<double>(var(allocator, 3.2), visitor, 1.9, 54))
   );
 
   var const c(allocator, 99);
 
-  EXPECT_TRUE(c.is_of<int>());
-  EXPECT_EQ(99 + 1.9 + 54, (visit<double>(c, visitor_type(), 1.9, 54)));
-  EXPECT_EQ(99 + 1.9 + 54, (visit<double>(c, visitor, 1.9, 54)));
-  EXPECT_EQ(
+  FATAL_EXPECT_TRUE(c.is_of<int>());
+  FATAL_EXPECT_EQ(99 + 1.9 + 54, (visit<double>(c, visitor_type(), 1.9, 54)));
+  FATAL_EXPECT_EQ(99 + 1.9 + 54, (visit<double>(c, visitor, 1.9, 54)));
+  FATAL_EXPECT_EQ(
     99 + 1.9 + 54,
     (visit_def<double>(c, visitor_type(), 111, 1.9, 54))
   );
-  EXPECT_EQ(99 + 1.9 + 54, (visit_def<double>(c, visitor, 111, 1.9, 54)));
+  FATAL_EXPECT_EQ(99 + 1.9 + 54, (visit_def<double>(c, visitor, 111, 1.9, 54)));
 
   var v(allocator);
 
-  EXPECT_TRUE(v.empty());
-  EXPECT_THROW((visit<double>(v, visitor_type())), std::logic_error);
-  EXPECT_EQ(111, (visit_def<double>(v, visitor_type(), 111)));
-  EXPECT_THROW((visit<double>(v, visitor)), std::logic_error);
-  EXPECT_EQ(111, (visit_def<double>(v, visitor, 111)));
+  FATAL_EXPECT_TRUE(v.empty());
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<double>(v, visitor_type());
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<double>(v, visitor_type(), 111)));
+  FATAL_EXPECT_THROW(std::logic_error) {
+    visit<double>(v, visitor);
+  };
+  FATAL_EXPECT_EQ(111, (visit_def<double>(v, visitor, 111)));
 
   v = 10;
-  EXPECT_TRUE(v.is_of<int>());
-  EXPECT_EQ(10 + 1.9 + 54, (visit<double>(v, visitor_type(), 1.9, 54)));
-  EXPECT_EQ(10 + 1.9 + 54, (visit<double>(v, visitor, 1.9, 54)));
+  FATAL_EXPECT_TRUE(v.is_of<int>());
+  FATAL_EXPECT_EQ(10 + 1.9 + 54, (visit<double>(v, visitor_type(), 1.9, 54)));
+  FATAL_EXPECT_EQ(10 + 1.9 + 54, (visit<double>(v, visitor, 1.9, 54)));
 
   v = 3.2;
-  EXPECT_TRUE(v.is_of<double>());
-  EXPECT_EQ(3.2 + 1.9 + 54, (visit<double>(v, visitor_type(), 1.9, 54)));
-  EXPECT_EQ(3.2 + 1.9 + 54, (visit<double>(v, visitor, 1.9, 54)));
+  FATAL_EXPECT_TRUE(v.is_of<double>());
+  FATAL_EXPECT_EQ(3.2 + 1.9 + 54, (visit<double>(v, visitor_type(), 1.9, 54)));
+  FATAL_EXPECT_EQ(3.2 + 1.9 + 54, (visit<double>(v, visitor, 1.9, 54)));
 }
 
-TEST(variant, variant_vector) {
-  typedef test_variant<int, double, test_string> var;
+FATAL_TEST(variant, variant_vector) {
+  using var = test_variant<int, double, test_string>;
   test_vector<var> v(allocator);
 
   v.reserve(1);
-  EXPECT_EQ(0, v.size());
+  FATAL_EXPECT_EQ(0, v.size());
 
   v.push_back(var(allocator, 10));
-  EXPECT_EQ(1, v.size());
-  EXPECT_TRUE(v[0].is_of<int>());
-  EXPECT_EQ(10, (v[0].get<int>()));
+  FATAL_EXPECT_EQ(1, v.size());
+  FATAL_EXPECT_TRUE(v[0].is_of<int>());
+  FATAL_EXPECT_EQ(10, (v[0].get<int>()));
 
   v.emplace_back(allocator, 5.6);
-  EXPECT_EQ(2, v.size());
-  EXPECT_TRUE(v[0].is_of<int>());
-  EXPECT_EQ(10, (v[0].get<int>()));
-  EXPECT_TRUE(v[1].is_of<double>());
-  EXPECT_EQ(5.6, (v[1].get<double>()));
+  FATAL_EXPECT_EQ(2, v.size());
+  FATAL_EXPECT_TRUE(v[0].is_of<int>());
+  FATAL_EXPECT_EQ(10, (v[0].get<int>()));
+  FATAL_EXPECT_TRUE(v[1].is_of<double>());
+  FATAL_EXPECT_EQ(5.6, (v[1].get<double>()));
 
   v.resize(3);
-  EXPECT_EQ(3, v.size());
-  EXPECT_TRUE(v[0].is_of<int>());
-  EXPECT_EQ(10, (v[0].get<int>()));
-  EXPECT_TRUE(v[1].is_of<double>());
-  EXPECT_EQ(5.6, (v[1].get<double>()));
-  EXPECT_TRUE(v[2].empty());
+  FATAL_EXPECT_EQ(3, v.size());
+  FATAL_EXPECT_TRUE(v[0].is_of<int>());
+  FATAL_EXPECT_EQ(10, (v[0].get<int>()));
+  FATAL_EXPECT_TRUE(v[1].is_of<double>());
+  FATAL_EXPECT_EQ(5.6, (v[1].get<double>()));
+  FATAL_EXPECT_TRUE(v[2].empty());
 
   v[2] = var(allocator, test_string("HELLO, WORLD", allocator));
-  EXPECT_EQ(3, v.size());
-  EXPECT_TRUE(v[0].is_of<int>());
-  EXPECT_EQ(10, (v[0].get<int>()));
-  EXPECT_TRUE(v[1].is_of<double>());
-  EXPECT_EQ(5.6, (v[1].get<double>()));
-  EXPECT_TRUE(v[2].is_of<test_string>());
-  EXPECT_EQ(test_string("HELLO, WORLD", allocator), (v[2].get<test_string>()));
+  FATAL_EXPECT_EQ(3, v.size());
+  FATAL_EXPECT_TRUE(v[0].is_of<int>());
+  FATAL_EXPECT_EQ(10, (v[0].get<int>()));
+  FATAL_EXPECT_TRUE(v[1].is_of<double>());
+  FATAL_EXPECT_EQ(5.6, (v[1].get<double>()));
+  FATAL_EXPECT_TRUE(v[2].is_of<test_string>());
+  FATAL_EXPECT_EQ(
+    test_string("HELLO, WORLD", allocator),
+    (v[2].get<test_string>())
+  );
 
   v.resize(4);
-  EXPECT_EQ(4, v.size());
-  EXPECT_TRUE(v[0].is_of<int>());
-  EXPECT_EQ(10, (v[0].get<int>()));
-  EXPECT_TRUE(v[1].is_of<double>());
-  EXPECT_EQ(5.6, (v[1].get<double>()));
-  EXPECT_TRUE(v[2].is_of<test_string>());
-  EXPECT_EQ(test_string("HELLO, WORLD", allocator), (v[2].get<test_string>()));
-  EXPECT_TRUE(v[3].empty());
+  FATAL_EXPECT_EQ(4, v.size());
+  FATAL_EXPECT_TRUE(v[0].is_of<int>());
+  FATAL_EXPECT_EQ(10, (v[0].get<int>()));
+  FATAL_EXPECT_TRUE(v[1].is_of<double>());
+  FATAL_EXPECT_EQ(5.6, (v[1].get<double>()));
+  FATAL_EXPECT_TRUE(v[2].is_of<test_string>());
+  FATAL_EXPECT_EQ(
+    test_string("HELLO, WORLD", allocator),
+    (v[2].get<test_string>())
+  );
+  FATAL_EXPECT_TRUE(v[3].empty());
 
   var const t(allocator, test_string("THIS IS A TEST", allocator));
   v[3] = t;
-  EXPECT_EQ(4, v.size());
-  EXPECT_TRUE(v[0].is_of<int>());
-  EXPECT_EQ(10, (v[0].get<int>()));
-  EXPECT_TRUE(v[1].is_of<double>());
-  EXPECT_EQ(5.6, (v[1].get<double>()));
-  EXPECT_TRUE(v[2].is_of<test_string>());
-  EXPECT_EQ(test_string("HELLO, WORLD", allocator), (v[2].get<test_string>()));
-  EXPECT_EQ(t.tag(), v[3].tag());
-  EXPECT_EQ((t.get<test_string>()), (v[3].get<test_string>()));
+  FATAL_EXPECT_EQ(4, v.size());
+  FATAL_EXPECT_TRUE(v[0].is_of<int>());
+  FATAL_EXPECT_EQ(10, (v[0].get<int>()));
+  FATAL_EXPECT_TRUE(v[1].is_of<double>());
+  FATAL_EXPECT_EQ(5.6, (v[1].get<double>()));
+  FATAL_EXPECT_TRUE(v[2].is_of<test_string>());
+  FATAL_EXPECT_EQ(
+    test_string("HELLO, WORLD", allocator),
+    (v[2].get<test_string>())
+  );
+  FATAL_EXPECT_EQ(t.tag(), v[3].tag());
+  FATAL_EXPECT_EQ((t.get<test_string>()), (v[3].get<test_string>()));
 }
 
-TEST(variant, variant_map_as_value) {
-  typedef test_variant<int, double, test_string> var;
+FATAL_TEST(variant, variant_map_as_value) {
+  using var = test_variant<int, double, test_string>;
   std::map<test_string, var> m;
-  typedef decltype(m)::value_type pair_type;
+  using pair_type = decltype(m)::value_type;
 
   m.insert(pair_type("int", var(allocator, 10)));
   m.insert(pair_type("double", var(allocator, 5.6)));
@@ -1721,34 +2202,34 @@ TEST(variant, variant_map_as_value) {
   var const t(allocator, test_string("THIS IS A TEST", allocator));
   m["t"] = t;
 
-  EXPECT_EQ(4, m.size());
+  FATAL_EXPECT_EQ(4, m.size());
 
-  FOR_EACH_KV(key, value, m) {
-    if(key == "int") {
-      EXPECT_TRUE(value.is_of<int>());
-      EXPECT_EQ(10, (value.get<int>()));
-    } else if(key == "double") {
-      EXPECT_TRUE(value.is_of<double>());
-      EXPECT_EQ(5.6, (value.get<double>()));
-    } else if(key == "string") {
-      EXPECT_TRUE(value.is_of<test_string>());
-      EXPECT_EQ(
+  for (auto const &i: m) {
+    if (i.first == "int") {
+      FATAL_EXPECT_TRUE(i.second.is_of<int>());
+      FATAL_EXPECT_EQ(10, (i.second.get<int>()));
+    } else if (i.first == "double") {
+      FATAL_EXPECT_TRUE(i.second.is_of<double>());
+      FATAL_EXPECT_EQ(5.6, (i.second.get<double>()));
+    } else if (i.first == "string") {
+      FATAL_EXPECT_TRUE(i.second.is_of<test_string>());
+      FATAL_EXPECT_EQ(
         test_string("HELLO, WORLD", allocator),
-        (value.get<test_string>())
+        (i.second.get<test_string>())
       );
-    } else if(key == "t") {
-      EXPECT_EQ(t.tag(), value.tag());
-      EXPECT_EQ((t.get<test_string>()), (value.get<test_string>()));
+    } else if (i.first == "t") {
+      FATAL_EXPECT_EQ(t.tag(), i.second.tag());
+      FATAL_EXPECT_EQ((t.get<test_string>()), (i.second.get<test_string>()));
     } else {
-      EXPECT_TRUE(false);
+      FATAL_EXPECT_TRUE(false);
     }
   }
 }
 
-TEST(variant, variant_map_as_key_value) {
-  typedef test_variant<int, double, test_string> var;
+FATAL_TEST(variant, variant_map_as_key_value) {
+  using var = test_variant<int, double, test_string>;
   std::map<var, var> m;
-  typedef decltype(m)::value_type pair_type;
+  using pair_type = decltype(m)::value_type;
 
   m.insert(std::make_pair(var(allocator, 10), var(allocator, 5.6)));
   var const t(allocator, test_string("THIS IS A TEST", allocator));
@@ -1756,27 +2237,27 @@ TEST(variant, variant_map_as_key_value) {
     pair_type(var(allocator, test_string("HELLO, WORLD", allocator)), t)
   );
 
-  EXPECT_EQ(2, m.size());
+  FATAL_EXPECT_EQ(2, m.size());
 
-  FOR_EACH_KV(key, value, m) {
-    switch(key.tag()) {
+  for (auto const &i: m) {
+    switch (i.first.tag()) {
       case var::tag<int>():
-        EXPECT_EQ(10, (key.get<int>()));
-        EXPECT_TRUE(value.is_of<double>());
-        EXPECT_EQ(5.6, (value.get<double>()));
+        FATAL_EXPECT_EQ(10, (i.first.get<int>()));
+        FATAL_EXPECT_TRUE(i.second.is_of<double>());
+        FATAL_EXPECT_EQ(5.6, (i.second.get<double>()));
         break;
 
       case var::tag<test_string>():
-        EXPECT_EQ(
+        FATAL_EXPECT_EQ(
           test_string("HELLO, WORLD", allocator),
-          (key.get<test_string>())
+          (i.first.get<test_string>())
         );
-        EXPECT_EQ(t.tag(), value.tag());
-        EXPECT_EQ((t.get<test_string>()), (value.get<test_string>()));
+        FATAL_EXPECT_EQ(t.tag(), i.second.tag());
+        FATAL_EXPECT_EQ((t.get<test_string>()), (i.second.get<test_string>()));
         break;
 
       default:
-        EXPECT_TRUE(false);
+        FATAL_EXPECT_TRUE(false);
     }
   }
 
@@ -1784,14 +2265,14 @@ TEST(variant, variant_map_as_key_value) {
   var const k2(allocator, test_string("HELLO, WORLD", allocator));
 
   auto v1 = m.find(k1);
-  ASSERT_NE(v1, m.end());
-  EXPECT_TRUE(v1->second.is_of<double>());
-  EXPECT_EQ(5.6, (v1->second.get<double>()));
+  FATAL_ASSERT_NE(v1, m.end());
+  FATAL_EXPECT_TRUE(v1->second.is_of<double>());
+  FATAL_EXPECT_EQ(5.6, (v1->second.get<double>()));
 
   auto v2 = m.find(var(allocator, test_string("HELLO, WORLD", allocator)));
-  ASSERT_NE(v2, m.end());
-  EXPECT_EQ(t.tag(), v2->second.tag());
-  EXPECT_EQ((t.get<test_string>()), (v2->second.get<test_string>()));
+  FATAL_ASSERT_NE(v2, m.end());
+  FATAL_EXPECT_EQ(t.tag(), v2->second.tag());
+  FATAL_EXPECT_EQ((t.get<test_string>()), (v2->second.get<test_string>()));
 
   m[var(allocator, 10)] = var(
     allocator,
@@ -1799,47 +2280,47 @@ TEST(variant, variant_map_as_key_value) {
   );
   m[k2] = var(allocator, 456789);
 
-  FOR_EACH_KV(key, value, m) {
-    switch(key.tag()) {
+  for (auto const &i: m) {
+    switch (i.first.tag()) {
       case var::tag<int>():
-        EXPECT_EQ(10, (key.get<int>()));
-        EXPECT_TRUE(value.is_of<test_string>());
-        EXPECT_EQ(
+        FATAL_EXPECT_EQ(10, (i.first.get<int>()));
+        FATAL_EXPECT_TRUE(i.second.is_of<test_string>());
+        FATAL_EXPECT_EQ(
           "so you didn't misspell cat prophet, my bad",
-          (value.get<test_string>())
+          (i.second.get<test_string>())
         );
         break;
 
       case var::tag<test_string>():
-        EXPECT_EQ(
+        FATAL_EXPECT_EQ(
           test_string("HELLO, WORLD", allocator),
-          (key.get<test_string>())
+          (i.first.get<test_string>())
         );
-        EXPECT_TRUE(value.is_of<int>());
-        EXPECT_EQ(456789, (value.get<int>()));
+        FATAL_EXPECT_TRUE(i.second.is_of<int>());
+        FATAL_EXPECT_EQ(456789, (i.second.get<int>()));
         break;
 
       default:
-        EXPECT_TRUE(false);
+        FATAL_EXPECT_TRUE(false);
     }
   }
 
   v1 = m.find(var(allocator, 10));
-  ASSERT_NE(v1, m.end());
-  EXPECT_TRUE(v1->second.is_of<test_string>());
-  EXPECT_EQ(
+  FATAL_ASSERT_NE(v1, m.end());
+  FATAL_EXPECT_TRUE(v1->second.is_of<test_string>());
+  FATAL_EXPECT_EQ(
     "so you didn't misspell cat prophet, my bad",
     (v1->second.get<test_string>())
   );
 
   v2 = m.find(k2);
-  ASSERT_NE(v2, m.end());
-  EXPECT_TRUE(v2->second.is_of<int>());
-  EXPECT_EQ(456789, (v2->second.get<int>()));
+  FATAL_ASSERT_NE(v2, m.end());
+  FATAL_EXPECT_TRUE(v2->second.is_of<int>());
+  FATAL_EXPECT_EQ(456789, (v2->second.get<int>()));
 }
 
-TEST(variant, variant_unordered_map_as_key_value) {
-  typedef test_variant<int, double, std::string> var;
+FATAL_TEST(variant, variant_unordered_map_as_key_value) {
+  using var = test_variant<int, double, std::string>;
   std::unordered_map<var, var> m;
 
   m.emplace(var(allocator, 10), var(allocator, 5.6));
@@ -1848,24 +2329,27 @@ TEST(variant, variant_unordered_map_as_key_value) {
     std::make_pair(var(allocator, std::string("HELLO, WORLD")), t)
   );
 
-  EXPECT_EQ(2, m.size());
+  FATAL_EXPECT_EQ(2, m.size());
 
-  FOR_EACH_KV(key, value, m) {
-    switch(key.tag()) {
+  for (auto const &i: m) {
+    switch (i.first.tag()) {
       case var::tag<int>():
-        EXPECT_EQ(10, (key.get<int>()));
-        EXPECT_TRUE(value.is_of<double>());
-        EXPECT_EQ(5.6, (value.get<double>()));
+        FATAL_EXPECT_EQ(10, (i.first.get<int>()));
+        FATAL_EXPECT_TRUE(i.second.is_of<double>());
+        FATAL_EXPECT_EQ(5.6, (i.second.get<double>()));
         break;
 
       case var::tag<std::string>():
-        EXPECT_EQ(std::string("HELLO, WORLD"), (key.get<std::string>()));
-        EXPECT_EQ(t.tag(), value.tag());
-        EXPECT_EQ((t.get<std::string>()), (value.get<std::string>()));
+        FATAL_EXPECT_EQ(
+          std::string("HELLO, WORLD"),
+          (i.first.get<std::string>())
+        );
+        FATAL_EXPECT_EQ(t.tag(), i.second.tag());
+        FATAL_EXPECT_EQ((t.get<std::string>()), (i.second.get<std::string>()));
         break;
 
       default:
-        EXPECT_TRUE(false);
+        FATAL_EXPECT_TRUE(false);
     }
   }
 
@@ -1873,14 +2357,14 @@ TEST(variant, variant_unordered_map_as_key_value) {
   var const k2(allocator, std::string("HELLO, WORLD"));
 
   auto v1 = m.find(k1);
-  ASSERT_NE(v1, m.end());
-  EXPECT_TRUE(v1->second.is_of<double>());
-  EXPECT_EQ(5.6, (v1->second.get<double>()));
+  FATAL_ASSERT_NE(v1, m.end());
+  FATAL_EXPECT_TRUE(v1->second.is_of<double>());
+  FATAL_EXPECT_EQ(5.6, (v1->second.get<double>()));
 
   auto v2 = m.find(var(allocator, std::string("HELLO, WORLD")));
-  ASSERT_NE(v2, m.end());
-  EXPECT_EQ(t.tag(), v2->second.tag());
-  EXPECT_EQ((t.get<std::string>()), (v2->second.get<std::string>()));
+  FATAL_ASSERT_NE(v2, m.end());
+  FATAL_EXPECT_EQ(t.tag(), v2->second.tag());
+  FATAL_EXPECT_EQ((t.get<std::string>()), (v2->second.get<std::string>()));
 
   m[var(allocator, 10)] = var(
     allocator,
@@ -1888,53 +2372,56 @@ TEST(variant, variant_unordered_map_as_key_value) {
   );
   m[k2] = var(allocator, 456789);
 
-  FOR_EACH_KV(key, value, m) {
-    switch(key.tag()) {
+  for (auto const &i: m) {
+    switch (i.first.tag()) {
       case var::tag<int>():
-        EXPECT_EQ(10, (key.get<int>()));
-        EXPECT_TRUE(value.is_of<std::string>());
-        EXPECT_EQ(
+        FATAL_EXPECT_EQ(10, (i.first.get<int>()));
+        FATAL_EXPECT_TRUE(i.second.is_of<std::string>());
+        FATAL_EXPECT_EQ(
           "so you didn't misspell cat prophet, my bad",
-          (value.get<std::string>())
+          (i.second.get<std::string>())
         );
         break;
 
       case var::tag<std::string>():
-        EXPECT_EQ(std::string("HELLO, WORLD"), (key.get<std::string>()));
-        EXPECT_TRUE(value.is_of<int>());
-        EXPECT_EQ(456789, (value.get<int>()));
+        FATAL_EXPECT_EQ(
+          std::string("HELLO, WORLD"),
+          (i.first.get<std::string>())
+        );
+        FATAL_EXPECT_TRUE(i.second.is_of<int>());
+        FATAL_EXPECT_EQ(456789, (i.second.get<int>()));
         break;
 
       default:
-        EXPECT_TRUE(false);
+        FATAL_EXPECT_TRUE(false);
     }
   }
 
   v1 = m.find(var(allocator, 10));
-  ASSERT_NE(v1, m.end());
-  EXPECT_TRUE(v1->second.is_of<std::string>());
-  EXPECT_EQ(
+  FATAL_ASSERT_NE(v1, m.end());
+  FATAL_EXPECT_TRUE(v1->second.is_of<std::string>());
+  FATAL_EXPECT_EQ(
     "so you didn't misspell cat prophet, my bad",
     (v1->second.get<std::string>())
   );
 
   v2 = m.find(k2);
-  ASSERT_NE(v2, m.end());
-  EXPECT_TRUE(v2->second.is_of<int>());
-  EXPECT_EQ(456789, (v2->second.get<int>()));
+  FATAL_ASSERT_NE(v2, m.end());
+  FATAL_EXPECT_TRUE(v2->second.is_of<int>());
+  FATAL_EXPECT_EQ(456789, (v2->second.get<int>()));
 }
 
-TEST(variant, rebind_storage_policy) {
-  typedef default_storage_policy<
+FATAL_TEST(variant, rebind_storage_policy) {
+  using custom_storage_policy = default_storage_policy<
     decltype(allocator), automatic_allocation_policy
-  > custom_storage_policy;
+  >;
 
-  typedef test_variant<int, double, test_string> original_var;
-  typedef original_var::types::apply_front<
+  using original_var = test_variant<int, double, test_string>;
+  using rebound_var = original_var::types::apply_front<
     variant, custom_storage_policy
-  > rebound_var;
+  >;
 
-  EXPECT_TRUE((
+  FATAL_EXPECT_TRUE((
     std::is_same<
       rebound_var,
       variant<custom_storage_policy, int, double, test_string>
@@ -1943,13 +2430,13 @@ TEST(variant, rebind_storage_policy) {
 
   rebound_var v(allocator, 123456789);
 
-  EXPECT_TRUE(v.is_of<int>());
-  EXPECT_EQ(123456789, (v.get<int>()));
+  FATAL_EXPECT_TRUE(v.is_of<int>());
+  FATAL_EXPECT_EQ(123456789, (v.get<int>()));
 }
 
-TEST(variant, container_assignment) {
-  typedef test_variant<int, double, test_string> VAR;
-  typedef test_vector<VAR> VECTOR;
+FATAL_TEST(variant, container_assignment) {
+  using VAR = test_variant<int, double, test_string>;
+  using VECTOR = test_vector<VAR>;
   VECTOR v1(allocator);
   v1.reserve(1);
 
@@ -1959,13 +2446,13 @@ TEST(variant, container_assignment) {
   v1[2] = VAR(allocator, test_string("HELLO, WORLD", allocator));
 
   auto check = [](VECTOR const &v) {
-    ASSERT_EQ(3, v.size());
-    EXPECT_TRUE(v[0].is_of<int>());
-    EXPECT_EQ(10, (v[0].get<int>()));
-    EXPECT_TRUE(v[1].is_of<double>());
-    EXPECT_EQ(5.6, (v[1].get<double>()));
-    EXPECT_TRUE(v[2].is_of<test_string>());
-    EXPECT_EQ("HELLO, WORLD", (v[2].get<test_string>()));
+    FATAL_ASSERT_EQ(3, v.size());
+    FATAL_EXPECT_TRUE(v[0].is_of<int>());
+    FATAL_EXPECT_EQ(10, (v[0].get<int>()));
+    FATAL_EXPECT_TRUE(v[1].is_of<double>());
+    FATAL_EXPECT_EQ(5.6, (v[1].get<double>()));
+    FATAL_EXPECT_TRUE(v[2].is_of<test_string>());
+    FATAL_EXPECT_EQ("HELLO, WORLD", (v[2].get<test_string>()));
   };
   check(v1);
 
@@ -1976,14 +2463,14 @@ TEST(variant, container_assignment) {
 
   VECTOR v3(allocator);
   v3 = std::move(v1);
-  EXPECT_EQ(0, v1.size());
+  FATAL_EXPECT_EQ(0, v1.size());
   check(v2);
   check(v3);
 }
 
-TEST(variant, set_difference) {
-  typedef test_variant<int, double, test_string> VAR;
-  typedef test_vector<VAR> VECTOR;
+FATAL_TEST(variant, set_difference) {
+  using VAR = test_variant<int, double, test_string>;
+  using VECTOR = test_vector<VAR>;
 
   VECTOR lhs({
     VAR(allocator, 1),
@@ -2003,8 +2490,8 @@ TEST(variant, set_difference) {
     std::back_inserter(diff)
   );
 
-  for(auto &i: diff) {
-    LOG(INFO) << "result: " << i.get<int>();
+  for (auto &i: diff) {
+    FATAL_VLOG(1) << "result: " << i.get<int>();
   }
 
   VECTOR const expected({
@@ -2012,13 +2499,13 @@ TEST(variant, set_difference) {
     VAR(allocator, 2),
     VAR(allocator, 3)
   }, allocator);
-  EXPECT_EQ(expected.size(), diff.size());
-  EXPECT_EQ(expected, diff);
+  FATAL_EXPECT_EQ(expected.size(), diff.size());
+  FATAL_EXPECT_EQ(expected, diff);
 }
 
-TEST(variant, set_difference_inplace) {
-  typedef test_variant<int, double, test_string> VAR;
-  typedef test_vector<VAR> VECTOR;
+FATAL_TEST(variant, set_difference_inplace) {
+  using VAR = test_variant<int, double, test_string>;
+  using VECTOR = test_vector<VAR>;
 
   VECTOR lhs({
     VAR(allocator, 1),
@@ -2037,8 +2524,8 @@ TEST(variant, set_difference_inplace) {
   );
   lhs.erase(end, lhs.end());
 
-  for(auto &i: lhs) {
-    LOG(INFO) << "result: " << i.get<int>();
+  for (auto &i: lhs) {
+    FATAL_VLOG(1) << "result: " << i.get<int>();
   }
 
   VECTOR const expected({
@@ -2046,17 +2533,81 @@ TEST(variant, set_difference_inplace) {
     VAR(allocator, 2),
     VAR(allocator, 3)
   }, allocator);
-  EXPECT_EQ(expected.size(), lhs.size());
-  EXPECT_EQ(expected, lhs);
+  FATAL_EXPECT_EQ(expected.size(), lhs.size());
+  FATAL_EXPECT_EQ(expected, lhs);
+}
+
+struct incomplete;
+struct below_threshold { void *a; };
+struct at_threshold { void * a; std::size_t b; };
+struct above_threshold { void * a; std::size_t b; int c; double d; };
+struct default_recursive;
+struct dynamic_recursive;
+
+using default_policy_test_variant = variant<
+  default_storage_policy<decltype(allocator)>,
+  incomplete, below_threshold, at_threshold, above_threshold, default_recursive
+>;
+
+using dynamic_policy_test_variant = dynamic_variant<
+  decltype(allocator),
+  incomplete, below_threshold, at_threshold, above_threshold, dynamic_recursive
+>;
+
+using automatic_policy_test_variant = auto_variant<
+  below_threshold, at_threshold, above_threshold
+>;
+
+struct default_recursive { default_policy_test_variant field; };
+struct dynamic_recursive { dynamic_policy_test_variant field; };
+
+template <typename T>
+using default_policy_test = default_policy_test_variant::storage_policy
+  ::allocate_dynamically<T>;
+
+template <typename T>
+using dynamic_policy_test = dynamic_policy_test_variant::storage_policy
+  ::allocate_dynamically<T>;
+
+template <typename T>
+using automatic_policy_test = automatic_policy_test_variant::storage_policy
+  ::allocate_dynamically<T>;
+
+FATAL_TEST(default_allocation_policy, storage_duration) {
+  FATAL_EXPECT_FALSE(default_policy_test<char>::value);
+  FATAL_EXPECT_FALSE(default_policy_test<int>::value);
+  FATAL_EXPECT_FALSE(default_policy_test<below_threshold>::value);
+  FATAL_EXPECT_FALSE(default_policy_test<at_threshold>::value);
+  FATAL_EXPECT_TRUE(default_policy_test<above_threshold>::value);
+  FATAL_EXPECT_TRUE(default_policy_test<incomplete>::value);
+  FATAL_EXPECT_TRUE(default_policy_test<default_recursive>::value);
+}
+
+FATAL_TEST(dynamic_allocation_policy, storage_duration) {
+  FATAL_EXPECT_TRUE(dynamic_policy_test<char>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<int>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<below_threshold>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<at_threshold>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<above_threshold>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<incomplete>::value);
+  FATAL_EXPECT_TRUE(dynamic_policy_test<dynamic_recursive>::value);
+}
+
+FATAL_TEST(automatic_allocation_policy, storage_duration) {
+  FATAL_EXPECT_FALSE(automatic_policy_test<char>::value);
+  FATAL_EXPECT_FALSE(automatic_policy_test<int>::value);
+  FATAL_EXPECT_FALSE(automatic_policy_test<below_threshold>::value);
+  FATAL_EXPECT_FALSE(automatic_policy_test<at_threshold>::value);
+  FATAL_EXPECT_FALSE(automatic_policy_test<above_threshold>::value);
 }
 
 // This MUST be the LAST test.
-TEST(variant, memory_leak) {
+FATAL_TEST(variant, memory_leak) {
   auto balance = allocated < freed
     ? freed - allocated
     : allocated - freed;
 
-  LOG(INFO) << "allocated: " << allocated
+  FATAL_VLOG(1) << "allocated: " << allocated
     << " freed: " << freed
     << " balance: " << balance
     << (
@@ -2066,7 +2617,7 @@ TEST(variant, memory_leak) {
           ? " positive (leak)" : ""
     );
 
-  EXPECT_EQ(allocated, freed);
+  FATAL_EXPECT_EQ(allocated, freed);
 }
 
 } // namespace fatal {
