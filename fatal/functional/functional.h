@@ -445,9 +445,15 @@ struct logical_and {
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
     noexcept(
-      noexcept(std::forward<LHS>(lhs) && (*this)(std::forward<Args>(args)...))
+      noexcept(
+        std::forward<LHS>(lhs)
+          && std::declval<logical_and const &>()(std::forward<Args>(args)...)
+      )
     )
-    -> decltype(std::forward<LHS>(lhs) && (*this)(std::forward<Args>(args)...))
+    -> decltype(
+      std::forward<LHS>(lhs)
+        && std::declval<logical_and const &>()(std::forward<Args>(args)...)
+    )
   {
     return std::forward<LHS>(lhs) && (*this)(std::forward<Args>(args)...);
   }
@@ -474,9 +480,15 @@ struct logical_or {
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
     noexcept(
-      noexcept(std::forward<LHS>(lhs) || (*this)(std::forward<Args>(args)...))
+      noexcept(
+        std::forward<LHS>(lhs)
+          || std::declval<logical_or const &>()(std::forward<Args>(args)...)
+      )
     )
-    -> decltype(std::forward<LHS>(lhs) || (*this)(std::forward<Args>(args)...))
+    -> decltype(
+      std::forward<LHS>(lhs)
+        || std::declval<logical_or const &>()(std::forward<Args>(args)...)
+    )
   {
     return std::forward<LHS>(lhs) || (*this)(std::forward<Args>(args)...);
   }
@@ -534,9 +546,15 @@ struct bitwise_and {
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
     noexcept(
-      noexcept(std::forward<LHS>(lhs) & (*this)(std::forward<Args>(args)...))
+      noexcept(
+        std::forward<LHS>(lhs)
+          & std::declval<bitwise_and const &>()(std::forward<Args>(args)...)
+      )
     )
-    -> decltype(std::forward<LHS>(lhs) & (*this)(std::forward<Args>(args)...))
+    -> decltype(
+      std::forward<LHS>(lhs)
+        & std::declval<bitwise_and const &>()(std::forward<Args>(args)...)
+    )
   {
     return std::forward<LHS>(lhs) & (*this)(std::forward<Args>(args)...);
   }
@@ -560,9 +578,15 @@ struct bitwise_or {
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
     noexcept(
-      noexcept(std::forward<LHS>(lhs) | (*this)(std::forward<Args>(args)...))
+      noexcept(
+        std::forward<LHS>(lhs)
+          | std::declval<bitwise_or const &>()(std::forward<Args>(args)...)
+      )
     )
-    -> decltype(std::forward<LHS>(lhs) | (*this)(std::forward<Args>(args)...))
+    -> decltype(
+      std::forward<LHS>(lhs)
+        | std::declval<bitwise_or const &>()(std::forward<Args>(args)...)
+    )
   {
     return std::forward<LHS>(lhs) | (*this)(std::forward<Args>(args)...);
   }
@@ -586,9 +610,15 @@ struct bitwise_xor {
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
     noexcept(
-      noexcept(std::forward<LHS>(lhs) ^ (*this)(std::forward<Args>(args)...))
+      noexcept(
+        std::forward<LHS>(lhs)
+          ^ std::declval<bitwise_xor const &>()(std::forward<Args>(args)...)
+      )
     )
-    -> decltype(std::forward<LHS>(lhs) ^ (*this)(std::forward<Args>(args)...))
+    -> decltype(
+      std::forward<LHS>(lhs)
+        ^ std::declval<bitwise_xor const &>()(std::forward<Args>(args)...)
+    )
   {
     return std::forward<LHS>(lhs) ^ (*this)(std::forward<Args>(args)...);
   }
