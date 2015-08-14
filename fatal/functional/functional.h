@@ -208,7 +208,7 @@ struct is_positive {
   constexpr bool operator ()(T &&value) const
     noexcept(noexcept(value > static_cast<T>(0)))
   {
-    return value > static_cast<T>(0);
+    return std::forward<T>(value) > static_cast<T>(0);
   }
 };
 
@@ -223,7 +223,7 @@ struct not_positive {
   constexpr bool operator ()(T &&value) const
     noexcept(noexcept(value <= static_cast<T>(0)))
   {
-    return value <= static_cast<T>(0);
+    return std::forward<T>(value) <= static_cast<T>(0);
   }
 };
 
@@ -321,10 +321,10 @@ struct not_negative {
 struct equal {
   template <typename LHS, typename RHS>
   constexpr auto operator ()(LHS &&lhs, RHS &&rhs) const
-    noexcept(noexcept(lhs == rhs))
-    -> decltype(lhs == rhs)
+    noexcept(noexcept(std::forward<LHS>(lhs) == std::forward<RHS>(rhs)))
+    -> decltype(std::forward<LHS>(lhs) == std::forward<RHS>(rhs))
   {
-    return lhs == rhs;
+    return std::forward<LHS>(lhs) == std::forward<RHS>(rhs);
   }
 };
 
@@ -337,10 +337,10 @@ struct equal {
 struct not_equal {
   template <typename LHS, typename RHS>
   constexpr auto operator ()(LHS &&lhs, RHS &&rhs) const
-    noexcept(noexcept(lhs != rhs))
-    -> decltype(lhs != rhs)
+    noexcept(noexcept(std::forward<LHS>(lhs) != std::forward<RHS>(rhs)))
+    -> decltype(std::forward<LHS>(lhs) != std::forward<RHS>(rhs))
   {
-    return lhs != rhs;
+    return std::forward<LHS>(lhs) != std::forward<RHS>(rhs);
   }
 };
 
@@ -353,10 +353,10 @@ struct not_equal {
 struct less {
   template <typename LHS, typename RHS>
   constexpr auto operator ()(LHS &&lhs, RHS &&rhs) const
-    noexcept(noexcept(lhs < rhs))
-    -> decltype(lhs < rhs)
+    noexcept(noexcept(std::forward<LHS>(lhs) < std::forward<RHS>(rhs)))
+    -> decltype(std::forward<LHS>(lhs) < std::forward<RHS>(rhs))
   {
-    return lhs < rhs;
+    return std::forward<LHS>(lhs) < std::forward<RHS>(rhs);
   }
 };
 
@@ -369,10 +369,10 @@ struct less {
 struct less_equal {
   template <typename LHS, typename RHS>
   constexpr auto operator ()(LHS &&lhs, RHS &&rhs) const
-    noexcept(noexcept(lhs <= rhs))
-    -> decltype(lhs <= rhs)
+    noexcept(noexcept(std::forward<LHS>(lhs) <= std::forward<RHS>(rhs)))
+    -> decltype(std::forward<LHS>(lhs) <= std::forward<RHS>(rhs))
   {
-    return lhs <= rhs;
+    return std::forward<LHS>(lhs) <= std::forward<RHS>(rhs);
   }
 };
 
@@ -385,10 +385,10 @@ struct less_equal {
 struct greater {
   template <typename LHS, typename RHS>
   constexpr auto operator ()(LHS &&lhs, RHS &&rhs) const
-    noexcept(noexcept(lhs > rhs))
-    -> decltype(lhs > rhs)
+    noexcept(noexcept(std::forward<LHS>(lhs) > std::forward<RHS>(rhs)))
+    -> decltype(std::forward<LHS>(lhs) > std::forward<RHS>(rhs))
   {
-    return lhs > rhs;
+    return std::forward<LHS>(lhs) > std::forward<RHS>(rhs);
   }
 };
 
@@ -401,10 +401,10 @@ struct greater {
 struct greater_equal {
   template <typename LHS, typename RHS>
   constexpr auto operator ()(LHS &&lhs, RHS &&rhs) const
-    noexcept(noexcept(lhs >= rhs))
-    -> decltype(lhs >= rhs)
+    noexcept(noexcept(std::forward<LHS>(lhs) >= std::forward<RHS>(rhs)))
+    -> decltype(std::forward<LHS>(lhs) >= std::forward<RHS>(rhs))
   {
-    return lhs >= rhs;
+    return std::forward<LHS>(lhs) >= std::forward<RHS>(rhs);
   }
 };
 
@@ -417,10 +417,10 @@ struct greater_equal {
 struct negate {
   template <typename T>
   constexpr auto operator ()(T &&value) const
-    noexcept(noexcept(!value))
-    -> decltype(!value)
+    noexcept(noexcept(!std::forward<T>(value)))
+    -> decltype(!std::forward<T>(value))
   {
-    return !value;
+    return !std::forward<T>(value);
   }
 };
 
@@ -444,10 +444,12 @@ struct logical_and {
 
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
-    noexcept(noexcept(lhs && (*this)(std::forward<Args>(args)...)))
-    -> decltype(lhs && (*this)(std::forward<Args>(args)...))
+    noexcept(
+      noexcept(std::forward<LHS>(lhs) && (*this)(std::forward<Args>(args)...))
+    )
+    -> decltype(std::forward<LHS>(lhs) && (*this)(std::forward<Args>(args)...))
   {
-    return lhs && (*this)(std::forward<Args>(args)...);
+    return std::forward<LHS>(lhs) && (*this)(std::forward<Args>(args)...);
   }
 };
 
@@ -471,10 +473,12 @@ struct logical_or {
 
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
-    noexcept(noexcept(lhs || (*this)(std::forward<Args>(args)...)))
-    -> decltype(lhs || (*this)(std::forward<Args>(args)...))
+    noexcept(
+      noexcept(std::forward<LHS>(lhs) || (*this)(std::forward<Args>(args)...))
+    )
+    -> decltype(std::forward<LHS>(lhs) || (*this)(std::forward<Args>(args)...))
   {
-    return lhs || (*this)(std::forward<Args>(args)...);
+    return std::forward<LHS>(lhs) || (*this)(std::forward<Args>(args)...);
   }
 };
 
@@ -487,10 +491,12 @@ struct logical_or {
 struct ternary {
   template <typename C, typename T, typename F>
   constexpr auto operator ()(C &&c, T &&t, F &&f) const
-    noexcept(noexcept(c ? std::forward<T>(t) : std::forward<F>(f)))
-    -> decltype(c ? std::forward<T>(t) : std::forward<F>(f))
+    noexcept(
+      noexcept(std::forward<C>(c) ? std::forward<T>(t) : std::forward<F>(f))
+    )
+    -> decltype(std::forward<C>(c) ? std::forward<T>(t) : std::forward<F>(f))
   {
-    return c ? std::forward<T>(t) : std::forward<F>(f);
+    return std::forward<C>(c) ? std::forward<T>(t) : std::forward<F>(f);
   }
 };
 
@@ -503,10 +509,10 @@ struct ternary {
 struct complement {
   template <typename T>
   constexpr auto operator ()(T &&value) const
-    noexcept(noexcept(~value))
-    -> decltype(~value)
+    noexcept(noexcept(~std::forward<T>(value)))
+    -> decltype(~std::forward<T>(value))
   {
-    return ~value;
+    return ~std::forward<T>(value);
   }
 };
 
@@ -527,10 +533,12 @@ struct bitwise_and {
 
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
-    noexcept(noexcept(lhs & (*this)(std::forward<Args>(args)...)))
-    -> decltype(lhs & (*this)(std::forward<Args>(args)...))
+    noexcept(
+      noexcept(std::forward<LHS>(lhs) & (*this)(std::forward<Args>(args)...))
+    )
+    -> decltype(std::forward<LHS>(lhs) & (*this)(std::forward<Args>(args)...))
   {
-    return lhs & (*this)(std::forward<Args>(args)...);
+    return std::forward<LHS>(lhs) & (*this)(std::forward<Args>(args)...);
   }
 };
 
@@ -551,10 +559,12 @@ struct bitwise_or {
 
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
-    noexcept(noexcept(lhs | (*this)(std::forward<Args>(args)...)))
-    -> decltype(lhs | (*this)(std::forward<Args>(args)...))
+    noexcept(
+      noexcept(std::forward<LHS>(lhs) | (*this)(std::forward<Args>(args)...))
+    )
+    -> decltype(std::forward<LHS>(lhs) | (*this)(std::forward<Args>(args)...))
   {
-    return lhs | (*this)(std::forward<Args>(args)...);
+    return std::forward<LHS>(lhs) | (*this)(std::forward<Args>(args)...);
   }
 };
 
@@ -575,10 +585,12 @@ struct bitwise_xor {
 
   template <typename LHS, typename... Args>
   constexpr auto operator ()(LHS &&lhs, Args &&...args) const
-    noexcept(noexcept(lhs ^ (*this)(std::forward<Args>(args)...)))
-    -> decltype(lhs ^ (*this)(std::forward<Args>(args)...))
+    noexcept(
+      noexcept(std::forward<LHS>(lhs) ^ (*this)(std::forward<Args>(args)...))
+    )
+    -> decltype(std::forward<LHS>(lhs) ^ (*this)(std::forward<Args>(args)...))
   {
-    return lhs ^ (*this)(std::forward<Args>(args)...);
+    return std::forward<LHS>(lhs) ^ (*this)(std::forward<Args>(args)...);
   }
 };
 
