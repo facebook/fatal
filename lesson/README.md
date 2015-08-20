@@ -16,8 +16,8 @@ At this point only a few lessons are available. Stay tuned for updates.
 Fundamentals of metaprogramming:
 
 - [1.0: Representing variables](1.0-variables.cpp)
-- [1.1: Representing values](1.0-values.cpp)
-- [1.2: Metafunctions](1.0-metafunctions.cpp)
+- [1.1: Representing values](1.1-values.cpp)
+- [1.2: Metafunctions](1.2-metafunctions.cpp)
 
 
 ## Lessons on the way
