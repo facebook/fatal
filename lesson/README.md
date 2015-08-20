@@ -37,7 +37,7 @@ Due to its REPL nature, Metashell provides a much more dynamic environment than 
 
 
 ## Requirements for lessons
-A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} and GCC {4.8, 4.9, 5.2}.
+A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7, 3.8} and GCC {4.8, 4.9, 5.2}.
 
 There are no other external dependencies.
 
