@@ -35,11 +35,9 @@ LESSON(
     "represent them. Here's an overview on the intuition of how this can be "
     "achieved."
   );
-
   CODE(
     using x = int_constant<15>;
   );
-
   TYPE(x);
   VALUE(x::value);
 
@@ -48,11 +46,9 @@ LESSON(
     "as opposed to a compile time constant. It is possible, for instance, to "
     "change the value associated with it:"
   );
-
   CODE(
     x::value = 30;
   );
-
   VALUE(x::value);
 
   COMMENT(
@@ -60,7 +56,6 @@ LESSON(
     "Template parameters must be immutable and available at compile time. This "
     "includes, for instance, type and integer constants."
   );
-
   ILLEGAL(
     "`int_constant::value` is not a constant",
     using y = int_constant<x::value>;
@@ -95,22 +90,18 @@ LESSON(
     "such variable at compile time, effectivelly making it a compile time "
     "constant."
   );
-
   CODE(
     using x = int_constant_proper<15>;
   );
-
   TYPE(x);
   VALUE(x::value);
 
   COMMENT(
     "As noted before, constants can be used as template parameters."
   );
-
   CODE(
     using y = int_constant_proper<x::value>;
   );
-
   TYPE(y);
   VALUE(y::value);
 
@@ -118,18 +109,15 @@ LESSON(
     "In fact, any expression that can be evaluated at compile time can be used "
     "as a compile time constant:"
   );
-
   CODE(
     using z = int_constant_proper<x::value * 2>;
   );
-
   TYPE(z);
   VALUE(z::value);
 
   CODE(
     using w = int_constant_proper<x::value + z::value - 3>;
   );
-
   TYPE(w);
   VALUE(w::value);
 }
@@ -162,25 +150,21 @@ LESSON(
   CODE(
     using x = constant<int, -15>;
   );
-
   TYPE(x);
   VALUE(x::value);
 
   CODE(
     using y = constant<bool, true>;
   );
-
   TYPE(y);
   VALUE(y::value);
 
   COMMENT(
     "Again, any expression that can be evaluated at compile time will do:"
   );
-
   CODE(
     using z = constant<unsigned, (x::value > 0) ? x::value : -x::value>;
   );
-
   TYPE(z);
   VALUE(z::value);
 }
@@ -207,7 +191,6 @@ LESSON(
   CODE(
     using x = std::integral_constant<int, -15>;
   );
-
   TYPE(x);
   VALUE(x::value);
 
@@ -225,7 +208,6 @@ LESSON(
   COMMENT(
     "Shortcuts to boolean constants are also provided:"
   );
-
   CODE(
     using t = std::true_type;
   );
@@ -262,22 +244,18 @@ LESSON(
     "Let's start by going the verbose route and fully specifying `x` as an "
     "`std::integral_constant`."
   );
-
   CODE(
     using x = std::integral_constant<int, 10>;
   );
-
   TYPE(x);
   VALUE(x::value);
 
   COMMENT(
     "Now let's use the convenient alias `int_value` to declare the same thing."
   );
-
   CODE(
     using y = int_value<10>;
   );
-
   TYPE(y);
   VALUE(y::value);
 
@@ -294,7 +272,6 @@ LESSON(
     "This means that, if the line below doesn't result in a compilation error, "
     "then both `x` and `y` are guaranteed to reference the same type."
   );
-
   CODE(
     static_assert(std::is_same<x, y>::value, "type mismatch");
   );

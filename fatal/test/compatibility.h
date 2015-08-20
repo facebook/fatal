@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#ifndef FATAL_INCLUDE_fatal_test_test_compat_h
-#define FATAL_INCLUDE_fatal_test_test_compat_h
+#ifndef FATAL_INCLUDE_fatal_test_compatibility_h
+#define FATAL_INCLUDE_fatal_test_compatibility_h
 
 #include <fatal/test/test.h>
 
@@ -65,4 +65,4 @@ namespace test {
 } // namespace test {
 } // namespace fatal {
 
-#endif // FATAL_INCLUDE_fatal_test_test_compat_h
+#endif // FATAL_INCLUDE_fatal_test_compatibility_h

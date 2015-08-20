@@ -7,11 +7,31 @@ Lessons source code is self-contained, presenting a full textual explanation of 
 
 The output of the lessons is also self-contained, presenting the full textual explanation and source code.
 
-Lessons can be followed by reading the source code only, the lesson's output only, or both.
+Lessons can be followed by reading the source code, the lesson's output, or better yet: both.
+
+At this point only a few lessons are available. Stay tuned for updates.
+
+
+## Existing lessons
+Fundamentals of metaprogramming:
+
+- [1.0: Representing variables](1.0-variables.cpp)
+- [1.1: Representing values](1.0-values.cpp)
+- [1.2: Metafunctions](1.0-metafunctions.cpp)
+
+
+## Lessons on the way
+- Variadics
+- Higher-order metafunctions
+- SFINAE
+- Compile-time assertions
+- Compile-time lists
+- Compile-time strings
+- Compile-time prefix trees and efficient string matching
+- Examples of how to use metaprogramming for real world applications
 
 
 ## Try it online
-
 These lessons can be [tried online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell).
 
 Metashell allows you to easily inspect the type of an alias. Whenever you encounter `TYPE(T)` in a lesson, you can simply type `T` instead to print the type represented by it:
@@ -37,7 +57,7 @@ Due to its REPL nature, Metashell provides a much more dynamic environment than 
 
 
 ## Requirements for lessons
-A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} and GCC {4.8, 4.9, 5.2}.
+A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7, 3.8} and GCC {4.8, 4.9, 5.2}.
 
 There are no other external dependencies.
 

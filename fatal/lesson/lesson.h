@@ -33,6 +33,24 @@ namespace lesson {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+/* TODO: support multiple namespace scope definitions:
+
+  LESSON(name)(
+    (comment, definitions) {
+      block
+    }
+  )(
+    (comment, definitions) {
+      block
+    }
+  )(
+    ...
+  )(
+    (comment, definitions) {
+      block
+    }
+  )
+ */
 #define LESSON(Name, Overview, ...) \
   __VA_ARGS__ \
   \
@@ -65,7 +83,7 @@ namespace lesson {
     << ::fatal::lesson::detail::format(FATAL_TO_STR(__VA_ARGS__)) \
     << ::std::endl; \
   \
-  __VA_ARGS__; \
+  __VA_ARGS__ \
   \
   ::std::cout << "<< --------" \
     << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
@@ -100,7 +118,7 @@ namespace lesson {
 #define TYPE(...) \
   ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" \
     << ::std::endl \
-    << FATAL_TO_STR(__VA_ARGS__) << " = " << ::fatal::type_str<__VA_ARGS__>()\
+    << FATAL_TO_STR(__VA_ARGS__) << " = " << ::fatal::type_str<__VA_ARGS__>() \
     << ::std::endl \
     << "<< --------" << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
     << ::std::endl \
@@ -116,6 +134,40 @@ namespace lesson {
     << ::std::endl \
     << FATAL_TO_STR(__VA_ARGS__) << " = " << ::std::boolalpha << (__VA_ARGS__) \
     << std::endl \
+    << "<< --------" << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
+    << ::std::endl \
+    << ::std::endl;
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define CONSTANT(...) \
+  ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" \
+    << ::std::endl \
+    << FATAL_TO_STR(__VA_ARGS__) << " = " << ::fatal::type_str<__VA_ARGS__>() \
+    << ::std::endl \
+    << FATAL_TO_STR(__VA_ARGS__) << "::value = " << ::std::boolalpha \
+      << (__VA_ARGS__::value) \
+    << ::std::endl \
+    << "<< --------" << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
+    << ::std::endl \
+    << ::std::endl;
+
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define MEMBER_TYPE(Member, ...) \
+  ::std::cout << ">> " << FATAL_SOURCE_INFO() << " ------" \
+    << ::std::endl \
+    << FATAL_TO_STR(__VA_ARGS__) << " = " << ::fatal::type_str<__VA_ARGS__>() \
+    << ::std::endl \
+    << FATAL_TO_STR(__VA_ARGS__) "::" FATAL_TO_STR(Member) " = " \
+      << ::fatal::type_str<__VA_ARGS__::Member>() \
+    << ::std::endl \
     << "<< --------" << ::fatal::lesson::detail::padding(FATAL_SOURCE_INFO()) \
     << ::std::endl \
     << ::std::endl;
@@ -248,7 +300,7 @@ void run(bool first) {
   }
 
   std::cout << "== " << i.name << " == OVERVIEW ======"
-    << std::endl << std::endl << i.overview;
+    << std::endl << std::endl << i.overview << std::endl;
 
   if (i.declarations && *i.declarations) {
     std::cout << std::endl << "== " << i.name << " == DECLARATIONS =="

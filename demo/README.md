@@ -3,7 +3,7 @@ Demonstration programs can be found under this directory.
 
 
 ## Requirements for demos
-A compliant C++14 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7} and GCC {4.9, 5.1}.
+A compliant C++14 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7, 3.8} and GCC {4.9, 5.1}.
 
 There are no other external dependencies.
 

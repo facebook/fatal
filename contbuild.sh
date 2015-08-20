@@ -2,7 +2,7 @@
 
 set -e
 
-for cc in g++-4.8 g++-4.9 g++-5 clang-3.4 clang-3.5 clang-3.6 clang-3.7; do
+for cc in g++-4.8 g++-4.9 g++-5 clang-3.4 clang-3.5 clang-3.6 clang-3.7 clang-3.8; do
   if which $cc; then
     echo "Package: $cc"
     dpkg -s $cc | grep '^Status: '
@@ -21,7 +21,7 @@ for cc in g++-4.8 g++-4.9 g++-5; do
   fi
 done
 
-for cc in clang++-3.7 clang++-3.4 clang++ clang++-3.5 clang++-3.6; do
+for cc in clang++-3.8 clang++-3.4 clang++ clang++-3.5 clang++-3.6 clang++-3.7; do
   if which $cc; then
     $cc --version
     # TODO: split prefix_tree_benchmark into several benchmarks to avoid

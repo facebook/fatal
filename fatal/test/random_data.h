@@ -108,7 +108,8 @@ struct random_data {
     return result;
   }
 
-
+  static constexpr result_type min() { return rng_type::min(); }
+  static constexpr result_type max() { return rng_type::max(); }
 
 private:
   rng_type rng_;
