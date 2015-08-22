@@ -16,10 +16,6 @@
 
 namespace fatal {
 
-////////////////
-// qualifiers //
-////////////////
-
 /**
  * Member function const/volatile qualifiers category.
  *
@@ -37,17 +33,6 @@ enum class cv_qualifier: char {
   v = 2,
   cv = c | v
 };
-
-/**
- * Examples below assume this example class:
- *
- *  struct foo {
- *    void bar();
- *    void bar_c() const;
- *    void bar_v() volatile;
- *    void bar_cv() const volatile;
- *  };
- */
 
 /**
  * Bitwise and (&) operator for `cv_qualifier` to make it easy to
@@ -68,189 +53,156 @@ constexpr bool operator &(cv_qualifier lhs, cv_qualifier rhs) {
   return static_cast<bool>(static_cast<type>(lhs) & static_cast<type>(rhs));
 }
 
-/**
- * A boolean std::integral_constant-like type traits that tells whether
- * a member function has neither a const nor a volatile qualifier.
- *
- * Example:
- *
- *  // yields `true`
- *  is_noncv_member_function<decltype(&foo::bar)>::value
- *
- *  // yields `false`
- *  is_noncv_member_function<decltype(&foo::bar_c)>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename>
-struct is_noncv_member_function: public std::false_type {};
-template <typename C, typename R, typename... Args>
-struct is_noncv_member_function<R(C::*)(Args...)>: public std::true_type {};
-
-/**
- * A boolean std::integral_constant-like type traits that tells whether
- * a member function has a const but not a volatile qualifier.
- *
- * Example:
- *
- *  // yields `true`
- *  is_const_member_function<decltype(&foo::bar_c)>::value
- *
- *  // yields `false`
- *  is_const_member_function<decltype(&foo::bar)>::value
- *
- *  // yields `false`
- *  is_const_member_function<decltype(&foo::bar_cv)>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename>
-struct is_const_member_function: public std::false_type {};
-template <typename C, typename R, typename... Args>
-struct is_const_member_function<R(C::*)(Args...) const>:
-  public std::true_type
-{};
-
-/**
- * A boolean std::integral_constant-like type traits that tells whether
- * a member function has a volatile but not a const qualifier.
- *
- * Example:
- *
- *  // yields `true`
- *  is_volatile_member_function<decltype(&foo::bar_v)>::value
- *
- *  // yields `false`
- *  is_volatile_member_function<decltype(&foo::bar)>::value
- *
- *  // yields `false`
- *  is_volatile_member_function<decltype(&foo::bar_cv)>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename>
-struct is_volatile_member_function: public std::false_type {};
-template <typename C, typename R, typename... Args>
-struct is_volatile_member_function<R(C::*)(Args...) volatile>:
-  public std::true_type
-{};
-
-/**
- * A boolean std::integral_constant-like type traits that tells whether
- * a member function has both a const and a volatile qualifier.
- *
- * Example:
- *
- *  // yields `true`
- *  is_cv_member_function<decltype(&foo::bar_cv)>::value
- *
- *  // yields `false`
- *  is_cv_member_function<decltype(&foo::bar)>::value
- *
- *  // yields `false`
- *  is_cv_member_function<decltype(&foo::bar_v)>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename>
-struct is_cv_member_function: public std::false_type {};
-template <typename C, typename R, typename... Args>
-struct is_cv_member_function<R(C::*)(Args...) const volatile>:
-  public std::true_type
-{};
-
-/**
- * A `cv_qualifier` std::integral_constant-like type traits that tells
- * what are the const/volatile qualifiers of a member function.
- *
- * Example:
- *
- *  // yields `cv_qualifier::none`
- *  member_function_qualifier<decltype(&foo::bar)>::value
- *
- *  // yields `cv_qualifier::c`
- *  member_function_qualifier<decltype(&foo::bar_c)>::value
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename T>
-struct member_function_qualifier:
-  public std::integral_constant<
-    cv_qualifier,
-    is_const_member_function<T>::value
-      ? cv_qualifier::c
-      : is_volatile_member_function<T>::value
-        ? cv_qualifier::v
-        : is_cv_member_function<T>::value
-          ? cv_qualifier::cv
-          : cv_qualifier::none
-  >
-{
-  static_assert(
-    static_cast<unsigned>(is_const_member_function<T>::value)
-    + static_cast<unsigned>(is_volatile_member_function<T>::value)
-    + static_cast<unsigned>(is_cv_member_function<T>::value)
-    + static_cast<unsigned>(is_noncv_member_function<T>::value)
-    == 1,
-    "only one member function qualifier traits expected to match"
-  );
-};
-
 ///////////////////////////////
 // reflected_member_function //
 ///////////////////////////////
 
 /**
- * A class that holds information obtained through
- * reflection about a member function.
+ * A class that holds information obtained through reflection about a member
+ * function. Refer to `reflect_member_function` on how to properly obtain a
+ * template instantiation of this class.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  typename TClass, typename TResult,
+  typename Pointer,
   cv_qualifier Qualifier,
+  typename Owner,
+  typename Result,
   typename... Args
 >
 struct reflected_member_function {
+
   /**
    * The class that declares the member function.
+   *
+   * Example:
+   *
+   *  struct foo { int bar(bool a, double b); };
+   *
+   *  // yields `foo`
+   *  using owner = reflect_member_function<decltype(&foo::bar)>::owner;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using owner = TClass;
+  using owner = Owner;
 
   /**
    * The type returned by the member function.
+   *
+   * Example:
+   *
+   *  struct foo { int bar(bool a, double b); };
+   *
+   *  // yields `int`
+   *  using result = reflect_member_function<decltype(&foo::bar)>::result;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using result = TResult;
-
-  /**
-   * The const/volatile qualifiers of the member function.
-   */
-  using cv = std::integral_constant<cv_qualifier, Qualifier>;
+  using result = Result;
 
   /**
    * The list of arguments accepted by the member function.
+   *
+   * Example:
+   *
+   *  struct foo { int bar(bool a, double b); };
+   *
+   *  // yields `type_list<bool, double>`
+   *  using args = reflect_member_function<decltype(&foo::bar)>::args;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   using args = type_list<Args...>;
 
   /**
+   * The type of the function pointer for the member function.
+   *
+   * Example:
+   *
+   *  struct foo {
+   *    int bar(bool a, double b) &;
+   *    int baz(bool a, double b) const;
+   *    int gaz(bool a, double b) const volatile &&;
+   *  };
+   *
+   *  // yields `int(foo::*)(bool, double) &`
+   *  using p1 = reflect_member_function<decltype(&foo::bar)>::pointer;
+   *
+   *  // yields `int(foo::*)(bool, double) const`
+   *  using p2 = reflect_member_function<decltype(&foo::baz)>::pointer;
+   *
+   *  // yields `int(foo::*)(bool, double) const volatile &&`
+   *  using p3 = reflect_member_function<decltype(&foo::gaz)>::pointer;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using pointer = Pointer;
+
+  /**
+   * The const/volatile qualifiers of the member function.
+   *
+   * Example:
+   *
+   *  struct foo {
+   *    int bar(bool a, double b) &;
+   *    int baz(bool a, double b) const;
+   *    int gaz(bool a, double b) const volatile &&;
+   *  };
+   *
+   *  // yields `cv_qualifier::none`
+   *  using cv1 = reflect_member_function<decltype(&foo::bar)>::cv;
+   *
+   *  // yields `cv_qualifier::c`
+   *  using cv2 = reflect_member_function<decltype(&foo::baz)>::cv;
+   *
+   *  // yields `cv_qualifier::cv`
+   *  using cv3 = reflect_member_function<decltype(&foo::gaz)>::cv;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using cv = std::integral_constant<cv_qualifier, Qualifier>;
+
+  /**
    * A flat list of the result type followed by each argument's type.
+   *
+   * Example:
+   *
+   *  struct foo { int bar(bool a, double b); };
+   *
+   *  // yields `type_list<int, bool, double>`
+   *  using types = reflect_member_function<decltype(&foo::bar)>::types;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
    */
   using types = typename args::template push_front<result>;
 };
 
 namespace detail {
 
-#define REFLECTED_MEMBER_FUNCTION_IMPL(CV) \
-  template <typename C, typename R, typename... Args> \
-  auto reflect_member_function_impl(R(C::*fn)(Args...) CV) \
-    -> reflected_member_function< \
-      C, R, member_function_qualifier<decltype(fn)>::value, Args... \
-    > { return {}; }
+template <typename> struct reflect_member_function_impl;
 
-REFLECTED_MEMBER_FUNCTION_IMPL()
-REFLECTED_MEMBER_FUNCTION_IMPL(const)
-REFLECTED_MEMBER_FUNCTION_IMPL(volatile)
-REFLECTED_MEMBER_FUNCTION_IMPL(const volatile)
+#define REFLECTED_MEMBER_FUNCTION_IMPL(CV, Qualifiers) \
+  template <typename Result, typename Owner, typename... Args> \
+  struct reflect_member_function_impl<Result(Owner::*)(Args...) Qualifiers> { \
+    using type = reflected_member_function< \
+      Result(Owner::*)(Args...) Qualifiers, \
+      cv_qualifier::CV, Owner, Result, Args... \
+    >; \
+  }
+
+REFLECTED_MEMBER_FUNCTION_IMPL(none, );
+REFLECTED_MEMBER_FUNCTION_IMPL(c, const);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, volatile);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, const volatile);
+REFLECTED_MEMBER_FUNCTION_IMPL(none, &);
+REFLECTED_MEMBER_FUNCTION_IMPL(c, const &);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, volatile &);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, const volatile &);
+REFLECTED_MEMBER_FUNCTION_IMPL(none, &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(c, const &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, volatile &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, const volatile &&);
 
 #undef REFLECTED_MEMBER_FUNCTION_IMPL
 
@@ -286,9 +238,9 @@ REFLECTED_MEMBER_FUNCTION_IMPL(const volatile)
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using reflect_member_function = decltype(
-  detail::reflect_member_function_impl(static_cast<T>(nullptr))
-);
+using reflect_member_function = typename detail::reflect_member_function_impl<
+  T
+>::type;
 
 } // namespace fatal {
 
