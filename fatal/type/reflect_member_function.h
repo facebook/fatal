@@ -11,51 +11,11 @@
 #define FATAL_INCLUDE_fatal_type_reflect_member_function_h
 
 #include <fatal/type/list.h>
+#include <fatal/type/qualifier.h>
 
 #include <type_traits>
 
 namespace fatal {
-
-/**
- * Member function const/volatile qualifiers category.
- *
- * `none`:  neither const nor volatile
- * `c`:     const but not volatile
- * `v`:     volatile but not const
- * `cv`:    both const and volatile (guaranteed
- *          to be the bitwise or of `c` and `v`)
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-enum class cv_qualifier: char {
-  none = 0,
-  c = 1,
-  v = 2,
-  cv = c | v
-};
-
-/**
- * Bitwise and (&) operator for `cv_qualifier` to make it easy to
- * check for the presence of either the const or volatile qualifier:
- *
- * Example:
- *
- *  void check_constness(cv_qualifier q) {
- *    if (q & cv_qualifier::c) {
- *      cout << "it is const, dunno about volatile";
- *    }
- *  }
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-constexpr bool operator &(cv_qualifier lhs, cv_qualifier rhs) {
-  using type = std::underlying_type<cv_qualifier>::type;
-  return static_cast<bool>(static_cast<type>(lhs) & static_cast<type>(rhs));
-}
-
-///////////////////////////////
-// reflected_member_function //
-///////////////////////////////
 
 /**
  * A class that holds information obtained through reflection about a member
@@ -66,13 +26,13 @@ constexpr bool operator &(cv_qualifier lhs, cv_qualifier rhs) {
  */
 template <
   typename Pointer,
-  cv_qualifier Qualifier,
+  cv_qualifier CV,
+  ref_qualifier Ref,
   typename Owner,
   typename Result,
   typename... Args
 >
 struct reflected_member_function {
-
   /**
    * The class that declares the member function.
    *
@@ -140,6 +100,30 @@ struct reflected_member_function {
   using pointer = Pointer;
 
   /**
+   * The reference qualifier, if any, of the member function.
+   *
+   * Example:
+   *
+   *  struct foo {
+   *    int bar(bool a, double b) &;
+   *    int baz(bool a, double b) const;
+   *    int gaz(bool a, double b) const volatile &&;
+   *  };
+   *
+   *  // yields `ref_qualifier::lvalue`
+   *  using ref1 = reflect_member_function<decltype(&foo::bar)>::ref;
+   *
+   *  // yields `ref_qualifier::none`
+   *  using ref2 = reflect_member_function<decltype(&foo::baz)>::ref;
+   *
+   *  // yields `ref_qualifier::rvalue`
+   *  using ref3 = reflect_member_function<decltype(&foo::gaz)>::ref;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using ref = std::integral_constant<ref_qualifier, Ref>;
+
+  /**
    * The const/volatile qualifiers of the member function.
    *
    * Example:
@@ -161,7 +145,7 @@ struct reflected_member_function {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using cv = std::integral_constant<cv_qualifier, Qualifier>;
+  using cv = std::integral_constant<cv_qualifier, CV>;
 
   /**
    * A flat list of the result type followed by each argument's type.
@@ -179,33 +163,7 @@ struct reflected_member_function {
 };
 
 namespace detail {
-
 template <typename> struct reflect_member_function_impl;
-
-#define REFLECTED_MEMBER_FUNCTION_IMPL(CV, Qualifiers) \
-  template <typename Result, typename Owner, typename... Args> \
-  struct reflect_member_function_impl<Result(Owner::*)(Args...) Qualifiers> { \
-    using type = reflected_member_function< \
-      Result(Owner::*)(Args...) Qualifiers, \
-      cv_qualifier::CV, Owner, Result, Args... \
-    >; \
-  }
-
-REFLECTED_MEMBER_FUNCTION_IMPL(none, );
-REFLECTED_MEMBER_FUNCTION_IMPL(c, const);
-REFLECTED_MEMBER_FUNCTION_IMPL(v, volatile);
-REFLECTED_MEMBER_FUNCTION_IMPL(cv, const volatile);
-REFLECTED_MEMBER_FUNCTION_IMPL(none, &);
-REFLECTED_MEMBER_FUNCTION_IMPL(c, const &);
-REFLECTED_MEMBER_FUNCTION_IMPL(v, volatile &);
-REFLECTED_MEMBER_FUNCTION_IMPL(cv, const volatile &);
-REFLECTED_MEMBER_FUNCTION_IMPL(none, &&);
-REFLECTED_MEMBER_FUNCTION_IMPL(c, const &&);
-REFLECTED_MEMBER_FUNCTION_IMPL(v, volatile &&);
-REFLECTED_MEMBER_FUNCTION_IMPL(cv, const volatile &&);
-
-#undef REFLECTED_MEMBER_FUNCTION_IMPL
-
 } // namespace detail {
 
 /**
@@ -242,6 +200,38 @@ using reflect_member_function = typename detail::reflect_member_function_impl<
   T
 >::type;
 
+////////////////////////////
+// IMPLEMENTATION DETAILS //
+////////////////////////////
+
+namespace detail {
+
+#define REFLECTED_MEMBER_FUNCTION_IMPL(CV, Ref, Qualifiers) \
+  template <typename Result, typename Owner, typename... Args> \
+  struct reflect_member_function_impl<Result(Owner::*)(Args...) Qualifiers> { \
+    using type = reflected_member_function< \
+      Result(Owner::*)(Args...) Qualifiers, \
+      cv_qualifier::CV, ref_qualifier::Ref, \
+      Owner, Result, Args... \
+    >; \
+  }
+
+REFLECTED_MEMBER_FUNCTION_IMPL(none, none, );
+REFLECTED_MEMBER_FUNCTION_IMPL(c, none, const);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, none, volatile);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, none, const volatile);
+REFLECTED_MEMBER_FUNCTION_IMPL(none, lvalue, &);
+REFLECTED_MEMBER_FUNCTION_IMPL(c, lvalue, const &);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, lvalue, volatile &);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, lvalue, const volatile &);
+REFLECTED_MEMBER_FUNCTION_IMPL(none, rvalue, &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(c, rvalue, const &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, rvalue, volatile &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, rvalue, const volatile &&);
+
+#undef REFLECTED_MEMBER_FUNCTION_IMPL
+
+} // namespace detail {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_reflect_member_function_h

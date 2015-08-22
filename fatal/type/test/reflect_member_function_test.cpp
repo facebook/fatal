@@ -11,8 +11,6 @@
 
 #include <fatal/test/driver.h>
 
-#include <type_traits>
-
 namespace fatal {
 
 struct foo {
@@ -22,28 +20,6 @@ struct foo {
   void cv() const volatile;
   void vc() volatile const;
 };
-
-FATAL_TEST(reflect_member_function, cv_qualifier_bitwise_and) {
-  FATAL_EXPECT_FALSE(cv_qualifier::none & cv_qualifier::none);
-  FATAL_EXPECT_FALSE(cv_qualifier::none & cv_qualifier::c);
-  FATAL_EXPECT_FALSE(cv_qualifier::none & cv_qualifier::v);
-  FATAL_EXPECT_FALSE(cv_qualifier::none & cv_qualifier::cv);
-
-  FATAL_EXPECT_FALSE(cv_qualifier::c & cv_qualifier::none);
-  FATAL_EXPECT_TRUE(cv_qualifier::c & cv_qualifier::c);
-  FATAL_EXPECT_FALSE(cv_qualifier::c & cv_qualifier::v);
-  FATAL_EXPECT_TRUE(cv_qualifier::c & cv_qualifier::cv);
-
-  FATAL_EXPECT_FALSE(cv_qualifier::v & cv_qualifier::none);
-  FATAL_EXPECT_FALSE(cv_qualifier::v & cv_qualifier::c);
-  FATAL_EXPECT_TRUE(cv_qualifier::v & cv_qualifier::v);
-  FATAL_EXPECT_TRUE(cv_qualifier::v & cv_qualifier::cv);
-
-  FATAL_EXPECT_FALSE(cv_qualifier::cv & cv_qualifier::none);
-  FATAL_EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::c);
-  FATAL_EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::v);
-  FATAL_EXPECT_TRUE(cv_qualifier::cv & cv_qualifier::cv);
-}
 
 template <int> struct R {};
 template <int> struct A {};
@@ -77,58 +53,69 @@ struct gaz {
   int fn(bool, T const &, double *) const;
 };
 
-#define CHECK_REFLECT(Class, Fn, Result, CV, Qualifier, Ref, ...) \
+#define CHECK_REFLECT(Class, Fn, Result, CV, CVQ, Ref, RefQ, ...) \
   do { \
     using reflected = reflect_member_function<decltype(&Class::Fn)>; \
     FATAL_EXPECT_SAME<Class, reflected::owner>(); \
     FATAL_EXPECT_SAME<Result, reflected::result>(); \
-    FATAL_EXPECT_EQ(cv_qualifier::CV, reflected::cv::value); \
     FATAL_EXPECT_SAME< \
-      Result(Class::*)(__VA_ARGS__) Qualifier Ref, \
+      Result(Class::*)(__VA_ARGS__) CVQ RefQ, \
       reflected::pointer \
     >(); \
+    FATAL_EXPECT_EQ(ref_qualifier::Ref, reflected::ref::value); \
+    FATAL_EXPECT_EQ(cv_qualifier::CV, reflected::cv::value); \
     FATAL_EXPECT_SAME<type_list<__VA_ARGS__>, reflected::args>(); \
   } while (false)
 
 FATAL_TEST(reflect_member_function, reflect_member_function) {
-  CHECK_REFLECT(foo, noncv, void, none, , );
-  CHECK_REFLECT(foo, c, void, c, const, );
-  CHECK_REFLECT(foo, v, void, v, volatile, );
-  CHECK_REFLECT(foo, cv, void, cv, const volatile, );
-  CHECK_REFLECT(foo, vc, void, cv, const volatile, );
+  CHECK_REFLECT(foo, noncv, void, none, , none, );
+  CHECK_REFLECT(foo, c, void, c, const, none, );
+  CHECK_REFLECT(foo, v, void, v, volatile, none, );
+  CHECK_REFLECT(foo, cv, void, cv, const volatile, none, );
+  CHECK_REFLECT(foo, vc, void, cv, const volatile, none, );
 
-  CHECK_REFLECT(bar, fn, R<1>, none, , , A<10>, A<11> &&);
-  CHECK_REFLECT(bar, fn_c, R<2>, c, const, , A<20> const &, A<21> &);
-  CHECK_REFLECT(bar, fn_v, R<3>, v, volatile, , A<30> &&);
-  CHECK_REFLECT(bar, fn_cv, R<4>, cv, const volatile, , A<40> *, A<41> const *);
+  CHECK_REFLECT(bar, fn, R<1>, none, , none, , A<10>, A<11> &&);
+  CHECK_REFLECT(bar, fn_c, R<2>, c, const, none, , A<20> const &, A<21> &);
+  CHECK_REFLECT(bar, fn_v, R<3>, v, volatile, none, , A<30> &&);
   CHECK_REFLECT(
-    bar, fn_vc, R<5>, cv, const volatile, , A<50>, A<51> const *const &
-  );
-
-  CHECK_REFLECT(bar, fn_lr, R<1>, none, , &, A<10>, A<11> &&);
-  CHECK_REFLECT(bar, fn_c_lr, R<2>, c, const, &, A<20> const &, A<21> &);
-  CHECK_REFLECT(bar, fn_v_lr, R<3>, v, volatile, &, A<30> &&);
-  CHECK_REFLECT(
-    bar, fn_cv_lr, R<4>, cv, const volatile, &, A<40> *, A<41> const *
+    bar, fn_cv, R<4>, cv, const volatile, none, , A<40> *, A<41> const *
   );
   CHECK_REFLECT(
-    bar, fn_vc_lr, R<5>, cv, const volatile, &, A<50>, A<51> const *const &
+    bar, fn_vc, R<5>, cv, const volatile, none, , A<50>, A<51> const *const &
   );
 
-  CHECK_REFLECT(bar, fn_rr, R<1>, none, , &&, A<10>, A<11> &&);
-  CHECK_REFLECT(bar, fn_c_rr, R<2>, c, const, &&, A<20> const &, A<21> &);
-  CHECK_REFLECT(bar, fn_v_rr, R<3>, v, volatile, &&, A<30> &&);
+  CHECK_REFLECT(bar, fn_lr, R<1>, none, , lvalue, &, A<10>, A<11> &&);
   CHECK_REFLECT(
-    bar, fn_cv_rr, R<4>, cv, const volatile, &&, A<40> *, A<41> const *
+    bar, fn_c_lr, R<2>, c, const, lvalue, &, A<20> const &, A<21> &
+  );
+  CHECK_REFLECT(bar, fn_v_lr, R<3>, v, volatile, lvalue, &, A<30> &&);
+  CHECK_REFLECT(
+    bar, fn_cv_lr, R<4>, cv, const volatile, lvalue, &, A<40> *, A<41> const *
   );
   CHECK_REFLECT(
-    bar, fn_vc_rr, R<5>, cv, const volatile, &&, A<50>, A<51> const *const &
+    bar, fn_vc_lr, R<5>,
+    cv, const volatile, lvalue, &, A<50>, A<51> const *const &
   );
 
-  CHECK_REFLECT(bar, fn_foo, foo &, none, , );
-  CHECK_REFLECT(bar, operator ==, bool, c, const, , bar const &);
+  CHECK_REFLECT(bar, fn_rr, R<1>, none, , rvalue, &&, A<10>, A<11> &&);
+  CHECK_REFLECT(
+    bar, fn_c_rr, R<2>, c, const, rvalue, &&, A<20> const &, A<21> &
+  );
+  CHECK_REFLECT(bar, fn_v_rr, R<3>, v, volatile, rvalue, &&, A<30> &&);
+  CHECK_REFLECT(
+    bar, fn_cv_rr, R<4>, cv, const volatile, rvalue, &&, A<40> *, A<41> const *
+  );
+  CHECK_REFLECT(
+    bar, fn_vc_rr, R<5>,
+    cv, const volatile, rvalue, &&, A<50>, A<51> const *const &
+  );
 
-  CHECK_REFLECT(gaz<long>, fn, int, c, const, , bool, long const &, double *);
+  CHECK_REFLECT(bar, fn_foo, foo &, none, , none, );
+  CHECK_REFLECT(bar, operator ==, bool, c, const, none, , bar const &);
+
+  CHECK_REFLECT(
+    gaz<long>, fn, int, c, const, none, , bool, long const &, double *
+  );
 }
 
 } // namespace fatal {
