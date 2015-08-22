@@ -1,19 +1,13 @@
 # Learn Fatal and Meta-programming by example
-This directory contains a set of lessons aimed at teaching the basics of meta-programming in C++.
+This directory contains a set of lessons aimed at teaching meta-programming in C++, as well as Fatal.They gradually introduce idioms to better use Fatal when writing software.
 
-The lessons gradually introduce idioms to better use Fatal when writing software.
-
-Lessons source code is self-contained, presenting a full textual explanation of the lesson itself.
-
-The output of the lessons is also self-contained, presenting the full textual explanation and source code.
-
-Lessons can be followed by reading the source code, the lesson's output, or better yet: both.
+Lessons source code is self-contained, presenting a full textual explanation of the lesson itself. The output of the lessons is also self-contained, presenting the full textual explanation and source code. This means that lessons can be followed by reading the source code, the lesson's output, or both.
 
 At this point only a few lessons are available. Stay tuned for updates.
 
 
 ## Existing lessons
-Fundamentals of metaprogramming:
+Fundamentals of meta-programming:
 
 - [1.0: Representing variables](1.0-variables.cpp)
 - [1.1: Representing values](1.1-values.cpp)
@@ -47,10 +41,10 @@ Here's an example of how to follow a lesson in Metashell (use a trailing backsla
 ```
 > #include <fatal/lesson/lesson.h>
 > template <typename T, T... Values> \
-...> struct sequence_1 {};
-> using mp = sequence_1<std::uint32_t, 3, 7, 31, 127, 8191, 131071, 524287>;
+...> struct sequence {};
+> using mp = sequence<unsigned, 3, 7, 31, 127, 8191, 131071, 524287>;
 > mp
-sequence_1<std::uint32_t, 3, 7, 31, 127, 8191, 131071, 524287>
+sequence<unsigned, 3, 7, 31, 127, 8191, 131071, 524287>
 ```
 
 Due to its REPL nature, Metashell provides a much more dynamic environment than the text editor + compiler combo, highly recommended for learning.
