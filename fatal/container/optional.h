@@ -129,6 +129,14 @@ public:
     return data_.ptr();
   }
 
+  const_pointer try_get() const noexcept {
+    return empty_ ? nullptr : data_.ptr();
+  }
+
+  pointer try_get() noexcept {
+    return empty_ ? nullptr : data_.ptr();
+  }
+
   const_reference operator *() const noexcept {
     assert(!empty_);
     return data_.cref();
