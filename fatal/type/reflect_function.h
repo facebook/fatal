@@ -16,10 +16,6 @@
 
 namespace fatal {
 
-////////////////
-// qualifiers //
-////////////////
-
 /**
  * Compile-time reflection for free and static member functions.
  *
