@@ -12,6 +12,7 @@ fi
 if ! which $cc; then
   echo "no $cc installed"
   exit 1
+fi
 
 echo "compiler: $cc"
 $cc --version
