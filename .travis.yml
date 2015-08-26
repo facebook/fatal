@@ -54,21 +54,23 @@ matrix:
           packages: ['clang-3.6']
       env: COMPILER=clang++-3.6
 
-    - os: linux
-      compiler: clang
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-          packages: ['clang-3.7']
-      env: COMPILER=clang++-3.7
+# Not yet available
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+#          packages: ['clang-3.7']
+#      env: COMPILER=clang++-3.7
 
-    - os: linux
-      compiler: clang
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise']
-          packages: ['clang-3.8']
-      env: COMPILER=clang++-3.8
+# Not yet available
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise']
+#          packages: ['clang-3.8']
+#      env: COMPILER=clang++-3.8
 
 # Activate when we are allowed to use MacOS X
 #    - os: osx
