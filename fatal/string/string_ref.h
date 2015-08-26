@@ -277,6 +277,15 @@ struct string_ref {
 
   bool operator !() const { return empty(); }
 
+  struct hasher {
+    using argument = string_ref;
+    using result_type = std::size_t;
+
+    result_type operator ()(string_ref s) const {
+      return *bytes_hasher<result_type>()(s.data(), s.size());
+    }
+  };
+
 private:
   const_iterator begin_;
   const_iterator end_;
@@ -342,21 +351,5 @@ std::ostream &operator <<(std::ostream &out, string_ref rhs) {
 }
 
 } // namespace fatal {
-
-#include <functional>
-
-namespace std {
-
-template <>
-struct hash<fatal::string_ref> {
-  using argument = fatal::string_ref;
-  using result_type = std::size_t;
-
-  result_type operator ()(fatal::string_ref s) const {
-    return *fatal::bytes_hasher<result_type>()(s.data(), s.size());
-  }
-};
-
-} // namespace std {
 
 #endif // FATAL_INCLUDE_fatal_string_string_ref_h

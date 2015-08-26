@@ -13,7 +13,6 @@
 
 #include <fatal/utility/timed_iterations.h>
 
-#include <functional>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -72,12 +71,12 @@ FATAL_TEST(sanity_check, sanity_check) {
   FATAL_EXPECT_EQ(s, unitary);
   FATAL_EXPECT_EQ(unitary, s);
 
-  std::hash<rope<>> hasher;
+  rope<>::hasher hasher;
 
   auto const hr1 = hasher(s);
   auto const hu1 = hasher(unitary);
-  auto const hr2 = std::hash<rope<>>()(s);
-  auto const hu2 = std::hash<rope<>>()(unitary);
+  auto const hr2 = rope<>::hasher()(s);
+  auto const hu2 = rope<>::hasher()(unitary);
 
   FATAL_EXPECT_EQ(hr1, hr2);
   FATAL_EXPECT_EQ(hu1, hu2);
@@ -1907,12 +1906,12 @@ FATAL_TEST(const_iterator, foreach (-= 1)) {
 // hash //
 //////////
 
-FATAL_TEST(std, hash) {
+FATAL_TEST(rope, hasher) {
 # define TEST_IMPL(...) \
   do { \
     rope<> r1(__VA_ARGS__); \
     rope<> r2(to_string(__VA_ARGS__)); \
-    using hasher = std::hash<rope<>>; \
+    using hasher = rope<>::hasher; \
     FATAL_EXPECT_EQ(hasher()(r1), hasher()(r2)); \
   } while (false)
 

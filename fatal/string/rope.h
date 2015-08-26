@@ -1635,6 +1635,23 @@ public:
     return compare(std::forward<T>(rhs)) > 0;
   }
 
+  struct hasher {
+    using argument = rope;
+    using result_type = std::size_t;
+
+    result_type operator ()(rope const &r) const {
+      bytes_hasher<result_type> hasher;
+
+      for (piece_index i = 0, pieces = r.pieces(); i < pieces; ++i) {
+        auto piece = r.piece(i);
+
+        hasher(piece.begin(), piece.end());
+      }
+
+      return *hasher;
+    }
+  };
+
 private:
   ////////////////////////////
   // IMPLEMENTATION DETAILS //
@@ -1807,33 +1824,5 @@ std::ostream &operator <<(std::ostream &out, rope<SmallBufferSize> const &r) {
 }
 
 } // namespace fatal {
-
-///////////////
-// std::hash //
-///////////////
-
-namespace std {
-
-template <std::size_t SmallBufferSize>
-struct hash<fatal::rope<SmallBufferSize>> {
-  using argument = fatal::rope<SmallBufferSize>;
-  using result_type = std::size_t;
-
-  result_type operator ()(fatal::rope<SmallBufferSize> const &r) const {
-    fatal::bytes_hasher<result_type> hasher;
-
-    using piece_index = typename argument::piece_index;
-
-    for (piece_index i = 0, pieces = r.pieces(); i < pieces; ++i) {
-      auto piece = r.piece(i);
-
-      hasher(piece.begin(), piece.end());
-    }
-
-    return *hasher;
-  }
-};
-
-} // namespace std {
 
 #endif // FATAL_INCLUDE_fatal_string_rope_h
