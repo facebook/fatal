@@ -839,15 +839,67 @@ struct enable_when {
 // safe_overload_t //
 /////////////////////
 
+/**
+ * Type traits to prevent the universal constructor from overloading
+ * the copy/move constructor.
+ *
+ * For more information, see
+ *   ericniebler.com/2013/08/07/universal-references-and-the-copy-constructo
+ *
+ * Usage:
+ *
+ * // before
+ * struct Foo {
+ *   template <typename T>
+ *   Foo(T &&value) { ... }
+ * };
+ *
+ * // after
+ * struct Foo {
+ *   template <
+ *     typename T,
+ *     typename X = typename std::enable_if<
+ *       is_safe_overload<Foo, T>::value, void
+ *     >::type
+ *   >
+ *   Foo(T &&value) { ... }
+ * };
+ *
+ * It also works with variadic templates:
+ *
+ * // before
+ * struct Foo {
+ *   template <typename... Args>
+ *   Foo(Args &&...args) { ... }
+ * };
+ *
+ * // after
+ * struct Foo {
+ *   template <
+ *     typename... Args,
+ *     typename X = typename std::enable_if<
+ *       is_safe_overload<Foo, Args...>::value, void
+ *     >::type
+ *   >
+ *   Foo(Args &&...args) { ... }
+ * };
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
 namespace detail {
 namespace traits_impl {
 template <typename, typename...>
-struct safe_overload { using type = std::true_type; };
+struct is_safe_overload { using type = std::true_type; };
 } // namespace traits_impl {
 } // namespace detail {
 
+template <typename Class, typename... Args>
+using is_safe_overload = typename detail::traits_impl::is_safe_overload<
+  Class, Args...
+>::type;
+
 /**
- * Template alias for safe_overload above.
+ * Template alias for is_safe_overload above.
  *
  * Usage:
  *
@@ -870,9 +922,7 @@ struct safe_overload { using type = std::true_type; };
  */
 // TODO: RENAME TO safe_overload
 template <typename Class, typename... Args>
-using safe_overload_t = enable_when::is_true<
-  typename detail::traits_impl::safe_overload<Class, Args...>::type
->;
+using safe_overload_t = enable_when::is_true<is_safe_overload<Class, Args...>>;
 
 ///////////////////////////
 // FATAL_HAS_MEMBER_TYPE //
@@ -1258,12 +1308,12 @@ public:
   );
 };
 
-///////////////////
-// safe_overload //
-///////////////////
+//////////////////////
+// is_safe_overload //
+//////////////////////
 
 template <typename Class, typename T>
-struct safe_overload<Class, T> {
+struct is_safe_overload<Class, T> {
   using type = bool_constant<
     !std::is_base_of<
       Class,
@@ -1273,7 +1323,6 @@ struct safe_overload<Class, T> {
     >::value
   >;
 };
-
 
 } // namespace traits_impl {
 } // namespace detail {

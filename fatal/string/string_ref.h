@@ -40,7 +40,7 @@ using convertible_t = typename std::enable_if<convertible<U>::value>::type;
 
 template <typename T, typename U>
 using safe_overload_t = typename std::enable_if<
-  safe_overload<T, U>::value && convertible<U>::value
+  is_safe_overload<T, U>::value && convertible<U>::value
 >::type;
 
 } // namespace detail {

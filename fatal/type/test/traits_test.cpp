@@ -528,8 +528,8 @@ struct foonctor {
   void operator ()(int, std::string) {}
 };
 
-typedef void(*foonction)();
-typedef void(*foonction_is)(int, std::string);
+using foonction = void(*)();
+using foonction_is = void(*)(int, std::string);
 
 FATAL_TEST(traits, is_callable) {
   auto const lambda = []() {};
@@ -1190,7 +1190,7 @@ FATAL_TEST(enable_when, callable [function]) {
 }
 
 ///////////////////
-// safe_overload //
+// is_safe_overload //
 ///////////////////
 
 struct Base {};
@@ -1198,20 +1198,20 @@ struct Derived: public Base {};
 struct Foo {};
 enum class ctor { def, copy, move, universal };
 
-FATAL_TEST(traits, safe_overload) {
-  FATAL_EXPECT_FALSE((safe_overload<Base, Base>::value));
-  FATAL_EXPECT_FALSE((safe_overload<Base, Derived>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, int>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, void>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, Foo>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, int, int>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, void, void>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, Foo, Foo>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, int, int, int>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, void, void, void>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, Foo, Foo, Foo>::value));
-  FATAL_EXPECT_TRUE((safe_overload<Base, int, void, Foo, bool>::value));
+FATAL_TEST(traits, is_safe_overload) {
+  FATAL_EXPECT_FALSE((is_safe_overload<Base, Base>::value));
+  FATAL_EXPECT_FALSE((is_safe_overload<Base, Derived>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, int>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, void>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, Foo>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, int, int>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, void, void>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, Foo, Foo>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, int, int, int>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, void, void, void>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, Foo, Foo, Foo>::value));
+  FATAL_EXPECT_TRUE((is_safe_overload<Base, int, void, Foo, bool>::value));
 }
 
 struct overloading_test {
@@ -1221,7 +1221,7 @@ struct overloading_test {
   template <
     typename T,
     typename = typename std::enable_if<
-      safe_overload<overloading_test, T>::value, void
+      is_safe_overload<overloading_test, T>::value, void
     >::type
   >
   explicit overloading_test(T &&): type(ctor::universal) {}
@@ -1253,7 +1253,7 @@ struct variadic_overloading_test {
   template <
     typename... Args,
     typename = typename std::enable_if<
-      safe_overload<variadic_overloading_test, Args...>::value, void
+      is_safe_overload<variadic_overloading_test, Args...>::value, void
     >::type
   >
   explicit variadic_overloading_test(Args &&...): type(ctor::universal) {}
