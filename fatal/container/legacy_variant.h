@@ -10,15 +10,16 @@
 #ifndef FATAL_INCLUDE_fatal_container_legacy_variant_h
 #define FATAL_INCLUDE_fatal_container_legacy_variant_h
 
+#include <fatal/container/optional.h>
 #include <fatal/container/unitary_union.h>
 #include <fatal/functional/functional.h>
 #include <fatal/math/numerics.h>
 #include <fatal/type/list.h>
 #include <fatal/type/traits.h>
 
+#include <functional>
 #include <memory>
 #include <utility>
-#include <functional>
 
 #include <cassert>
 
@@ -1738,42 +1739,23 @@ struct visitor_wrapper {
   using result_type = TResult;
 
   explicit visitor_wrapper(visitor_type &visitor):
-    visitor_(visitor),
-    has_value_(false)
+    visitor_(visitor)
   {}
 
   template <typename... UArgs>
   void operator()(UArgs &&...args) {
-    new (std::addressof(result_.value)) result_type(
-      visitor_(std::forward<UArgs>(args)...)
-    );
-
-    has_value_ = true;
+    result_.emplace(visitor_(std::forward<UArgs>(args)...));
   }
 
-  bool has_value() const { return has_value_; }
+  bool has_value() const { return !result_.empty(); }
 
-  fast_pass<result_type> value() const {
-    assert(has_value_);
-    return result_.value;
-  }
+  fast_pass<result_type> value() const { return *result_; }
 
-  result_type &value() {
-    assert(has_value_);
-    return result_.value;
-  }
+  result_type &value() { return result_.ref(); }
 
 private:
   visitor_type &visitor_;
-  union placeholder {
-    placeholder() {}
-    placeholder(placeholder const &) {}
-    placeholder(placeholder &&) {}
-    ~placeholder() {}
-
-    result_type value;
-  } result_;
-  bool has_value_;
+  optional<result_type> result_;
 };
 
 /**
