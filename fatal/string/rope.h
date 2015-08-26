@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#ifndef FATAL_INCLUDE_fatal_string_ephemeral_rope_h
-#define FATAL_INCLUDE_fatal_string_ephemeral_rope_h
+#ifndef FATAL_INCLUDE_fatal_string_rope_h
+#define FATAL_INCLUDE_fatal_string_rope_h
 
 #include <fatal/container/uninitialized.h>
 #include <fatal/math/hash.h>
@@ -34,13 +34,13 @@
 
 namespace fatal {
 namespace detail {
-namespace ephemeral_rope_impl {
+namespace rope_impl {
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
 ////////////////////////////
 
-// optimized for ephemeral_rope
+// optimized for rope
 template <typename TData>
 class variant {
   enum class id_type: unsigned char { string, reference, character };
@@ -227,7 +227,7 @@ private:
   id_type which_;
 };
 
-// optimized for ephemeral_rope
+// optimized for rope
 template <typename T, std::size_t SmallBufferSize = 8>
 struct vector {
   using value_type = T;
@@ -309,11 +309,11 @@ private:
   std::vector<value_type> buffer_;
 };
 
-} // namespace ephemeral_rope_impl {
+} // namespace rope_impl {
 } // namespace detail {
 
 ////////////////////
-// ephemeral_rope //
+// rope //
 ////////////////////
 
 /**
@@ -351,7 +351,7 @@ private:
  *
  * Example 1:
  *
- *  ephemeral_rope<> rope;
+ *  rope<> rope;
  *
  *  // the string literal "hello" will be referenced by the rope
  *  rope.append("hello");
@@ -378,7 +378,7 @@ private:
  *
  * Example 2:
  *
- *  ephemeral_rope<> rope;
+ *  rope<> rope;
  *
  *  // the string literal "hello" will be referenced by the rope
  *  rope.append("hello");
@@ -409,7 +409,7 @@ private:
  *  // the string `s1` will be referenced by the rope
  *  // the contents of `s2` will be owned by the rope
  *
- *  ephemeral_rope<> rope(
+ *  rope<> rope(
  *    "hello", ',', ' ', std::string("world!"), s1, std::move(s2)
  *  );
  *
@@ -420,7 +420,7 @@ private:
  */
 
 template <std::size_t SmallBufferSize = 8>
-struct ephemeral_rope {
+struct rope {
   // TODO: switch `char` piece with array+size, taking up the same space as the
   // other pieces
 
@@ -450,8 +450,8 @@ struct ephemeral_rope {
   using difference_type = typename std::make_signed<size_type>::type;
 
 private:
-  using piece_type = detail::ephemeral_rope_impl::variant<size_type>;
-  using container_type = detail::ephemeral_rope_impl::vector<
+  using piece_type = detail::rope_impl::variant<size_type>;
+  using container_type = detail::rope_impl::vector<
     piece_type, SmallBufferSize
   >;
   using small_buffer_size = typename container_type::small_buffer_size;
@@ -462,7 +462,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  ephemeral_rope() = default;
+  rope() = default;
 
   /**
    * There is no copy constructor defined for this rope.
@@ -477,14 +477,14 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  ephemeral_rope(ephemeral_rope const &) = delete;
+  rope(rope const &) = delete;
 
   /**
    * Move constructor. Commandeers the pieces contained in the given rope.
    *
    * @author: Marcelo Juchem
    */
-  ephemeral_rope(ephemeral_rope &&) = default;
+  rope(rope &&) = default;
 
   /**
    * Constructs a rope ouf of the given pieces.
@@ -495,15 +495,15 @@ public:
    *
    * Example:
    *
-   *  ephemeral_rope<> hello("hello, ", std::string("world"), '!');
+   *  rope<> hello("hello, ", std::string("world"), '!');
    *
    * @author: Marcelo Juchem
    */
   template <
     typename... Args,
-    typename = safe_overload_t<ephemeral_rope, Args...>
+    typename = safe_overload_t<rope, Args...>
   >
-  explicit ephemeral_rope(Args &&...args) {
+  explicit rope(Args &&...args) {
     multi_append(std::forward<Args>(args)...);
   }
 
@@ -649,7 +649,7 @@ public:
     >
   {
     explicit const_iterator(
-      ephemeral_rope const *rope,
+      rope const *rope,
       piece_type const *piece,
       piece_index index,
       size_type offset
@@ -792,7 +792,7 @@ public:
     explicit operator size_type() const { return absolute(); }
 
   private:
-    ephemeral_rope const *rope_;
+    rope const *rope_;
 
     // piece
     piece_type const *piece_;
@@ -903,8 +903,8 @@ public:
    *
    * TODO: BIKE-SHED
    */
-  ephemeral_rope mimic() const {
-    ephemeral_rope result;
+  rope mimic() const {
+    rope result;
 
     auto const pieces = pieces_.size();
 
@@ -999,7 +999,7 @@ public:
    */
   template <
     typename... Args,
-    typename = safe_overload_t<ephemeral_rope, Args...>
+    typename = safe_overload_t<rope, Args...>
   >
   void append(Args &&...args) {
     auto s = string_ref(std::forward<Args>(args)...);
@@ -1042,7 +1042,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  void concat(ephemeral_rope const &rhs) {
+  void concat(rope const &rhs) {
     auto const pieces = rhs.pieces_.size();
 
     reserve(pieces, true);
@@ -1062,7 +1062,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  void concat(ephemeral_rope &&rhs) {
+  void concat(rope &&rhs) {
     auto const pieces = rhs.pieces_.size();
 
     if (this == std::addressof(rhs)) {
@@ -1368,7 +1368,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  int compare(ephemeral_rope const &rhs) const {
+  int compare(rope const &rhs) const {
     if (!size_) {
       return rhs.size_ ? -1 : 0;
     }
@@ -1427,7 +1427,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  template <typename T, typename = safe_overload_t<ephemeral_rope, T>>
+  template <typename T, typename = safe_overload_t<rope, T>>
   int compare(T &&rhs) const {
     return compare(string_ref(std::forward<T>(rhs)));
   }
@@ -1588,7 +1588,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  bool operator ==(ephemeral_rope const &rhs) const {
+  bool operator ==(rope const &rhs) const {
     if (size_ != rhs.size_) {
       return false;
     }
@@ -1602,7 +1602,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  template <typename T, typename = safe_overload_t<ephemeral_rope, T>>
+  template <typename T, typename = safe_overload_t<rope, T>>
   bool operator ==(T &&rhs) const {
     return *this == string_ref(std::forward<T>(rhs));
   }
@@ -1705,10 +1705,10 @@ private:
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<ephemeral_rope<SmallBufferSize>, T>
+  typename = safe_overload_t<rope<SmallBufferSize>, T>
 >
-bool operator ==(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
-  return rope == other;
+bool operator ==(T const &lhs, rope<SmallBufferSize> const &rhs) {
+  return rhs == lhs;
 }
 
 ////////////////
@@ -1718,10 +1718,10 @@ bool operator ==(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<ephemeral_rope<SmallBufferSize>, T>
+  typename = safe_overload_t<rope<SmallBufferSize>, T>
 >
-bool operator <(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
-  return rope > other;
+bool operator <(T const &lhs, rope<SmallBufferSize> const &rhs) {
+  return rhs > lhs;
 }
 
 ////////////////
@@ -1731,10 +1731,10 @@ bool operator <(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<ephemeral_rope<SmallBufferSize>, T>
+  typename = safe_overload_t<rope<SmallBufferSize>, T>
 >
-bool operator >(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
-  return rope < other;
+bool operator >(T const &lhs, rope<SmallBufferSize> const &rhs) {
+  return rhs < lhs;
 }
 
 /////////////////
@@ -1742,17 +1742,17 @@ bool operator >(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
 /////////////////
 
 template <typename T, std::size_t SmallBufferSize>
-bool operator !=(ephemeral_rope<SmallBufferSize> const &rope, T const &other) {
-  return !(rope == other);
+bool operator !=(rope<SmallBufferSize> const &lhs, T const &rhs) {
+  return !(lhs == rhs);
 }
 
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<ephemeral_rope<SmallBufferSize>, T>
+  typename = safe_overload_t<rope<SmallBufferSize>, T>
 >
-bool operator !=(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
-  return !(rope == other);
+bool operator !=(T const &lhs, rope<SmallBufferSize> const &rhs) {
+  return !(rhs == lhs);
 }
 
 /////////////////
@@ -1760,17 +1760,17 @@ bool operator !=(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
 /////////////////
 
 template <typename T, std::size_t SmallBufferSize>
-bool operator <=(ephemeral_rope<SmallBufferSize> const &rope, T const &other) {
-  return !(rope > other);
+bool operator <=(rope<SmallBufferSize> const &lhs, T const &rhs) {
+  return !(lhs > rhs);
 }
 
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<ephemeral_rope<SmallBufferSize>, T>
+  typename = safe_overload_t<rope<SmallBufferSize>, T>
 >
-bool operator <=(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
-  return !(rope < other);
+bool operator <=(T const &lhs, rope<SmallBufferSize> const &rhs) {
+  return !(rhs < lhs);
 }
 
 /////////////////
@@ -1778,17 +1778,17 @@ bool operator <=(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
 /////////////////
 
 template <typename T, std::size_t SmallBufferSize>
-bool operator >=(ephemeral_rope<SmallBufferSize> const &rope, T const &other) {
-  return !(rope < other);
+bool operator >=(rope<SmallBufferSize> const &lhs, T const &rhs) {
+  return !(lhs < rhs);
 }
 
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<ephemeral_rope<SmallBufferSize>, T>
+  typename = safe_overload_t<rope<SmallBufferSize>, T>
 >
-bool operator >=(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
-  return !(rope > other);
+bool operator >=(T const &lhs, rope<SmallBufferSize> const &rhs) {
+  return !(rhs > lhs);
 }
 
 ///////////////////////////////
@@ -1796,14 +1796,11 @@ bool operator >=(T const &other, ephemeral_rope<SmallBufferSize> const &rope) {
 ///////////////////////////////
 
 template <std::size_t SmallBufferSize>
-std::ostream &operator <<(
-  std::ostream &out,
-  ephemeral_rope<SmallBufferSize> const &rope
-) {
-  using piece_index = typename ephemeral_rope<SmallBufferSize>::piece_index;
+std::ostream &operator <<(std::ostream &out, rope<SmallBufferSize> const &r) {
+  using piece_index = typename rope<SmallBufferSize>::piece_index;
 
-  for (piece_index i = 0, pieces = rope.pieces(); i < pieces; ++i) {
-    auto piece = rope.piece(i);
+  for (piece_index i = 0, pieces = r.pieces(); i < pieces; ++i) {
+    auto piece = r.piece(i);
 
     out.write(piece.data(), piece.size());
   }
@@ -1820,19 +1817,17 @@ std::ostream &operator <<(
 namespace std {
 
 template <std::size_t SmallBufferSize>
-struct hash<fatal::ephemeral_rope<SmallBufferSize>> {
-  using argument = fatal::ephemeral_rope<SmallBufferSize>;
+struct hash<fatal::rope<SmallBufferSize>> {
+  using argument = fatal::rope<SmallBufferSize>;
   using result_type = std::size_t;
 
-  result_type operator ()(
-    fatal::ephemeral_rope<SmallBufferSize> const &rope
-  ) const {
+  result_type operator ()(fatal::rope<SmallBufferSize> const &r) const {
     fatal::bytes_hasher<result_type> hasher;
 
     using piece_index = typename argument::piece_index;
 
-    for (piece_index i = 0, pieces = rope.pieces(); i < pieces; ++i) {
-      auto piece = rope.piece(i);
+    for (piece_index i = 0, pieces = r.pieces(); i < pieces; ++i) {
+      auto piece = r.piece(i);
 
       hasher(piece.begin(), piece.end());
     }
@@ -1843,4 +1838,4 @@ struct hash<fatal::ephemeral_rope<SmallBufferSize>> {
 
 } // namespace std {
 
-#endif // FATAL_INCLUDE_fatal_string_ephemeral_rope_h
+#endif // FATAL_INCLUDE_fatal_string_rope_h
