@@ -287,11 +287,8 @@ struct tuple_tags {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <
-  typename T,
-  template <typename> class TTagTransform = fatal::identity_transform
->
-using tuple_tags_from = typename fatal::reflect_template<T>::types
+template <typename T, template <typename> class TTagTransform = identity>
+using tuple_tags_from = typename reflect_template<T>::types
   ::template transform<TTagTransform>
   ::template apply<tuple_tags>;
 

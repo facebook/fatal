@@ -102,8 +102,8 @@ struct type_pair {
    */
   template <
     template <typename...> class T,
-    template <typename...> class TFirstTransform = identity_transform,
-    template <typename...> class TSecondTransform = identity_transform
+    template <typename...> class TFirstTransform = identity,
+    template <typename...> class TSecondTransform = identity
   >
   using apply = fatal::apply<
     T,
@@ -133,8 +133,8 @@ struct type_pair {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TFirstTransform = identity_transform,
-    template <typename...> class TSecondTransform = identity_transform
+    template <typename...> class TFirstTransform = identity,
+    template <typename...> class TSecondTransform = identity
   >
   using transform = type_pair<TFirstTransform<first>, TSecondTransform<second>>;
 };
@@ -148,8 +148,8 @@ struct type_pair {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TFirstTransform = identity_transform,
-  template <typename...> class TSecondTransform = identity_transform
+  template <typename...> class TFirstTransform = identity,
+  template <typename...> class TSecondTransform = identity
 >
 struct type_pair_from {
   /**

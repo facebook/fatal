@@ -309,7 +309,7 @@ class is_template {
 
 public:
   template <typename T>
-  using type = logical_transform::any<impl<TTemplates, T>...>;
+  using type = logical::any<impl<TTemplates, T>...>;
 };
 
 /////////////////
@@ -515,7 +515,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using all_true = typename std::enable_if<
-    logical_transform::all<Predicates...>::value
+    logical::all<Predicates...>::value
   >::type;
 
   /**
@@ -557,7 +557,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using any_true = typename std::enable_if<
-    logical_transform::any<Predicates...>::value
+    logical::any<Predicates...>::value
   >::type;
 
   /**
@@ -624,7 +624,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using all_false = typename std::enable_if<
-    !logical_transform::any<Predicates...>::value
+    !logical::any<Predicates...>::value
   >::type;
 
   /**
@@ -662,7 +662,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using any_false = typename std::enable_if<
-    !logical_transform::all<Predicates...>::value
+    !logical::all<Predicates...>::value
   >::type;
 
   /**
@@ -791,7 +791,7 @@ struct enable_when {
   template <typename T>
   using movable = all_true<
     std::is_rvalue_reference<T &&>,
-    logical_transform::negate<
+    logical::negate<
       std::is_const<
         typename std::remove_reference<T>::type
       >

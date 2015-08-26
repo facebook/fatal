@@ -86,7 +86,7 @@ private:
   // since we filter out duplicates from Args, we need
   // to check if all of Args are still supported
   static_assert(
-    logical_transform::all<
+    logical::all<
       std::true_type,
       typename list::template contains<Args>...
     >::value,
@@ -301,7 +301,7 @@ struct variadic_union_impl<T, Args...> {
     !type_list<std::false_type>::concat<
       typename left::list::template transform<right::list::template contains>,
       typename right::list::template transform<left::list::template contains>
-    >::template apply<logical_transform::any>::value,
+    >::template apply<logical::any>::value,
     "there are types supported by both the left and right side"
   );
 

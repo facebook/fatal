@@ -45,8 +45,9 @@ namespace fatal {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace detail {
+namespace transform_impl {
 
-class is_complete_impl {
+class is_complete {
   struct impl {
     template <typename T, std::size_t = sizeof(T)>
     static std::true_type sfinae(T *);
@@ -60,20 +61,23 @@ public:
   using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
 };
 
+} // namespace transform_impl {
 } // namespace detail {
 
 template <typename T>
-using is_complete = detail::is_complete_impl::type<T>;
+using is_complete = detail::transform_impl::is_complete::type<T>;
 
 ///////////
 // apply //
 ///////////
 
 namespace detail {
+namespace transform_impl {
 
 template <template <typename...> class T, typename... Args>
-struct apply_impl { using type = T<Args...>; };
+struct apply { using type = T<Args...>; };
 
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -82,11 +86,11 @@ struct apply_impl { using type = T<Args...>; };
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <template <typename...> class TTransform, typename... Args>
-using apply = typename detail::apply_impl<TTransform, Args...>::type;
+using apply = typename detail::transform_impl::apply<TTransform, Args...>::type;
 
-////////////////////////
-// identity_transform //
-////////////////////////
+//////////////
+// identity //
+//////////////
 
 /**
  * Helper alias similar to std::decay_t, that resolves to the type
@@ -95,23 +99,25 @@ using apply = typename detail::apply_impl<TTransform, Args...>::type;
  * Example:
  *
  *  // yields `int`
- *  typedef identity_transform<int> result1;
+ *  typedef identity<int> result1;
  *
  *  // yields `std::string`
- *  typedef identity_transform<std::string> result2;
+ *  typedef identity<std::string> result2;
  *
  *  // yields `double`
- *  typedef identity_transform<identity_transform<double>>> result3;
+ *  typedef identity<identity<double>>> result3;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace detail {
+namespace transform_impl {
 // needed due to gcc bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=62276
-template <typename T> struct identity_transform_impl { typedef T type; };
+template <typename T> struct identity { typedef T type; };
+} // namespace transform_impl {
 } // namespace detail {
 
 template <typename T>
-using identity_transform = typename detail::identity_transform_impl<T>::type;
+using identity = typename detail::transform_impl::identity<T>::type;
 
 /////////////////////
 // fixed_transform //
@@ -277,7 +283,7 @@ using sizeof_transform = std::integral_constant<std::size_t, sizeof(T)>;
  *
  * The transforms are applied in the order specified.
  *
- * If no transforms are given, it acts like `identity_transform`.
+ * If no transforms are given, it acts like `identity`.
  *
  * Example:
  *
@@ -311,18 +317,20 @@ struct transform_sequence<> {
   using apply = T;
 };
 
-//////////////////////////
-// arithmetic_transform //
-//////////////////////////
+////////////////
+// arithmetic //
+////////////////
 
 namespace detail {
-namespace arithmetic_transform_impl {
+namespace transform_impl {
+namespace arithmetic {
 template <typename...> struct add;
 template <typename...> struct subtract;
 template <typename...> struct multiply;
 template <typename...> struct divide;
 template <typename...> struct modulo;
-} // namespace arithmetic_transform_impl {
+} // namespace arithmetic {
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -330,14 +338,14 @@ template <typename...> struct modulo;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-struct arithmetic_transform {
+struct arithmetic {
   /**
    * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using add = typename detail::arithmetic_transform_impl::add<Args...>::type;
+  using add = typename detail::transform_impl::arithmetic::add<Args...>::type;
 
   /**
    * TODO: DOCUMENT
@@ -345,7 +353,7 @@ struct arithmetic_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using subtract = typename detail::arithmetic_transform_impl::subtract<
+  using subtract = typename detail::transform_impl::arithmetic::subtract<
     Args...
   >::type;
 
@@ -355,7 +363,7 @@ struct arithmetic_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using multiply = typename detail::arithmetic_transform_impl::multiply<
+  using multiply = typename detail::transform_impl::arithmetic::multiply<
     Args...
   >::type;
 
@@ -365,7 +373,7 @@ struct arithmetic_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using divide = typename detail::arithmetic_transform_impl::divide<
+  using divide = typename detail::transform_impl::arithmetic::divide<
     Args...
   >::type;
 
@@ -375,20 +383,22 @@ struct arithmetic_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using modulo = typename detail::arithmetic_transform_impl::modulo<
+  using modulo = typename detail::transform_impl::arithmetic::modulo<
     Args...
   >::type;
 };
 
-///////////////////////
-// logical_transform //
-///////////////////////
+/////////////
+// logical //
+/////////////
 
 namespace detail {
-namespace logical_transform_impl {
+namespace transform_impl {
+namespace logical {
 template <typename...> struct all;
 template <typename...> struct any;
-} // namespace logical_transform_impl {
+} // namespace logical {
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -396,7 +406,7 @@ template <typename...> struct any;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-struct logical_transform {
+struct logical {
   /**
    * Helper class similar to std::integral_constant whose value is the logical
    * AND of the value of each `Arg`.
@@ -404,7 +414,7 @@ struct logical_transform {
    * Example:
    *
    *  template <typename A, typename B, typename C>
-   *  using all_equal = logical_transform::all<
+   *  using all_equal = logical::all<
    *    std::is_same<A, B>, std::is_same<B, C>
    *  >;
    *
@@ -420,7 +430,7 @@ struct logical_transform {
    *  template <typename... Args>
    *  struct Foo {
    *    static_assert(
-   *      logical_transform::all<std::is_signed<Args>...)::value,
+   *      logical::all<std::is_signed<Args>...)::value,
    *      "Args should be signed arithmetic types"
    *    );
    *  }
@@ -428,7 +438,7 @@ struct logical_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using all = typename detail::logical_transform_impl::all<Args...>::type;
+  using all = typename detail::transform_impl::logical::all<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the logical
@@ -437,7 +447,7 @@ struct logical_transform {
    * Example:
    *
    *  template <typename A, typename B, typename C>
-   *  using has_duplicate = logical_transform::any<
+   *  using has_duplicate = logical::any<
    *    std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
    *  >;
    *
@@ -453,7 +463,7 @@ struct logical_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using any = typename detail::logical_transform_impl::any<Args...>::type;
+  using any = typename detail::transform_impl::logical::any<Args...>::type;
 
   /**
    * Helper class similar to std::integral whose value is the logical
@@ -465,7 +475,7 @@ struct logical_transform {
    *  using is_negative = std::integral_constant<bool, (X < 0)>;
    *
    *  template <int X>
-   *  using is_non_negative = logical_transform::negate<is_negative<X>>;
+   *  using is_non_negative = logical::negate<is_negative<X>>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -484,16 +494,18 @@ struct logical_transform {
   using none = negate<any<Args...>>;
 };
 
-///////////////////////
-// bitwise_transform //
-///////////////////////
+/////////////
+// bitwise //
+/////////////
 
 namespace detail {
-namespace bitwise_transform_impl {
+namespace transform_impl {
+namespace bitwise {
 template <typename...> struct all;
 template <typename...> struct any;
 template <typename...> struct diff;
-} // namespace bitwise_transform_impl {
+} // namespace bitwise {
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -501,7 +513,7 @@ template <typename...> struct diff;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-struct bitwise_transform {
+struct bitwise {
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
    * AND of the value of each `Arg`.
@@ -509,7 +521,7 @@ struct bitwise_transform {
    * Example:
    *
    *  template <int... Args>
-   *  using all = bitwise_transform::all<
+   *  using all = bitwise::all<
    *    std::integral_constant<int, Args>...
    *  >;
    *
@@ -522,7 +534,7 @@ struct bitwise_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using all = typename detail::bitwise_transform_impl::all<Args...>::type;
+  using all = typename detail::transform_impl::bitwise::all<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -531,7 +543,7 @@ struct bitwise_transform {
    * Example:
    *
    *  template <int... Args>
-   *  using any = bitwise_transform::any<
+   *  using any = bitwise::any<
    *    std::integral_constant<int, Args>...
    *  >;
    *
@@ -541,7 +553,7 @@ struct bitwise_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using any = typename detail::bitwise_transform_impl::any<Args...>::type;
+  using any = typename detail::transform_impl::bitwise::any<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -550,7 +562,7 @@ struct bitwise_transform {
    * Example:
    *
    *  template <int... Args>
-   *  using diff = bitwise_transform::diff<
+   *  using diff = bitwise::diff<
    *    std::integral_constant<int, Args>...
    *  >;
    *
@@ -563,7 +575,7 @@ struct bitwise_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using diff = typename detail::bitwise_transform_impl::diff<Args...>::type;
+  using diff = typename detail::transform_impl::bitwise::diff<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -572,7 +584,7 @@ struct bitwise_transform {
    * Example:
    *
    *  // yields `0xf0`
-   *  bitwise_transform::complement<
+   *  bitwise::complement<
    *    std::integral_constant<std::uint8_t, 0xf>
    *  >::value
    *
@@ -916,6 +928,7 @@ struct get_member_type {
 ///////////////////////////
 
 namespace detail {
+namespace transform_impl {
 
 template <
   bool,
@@ -938,6 +951,7 @@ struct conditional_transform_impl<
   using type = TWhenFalseTransform<T>;
 };
 
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -945,7 +959,7 @@ struct conditional_transform_impl<
  * depending whether the predicate `TPredicate` returns, respectively, true or
  * false, when applied to to the type `T`.
  *
- * The default transform for `TWhenFalseTransform` is `identity_transform`.
+ * The default transform for `TWhenFalseTransform` is `identity`.
  *
  * Example:
  *
@@ -977,11 +991,11 @@ struct conditional_transform_impl<
 template <
   template <typename...> class TPredicate,
   template <typename...> class TWhenTrueTransform,
-  template <typename...> class TWhenFalseTransform = identity_transform
+  template <typename...> class TWhenFalseTransform = identity
 >
 struct conditional_transform {
   template <typename T>
-  using apply = typename detail::conditional_transform_impl<
+  using apply = typename detail::transform_impl::conditional_transform_impl<
     fatal::apply<TPredicate, T>::value,
     TWhenTrueTransform,
     TWhenFalseTransform,
@@ -1017,7 +1031,7 @@ public:
 // TODO: DOCUMENT AND TEST
 template <
   template <typename...> class TTransform,
-  template <typename...> class TFallback = identity_transform
+  template <typename...> class TFallback = identity
 >
 struct try_transform {
   template <typename T>
@@ -1033,12 +1047,13 @@ struct try_transform {
 //////////////////////////
 
 namespace detail {
+namespace transform_impl {
 
 template <
   template <typename...> class TAggregator,
   template <typename...> class... TTransforms
 >
-struct transform_aggregator_impl {
+struct transform_aggregator {
   template <typename... Args>
   class apply {
     template <template <typename...> class TTransform>
@@ -1049,6 +1064,7 @@ struct transform_aggregator_impl {
   };
 };
 
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -1071,7 +1087,7 @@ template <
 >
 struct transform_aggregator {
   template <typename... Args>
-  using apply = typename detail::transform_aggregator_impl<
+  using apply = typename detail::transform_impl::transform_aggregator<
     TAggregator, TTransforms...
   >::template apply<Args...>::type;
 };
@@ -1443,18 +1459,18 @@ struct transform_switch {
   >;
 };
 
-///////////////////////////////
-// identity_transform_switch //
-///////////////////////////////
+/////////////////////
+// identity_switch //
+/////////////////////
 
 /**
- * A convenience version of `transform_switch` that uses `identity_transform`
+ * A convenience version of `transform_switch` that uses `identity`
  * as the fallback transform.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <template <typename...> class... Args>
-using identity_transform_switch = transform_switch<identity_transform, Args...>;
+using identity_switch = transform_switch<identity, Args...>;
 
 //////////////////////
 // member_transform //
@@ -1467,8 +1483,8 @@ using identity_transform_switch = transform_switch<identity_transform, Args...>;
  */
 #define FATAL_MEMBER_TRANSFORM(Name, Member) \
   template < \
-    template <typename...> class TPreTransform = ::fatal::identity_transform, \
-    template <typename...> class TPostTransform = ::fatal::identity_transform \
+    template <typename...> class TPreTransform = ::fatal::identity, \
+    template <typename...> class TPostTransform = ::fatal::identity \
   > \
   struct Name { \
     template <typename... Args> \
@@ -1514,12 +1530,12 @@ struct member_transform {
  */
 #define FATAL_MEMBER_TRANSFORMER(Name, Member) \
   template < \
-    template <typename...> class TPreTransform = ::fatal::identity_transform, \
-    template <typename...> class TPostTransform = ::fatal::identity_transform \
+    template <typename...> class TPreTransform = ::fatal::identity, \
+    template <typename...> class TPostTransform = ::fatal::identity \
   > \
   struct Name { \
     template < \
-      template <typename...> class TTransform = ::fatal::identity_transform, \
+      template <typename...> class TTransform = ::fatal::identity, \
       typename... Args \
     > \
     struct bind { \
@@ -1584,7 +1600,7 @@ struct member_transformer_stack {
     struct post {
       template <
         typename T,
-        template <typename...> class TTransform = identity_transform,
+        template <typename...> class TTransform = identity,
         typename... UArgs
       >
       using use = typename transform_sequence<
@@ -1600,7 +1616,7 @@ struct member_transformer_stack {
 
     template <
       typename T,
-      template <typename...> class TTransform = identity_transform,
+      template <typename...> class TTransform = identity,
       typename... UArgs
     >
     using use = typename post<>::template use<T, TTransform, UArgs...>;
@@ -1610,7 +1626,7 @@ struct member_transformer_stack {
   struct post {
     template <
       typename T,
-      template <typename...> class TTransform = identity_transform,
+      template <typename...> class TTransform = identity,
       typename... UArgs
     >
     using use = typename transform_sequence<TPostTransforms...>::template apply<
@@ -1620,7 +1636,7 @@ struct member_transformer_stack {
 
   template <
     typename T,
-    template <typename...> class TTransform = identity_transform,
+    template <typename...> class TTransform = identity,
     typename... UArgs
   >
   using use = typename pre<>::template post<>::template use<
@@ -1750,8 +1766,8 @@ template <
 >
 struct recursive_transform {
   template <
-    template <typename...> class TPreTransform = identity_transform,
-    template <typename...> class TPostTransform = identity_transform,
+    template <typename...> class TPreTransform = identity,
+    template <typename...> class TPostTransform = identity,
     std::size_t Depth = std::numeric_limits<std::size_t>::max()
   >
   // TODO: split into pre, post and depth
@@ -1976,30 +1992,31 @@ struct type_get_second_comparer {
 ///////////
 
 namespace detail {
+namespace transform_impl {
 
 template <template <typename> class T, typename U>
-struct apply_impl<T, U> { using type = T<U>; };
+struct apply<T, U> { using type = T<U>; };
 
 template <template <typename, typename> class T, typename U0, typename U1>
-struct apply_impl<T, U0, U1> { using type = T<U0, U1>; };
+struct apply<T, U0, U1> { using type = T<U0, U1>; };
 
 template <
   template <typename, typename, typename> class T,
   typename U0, typename U1, typename U2
 >
-struct apply_impl<T, U0, U1, U2> { using type = T<U0, U1, U2>; };
+struct apply<T, U0, U1, U2> { using type = T<U0, U1, U2>; };
 
 template <
   template <typename, typename, typename, typename> class T,
   typename U0, typename U1, typename U2, typename U3
 >
-struct apply_impl<T, U0, U1, U2, U3> { using type = T<U0, U1, U2, U3>; };
+struct apply<T, U0, U1, U2, U3> { using type = T<U0, U1, U2, U3>; };
 
 template <
   template <typename, typename, typename, typename, typename> class T,
   typename U0, typename U1, typename U2, typename U3, typename U4
 >
-struct apply_impl<T, U0, U1, U2, U3, U4> {
+struct apply<T, U0, U1, U2, U3, U4> {
   using type = T<U0, U1, U2, U3, U4>;
 };
 
@@ -2007,7 +2024,7 @@ template <
   template <typename, typename, typename, typename, typename, typename> class T,
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5
 >
-struct apply_impl<T, U0, U1, U2, U3, U4, U5> {
+struct apply<T, U0, U1, U2, U3, U4, U5> {
   using type = T<U0, U1, U2, U3, U4, U5>;
 };
 
@@ -2018,7 +2035,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0
 >
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0> {
+struct apply<T, U0, U1, U2, U3, U4, U5, V0> {
   using type = T<U0, U1, U2, U3, U4, U5, V0>;
 };
 
@@ -2030,7 +2047,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1
 >
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1> {
+struct apply<T, U0, U1, U2, U3, U4, U5, V0, V1> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1>;
 };
 
@@ -2042,7 +2059,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1, typename V2
 >
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2> {
+struct apply<T, U0, U1, U2, U3, U4, U5, V0, V1, V2> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2>;
 };
 
@@ -2054,7 +2071,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1, typename V2, typename V3
 >
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3> {
+struct apply<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3>;
 };
 
@@ -2066,7 +2083,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1, typename V2, typename V3, typename V4
 >
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4> {
+struct apply<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4>;
 };
 
@@ -2078,10 +2095,11 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1, typename V2, typename V3, typename V4, typename V5
 >
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
+struct apply<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5>;
 };
 
+} // namespace transform_impl {
 } // namespace detail {
 
 /////////////////////
@@ -2191,7 +2209,8 @@ public:
 ////////////////////////////
 
 namespace detail {
-namespace arithmetic_transform_impl {
+namespace transform_impl {
+namespace arithmetic {
 
 /////////
 // add //
@@ -2295,9 +2314,9 @@ struct modulo<TLHS, TRHS> {
   >;
 };
 
-} // namespace arithmetic_transform_impl {
+} // namespace arithmetic {
 
-namespace logical_transform_impl {
+namespace logical {
 
 /////////
 // all //
@@ -2333,9 +2352,9 @@ struct any<> {
   using type = std::false_type;
 };
 
-} // logical_transform_impl logical_transform {
+} // logical {
 
-namespace bitwise_transform_impl {
+namespace bitwise {
 
 /////////
 // all //
@@ -2397,7 +2416,8 @@ struct diff<T> {
   >;
 };
 
-} // namespace bitwise_transform_impl {
+} // namespace bitwise {
+} // namespace transform_impl {
 } // namespace detail {
 } // namespace fatal
 

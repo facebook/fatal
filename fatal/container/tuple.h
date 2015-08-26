@@ -282,8 +282,8 @@ struct tuple {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = identity_transform
+    template <typename...> class TTypeTransform = identity,
+    template <typename...> class TTagTransform = identity
   >
   using transform = typename map::template transform<
     TTypeTransform, TTagTransform
@@ -296,8 +296,8 @@ struct tuple {
    */
   template <
     typename TTag,
-    template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = identity_transform
+    template <typename...> class TTypeTransform = identity,
+    template <typename...> class TTagTransform = identity
   >
   using transform_at = typename map::template transform_at<
     TTag, TTypeTransform, TTagTransform
@@ -442,8 +442,8 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = identity_transform
+    template <typename...> class TTypeTransform = identity,
+    template <typename...> class TTagTransform = identity
   >
   using args = typename impl<TTagTransform, TTypeTransform>
     ::template args<Args...>;
@@ -454,8 +454,8 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = identity_transform
+    template <typename...> class TTypeTransform = identity,
+    template <typename...> class TTagTransform = identity
   >
   using list = fatal::apply<
     impl<TTagTransform, TTypeTransform>::template list,
@@ -468,8 +468,8 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TTypeTransform = identity_transform,
-    template <typename...> class TTagTransform = identity_transform
+    template <typename...> class TTypeTransform = identity,
+    template <typename...> class TTagTransform = identity
   >
   using map = fatal::apply<
     impl<TTagTransform, TTypeTransform>::template map,

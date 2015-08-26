@@ -829,8 +829,8 @@ template <
   typename TLHS, typename TRHS, typename... Args
 >
 struct is_sorted<TLessComparer, TLHS, TRHS, Args...>:
-  public logical_transform::all<
-    logical_transform::negate<TLessComparer<TRHS, TLHS>>,
+  public logical::all<
+    logical::negate<TLessComparer<TRHS, TLHS>>,
     is_sorted<TLessComparer, TRHS, Args...>
   >
 {};
@@ -1934,7 +1934,7 @@ struct type_list {
    */
   template <
     typename T, template <T...> class TTo,
-    template <typename...> class TGetter = identity_transform
+    template <typename...> class TGetter = identity
   >
   using apply_values = TTo<TGetter<Args>::value...>;
 
@@ -1970,7 +1970,7 @@ struct type_list {
    */
   template <
     typename T, template <typename, T...> class TTo,
-    template <typename...> class TGetter = identity_transform
+    template <typename...> class TGetter = identity
   >
   using apply_typed_values = TTo<T, TGetter<Args>::value...>;
 
@@ -2263,11 +2263,11 @@ struct type_list {
    *  // yields `int_seq<0, 1, 3, 6, 10, 15, 21, 28, 36, 45>`
    *  using result3 = int_seq<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
    *    ::cumulative_transform<>
-   *    ::apply<arithmetic_transform::add, std::integral_constant<int, 0>>;
+   *    ::apply<arithmetic::add, std::integral_constant<int, 0>>;
    *
    *  // yields `int_seq<1, 3, 6, 10, 15, 21, 28, 36, 45, 55>`
    *  using result4 = int_seq<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>
-   *    ::cumulative_transform<true>::apply<arithmetic_transform::add>;
+   *    ::cumulative_transform<true>::apply<arithmetic::add>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -2913,7 +2913,7 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform = identity_transform>
+  template <template <typename...> class TTransform = identity>
   using unique = typename detail::type_list_impl::unique<
     type_list<>, fatal::apply<TTransform, Args>...
   >::type;
@@ -2955,7 +2955,7 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform = identity_transform>
+  template <template <typename...> class TTransform = identity>
   // TODO: OPTIMIZE
   using is_unique = typename cast_transform<bool>::apply<
     std::is_same<

@@ -229,7 +229,7 @@ using known_signed_integers = detail::uniquify_args_by_bit_size_impl<
 
 static_assert(
   known_signed_integers::apply<
-    logical_transform::all,
+    logical::all,
     type_member_transform<std::is_signed>::apply
   >::value,
   "invalid signed integer"
@@ -242,7 +242,7 @@ using known_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
 
 static_assert(
   known_unsigned_integers::apply<
-    logical_transform::all,
+    logical::all,
     type_member_transform<std::is_unsigned>::apply
   >::value,
   "invalid unsigned integer"
@@ -255,7 +255,7 @@ using known_fast_signed_integers = detail::uniquify_args_by_bit_size_impl<
 
 static_assert(
   known_fast_signed_integers::apply<
-    logical_transform::all,
+    logical::all,
     type_member_transform<std::is_signed>::apply
   >::value,
   "invalid fast signed integer"
@@ -268,7 +268,7 @@ using known_fast_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
 
 static_assert(
   known_fast_unsigned_integers::apply<
-    logical_transform::all,
+    logical::all,
     type_member_transform<std::is_unsigned>::apply
   >::value,
   "invalid fast unsigned integer"
@@ -281,7 +281,7 @@ using known_least_signed_integers = detail::uniquify_args_by_bit_size_impl<
 
 static_assert(
   known_least_signed_integers::apply<
-    logical_transform::all,
+    logical::all,
     type_member_transform<std::is_signed>::apply
   >::value,
   "invalid least signed integer"
@@ -294,7 +294,7 @@ using known_least_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
 
 static_assert(
   known_least_unsigned_integers::apply<
-    logical_transform::all,
+    logical::all,
     type_member_transform<std::is_unsigned>::apply
   >::value,
   "invalid least unsigned integer"
@@ -312,7 +312,7 @@ using known_floating_points = detail::uniquify_args_by_bit_size_impl<
 
 static_assert(
   known_floating_points::apply<
-    logical_transform::all,
+    logical::all,
     type_member_transform<std::is_floating_point>::apply
   >::value,
   "invalid floating point"

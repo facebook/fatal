@@ -646,7 +646,7 @@ FATAL_TEST(indexed_transform, indexed_transform) {
 template <bool Inclusive, std::int64_t... Values>
 using cumulative_sum = typename int_seq<Values...>
   ::template cumulative_transform<Inclusive>
-  ::template apply<arithmetic_transform::add, int_val<0>>;
+  ::template apply<arithmetic::add, int_val<0>>;
 
 FATAL_TEST(cumulative_transform, non_inclusive) {
   FATAL_EXPECT_SAME<
@@ -859,14 +859,14 @@ FATAL_TEST(accumulate, accumulate) {
     (int_seq<__VA_ARGS__>::accumulate<TTransform>::value) \
   )
 
-  FATAL_TEST_IMPL(7, arithmetic_transform::add, 7);
-  FATAL_TEST_IMPL(8, arithmetic_transform::add, 1, 7);
-  FATAL_TEST_IMPL(8, arithmetic_transform::add, 7, 1);
+  FATAL_TEST_IMPL(7, arithmetic::add, 7);
+  FATAL_TEST_IMPL(8, arithmetic::add, 1, 7);
+  FATAL_TEST_IMPL(8, arithmetic::add, 7, 1);
 
-  FATAL_TEST_IMPL(28, arithmetic_transform::add, 1, 2, 3, 4, 5, 6, 7);
-  FATAL_TEST_IMPL(28, arithmetic_transform::add, 7, 6, 5, 4, 3, 2, 1);
+  FATAL_TEST_IMPL(28, arithmetic::add, 1, 2, 3, 4, 5, 6, 7);
+  FATAL_TEST_IMPL(28, arithmetic::add, 7, 6, 5, 4, 3, 2, 1);
 
-  FATAL_TEST_IMPL(28, arithmetic_transform::add, 1, 6, 2, 7, 5, 3, 4);
+  FATAL_TEST_IMPL(28, arithmetic::add, 1, 6, 2, 7, 5, 3, 4);
 
 # undef FATAL_TEST_IMPL
 
@@ -878,14 +878,14 @@ FATAL_TEST(accumulate, accumulate) {
     ); \
   } while (false)
 
-  FATAL_TEST_IMPL(107, arithmetic_transform::add, 100, 7);
-  FATAL_TEST_IMPL(108, arithmetic_transform::add, 100, 1, 7);
-  FATAL_TEST_IMPL(108, arithmetic_transform::add, 100, 7, 1);
+  FATAL_TEST_IMPL(107, arithmetic::add, 100, 7);
+  FATAL_TEST_IMPL(108, arithmetic::add, 100, 1, 7);
+  FATAL_TEST_IMPL(108, arithmetic::add, 100, 7, 1);
 
-  FATAL_TEST_IMPL(128, arithmetic_transform::add, 100, 1, 2, 3, 4, 5, 6, 7);
-  FATAL_TEST_IMPL(128, arithmetic_transform::add, 100, 7, 6, 5, 4, 3, 2, 1);
+  FATAL_TEST_IMPL(128, arithmetic::add, 100, 1, 2, 3, 4, 5, 6, 7);
+  FATAL_TEST_IMPL(128, arithmetic::add, 100, 7, 6, 5, 4, 3, 2, 1);
 
-  FATAL_TEST_IMPL(128, arithmetic_transform::add, 100, 1, 6, 2, 7, 5, 3, 4);
+  FATAL_TEST_IMPL(128, arithmetic::add, 100, 1, 6, 2, 7, 5, 3, 4);
 
 # undef FATAL_TEST_IMPL
 }
@@ -1973,7 +1973,7 @@ FATAL_TEST(type_get, type_list) {
 FATAL_TEST(type_list_from, type) {
   FATAL_EXPECT_SAME<type_list<>, type_list_from<>::type<void>>();
 
-  FATAL_EXPECT_SAME<vl, type_list_from<identity_transform>::type<void>>();
+  FATAL_EXPECT_SAME<vl, type_list_from<identity>::type<void>>();
 
   FATAL_EXPECT_SAME<
     type_list<double, std::string>,
@@ -1990,7 +1990,7 @@ FATAL_TEST(type_list_from, type) {
       std::string
     >,
     type_list_from<
-      identity_transform,
+      identity,
       type_get_first,
       type_get_second
     >::type<std::pair<double, std::string>>

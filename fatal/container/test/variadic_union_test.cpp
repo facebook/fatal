@@ -148,12 +148,12 @@ template <typename... Args>
 struct check_supports {
   using type = variadic_union<Args...>;
 
-  using supported = logical_transform::all<
+  using supported = logical::all<
     std::true_type,
     typename type::template supports<Args>...
   >;
 
-  using not_supported = typename logical_transform::any<
+  using not_supported = typename logical::any<
     std::false_type,
     typename type::template supports<X<Args>>...,
     typename type::template supports<Args const>...,
@@ -165,9 +165,9 @@ struct check_supports {
     typename type::template supports<Args *>...
   >;
 
-  using result = typename logical_transform::all<
+  using result = typename logical::all<
     supported,
-    logical_transform::negate<not_supported>
+    logical::negate<not_supported>
   >;
 };
 

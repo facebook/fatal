@@ -286,8 +286,8 @@ public:
 
   // TODO: DOCUMENT AND TEST
   template <
-    template <typename...> class TMappedTransform = identity_transform,
-    template <typename...> class TKeyTransform = identity_transform
+    template <typename...> class TMappedTransform = identity,
+    template <typename...> class TKeyTransform = identity
   >
   using transform = type_map<
     detail::type_map_impl::transform<Args, TKeyTransform, TMappedTransform>...
@@ -296,8 +296,8 @@ public:
   // TODO: DOCUMENT AND TEST
   template <
     typename TKey,
-    template <typename...> class TMappedTransform = identity_transform,
-    template <typename...> class TKeyTransform = identity_transform
+    template <typename...> class TMappedTransform = identity,
+    template <typename...> class TKeyTransform = identity
   >
   using transform_at = type_map<
     detail::type_map_impl::transform_at<
@@ -308,8 +308,8 @@ public:
   // TODO: DOCUMENT AND TEST
   template <
     template <typename...> class TTransform,
-    template <typename...> class TMappedTransform = identity_transform,
-    template <typename...> class TKeyTransform = identity_transform
+    template <typename...> class TMappedTransform = identity,
+    template <typename...> class TKeyTransform = identity
   >
   using apply = typename transform<TMappedTransform, TKeyTransform>
     ::contents::template apply<TTransform>;
@@ -352,8 +352,8 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TKeyTransform = identity_transform,
-    template <typename...> class TMappedTransform = identity_transform
+    template <typename...> class TKeyTransform = identity,
+    template <typename...> class TMappedTransform = identity
   >
   using invert = type_map<
     detail::type_map_impl::invert_transform<
@@ -818,8 +818,8 @@ public:
   >::template apply<fatal::type_map>;
 
   template <
-    template <typename...> class TKeyTransform = identity_transform,
-    template <typename...> class TMappedTransform = identity_transform
+    template <typename...> class TKeyTransform = identity,
+    template <typename...> class TMappedTransform = identity
   >
   using cluster = typename detail::type_map_impl::cluster<
     detail::type_map_impl::transform<Args, TKeyTransform, TMappedTransform>...
@@ -1189,8 +1189,8 @@ using build_type_map = typename detail::type_map_impl::build_pair_list<Args...>
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TKeyTransform = identity_transform,
-  template <typename...> class TValueTransform = identity_transform
+  template <typename...> class TKeyTransform = identity,
+  template <typename...> class TValueTransform = identity
 >
 struct type_map_from {
   template <typename... UArgs>

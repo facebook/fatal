@@ -76,7 +76,7 @@ struct variant_automatic_policy_impl {
   static std::false_type sfinae(...);
 
   template <typename T>
-  using type = logical_transform::all<
+  using type = logical::all<
     is_complete<T>,
     decltype(sfinae(static_cast<T *>(nullptr)))
   >;
@@ -1057,7 +1057,7 @@ public:
   {}
 
   legacy_variant(legacy_variant const &other)
-    noexcept(logical_transform::all<nothrow_cp_ctor<Args>...>::value):
+    noexcept(logical::all<nothrow_cp_ctor<Args>...>::value):
     control_(copy_impl(other))
   {
     static_assert(
@@ -1067,7 +1067,7 @@ public:
   }
 
   legacy_variant(legacy_variant &&other)
-    noexcept(logical_transform::all<nothrow_mv_ctor<Args>...>::value):
+    noexcept(logical::all<nothrow_mv_ctor<Args>...>::value):
     control_(move_impl(std::move(other)))
   {}
 
@@ -1413,7 +1413,7 @@ public:
 
   legacy_variant &operator =(legacy_variant const &other)
     noexcept(
-      logical_transform::all<std::true_type, nothrow_cp_assign<Args>...>::value
+      logical::all<std::true_type, nothrow_cp_assign<Args>...>::value
     )
   {
     static_assert(
@@ -1430,13 +1430,13 @@ public:
   }
 
   legacy_variant &operator =(legacy_variant &other)
-    noexcept(logical_transform::all<nothrow_cp_assign<Args>...>::value)
+    noexcept(logical::all<nothrow_cp_assign<Args>...>::value)
   {
     return (*this = static_cast<legacy_variant const &>(other));
   }
 
   legacy_variant &operator =(legacy_variant &&other)
-    noexcept(logical_transform::all<nothrow_mv_assign<Args>...>::value)
+    noexcept(logical::all<nothrow_mv_assign<Args>...>::value)
   {
     if (this != std::addressof(other)) {
       unset_impl(control_.allocator());

@@ -72,8 +72,8 @@ template <
   typename TSecond,
   typename TExpectedFirst,
   typename TExpectedSecond,
-  template <typename...> class TFirstTransform = identity_transform,
-  template <typename...> class TSecondTransform = identity_transform
+  template <typename...> class TFirstTransform = identity,
+  template <typename...> class TSecondTransform = identity
 >
 void check_transform() {
   typedef type_pair<TExpectedFirst, TExpectedSecond> expected;
@@ -102,8 +102,8 @@ template <
   typename T,
   typename TExpectedFirst,
   typename TExpectedSecond,
-  template <typename...> class TFirstTransform = identity_transform,
-  template <typename...> class TSecondTransform = identity_transform
+  template <typename...> class TFirstTransform = identity,
+  template <typename...> class TSecondTransform = identity
 >
 void check_type_pair_from() {
   typedef type_pair<TExpectedFirst, TExpectedSecond> expected;
