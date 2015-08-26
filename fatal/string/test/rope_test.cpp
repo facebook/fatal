@@ -169,7 +169,7 @@ FATAL_TEST(comparison, equal) {
       auto cr1 = r1.mimic(); \
       rope<> r2(__VA_ARGS__); \
       auto cr2 = r2.mimic(); \
-      string_ref ref(str); \
+      string_view ref(str); \
       auto cstr = str.c_str(); \
       std::vector<char> v(str.cbegin(), str.cend()); \
       v.push_back('\0'); \
@@ -196,7 +196,7 @@ FATAL_TEST(comparison, equal) {
       auto const cr1 = r1.mimic(); \
       rope<> const r2(__VA_ARGS__); \
       auto const cr2 = r2.mimic(); \
-      string_ref const ref(str); \
+      string_view const ref(str); \
       auto const cstr = str.c_str(); \
       std::vector<char> v(str.cbegin(), str.cend()); \
       v.push_back('\0'); \
@@ -223,7 +223,7 @@ FATAL_TEST(comparison, equal) {
       auto cr1 = r1.mimic(); \
       rope<> r2(__VA_ARGS__); \
       auto cr2 = r2.mimic(); \
-      string_ref ref(str); \
+      string_view ref(str); \
       auto cstr = str.c_str(); \
       std::vector<char> v(str.cbegin(), str.cend()); \
       v.push_back('\0'); \
@@ -255,11 +255,11 @@ FATAL_TEST(comparison, equal) {
       TEST_IMPL_COMPARE(cr1, rope<>(__VA_ARGS__)); \
       TEST_IMPL_COMPARE(r1, rope<>(__VA_ARGS__).mimic()); \
       TEST_IMPL_COMPARE(cr1, rope<>(__VA_ARGS__).mimic()); \
-      TEST_IMPL_COMPARE(r1, string_ref(str)); \
+      TEST_IMPL_COMPARE(r1, string_view(str)); \
       TEST_IMPL_COMPARE(r1, str.c_str()); \
       TEST_IMPL_COMPARE(r1, v.data()); \
       TEST_IMPL_COMPARE(r1, std::string(str)); \
-      TEST_IMPL_COMPARE(cr1, string_ref(str)); \
+      TEST_IMPL_COMPARE(cr1, string_view(str)); \
       TEST_IMPL_COMPARE(cr1, str.c_str()); \
       TEST_IMPL_COMPARE(cr1, v.data()); \
       TEST_IMPL_COMPARE(cr1, std::string(str)); \
@@ -323,7 +323,7 @@ FATAL_TEST(comparison, not_equal) {
         {
           auto &r1 = lhs;
           auto &r2 = rhs;
-          string_ref ref(rstr);
+          string_view ref(rstr);
           auto cstr = rstr.c_str();
           std::vector<char> v(rstr.cbegin(), rstr.cend());
           v.push_back('\0');
@@ -339,7 +339,7 @@ FATAL_TEST(comparison, not_equal) {
         {
           auto const &r1 = lhs;
           auto const &r2 = rhs;
-          string_ref const ref(rstr);
+          string_view const ref(rstr);
           auto const cstr = rstr.c_str();
           std::vector<char> v(rstr.cbegin(), rstr.cend());
           v.push_back('\0');
@@ -355,7 +355,7 @@ FATAL_TEST(comparison, not_equal) {
         {
           auto &r1 = lhs;
           auto &r2 = rhs;
-          string_ref ref(rstr);
+          string_view ref(rstr);
           auto cstr = rstr.c_str();
           std::vector<char> v(rstr.cbegin(), rstr.cend());
           v.push_back('\0');
@@ -373,7 +373,7 @@ FATAL_TEST(comparison, not_equal) {
           std::vector<char> v(rstr.cbegin(), rstr.cend());
           v.push_back('\0');
 
-          TEST_IMPL_COMPARE(r1, string_ref(rstr), expected_less);
+          TEST_IMPL_COMPARE(r1, string_view(rstr), expected_less);
           TEST_IMPL_COMPARE(r1, rstr.c_str(), expected_less);
           TEST_IMPL_COMPARE(r1, v.data(), expected_less);
           TEST_IMPL_COMPARE(r1, std::string(rstr), expected_less);
@@ -459,7 +459,7 @@ FATAL_TEST(append, append) {
   FATAL_EXPECT_EQ("one two", r);
   FATAL_EXPECT_EQ(3, r.pieces());
 
-  r.append(string_ref(" "));
+  r.append(string_view(" "));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two ", r);
   FATAL_EXPECT_EQ(4, r.pieces());
@@ -482,13 +482,13 @@ FATAL_TEST(append, append) {
   FATAL_EXPECT_EQ("one two three fo", r);
   FATAL_EXPECT_EQ(7, r.pieces());
 
-  string_ref const ur("ur");
+  string_view const ur("ur");
   r.append(ur);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two three four", r);
   FATAL_EXPECT_EQ(8, r.pieces());
 
-  string_ref end("!");
+  string_view end("!");
   r.append(end);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two three four!", r);
@@ -538,7 +538,7 @@ FATAL_TEST(multi_append, one) {
   FATAL_EXPECT_EQ("one two", r);
   FATAL_EXPECT_EQ(3, r.pieces());
 
-  r.multi_append(string_ref(" "));
+  r.multi_append(string_view(" "));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two ", r);
   FATAL_EXPECT_EQ(4, r.pieces());
@@ -561,13 +561,13 @@ FATAL_TEST(multi_append, one) {
   FATAL_EXPECT_EQ("one two three fo", r);
   FATAL_EXPECT_EQ(7, r.pieces());
 
-  string_ref const ur("ur");
+  string_view const ur("ur");
   r.multi_append(ur);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two three four", r);
   FATAL_EXPECT_EQ(8, r.pieces());
 
-  string_ref end("!");
+  string_view end("!");
   r.multi_append(end);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two three four!", r);
@@ -585,13 +585,13 @@ FATAL_TEST(multi_append, two) {
   FATAL_EXPECT_EQ("one ", r);
   FATAL_EXPECT_EQ(2, r.pieces());
 
-  r.multi_append(std::string("two"), string_ref(" "));
+  r.multi_append(std::string("two"), string_view(" "));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two ", r);
   FATAL_EXPECT_EQ(4, r.pieces());
 
   std::string three("three");
-  string_ref space(" ");
+  string_view space(" ");
   r.multi_append(three, space);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two three ", r);
@@ -604,8 +604,8 @@ FATAL_TEST(multi_append, two) {
   FATAL_EXPECT_EQ("one two three fo", r);
   FATAL_EXPECT_EQ(8, r.pieces());
 
-  string_ref const ur("ur");
-  string_ref end("!");
+  string_view const ur("ur");
+  string_view end("!");
   r.multi_append(ur, end);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two three four!", r);
@@ -626,14 +626,14 @@ FATAL_TEST(multi_append, three) {
   std::string three("three");
   std::string f(" f");
 
-  r.multi_append(string_ref(" "), three, std::move(f));
+  r.multi_append(string_view(" "), three, std::move(f));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two three f", r);
   FATAL_EXPECT_EQ(6, r.pieces());
 
   std::string const o("o");
-  string_ref const ur("ur");
-  string_ref end("!");
+  string_view const ur("ur");
+  string_view end("!");
 
   r.multi_append(o, ur, end);
   FATAL_EXPECT_FALSE(r.empty());
@@ -647,14 +647,14 @@ FATAL_TEST(multi_append, many) {
   FATAL_EXPECT_EQ("", r);
   FATAL_EXPECT_EQ(0, r.pieces());
 
-  r.multi_append("one", ' ', std::string("two"), string_ref(" "));
+  r.multi_append("one", ' ', std::string("two"), string_view(" "));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two ", r);
   FATAL_EXPECT_EQ(4, r.pieces());
 
   std::string three("three");
   std::string const ou("ou");
-  string_ref end("!");
+  string_view end("!");
 
   r.multi_append(three, " ", 'f', ou, std::string("r"), end);
   FATAL_EXPECT_FALSE(r.empty());
@@ -1299,7 +1299,7 @@ FATAL_TEST(clear, one) {
   FATAL_EXPECT_EQ("", r);
   FATAL_EXPECT_EQ(0, r.pieces());
 
-  r.append(string_ref(" "));
+  r.append(string_view(" "));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ(" ", r);
   FATAL_EXPECT_EQ(1, r.pieces());
@@ -1342,7 +1342,7 @@ FATAL_TEST(clear, one) {
   FATAL_EXPECT_EQ("", r);
   FATAL_EXPECT_EQ(0, r.pieces());
 
-  string_ref const ur("ur");
+  string_view const ur("ur");
   r.append(ur);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("ur", r);
@@ -1353,7 +1353,7 @@ FATAL_TEST(clear, one) {
   FATAL_EXPECT_EQ("", r);
   FATAL_EXPECT_EQ(0, r.pieces());
 
-  string_ref end("!");
+  string_view end("!");
   r.append(end);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("!", r);
@@ -1381,7 +1381,7 @@ FATAL_TEST(clear, two) {
   FATAL_EXPECT_EQ("", r);
   FATAL_EXPECT_EQ(0, r.pieces());
 
-  r.multi_append(std::string("two"), string_ref(" "));
+  r.multi_append(std::string("two"), string_view(" "));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("two ", r);
   FATAL_EXPECT_EQ(2, r.pieces());
@@ -1392,7 +1392,7 @@ FATAL_TEST(clear, two) {
   FATAL_EXPECT_EQ(0, r.pieces());
 
   std::string three("three");
-  string_ref space(" ");
+  string_view space(" ");
   r.multi_append(three, space);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("three ", r);
@@ -1415,8 +1415,8 @@ FATAL_TEST(clear, two) {
   FATAL_EXPECT_EQ("", r);
   FATAL_EXPECT_EQ(0, r.pieces());
 
-  string_ref const ur("ur");
-  string_ref end("!");
+  string_view const ur("ur");
+  string_view end("!");
   r.multi_append(ur, end);
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("ur!", r);
@@ -1447,7 +1447,7 @@ FATAL_TEST(clear, three) {
   std::string three("three");
   std::string f(" f");
 
-  r.multi_append(string_ref(" "), three, std::move(f));
+  r.multi_append(string_view(" "), three, std::move(f));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ(" three f", r);
   FATAL_EXPECT_EQ(3, r.pieces());
@@ -1458,8 +1458,8 @@ FATAL_TEST(clear, three) {
   FATAL_EXPECT_EQ(0, r.pieces());
 
   std::string const o("o");
-  string_ref const ur("ur");
-  string_ref end("!");
+  string_view const ur("ur");
+  string_view end("!");
 
   r.multi_append(o, ur, end);
   FATAL_EXPECT_FALSE(r.empty());
@@ -1478,7 +1478,7 @@ FATAL_TEST(clear, many) {
   FATAL_EXPECT_EQ("", r);
   FATAL_EXPECT_EQ(0, r.pieces());
 
-  r.multi_append("one", ' ', std::string("two"), string_ref(" "));
+  r.multi_append("one", ' ', std::string("two"), string_view(" "));
   FATAL_EXPECT_FALSE(r.empty());
   FATAL_EXPECT_EQ("one two ", r);
   FATAL_EXPECT_EQ(4, r.pieces());
@@ -1490,7 +1490,7 @@ FATAL_TEST(clear, many) {
 
   std::string three("three");
   std::string const ou("ou");
-  string_ref end("!");
+  string_view end("!");
 
   r.multi_append(three, " ", 'f', ou, std::string("r"), end);
   FATAL_EXPECT_FALSE(r.empty());

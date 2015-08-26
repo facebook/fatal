@@ -12,7 +12,7 @@
 
 #include <fatal/container/uninitialized.h>
 #include <fatal/math/hash.h>
-#include <fatal/string/string_ref.h>
+#include <fatal/string/string_view.h>
 #include <fatal/type/map.h>
 #include <fatal/type/tag.h>
 #include <fatal/type/traits.h>
@@ -52,7 +52,7 @@ public:
   template <typename T>
   using id = typename build_type_map<
     std::string, std::integral_constant<id_type, id_type::string>,
-    string_ref, std::integral_constant<id_type, id_type::reference>,
+    string_view, std::integral_constant<id_type, id_type::reference>,
     char, std::integral_constant<id_type, id_type::character>
   >::template get<T>;
 
@@ -86,7 +86,7 @@ public:
   {}
 
   template <typename... Args>
-  explicit variant(string_ref s, Args &&...args):
+  explicit variant(string_view s, Args &&...args):
     payload_(std::forward<Args>(args)...),
     value_(s),
     which_(id_type::reference)
@@ -124,16 +124,16 @@ public:
     return which_ == id<T>::value ? try_get(type_tag<T>()) : nullptr;
   }
 
-  string_ref ref() const {
+  string_view ref() const {
     switch (which_) {
       case id_type::string:
-        return string_ref(value_.s);
+        return string_view(value_.s);
 
       case id_type::reference:
         break;
 
       case id_type::character:
-        return string_ref(value_.c);
+        return string_view(value_.c);
     }
 
     assert(which_ == id_type::reference);
@@ -199,13 +199,13 @@ private:
     union_t(union_t &&) = delete;
 
     explicit union_t(std::string &&s): s(std::move(s)) {}
-    explicit union_t(string_ref s): ref(s) {}
+    explicit union_t(string_view s): ref(s) {}
     explicit union_t(char c): c(c) {}
 
     ~union_t() {}
 
     std::string s;
-    string_ref ref;
+    string_view ref;
     char c;
   };
 
@@ -214,8 +214,8 @@ private:
     return std::addressof(value_.s);
   }
 
-  string_ref const &get(type_tag<string_ref>) const { return value_.ref; }
-  string_ref const *try_get(type_tag<string_ref>) const {
+  string_view const &get(type_tag<string_view>) const { return value_.ref; }
+  string_view const *try_get(type_tag<string_view>) const {
     return std::addressof(value_.ref);
   }
 
@@ -332,7 +332,7 @@ private:
  *
  * There are three types of pieces that can be stored in a rope:
  *
- * 1. string_ref: a reference to a portion of an existing string.
+ * 1. string_view: a reference to a portion of an existing string.
  *    Results from appending a string literal, an lvalue of type
  *    `std::string` or any container that stores elements of type
  *    `char` and provides the member functions `data()` and
@@ -535,7 +535,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  string_ref piece(piece_index i) const {
+  string_view piece(piece_index i) const {
     assert(i < pieces_.size());
     return pieces_[i].ref();
   }
@@ -668,7 +668,7 @@ public:
       return offset_ + (piece_ ? piece_->payload() : rope_->size());
     }
 
-    string_ref ref() const {
+    string_view ref() const {
       assert(piece_);
       return piece_->ref() + offset_;
     }
@@ -961,11 +961,11 @@ public:
 
   /**
    * Appends a reference to the string represented by the
-   * given `string_ref` to the end of this rope.
+   * given `string_view` to the end of this rope.
    *
    * @author: Marcelo Juchem
    */
-  void append(string_ref s) {
+  void append(string_view s) {
     auto const size = s.size();
 
     if (!size) {
@@ -990,7 +990,7 @@ public:
   }
 
   /**
-   * Constructs a `string_ref` out of the given arguments, then
+   * Constructs a `string_view` out of the given arguments, then
    * adds it to the end of this rope.
    *
    * @author: Marcelo Juchem
@@ -1000,7 +1000,7 @@ public:
     typename = safe_overload_t<rope, Args...>
   >
   void append(Args &&...args) {
-    auto s = string_ref(std::forward<Args>(args)...);
+    auto s = string_view(std::forward<Args>(args)...);
     auto const size = s.size();
 
     if (!size) {
@@ -1330,7 +1330,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  int compare(string_ref rhs) const {
+  int compare(string_view rhs) const {
     for (piece_index i = 0, pieces = pieces_.size(); i < pieces; ++i) {
       if (!rhs) {
         return 1;
@@ -1427,7 +1427,7 @@ public:
    */
   template <typename T, typename = safe_overload_t<rope, T>>
   int compare(T &&rhs) const {
-    return compare(string_ref(std::forward<T>(rhs)));
+    return compare(string_view(std::forward<T>(rhs)));
   }
 
   //////////
@@ -1576,7 +1576,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  bool operator ==(string_ref rhs) const {
+  bool operator ==(string_view rhs) const {
     return size_ == rhs.size() && !compare(rhs);
   }
 
@@ -1602,7 +1602,7 @@ public:
    */
   template <typename T, typename = safe_overload_t<rope, T>>
   bool operator ==(T &&rhs) const {
-    return *this == string_ref(std::forward<T>(rhs));
+    return *this == string_view(std::forward<T>(rhs));
   }
 
   ////////////////

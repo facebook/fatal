@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#ifndef FATAL_INCLUDE_fatal_string_string_ref_h
-#define FATAL_INCLUDE_fatal_string_string_ref_h
+#ifndef FATAL_INCLUDE_fatal_string_string_view_h
+#define FATAL_INCLUDE_fatal_string_string_view_h
 
 #include <fatal/math/hash.h>
 #include <fatal/type/call_traits.h>
@@ -45,35 +45,35 @@ using safe_overload_t = typename std::enable_if<
 
 } // namespace detail {
 
-struct string_ref {
+struct string_view {
   using value_type = char;
   using size_type = std::size_t;
   using const_iterator = char const *;
 
-  string_ref(): begin_(nullptr), end_(nullptr) {}
+  string_view(): begin_(nullptr), end_(nullptr) {}
 
-  string_ref(const_iterator begin, const_iterator end):
+  string_view(const_iterator begin, const_iterator end):
     begin_(begin),
     end_(end)
   {
     assert(begin_ <= end_);
   }
 
-  string_ref(const_iterator s, std::size_t size):
+  string_view(const_iterator s, std::size_t size):
     begin_(s),
     end_(std::next(s, size))
   {
     assert(begin_ <= end_);
   }
 
-  explicit string_ref(value_type *s):
+  explicit string_view(value_type *s):
     begin_(s),
     end_(std::next(s, std::strlen(s)))
   {
     assert(begin_ <= end_);
   }
 
-  explicit string_ref(value_type const *s):
+  explicit string_view(value_type const *s):
     begin_(s),
     end_(std::next(s, std::strlen(s)))
   {
@@ -81,32 +81,32 @@ struct string_ref {
   }
 
   template <std::size_t N>
-  explicit string_ref(value_type const (&s)[N]):
+  explicit string_view(value_type const (&s)[N]):
     begin_(s),
     end_(std::strlen(s))
   {
     assert(begin_ <= end_);
   }
 
-  explicit string_ref(value_type const &c):
+  explicit string_view(value_type const &c):
     begin_(std::addressof(c)),
     end_(std::next(std::addressof(c)))
   {
     assert(begin_ <= end_);
   }
 
-  template <typename U, typename = safe_overload_t<string_ref, U>>
-  explicit string_ref(U &&s):
+  template <typename U, typename = safe_overload_t<string_view, U>>
+  explicit string_view(U &&s):
     begin_(s.data()),
     end_(std::next(s.data(), s.size()))
   {
     assert(begin_ <= end_);
   }
 
-  string_ref slice(size_type offset, size_type end) const {
+  string_view slice(size_type offset, size_type end) const {
     assert(offset <= size());
     assert(end <= size());
-    return string_ref(std::next(begin_, offset), std::next(begin_, end));
+    return string_view(std::next(begin_, offset), std::next(begin_, end));
   }
 
   const_iterator find(value_type needle) const {
@@ -120,8 +120,8 @@ struct string_ref {
   }
 
   template <typename U>
-  string_ref split_step(U &&delimiter) {
-    string_ref result(begin_, find(std::forward<U>(delimiter)));
+  string_view split_step(U &&delimiter) {
+    string_view result(begin_, find(std::forward<U>(delimiter)));
     begin_ = result.end() == end_ ? end_ : std::next(result.end());
     assert(begin_ <= end_);
     return result;
@@ -174,51 +174,51 @@ struct string_ref {
   const_iterator cend() const { return end_; }
   const_iterator end() const { return end_; }
 
-  string_ref &operator +=(size_type i) {
+  string_view &operator +=(size_type i) {
     assert(i <= size());
     std::advance(begin_, i);
     assert(begin_ <= end_);
     return *this;
   }
 
-  string_ref &operator -=(size_type i) {
+  string_view &operator -=(size_type i) {
     begin_ -= i;
     assert(begin_ <= end_);
     return *this;
   }
 
-  string_ref operator +(size_type i) const {
+  string_view operator +(size_type i) const {
     auto copy(*this);
     copy += i;
     return copy;
   }
 
-  string_ref operator -(size_type i) const {
+  string_view operator -(size_type i) const {
     auto copy(*this);
     copy -= i;
     return copy;
   }
 
-  string_ref &operator ++() {
+  string_view &operator ++() {
     assert(begin_ < end_);
     std::advance(begin_, 1);
     assert(begin_ <= end_);
     return *this;
   }
 
-  string_ref &operator --() {
+  string_view &operator --() {
     --begin_;
     assert(begin_ <= end_);
     return *this;
   }
 
-  string_ref operator ++(int) {
+  string_view operator ++(int) {
     auto copy(*this);
     ++*this;
     return copy;
   }
 
-  string_ref operator --(int) {
+  string_view operator --(int) {
     auto copy(*this);
     --*this;
     return copy;
@@ -229,25 +229,31 @@ struct string_ref {
     return *begin_;
   }
 
-  bool operator ==(string_ref rhs) const {
+  bool operator ==(string_view rhs) const {
     return size() == rhs.size() && !std::strncmp(begin_, rhs.begin_, size());
   }
 
   template <
     typename U,
-    typename = detail::safe_overload_t<string_ref, typename std::decay<U>::type>
+    typename = detail::safe_overload_t<
+      string_view,
+      typename std::decay<U>::type
+    >
   >
   bool operator ==(U &&rhs) const {
-    return *this == string_ref(std::forward<U>(rhs));
+    return *this == string_view(std::forward<U>(rhs));
   }
 
   template <
     typename U,
-    typename = detail::safe_overload_t<string_ref, typename std::decay<U>::type>
+    typename = detail::safe_overload_t<
+      string_view,
+      typename std::decay<U>::type
+    >
   >
   bool operator !=(U &&rhs) const { return !(*this == std::forward<U>(rhs)); }
 
-  bool operator <(string_ref rhs) const {
+  bool operator <(string_view rhs) const {
     auto const result = std::strncmp(
       begin_, rhs.begin_, std::min(size(), rhs.size())
     );
@@ -257,20 +263,26 @@ struct string_ref {
 
   template <
     typename U,
-    typename = detail::safe_overload_t<string_ref, typename std::decay<U>::type>
+    typename = detail::safe_overload_t<
+      string_view,
+      typename std::decay<U>::type
+    >
   >
   bool operator <(U &&rhs) const {
-    return *this < string_ref(std::forward<U>(rhs));
+    return *this < string_view(std::forward<U>(rhs));
   }
 
-  bool operator >(string_ref rhs) const { return rhs < *this; }
+  bool operator >(string_view rhs) const { return rhs < *this; }
 
   template <
     typename U,
-    typename = detail::safe_overload_t<string_ref, typename std::decay<U>::type>
+    typename = detail::safe_overload_t<
+      string_view,
+      typename std::decay<U>::type
+    >
   >
   bool operator >(U &&rhs) const {
-    return *this > string_ref(std::forward<U>(rhs));
+    return *this > string_view(std::forward<U>(rhs));
   }
 
   explicit operator bool() const { return begin_ < end_; }
@@ -278,10 +290,10 @@ struct string_ref {
   bool operator !() const { return empty(); }
 
   struct hasher {
-    using argument = string_ref;
+    using argument = string_view;
     using result_type = std::size_t;
 
-    result_type operator ()(string_ref s) const {
+    result_type operator ()(string_view s) const {
       return *bytes_hasher<result_type>()(s.data(), s.size());
     }
   };
@@ -295,61 +307,61 @@ private:
 // operator == //
 /////////////////
 
-template <typename T, typename = detail::safe_overload_t<string_ref, T>>
-bool operator ==(T const &lhs, string_ref rhs) { return rhs == lhs; }
+template <typename T, typename = detail::safe_overload_t<string_view, T>>
+bool operator ==(T const &lhs, string_view rhs) { return rhs == lhs; }
 
 ////////////////
 // operator < //
 ////////////////
 
-template <typename T, typename = detail::safe_overload_t<string_ref, T>>
-bool operator <(T const &lhs, string_ref rhs) { return rhs > lhs; }
+template <typename T, typename = detail::safe_overload_t<string_view, T>>
+bool operator <(T const &lhs, string_view rhs) { return rhs > lhs; }
 
 ////////////////
 // operator > //
 ////////////////
 
-template <typename T, typename = detail::safe_overload_t<string_ref, T>>
-bool operator >(T const &lhs, string_ref rhs) { return rhs < lhs; }
+template <typename T, typename = detail::safe_overload_t<string_view, T>>
+bool operator >(T const &lhs, string_view rhs) { return rhs < lhs; }
 
 /////////////////
 // operator != //
 /////////////////
 
 template <typename T, typename = detail::convertible_t<T>>
-bool operator !=(string_ref lhs, T const &rhs) { return !(lhs == rhs); }
+bool operator !=(string_view lhs, T const &rhs) { return !(lhs == rhs); }
 
-template <typename T, typename = detail::safe_overload_t<string_ref, T>>
-bool operator !=(T const &lhs, string_ref rhs) { return !(rhs == lhs); }
+template <typename T, typename = detail::safe_overload_t<string_view, T>>
+bool operator !=(T const &lhs, string_view rhs) { return !(rhs == lhs); }
 
 /////////////////
 // operator <= //
 /////////////////
 
 template <typename T, typename = detail::convertible_t<T>>
-bool operator <=(string_ref lhs, T const &rhs) { return !(lhs > rhs); }
+bool operator <=(string_view lhs, T const &rhs) { return !(lhs > rhs); }
 
-template <typename T, typename = detail::safe_overload_t<string_ref, T>>
-bool operator <=(T const &lhs, string_ref rhs) { return !(rhs < lhs); }
+template <typename T, typename = detail::safe_overload_t<string_view, T>>
+bool operator <=(T const &lhs, string_view rhs) { return !(rhs < lhs); }
 
 /////////////////
 // operator >= //
 /////////////////
 
 template <typename T, typename = detail::convertible_t<T>>
-bool operator >=(string_ref lhs, T const &rhs) { return !(lhs < rhs); }
+bool operator >=(string_view lhs, T const &rhs) { return !(lhs < rhs); }
 
-template <typename T, typename = detail::safe_overload_t<string_ref, T>>
-bool operator >=(T const &lhs, string_ref rhs) { return !(rhs > lhs); }
+template <typename T, typename = detail::safe_overload_t<string_view, T>>
+bool operator >=(T const &lhs, string_view rhs) { return !(rhs > lhs); }
 
 ///////////////////////////////
 // operator <<(std::ostream) //
 ///////////////////////////////
 
-std::ostream &operator <<(std::ostream &out, string_ref rhs) {
+std::ostream &operator <<(std::ostream &out, string_view rhs) {
   return out.write(rhs.data(), rhs.size());
 }
 
 } // namespace fatal {
 
-#endif // FATAL_INCLUDE_fatal_string_string_ref_h
+#endif // FATAL_INCLUDE_fatal_string_string_view_h
