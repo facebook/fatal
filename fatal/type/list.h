@@ -1901,7 +1901,7 @@ struct type_list {
     template <typename...> class... TPreTransforms
   >
   using apply = fatal::apply<
-    T, typename transform_sequence<TPreTransforms...>::template apply<Args>...
+    T, typename compose<TPreTransforms...>::template apply<Args>...
   >;
 
   /**
@@ -2180,7 +2180,7 @@ struct type_list {
    */
   template <template <typename...> class... TTransforms>
   using transform = type_list<
-    typename transform_sequence<TTransforms...>::template apply<Args>...
+    typename compose<TTransforms...>::template apply<Args>...
   >;
 
   /**
@@ -2205,7 +2205,7 @@ struct type_list {
   using transform_if = type_list<
     typename conditional_transform<
       TPredicate,
-      transform_sequence<TTransforms...>::template apply
+      compose<TTransforms...>::template apply
     >::template apply<Args>...
   >;
 
@@ -2334,7 +2334,7 @@ struct type_list {
   >
   using choose = typename detail::type_list_impl::choose<
     TBinaryPredicate,
-    transform_sequence<TTransforms...>::template apply,
+    compose<TTransforms...>::template apply,
     Args...
   >::type;
 
@@ -2499,7 +2499,7 @@ struct type_list {
    */
   template <template <typename...> class... TPredicates>
   using separate = typename detail::type_list_impl::separate<
-    fatal::transform_sequence<TPredicates...>::template apply, Args...
+    compose<TPredicates...>::template apply, Args...
   >::type;
 
   /**
@@ -2957,7 +2957,7 @@ struct type_list {
    */
   template <template <typename...> class TTransform = identity>
   // TODO: OPTIMIZE
-  using is_unique = typename cast_transform<bool>::apply<
+  using is_unique = typename caster<bool>::apply<
     std::is_same<
       typename type_list::template transform<TTransform>,
       unique<TTransform>

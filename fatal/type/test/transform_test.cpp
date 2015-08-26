@@ -192,39 +192,37 @@ FATAL_TEST(constant_transform, constant_transform) {
   FATAL_EXPECT_EQ(bc, (b::apply<identity<double>>::value));
 }
 
-////////////////////////
-// transform_sequence //
-////////////////////////
+/////////////
+// compose //
+/////////////
 
 template <typename TNested, typename TExpected, typename T>
-void check_transform_sequence() {
+void check_compose() {
   FATAL_EXPECT_SAME<TExpected, typename TNested::template apply<T>>();
 }
 
-FATAL_TEST(transform_sequence, transform_sequence) {
-  typedef transform_sequence<T1, T2, T3> ttt;
+FATAL_TEST(compose, compose) {
+  typedef compose<T1, T2, T3> ttt;
 
-  check_transform_sequence<ttt, T3<T2<T1<int>>>, int>();
-  check_transform_sequence<ttt, T3<T2<T1<int &&>>>, int &&>();
-  check_transform_sequence<ttt, T3<T2<T1<int const &>>>, int const &>();
-  check_transform_sequence<ttt, T3<T2<T1<std::string>>>, std::string>();
-  check_transform_sequence<ttt, T3<T2<T1<std::string &&>>>, std::string &&>();
-  check_transform_sequence<
+  check_compose<ttt, T3<T2<T1<int>>>, int>();
+  check_compose<ttt, T3<T2<T1<int &&>>>, int &&>();
+  check_compose<ttt, T3<T2<T1<int const &>>>, int const &>();
+  check_compose<ttt, T3<T2<T1<std::string>>>, std::string>();
+  check_compose<ttt, T3<T2<T1<std::string &&>>>, std::string &&>();
+  check_compose<
     ttt, T3<T2<T1<std::string const &>>>, std::string const &
   >();
 
-  using dttt = transform_sequence<
+  using dttt = compose<
     type_member_transform<std::decay>::template apply, ttt::template apply
   >;
 
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int>();
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int &&>();
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int const &>();
-  check_transform_sequence<dttt, T3<T2<T1<std::string>>>, std::string>();
-  check_transform_sequence<dttt, T3<T2<T1<std::string>>>, std::string &&>();
-  check_transform_sequence<
-    dttt, T3<T2<T1<std::string>>>, std::string const &
-  >();
+  check_compose<dttt, T3<T2<T1<int>>>, int>();
+  check_compose<dttt, T3<T2<T1<int>>>, int &&>();
+  check_compose<dttt, T3<T2<T1<int>>>, int const &>();
+  check_compose<dttt, T3<T2<T1<std::string>>>, std::string>();
+  check_compose<dttt, T3<T2<T1<std::string>>>, std::string &&>();
+  check_compose<dttt, T3<T2<T1<std::string>>>, std::string const &>();
 }
 
 ////////////////

@@ -484,7 +484,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
     assert(depth == Depth);
     return typeid(
       typename fatal::try_transform<
-        fatal::transform_sequence<TTransforms...>::template apply
+        fatal::compose<TTransforms...>::template apply
       >::template apply<value_type>
     );
   }

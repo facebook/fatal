@@ -217,20 +217,20 @@ template <typename...> using false_predicate = std::false_type;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename TTo>
-struct cast_transform {
+struct caster {
   template <typename T>
   using apply = std::integral_constant<TTo, static_cast<TTo>(T::value)>;
 };
 
 /**
- * A convenience specialization of `cast_transform` for `bool`.
+ * A convenience specialization of `caster` for `bool`.
  *
  * TODO: DOCUMENT AND TEST
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using is_true_transform = typename cast_transform<bool>::template apply<T>;
+using is_true_transform = typename caster<bool>::template apply<T>;
 
 /**
  * A convenience transform which returns the logical
@@ -274,9 +274,9 @@ using not_zero_transform = std::integral_constant<bool, T::value != 0>;
 template <typename T>
 using sizeof_transform = std::integral_constant<std::size_t, sizeof(T)>;
 
-////////////////////////
-// transform_sequence //
-////////////////////////
+/////////////
+// compose //
+/////////////
 
 /**
  * A convenience adapter that allows nesting multiple transforms into one.
@@ -291,28 +291,28 @@ using sizeof_transform = std::integral_constant<std::size_t, sizeof(T)>;
  *  template <typename> struct T2 {};
  *  template <typename> struct T3 {};
  *
- *  typedef transform_sequence<T1, T2, T3> tr;
+ *  using tr = compose<T1, T2, T3>;
  *
  *  // yields `T3<T2<T1<int>>>`
  *  typedef tr::apply<int> result;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <template <typename...> class...> struct transform_sequence;
+template <template <typename...> class...> struct compose;
 
 template <
   template <typename...> class TTransform,
   template <typename...> class... TTransforms
 >
-struct transform_sequence<TTransform, TTransforms...> {
+struct compose<TTransform, TTransforms...> {
   template <typename... Args>
-  using apply = typename transform_sequence<TTransforms...>::template apply<
+  using apply = typename compose<TTransforms...>::template apply<
     typename fatal::apply<TTransform, Args...>
   >;
 };
 
 template <>
-struct transform_sequence<> {
+struct compose<> {
   template <typename T, typename...>
   using apply = T;
 };
@@ -1100,10 +1100,10 @@ struct transform_aggregator {
  * TODO: DOCUMENT AND TEST
  *
  *  TAggregator<
- *    transform_sequence<TTransforms...>::apply<Arg_0>,
- *    transform_sequence<TTransforms...>::apply<Arg_1>,
+ *    compose<TTransforms...>::apply<Arg_0>,
+ *    compose<TTransforms...>::apply<Arg_1>,
  *    ...
- *    transform_sequence<TTransforms...>::apply<Arg_n>
+ *    compose<TTransforms...>::apply<Arg_n>
  *  >
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
@@ -1114,7 +1114,7 @@ template <
 >
 class transform_distributor {
   template <typename T>
-  using impl = typename transform_sequence<TTransforms...>::template apply<T>;
+  using impl = typename compose<TTransforms...>::template apply<T>;
 
 public:
   template <typename... Args>
@@ -1603,11 +1603,11 @@ struct member_transformer_stack {
         template <typename...> class TTransform = identity,
         typename... UArgs
       >
-      using use = typename transform_sequence<
+      using use = typename compose<
         TPostTransforms...
       >::template apply<
         TMember<
-          typename transform_sequence<TPreTransforms...>::template apply<T>,
+          typename compose<TPreTransforms...>::template apply<T>,
           TTransform,
           UArgs...
         >
@@ -1629,7 +1629,7 @@ struct member_transformer_stack {
       template <typename...> class TTransform = identity,
       typename... UArgs
     >
-    using use = typename transform_sequence<TPostTransforms...>::template apply<
+    using use = typename compose<TPostTransforms...>::template apply<
       TMember<T, TTransform, UArgs...>
     >;
   };
@@ -1742,7 +1742,7 @@ struct recurse<true, 0, TPre, TPost, TPredicate, TTransformer, TTransform> {
   template <typename T>
   using apply = typename conditional_transform<
     TPredicate,
-    transform_sequence<TPre, TPost>::template apply,
+    compose<TPre, TPost>::template apply,
     TTransform
   >::template apply<T>;
 };
@@ -1778,7 +1778,7 @@ struct recursive_transform {
     TPostTransform,
     TPredicate,
     TTransformer,
-    transform_sequence<TTransforms...>::template apply
+    compose<TTransforms...>::template apply
   >;
 
   template <typename T>

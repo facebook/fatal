@@ -152,7 +152,7 @@ struct get<TKey, T, Args...> {
 template <template <typename...> class TPredicate, typename TList>
 struct separate {
   using separated = typename TList::template separate<
-    transform_sequence<type_get_first, TPredicate>::template apply
+    compose<type_get_first, TPredicate>::template apply
   >;
 
   using type = type_pair<
@@ -435,7 +435,7 @@ public:
     typename TDefault = type_not_found_tag
   >
   using search = typename contents::template search<
-    transform_sequence<type_get_first, TPredicate>::template apply,
+    compose<type_get_first, TPredicate>::template apply,
     TDefault
   >;
 
@@ -677,7 +677,7 @@ public:
    */
   template <typename... UArgs>
   using remove = typename contents::template reject<
-    transform_sequence<
+    compose<
       type_get_first,
       type_list<UArgs...>::template contains
     >::template apply
