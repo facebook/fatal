@@ -312,9 +312,9 @@ private:
 } // namespace rope_impl {
 } // namespace detail {
 
-////////////////////
+//////////
 // rope //
-////////////////////
+//////////
 
 /**
  * A class used to represent a rope, that is, a sequence of string pieces
@@ -351,51 +351,51 @@ private:
  *
  * Example 1:
  *
- *  rope<> rope;
+ *  rope<> r;
  *
  *  // the string literal "hello" will be referenced by the rope
- *  rope.append("hello");
+ *  r.append("hello");
  *
  *  // the character ',' will be owned by the rope
- *  rope.append(',');
+ *  r.append(',');
  *
  *  // the character ' ' will be owned by the rope
- *  rope.push_back(' ');
+ *  r.push_back(' ');
  *
  *  // the string temporary "world!" will be owned by the rope
- *  rope.append(std::string("world!"));
+ *  r.append(std::string("world!"));
  *
  *  std::string s1(" this is");
  *  // the string `s1` will be referenced by the rope
- *  rope.append(s1);
+ *  r.append(s1);
  *
  *  std::string s2(" a test.");
  *  // the contents of `s2` will be owned by the rope
- *  rope.append(std::move(s2));
+ *  r.append(std::move(s2));
  *
  *  // prints "hello, world! this is a test."
- *  std::cout << rope << std::endl;
+ *  std::cout << r << std::endl;
  *
  * Example 2:
  *
- *  rope<> rope;
+ *  rope<> r;
  *
  *  // the string literal "hello" will be referenced by the rope
- *  rope.append("hello");
+ *  r.append("hello");
  *
  *  // the character ',' will be owned by the rope
  *  // the character ' ' will be owned by the rope
  *  // the string temporary "world!" will be owned by the rope
- *  rope.multi_append(',', ' ', std::string("world!"));
+ *  r.multi_append(',', ' ', std::string("world!"));
  *
  *  std::string s1(" this is");
  *  std::string s2(" a test.");
  *  // the string `s1` will be referenced by the rope
  *  // the contents of `s2` will be owned by the rope
- *  rope.multi_append(s1, std::move(s2));
+ *  r.multi_append(s1, std::move(s2));
  *
  *  // prints "hello, world! this is a test."
- *  std::cout << rope << std::endl;
+ *  std::cout << r << std::endl;
  *
  * Example 3:
  *
@@ -409,12 +409,10 @@ private:
  *  // the string `s1` will be referenced by the rope
  *  // the contents of `s2` will be owned by the rope
  *
- *  rope<> rope(
- *    "hello", ',', ' ', std::string("world!"), s1, std::move(s2)
- *  );
+ *  rope<> r("hello", ',', ' ', std::string("world!"), s1, std::move(s2));
  *
  *  // prints "hello, world! this is a test."
- *  std::cout << rope << std::endl;
+ *  std::cout << r << std::endl;
  *
  * @author: Marcelo Juchem
  */
@@ -528,10 +526,10 @@ public:
    * Example:
    *
    *  std::string s;
-   *  s.reserve(rope.size());
+   *  s.reserve(r.size());
    *
-   *  for (decltype(rope)::piece_index i = 0; i < rope.pieces(); ++i) {
-   *    auto piece = rope.piece(i);
+   *  for (decltype(r)::piece_index i = 0; i < r.pieces(); ++i) {
+   *    auto piece = r.piece(i);
    *    s.append(piece.begin(), piece.end());
    *  }
    *
@@ -552,10 +550,10 @@ public:
    * Example:
    *
    *  std::string s;
-   *  s.reserve(rope.size());
+   *  s.reserve(r.size());
    *
-   *  for (decltype(rope)::piece_index i = 0; i < rope.pieces(); ++i) {
-   *    auto piece = rope.piece(i);
+   *  for (decltype(r)::piece_index i = 0; i < r.pieces(); ++i) {
+   *    auto piece = r.piece(i);
    *    s.append(piece.begin(), piece.end());
    *  }
    *
@@ -649,12 +647,12 @@ public:
     >
   {
     explicit const_iterator(
-      rope const *rope,
+      rope const *r,
       piece_type const *piece,
       piece_index index,
       size_type offset
     ):
-      rope_(rope),
+      rope_(r),
       piece_(piece),
       index_(index),
       offset_(offset)
