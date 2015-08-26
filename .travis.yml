@@ -33,7 +33,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test' ]
-          packages: ['clang-3.4']
+          packages: ['clang-3.4', 'libc++']
       env: USE_CC=clang++ # this should be version 3.4
 
     - os: linux
