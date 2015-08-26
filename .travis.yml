@@ -73,7 +73,7 @@ before_install:
   - echo $LC_ALL
   - lsb_release -a
   - uname -a
-  - which clang++-3.4
+  - echo `which clang++-3.4`
 
 install:
   - apt-cache search '^g\+\+|^clang'
