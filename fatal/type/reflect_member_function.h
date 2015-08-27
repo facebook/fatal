@@ -242,6 +242,16 @@ struct reflect_member_function_impl<Result(Owner::*)(Args...) const volatile> {
   >;
 };
 
+#ifndef __clang__
+# ifdef __GNUC__
+#   if __GNUC__ == 4 && __GNUC_MINOR__ == 8 && __GNUC_PATCHLEVEL__ < 5
+#     define FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
+#   endif // gcc < 4.8.5
+# endif // __GNUC__
+#endif // __clang__
+
+#ifndef FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
+
 template <typename Result, typename Owner, typename... Args>
 struct reflect_member_function_impl<Result(Owner::*)(Args...) &> {
   using type = reflected_member_function<
@@ -317,6 +327,8 @@ struct reflect_member_function_impl<
     Owner, Result, Args...
   >;
 };
+
+#endif // FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
 
 } // namespace detail {
 } // namespace fatal {
