@@ -57,12 +57,10 @@ struct gaz {
 # define CHECK_REFLECT(Class, Fn, Result, CV, CVQ, ...) \
     do { \
       using reflected = reflect_member_function<decltype(&Class::Fn)>; \
+      using expected = Result(Class::*)(__VA_ARGS__) CVQ; \
       FATAL_EXPECT_SAME<Class, reflected::owner>(); \
       FATAL_EXPECT_SAME<Result, reflected::result>(); \
-      FATAL_EXPECT_SAME< \
-        Result(Class::*)(__VA_ARGS__) CVQ, \
-        reflected::pointer \
-      >(); \
+      FATAL_EXPECT_SAME<expected, reflected::pointer>(); \
       FATAL_EXPECT_EQ(ref_qualifier::none, reflected::ref::value); \
       FATAL_EXPECT_EQ(cv_qualifier::CV, reflected::cv::value); \
       FATAL_EXPECT_SAME<type_list<__VA_ARGS__>, reflected::args>(); \
@@ -71,12 +69,10 @@ struct gaz {
 # define CHECK_REFLECT(Class, Fn, Result, CV, CVQ, Ref, RefQ, ...) \
     do { \
       using reflected = reflect_member_function<decltype(&Class::Fn)>; \
+      using expected = Result(Class::*)(__VA_ARGS__) CVQ RefQ; \
       FATAL_EXPECT_SAME<Class, reflected::owner>(); \
       FATAL_EXPECT_SAME<Result, reflected::result>(); \
-      FATAL_EXPECT_SAME< \
-        Result(Class::*)(__VA_ARGS__) CVQ RefQ, \
-        reflected::pointer \
-      >(); \
+      FATAL_EXPECT_SAME<expected, reflected::pointer>(); \
       FATAL_EXPECT_EQ(ref_qualifier::Ref, reflected::ref::value); \
       FATAL_EXPECT_EQ(cv_qualifier::CV, reflected::cv::value); \
       FATAL_EXPECT_SAME<type_list<__VA_ARGS__>, reflected::args>(); \

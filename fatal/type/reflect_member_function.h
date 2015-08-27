@@ -206,41 +206,15 @@ using reflect_member_function = typename detail::reflect_member_function_impl<
 
 namespace detail {
 
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...)> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...),
-    cv_qualifier::none, ref_qualifier::none,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) const> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) const,
-    cv_qualifier::c, ref_qualifier::none,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) volatile> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) volatile,
-    cv_qualifier::v, ref_qualifier::none,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) const volatile> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) const volatile,
-    cv_qualifier::cv, ref_qualifier::none,
-    Owner, Result, Args...
-  >;
-};
+#define REFLECTED_MEMBER_FUNCTION_IMPL(CV, Ref, Qualifiers) \
+  template <typename Result, typename Owner, typename... Args> \
+  struct reflect_member_function_impl<Result(Owner::*)(Args...) Qualifiers> { \
+    using pointer = Result(Owner::*)(Args...) Qualifiers; \
+    using type = reflected_member_function< \
+      pointer, cv_qualifier::CV, ref_qualifier::Ref, \
+      Owner, Result, Args... \
+    >; \
+  }
 
 #ifndef __clang__
 # ifdef __GNUC__
@@ -250,83 +224,23 @@ struct reflect_member_function_impl<Result(Owner::*)(Args...) const volatile> {
 # endif // __GNUC__
 #endif // __clang__
 
+REFLECTED_MEMBER_FUNCTION_IMPL(none, none, );
+REFLECTED_MEMBER_FUNCTION_IMPL(c, none, const);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, none, volatile);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, none, const volatile);
+
 #ifndef FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
 
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) &> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) &,
-    cv_qualifier::none, ref_qualifier::lvalue,
-    Owner, Result, Args...
-  >;
-};
+REFLECTED_MEMBER_FUNCTION_IMPL(none, lvalue, &);
+REFLECTED_MEMBER_FUNCTION_IMPL(c, lvalue, const &);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, lvalue, volatile &);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, lvalue, const volatile &);
+REFLECTED_MEMBER_FUNCTION_IMPL(none, rvalue, &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(c, rvalue, const &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(v, rvalue, volatile &&);
+REFLECTED_MEMBER_FUNCTION_IMPL(cv, rvalue, const volatile &&);
 
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) const &> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) const &,
-    cv_qualifier::c, ref_qualifier::lvalue,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) volatile &> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) volatile &,
-    cv_qualifier::v, ref_qualifier::lvalue,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<
-  Result(Owner::*)(Args...) const volatile &
-> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) const volatile &,
-    cv_qualifier::cv, ref_qualifier::lvalue,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) &&> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) &&,
-    cv_qualifier::none, ref_qualifier::rvalue,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) const &&> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) const &&,
-    cv_qualifier::c, ref_qualifier::rvalue,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<Result(Owner::*)(Args...) volatile &&> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) volatile &&,
-    cv_qualifier::v, ref_qualifier::rvalue,
-    Owner, Result, Args...
-  >;
-};
-
-template <typename Result, typename Owner, typename... Args>
-struct reflect_member_function_impl<
-  Result(Owner::*)(Args...) const volatile &&
-> {
-  using type = reflected_member_function<
-    Result(Owner::*)(Args...) const volatile &&,
-    cv_qualifier::cv, ref_qualifier::rvalue,
-    Owner, Result, Args...
-  >;
-};
+#undef REFLECTED_MEMBER_FUNCTION_IMPL
 
 #endif // FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
 
