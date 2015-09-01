@@ -2147,40 +2147,28 @@ class check_compilability {
   template <template <typename...> class T>
   struct unary_impl {
     template <typename U, typename = T<U>>
-    static constexpr std::true_type sfinae(args<U> *) {
-      return std::true_type();
-    }
+    static std::true_type sfinae(args<U> *);
 
     template <typename...>
-    static constexpr std::false_type sfinae(...) {
-      return std::false_type();
-    }
+    static std::false_type sfinae(...);
   };
 
   template <template <typename...> class T>
   struct variadic_impl {
     template <typename... Args, typename = T<Args...>>
-    static constexpr std::true_type sfinae(args<Args...> *) {
-      return std::true_type();
-    }
+    static std::true_type sfinae(args<Args...> *);
 
     template <typename...>
-    static constexpr std::false_type sfinae(...) {
-      return std::false_type();
-    }
+    static std::false_type sfinae(...);
   };
 
   template <template <typename...> class T>
   struct t_variadic_impl {
     template <typename U, typename... Args, typename = T<U, Args...>>
-    static constexpr std::true_type sfinae(args<U, Args...> *) {
-      return std::true_type();
-    }
+    static std::true_type sfinae(args<U, Args...> *);
 
     template <typename...>
-    static constexpr std::false_type sfinae(...) {
-      return std::false_type();
-    }
+    static std::false_type sfinae(...);
   };
 
 public:
