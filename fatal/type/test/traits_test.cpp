@@ -569,27 +569,27 @@ FATAL_TEST(traits, is_callable) {
 
 FATAL_TEST(enable_when, is_true) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_true, std::is_const<int const>
+    enable_when::is_true, std::is_const<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_true, std::is_const<int>
+    enable_when::is_true, std::is_const<int>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_true, std::is_const<int const &>
+    enable_when::is_true, std::is_const<int const &>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_true, std::is_const<int &>
+    enable_when::is_true, std::is_const<int &>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_true, std::is_const<int const &&>
+    enable_when::is_true, std::is_const<int const &&>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_true, std::is_const<int &&>
+    enable_when::is_true, std::is_const<int &&>
   );
 }
 
@@ -599,39 +599,39 @@ FATAL_TEST(enable_when, is_true) {
 
 FATAL_TEST(enable_when, all_true) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::all_true, std::is_const<int const>
+    enable_when::all_true, std::is_const<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::all_true, std::is_const<int>
+    enable_when::all_true, std::is_const<int>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::all_true,
+    enable_when::all_true,
     std::is_const<int const>, std::is_integral<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::all_true,
+    enable_when::all_true,
     std::is_const<double const>, std::is_integral<double const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::all_true,
+    enable_when::all_true,
     std::is_const<int const>,
     std::is_integral<int const>,
     std::is_signed<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::all_true,
+    enable_when::all_true,
     std::is_const<unsigned const>,
     std::is_integral<unsigned const>,
     std::is_signed<unsigned const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::all_true,
+    enable_when::all_true,
     std::is_const<double const>,
     std::is_integral<double const>,
     std::is_signed<double const>
@@ -644,51 +644,51 @@ FATAL_TEST(enable_when, all_true) {
 
 FATAL_TEST(enable_when, any_true) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::any_true, std::is_const<int const>
+    enable_when::any_true, std::is_const<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::any_true, std::is_const<int>
+    enable_when::any_true, std::is_const<int>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::any_true,
+    enable_when::any_true,
     std::is_const<int const>, std::is_integral<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::any_true,
+    enable_when::any_true,
     std::is_const<double const>, std::is_integral<double const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::any_true,
+    enable_when::any_true,
     std::is_const<double>, std::is_integral<double>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::any_true,
+    enable_when::any_true,
     std::is_const<int const>,
     std::is_integral<int const>,
     std::is_unsigned<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::any_true,
+    enable_when::any_true,
     std::is_const<unsigned const>,
     std::is_integral<unsigned const>,
     std::is_unsigned<unsigned const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::any_true,
+    enable_when::any_true,
     std::is_const<double const>,
     std::is_integral<double const>,
     std::is_unsigned<double const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::any_true,
+    enable_when::any_true,
     std::is_const<double>,
     std::is_integral<double>,
     std::is_unsigned<double>
@@ -701,27 +701,27 @@ FATAL_TEST(enable_when, any_true) {
 
 FATAL_TEST(enable_when, is_false) {
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_false, std::is_const<int const>
+    enable_when::is_false, std::is_const<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_false, std::is_const<int>
+    enable_when::is_false, std::is_const<int>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_false, std::is_const<int const &>
+    enable_when::is_false, std::is_const<int const &>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_false, std::is_const<int &>
+    enable_when::is_false, std::is_const<int &>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_false, std::is_const<int const &&>
+    enable_when::is_false, std::is_const<int const &&>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_false, std::is_const<int &&>
+    enable_when::is_false, std::is_const<int &&>
   );
 }
 
@@ -731,51 +731,51 @@ FATAL_TEST(enable_when, is_false) {
 
 FATAL_TEST(enable_when, all_false) {
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::all_false, std::is_const<int const>
+    enable_when::all_false, std::is_const<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::all_false, std::is_const<int>
+    enable_when::all_false, std::is_const<int>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::all_false,
+    enable_when::all_false,
     std::is_const<int const>, std::is_integral<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::all_false,
+    enable_when::all_false,
     std::is_const<double const>, std::is_integral<double const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::all_false,
+    enable_when::all_false,
     std::is_const<double>, std::is_integral<double>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::all_false,
+    enable_when::all_false,
     std::is_const<int const>,
     std::is_integral<int const>,
     std::is_unsigned<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::all_false,
+    enable_when::all_false,
     std::is_const<unsigned const>,
     std::is_integral<unsigned const>,
     std::is_unsigned<unsigned const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::all_false,
+    enable_when::all_false,
     std::is_const<double const>,
     std::is_integral<double const>,
     std::is_unsigned<double const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::all_false,
+    enable_when::all_false,
     std::is_const<double>,
     std::is_integral<double>,
     std::is_unsigned<double>
@@ -788,39 +788,39 @@ FATAL_TEST(enable_when, all_false) {
 
 FATAL_TEST(enable_when, any_false) {
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::any_false, std::is_const<int const>
+    enable_when::any_false, std::is_const<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::any_false, std::is_const<int>
+    enable_when::any_false, std::is_const<int>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::any_false,
+    enable_when::any_false,
     std::is_const<int const>, std::is_integral<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::any_false,
+    enable_when::any_false,
     std::is_const<double const>, std::is_integral<double const>
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    variadic, enable_when::any_false,
+    enable_when::any_false,
     std::is_const<int const>,
     std::is_integral<int const>,
     std::is_signed<int const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::any_false,
+    enable_when::any_false,
     std::is_const<unsigned const>,
     std::is_integral<unsigned const>,
     std::is_signed<unsigned const>
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    variadic, enable_when::any_false,
+    enable_when::any_false,
     std::is_const<double const>,
     std::is_integral<double const>,
     std::is_signed<double const>
@@ -833,27 +833,27 @@ FATAL_TEST(enable_when, any_false) {
 
 FATAL_TEST(enable_when, is_const) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_const, int const
+    enable_when::is_const, int const
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_const, int
+    enable_when::is_const, int
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_const, int const &
+    enable_when::is_const, int const &
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_const, int &
+    enable_when::is_const, int &
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::is_const, int const &&
+    enable_when::is_const, int const &&
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::is_const, int &&
+    enable_when::is_const, int &&
   );
 }
 
@@ -863,27 +863,27 @@ FATAL_TEST(enable_when, is_const) {
 
 FATAL_TEST(enable_when, non_const) {
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::non_const, int const
+    enable_when::non_const, int const
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::non_const, int
+    enable_when::non_const, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::non_const, int const &
+    enable_when::non_const, int const &
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::non_const, int &
+    enable_when::non_const, int &
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::non_const, int const &&
+    enable_when::non_const, int const &&
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::non_const, int &&
+    enable_when::non_const, int &&
   );
 }
 
@@ -893,27 +893,27 @@ FATAL_TEST(enable_when, non_const) {
 
 FATAL_TEST(enable_when, forwarded_rvalue) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::forwarded_rvalue, int const
+    enable_when::forwarded_rvalue, int const
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::forwarded_rvalue, int
+    enable_when::forwarded_rvalue, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::forwarded_rvalue, int const &
-  )
-  ;
+    enable_when::forwarded_rvalue, int const &
+  );
+
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::forwarded_rvalue, int &
+    enable_when::forwarded_rvalue, int &
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::forwarded_rvalue, int const &&
+    enable_when::forwarded_rvalue, int const &&
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::forwarded_rvalue, int &&
+    enable_when::forwarded_rvalue, int &&
   );
 }
 
@@ -923,27 +923,27 @@ FATAL_TEST(enable_when, forwarded_rvalue) {
 
 FATAL_TEST(enable_when, movable) {
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::movable, int const
+    enable_when::movable, int const
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::movable, int
+    enable_when::movable, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::movable, int const &
-  )
-  ;
-  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::movable, int &
+    enable_when::movable, int const &
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    unary, enable_when::movable, int const &&
+    enable_when::movable, int &
+  );
+
+  FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
+    enable_when::movable, int const &&
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    unary, enable_when::movable, int &&
+    enable_when::movable, int &&
   );
 }
 
@@ -955,15 +955,15 @@ struct non_callable {};
 
 FATAL_TEST(enable_when, callable [non-callable object]) {
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, int, int
+    enable_when::callable, int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, std::string, int
+    enable_when::callable, std::string, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, non_callable, int
+    enable_when::callable, non_callable, int
   );
 }
 
@@ -982,123 +982,123 @@ struct callable_overloaded_f_id {
 
 FATAL_TEST(enable_when, callable [callable object]) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_nullary
+    enable_when::callable, callable_nullary
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_nullary, int
+    enable_when::callable, callable_nullary, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_nullary, std::string
+    enable_when::callable, callable_nullary, std::string
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_nullary, int, double
+    enable_when::callable, callable_nullary, int, double
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_nullary, int, int
+    enable_when::callable, callable_nullary, int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_i
+    enable_when::callable, callable_i
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_i, int
+    enable_when::callable, callable_i, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_i, std::string
+    enable_when::callable, callable_i, std::string
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_i, int, double
+    enable_when::callable, callable_i, int, double
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_i, int, int
+    enable_when::callable, callable_i, int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_d
+    enable_when::callable, callable_d
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_d, int
+    enable_when::callable, callable_d, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_d, std::string
+    enable_when::callable, callable_d, std::string
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_d, int, double
+    enable_when::callable, callable_d, int, double
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_d, int, int
+    enable_when::callable, callable_d, int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_overloaded_i_d
+    enable_when::callable, callable_overloaded_i_d
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_overloaded_i_d, int
+    enable_when::callable, callable_overloaded_i_d, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_overloaded_i_d, std::string
+    enable_when::callable, callable_overloaded_i_d, std::string
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_overloaded_i_d, int, double
+    enable_when::callable, callable_overloaded_i_d, int, double
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_overloaded_i_d, int, int
+    enable_when::callable, callable_overloaded_i_d, int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_overloaded_f_id
+    enable_when::callable, callable_overloaded_f_id
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_overloaded_f_id, int
+    enable_when::callable, callable_overloaded_f_id, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_overloaded_f_id, std::string
+    enable_when::callable, callable_overloaded_f_id, std::string
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_overloaded_f_id, int, double
+    enable_when::callable, callable_overloaded_f_id, int, double
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_overloaded_f_id, int, int
+    enable_when::callable, callable_overloaded_f_id, int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_id
+    enable_when::callable, callable_id
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_id, int
+    enable_when::callable, callable_id, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, callable_id, std::string
+    enable_when::callable, callable_id, std::string
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_id, int, double
+    enable_when::callable, callable_id, int, double
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, callable_id, int, int
+    enable_when::callable, callable_id, int, int
   );
 }
 
@@ -1109,83 +1109,83 @@ void fun_id(int, double);
 
 FATAL_TEST(enable_when, callable [function]) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, decltype(fun_nullary)
+    enable_when::callable, decltype(fun_nullary)
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_nullary), int
+    enable_when::callable, decltype(fun_nullary), int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_nullary), std::string
+    enable_when::callable, decltype(fun_nullary), std::string
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_nullary), int, double
+    enable_when::callable, decltype(fun_nullary), int, double
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_nullary), int, int
+    enable_when::callable, decltype(fun_nullary), int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_i)
+    enable_when::callable, decltype(fun_i)
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, decltype(fun_i), int
+    enable_when::callable, decltype(fun_i), int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_i), std::string
+    enable_when::callable, decltype(fun_i), std::string
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_i), int, double
+    enable_when::callable, decltype(fun_i), int, double
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_i), int, int
+    enable_when::callable, decltype(fun_i), int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_d)
+    enable_when::callable, decltype(fun_d)
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, decltype(fun_d), int
+    enable_when::callable, decltype(fun_d), int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_d), std::string
+    enable_when::callable, decltype(fun_d), std::string
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_d), int, double
+    enable_when::callable, decltype(fun_d), int, double
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_d), int, int
+    enable_when::callable, decltype(fun_d), int, int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_id)
+    enable_when::callable, decltype(fun_id)
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_id), int
+    enable_when::callable, decltype(fun_id), int
   );
 
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
-    t_variadic, enable_when::callable, decltype(fun_id), std::string
+    enable_when::callable, decltype(fun_id), std::string
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, decltype(fun_id), int, double
+    enable_when::callable, decltype(fun_id), int, double
   );
 
   FATAL_EXPECT_TEMPLATE_COMPILES(
-    t_variadic, enable_when::callable, decltype(fun_id), int, int
+    enable_when::callable, decltype(fun_id), int, int
   );
 }
 

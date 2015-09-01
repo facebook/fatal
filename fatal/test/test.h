@@ -137,15 +137,11 @@ namespace test {
 #define FATAL_WARN_GE(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(warning, greater_equal(), LHS, RHS)
 
-#define FATAL_WARN_TEMPLATE_COMPILES(Arity, ...) \
-  FATAL_WARN_TRUE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_WARN_TEMPLATE_COMPILES(...) \
+  FATAL_WARN_TRUE((::fatal::check_compilability<__VA_ARGS__>::value))
 
-#define FATAL_WARN_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
-  FATAL_WARN_FALSE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_WARN_TEMPLATE_DOESNT_COMPILE(...) \
+  FATAL_WARN_FALSE((::fatal::check_compilability<__VA_ARGS__>::value))
 
 
 #define FATAL_EXPECT_UNREACHABLE() \
@@ -192,15 +188,11 @@ namespace test {
 #define FATAL_EXPECT_GE(LHS, RHS) \
   FATAL_IMPL_BINARY_TEST(expectation, greater_equal(), LHS, RHS)
 
-#define FATAL_EXPECT_TEMPLATE_COMPILES(Arity, ...) \
-  FATAL_EXPECT_TRUE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_EXPECT_TEMPLATE_COMPILES(...) \
+  FATAL_EXPECT_TRUE((::fatal::check_compilability<__VA_ARGS__>::value))
 
-#define FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
-  FATAL_EXPECT_FALSE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(...) \
+  FATAL_EXPECT_FALSE((::fatal::check_compilability<__VA_ARGS__>::value))
 
 
 #define FATAL_ASSERT_UNREACHABLE() \
@@ -246,16 +238,12 @@ namespace test {
   FATAL_IMPL_BINARY_TEST(assertion, greater_equal(), LHS, RHS)
 
 // TODO: FIX IT SO IT DISPLAYS THE PROPER MESSAGE OTHER THAN (is not true)
-#define FATAL_ASSERT_TEMPLATE_COMPILES(Arity, ...) \
-  FATAL_ASSERT_TRUE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_ASSERT_TEMPLATE_COMPILES(...) \
+  FATAL_ASSERT_TRUE((::fatal::check_compilability<__VA_ARGS__>::value))
 
 // TODO: FIX IT SO IT DISPLAYS THE PROPER MESSAGE OTHER THAN (is not true)
-#define FATAL_ASSERT_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
-  FATAL_ASSERT_FALSE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_ASSERT_TEMPLATE_DOESNT_COMPILE(...) \
+  FATAL_ASSERT_FALSE((::fatal::check_compilability<__VA_ARGS__>::value))
 
 using clock = std::chrono::system_clock;
 using duration_t = clock::duration;

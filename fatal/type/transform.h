@@ -2140,90 +2140,62 @@ struct type_get_traits<std::tuple<Args...>> {
   >::type;
 };
 
-// TODO: DOCUMENT AND TEST
-class check_compilability {
-  template <typename...> struct args;
+namespace detail {
+namespace check_compilability_impl {
 
-  template <template <typename...> class T>
-  struct unary_impl {
-    template <typename U, typename = T<U>>
-    static std::true_type sfinae(args<U> *);
+template <typename...> struct args;
 
-    template <typename...>
-    static std::false_type sfinae(...);
-  };
+template <template <typename...> class T, std::size_t Arity>
+struct checker {
+  static_assert(Arity > 0, "");
 
-  template <template <typename...> class T>
-  struct binary_impl {
-    template <typename U0, typename U1, typename = T<U0, U1>>
-    static std::true_type sfinae(args<U0, U1> *);
+  template <typename U, typename... Args, typename = T<U, Args...>>
+  static std::true_type sfinae(args<U, Args...> *);
 
-    template <typename...>
-    static std::false_type sfinae(...);
-  };
+  template <typename... Args, typename = T<Args...>>
+  static std::true_type sfinae(args<Args...> *);
 
-  template <template <typename...> class T>
-  struct ternary_impl {
-    template <typename U0, typename U1, typename U2, typename = T<U0, U1, U2>>
-    static std::true_type sfinae(args<U0, U1, U2> *);
-
-    template <typename...>
-    static std::false_type sfinae(...);
-  };
-
-  template <template <typename...> class T>
-  struct variadic_impl {
-    template <typename... Args, typename = T<Args...>>
-    static std::true_type sfinae(args<Args...> *);
-
-    template <typename...>
-    static std::false_type sfinae(...);
-  };
-
-  template <template <typename...> class T>
-  struct t_variadic_impl {
-    template <typename U, typename... Args, typename = T<U, Args...>>
-    static std::true_type sfinae(args<U, Args...> *);
-
-    template <typename...>
-    static std::false_type sfinae(...);
-  };
-
-public:
-  // TODO: UNIFY ALL INTERFACES BELOW
-
-  // TODO: DOCUMENT AND TEST
-  template <template <typename...> class T, typename U>
-  using unary_template = decltype(
-    unary_impl<T>::sfinae(static_cast<args<U> *>(nullptr))
-  );
-
-  // TODO: DOCUMENT AND TEST
-  template <template <typename...> class T, typename U0, typename U1>
-  using binary_template = decltype(
-    binary_impl<T>::sfinae(static_cast<args<U0, U1> *>(nullptr))
-  );
-
-  // TODO: DOCUMENT AND TEST
-  template <
-    template <typename...> class T, typename U0, typename U1, typename U2
-  >
-  using ternary_template = decltype(
-    ternary_impl<T>::sfinae(static_cast<args<U0, U1, U2> *>(nullptr))
-  );
-
-  // TODO: DOCUMENT AND TEST
-  template <template <typename...> class T, typename... Args>
-  using variadic_template = decltype(
-    variadic_impl<T>::sfinae(static_cast<args<Args...> *>(nullptr))
-  );
-
-  // TODO: DOCUMENT AND TEST
-  template <template <typename...> class T, typename U, typename... Args>
-  using t_variadic_template = decltype(
-    t_variadic_impl<T>::sfinae(static_cast<args<U, Args...> *>(nullptr))
-  );
+  template <typename...>
+  static std::false_type sfinae(...);
 };
+
+template <template <typename...> class T>
+struct checker<T, 1> {
+  template <typename U, typename = T<U>>
+  static std::true_type sfinae(args<U> *);
+
+  template <typename...>
+  static std::false_type sfinae(...);
+};
+
+template <template <typename...> class T>
+struct checker<T, 2> {
+  template <typename U0, typename U1, typename = T<U0, U1>>
+  static std::true_type sfinae(args<U0, U1> *);
+
+  template <typename...>
+  static std::false_type sfinae(...);
+};
+
+template <template <typename...> class T>
+struct checker<T, 3> {
+  template <typename U0, typename U1, typename U2, typename = T<U0, U1, U2>>
+  static std::true_type sfinae(args<U0, U1, U2> *);
+
+  template <typename...>
+  static std::false_type sfinae(...);
+};
+
+} // namespace check_compilability_impl {
+} // namespace detail {
+
+// TODO: DOCUMENT AND TEST
+template <template <typename...> class T, typename... Args>
+using check_compilability = decltype(
+  detail::check_compilability_impl::checker<T, sizeof...(Args)>::sfinae(
+    static_cast<detail::check_compilability_impl::args<Args...> *>(nullptr)
+  )
+);
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
