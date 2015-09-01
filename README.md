@@ -21,7 +21,7 @@ Fatal is a header only library, therefore no building is required.
 
 
 ## Requirements
-A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7, 3.8} and GCC {4.8, 4.9, 5.1}.
+A compliant C++11 compiler. Currently tested under Clang {[3.4](https://packages.debian.org/sid/clang-3.4), [3.5](https://packages.debian.org/sid/clang-3.5), [3.6](https://packages.debian.org/sid/clang-3.6), [3.7](https://packages.debian.org/sid/clang-3.7), [3.8](https://packages.debian.org/sid/clang-3.8)} and GCC {[4.8.5+](https://packages.debian.org/sid/g++-4.8), [4.9](https://packages.debian.org/sid/g++-4.9), [5](https://packages.debian.org/sid/g++-5)}.
 
 There are no other external dependencies.
 
