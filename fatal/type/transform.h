@@ -2154,6 +2154,24 @@ class check_compilability {
   };
 
   template <template <typename...> class T>
+  struct binary_impl {
+    template <typename U0, typename U1, typename = T<U0, U1>>
+    static std::true_type sfinae(args<U0, U1> *);
+
+    template <typename...>
+    static std::false_type sfinae(...);
+  };
+
+  template <template <typename...> class T>
+  struct ternary_impl {
+    template <typename U0, typename U1, typename U2, typename = T<U0, U1, U2>>
+    static std::true_type sfinae(args<U0, U1, U2> *);
+
+    template <typename...>
+    static std::false_type sfinae(...);
+  };
+
+  template <template <typename...> class T>
   struct variadic_impl {
     template <typename... Args, typename = T<Args...>>
     static std::true_type sfinae(args<Args...> *);
@@ -2181,10 +2199,25 @@ public:
   );
 
   // TODO: DOCUMENT AND TEST
+  template <template <typename...> class T, typename U0, typename U1>
+  using binary_template = decltype(
+    binary_impl<T>::sfinae(static_cast<args<U0, U1> *>(nullptr))
+  );
+
+  // TODO: DOCUMENT AND TEST
+  template <
+    template <typename...> class T, typename U0, typename U1, typename U2
+  >
+  using ternary_template = decltype(
+    ternary_impl<T>::sfinae(static_cast<args<U0, U1, U2> *>(nullptr))
+  );
+
+  // TODO: DOCUMENT AND TEST
   template <template <typename...> class T, typename... Args>
   using variadic_template = decltype(
     variadic_impl<T>::sfinae(static_cast<args<Args...> *>(nullptr))
   );
+
   // TODO: DOCUMENT AND TEST
   template <template <typename...> class T, typename U, typename... Args>
   using t_variadic_template = decltype(
