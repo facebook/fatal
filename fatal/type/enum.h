@@ -13,6 +13,7 @@
 #include <fatal/preprocessor.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
+#include <fatal/type/registry.h>
 #include <fatal/type/sequence.h>
 #include <fatal/type/traits.h>
 
@@ -55,9 +56,7 @@ template <typename Enum>
 class enum_traits {
   static_assert(std::is_enum<Enum>::value, "enumeration expected");
 
-  using impl = decltype(
-    detail::enum_impl::metadata_tag() << static_cast<Enum *>(nullptr)
-  );
+  using impl = registry_lookup<detail::enum_impl::metadata_tag, Enum>;
 
   static_assert(
     std::is_same<Enum, typename impl::type>::value,
@@ -537,7 +536,11 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_REGISTER_ENUM_TRAITS(Traits) \
-  Traits operator <<(::fatal::detail::enum_impl::metadata_tag, Traits::type *)
+  FATAL_REGISTER_TYPE( \
+    ::fatal::detail::enum_impl::metadata_tag, \
+    Traits::type, \
+    Traits \
+  )
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
