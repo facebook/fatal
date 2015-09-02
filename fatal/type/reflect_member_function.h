@@ -240,9 +240,9 @@ REFLECTED_MEMBER_FUNCTION_IMPL(c, rvalue, const &&);
 REFLECTED_MEMBER_FUNCTION_IMPL(v, rvalue, volatile &&);
 REFLECTED_MEMBER_FUNCTION_IMPL(cv, rvalue, const volatile &&);
 
-#undef REFLECTED_MEMBER_FUNCTION_IMPL
-
 #endif // FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
+
+#undef REFLECTED_MEMBER_FUNCTION_IMPL
 
 } // namespace detail {
 } // namespace fatal {
