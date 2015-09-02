@@ -14,6 +14,9 @@ if ! which $cc; then
   exit 1
 fi
 
+# TODO: REMOVE
+USE_CC=$cc NO_CLEAR=true PRE_PROC=true ./test.sh type reflect_member_function
+
 echo "compiler: $cc"
 $cc --version
 # TODO: split prefix_tree_benchmark into several benchmarks to avoid
