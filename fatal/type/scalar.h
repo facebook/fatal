@@ -44,6 +44,61 @@ constexpr T to_scalar() noexcept {
   return detail::scalar_impl::to_scalar<From>::template to<T>();
 }
 
+#include <type_traits>
+
+namespace detail {
+namespace scalar_impl {
+
+template <typename T, bool = std::is_enum<T>::value>
+struct to_integral_impl {
+  using type = T;
+  static type convert(T value) { return value; }
+};
+
+} // namespace scalar_impl {
+} // namespace detail {
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+typename detail::scalar_impl::to_integral_impl<T>::type to_integral(
+  T const value
+) {
+  return detail::scalar_impl::to_integral_impl<T>::convert(value);
+}
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+T bitwise_merge(T const value, T const head) {
+  return static_cast<T>(to_integral(value) | to_integral(head));
+}
+
+// TODO: DOCUMENT AND TEST
+template <typename T, typename... Args>
+T bitwise_merge(T const value, T const head, Args... args) {
+  return bitwise_merge(bitwise_merge(value, head), args...);
+}
+
+// TODO: DOCUMENT AND TEST
+template <typename T, typename... Args>
+T bitwise_filter(T const value, Args... args) {
+  return static_cast<T>(
+    to_integral(value) & to_integral(bitwise_merge(args...))
+  );
+}
+
+// TODO: DOCUMENT AND TEST
+template <typename T, typename... Args>
+bool bitwise_contains_all(T const value, Args... args) {
+  auto const merged = bitwise_merge(args...);
+  return static_cast<T>(to_integral(value) & to_integral(merged)) == merged;
+}
+
+// TODO: DOCUMENT AND TEST
+template <typename T, typename... Args>
+bool bitwise_contains_any(T const value, Args... args) {
+  return to_integral(bitwise_filter(value, args...)) != 0;
+}
+
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
 ////////////////////////////
@@ -52,6 +107,10 @@ namespace detail {
 namespace scalar_impl {
 
 // TODO: IMPLEMENT CONVERSION FOR OTHER TYPES TOO
+
+///////////////
+// to_scalar //
+///////////////
 
 template <typename T, T Value>
 struct to_scalar<std::integral_constant<T, Value>> {
@@ -69,6 +128,16 @@ struct to_scalar<std::ratio<Numerator, Denominator>> {
   static constexpr To to() noexcept {
     return static_cast<To>(Numerator) / static_cast<To>(Denominator);
   }
+};
+
+/////////////////
+// to_integral //
+/////////////////
+
+template <typename T>
+struct to_integral_impl<T, true> {
+  using type = typename std::underlying_type<T>::type;
+  static type convert(T value) { return static_cast<type>(value); }
 };
 
 } // namespace scalar_impl {
