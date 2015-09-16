@@ -510,18 +510,18 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
  *    };
  *
  *    using name_to_value = build_type_map<
- *      str::field0, std::integral_constant<my_enum, my_enum::field0>,
- *      str::field1, std::integral_constant<my_enum, my_enum::field1>,
- *      str::field2, std::integral_constant<my_enum, my_enum::field2>
+ *      str::field0, std::integral_constant<type, type::field0>,
+ *      str::field1, std::integral_constant<type, type::field1>,
+ *      str::field2, std::integral_constant<type, type::field2>
  *    >;
  *
  *    // this function is optional but its presence greatly
  *    // improves build times and runtime performance
- *    static char const *to_string(my_enum e, char const *fallback) {
+ *    static char const *to_string(type e, char const *fallback) {
  *      switch (e) {
- *        case my_enum::field0: return "field0";
- *        case my_enum::field1: return "field1";
- *        case my_enum::field2: return "field2";
+ *        case type::field0: return "field0";
+ *        case type::field1: return "field1";
+ *        case type::field2: return "field2";
  *        default: return fallback;
  *      }
  *    }
@@ -586,7 +586,7 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
       FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR_VALUE_LIST, ~, __VA_ARGS__) \
     >; \
     \
-    static char const *to_string(Enum e, char const *fallback) { \
+    static char const *to_string(type e, char const *fallback) { \
       switch (e) { \
         FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_TO_STR, __VA_ARGS__) \
         default: return fallback; \
