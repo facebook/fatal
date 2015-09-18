@@ -68,15 +68,19 @@ public:
   using descriptors = typename impl::descriptors;
 
   using by_name = detail::variant_traits_impl::by<
-    type_map_from<get_member_type::name>::template list<descriptors>
+    typename type_map_from<get_member_type::name>
+      ::template list<descriptors>
   >;
 
   using by_id = detail::variant_traits_impl::by<
-    type_map_from<get_member_type::id>::template list<descriptors>
+    typename type_map_from<get_member_type::id>
+      ::template list<descriptors>
+      ::template sort<>
   >;
 
   using by_type = detail::variant_traits_impl::by<
-    type_map_from<get_member_type::type>::template list<descriptors>
+    typename type_map_from<get_member_type::type>
+      ::template list<descriptors>
   >;
 
   // TODO: ONLY IF impl HAS empty()
