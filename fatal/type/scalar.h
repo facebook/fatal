@@ -88,14 +88,14 @@ T bitwise_filter(T const value, Args... args) {
 
 // TODO: DOCUMENT AND TEST
 template <typename T, typename... Args>
-bool bitwise_contains_all(T const value, Args... args) {
+bool bitwise_has_all(T const value, Args... args) {
   auto const merged = bitwise_merge(args...);
   return static_cast<T>(to_integral(value) & to_integral(merged)) == merged;
 }
 
 // TODO: DOCUMENT AND TEST
 template <typename T, typename... Args>
-bool bitwise_contains_any(T const value, Args... args) {
+bool bitwise_has_any(T const value, Args... args) {
   return to_integral(bitwise_filter(value, args...)) != 0;
 }
 
