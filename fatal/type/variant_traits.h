@@ -32,10 +32,13 @@ public:
   using tags = typename map::keys;
 
   template <typename Tag>
-  using type = typename Map::template get<Tag>::type;
+  using name = typename Map::template get<Tag>::name;
 
   template <typename Tag>
   using id = typename Map::template get<Tag>::id;
+
+  template <typename Tag>
+  using type = typename Map::template get<Tag>::type;
 
   template <typename Tag, typename U>
   static auto get(U &&variant)
@@ -67,6 +70,7 @@ public:
 
   using names = typename impl::names;
   using ids = typename impl::ids;
+
   using descriptors = typename impl::descriptors;
 
   using by_name = detail::variant_traits_impl::by<

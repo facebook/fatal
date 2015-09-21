@@ -137,17 +137,22 @@ FATAL_TEST(poor_mans_variant, types) {
 FATAL_TEST(poor_mans_variant, by_name) {
   using type = poor_mans_variant;
   using names = poor_mans_variant_traits::names;
+  using ids = poor_mans_variant_traits::ids;
   using traits = variant_traits<type>::by_name;
 
   FATAL_EXPECT_SAME<type_list<names::i, names::d, names::b>, traits::tags>();
 
+  FATAL_EXPECT_SAME<names::i, traits::name<names::i>>();
+  FATAL_EXPECT_SAME<names::d, traits::name<names::d>>();
+  FATAL_EXPECT_SAME<names::b, traits::name<names::b>>();
+
+  FATAL_EXPECT_SAME<ids::i, traits::id<names::i>>();
+  FATAL_EXPECT_SAME<ids::d, traits::id<names::d>>();
+  FATAL_EXPECT_SAME<ids::b, traits::id<names::b>>();
+
   FATAL_EXPECT_SAME<int, traits::type<names::i>>();
   FATAL_EXPECT_SAME<double, traits::type<names::d>>();
   FATAL_EXPECT_SAME<bool, traits::type<names::b>>();
-
-  FATAL_EXPECT_SAME<poor_mans_variant_traits::ids::i, traits::id<names::i>>();
-  FATAL_EXPECT_SAME<poor_mans_variant_traits::ids::d, traits::id<names::d>>();
-  FATAL_EXPECT_SAME<poor_mans_variant_traits::ids::b, traits::id<names::b>>();
 
   type v;
   type const &c = v;
@@ -186,58 +191,54 @@ FATAL_TEST(poor_mans_variant, by_name) {
 
 FATAL_TEST(poor_mans_variant, by_id) {
   using type = poor_mans_variant;
+  using names = poor_mans_variant_traits::names;
   using ids = poor_mans_variant_traits::ids;
   using traits = variant_traits<type>::by_id;
 
   FATAL_EXPECT_SAME<type_list<ids::i, ids::d, ids::b>, traits::tags>();
 
-  FATAL_EXPECT_SAME<int, traits::type<poor_mans_variant_traits::ids::i>>();
-  FATAL_EXPECT_SAME<double, traits::type<poor_mans_variant_traits::ids::d>>();
-  FATAL_EXPECT_SAME<bool, traits::type<poor_mans_variant_traits::ids::b>>();
+  FATAL_EXPECT_SAME<names::i, traits::name<ids::i>>();
+  FATAL_EXPECT_SAME<names::d, traits::name<ids::d>>();
+  FATAL_EXPECT_SAME<names::b, traits::name<ids::b>>();
 
-  FATAL_EXPECT_SAME<
-    poor_mans_variant_traits::ids::i,
-    traits::id<poor_mans_variant_traits::ids::i>
-  >();
-  FATAL_EXPECT_SAME<
-    poor_mans_variant_traits::ids::d,
-    traits::id<poor_mans_variant_traits::ids::d>
-  >();
-  FATAL_EXPECT_SAME<
-    poor_mans_variant_traits::ids::b,
-    traits::id<poor_mans_variant_traits::ids::b>
-  >();
+  FATAL_EXPECT_SAME<ids::i, traits::id<ids::i>>();
+  FATAL_EXPECT_SAME<ids::d, traits::id<ids::d>>();
+  FATAL_EXPECT_SAME<ids::b, traits::id<ids::b>>();
+
+  FATAL_EXPECT_SAME<int, traits::type<ids::i>>();
+  FATAL_EXPECT_SAME<double, traits::type<ids::d>>();
+  FATAL_EXPECT_SAME<bool, traits::type<ids::b>>();
 
   type v;
   type const &c = v;
   type &&r = std::move(v);
 
   v.set_i(10);
-  FATAL_EXPECT_EQ(10, traits::get<poor_mans_variant_traits::ids::i>(v));
-  FATAL_EXPECT_EQ(10, traits::get<poor_mans_variant_traits::ids::i>(c));
-  FATAL_EXPECT_EQ(10, traits::get<poor_mans_variant_traits::ids::i>(r));
+  FATAL_EXPECT_EQ(10, traits::get<ids::i>(v));
+  FATAL_EXPECT_EQ(10, traits::get<ids::i>(c));
+  FATAL_EXPECT_EQ(10, traits::get<ids::i>(r));
 
   v.set_d(5.6);
-  FATAL_EXPECT_EQ(5.6, traits::get<poor_mans_variant_traits::ids::d>(v));
-  FATAL_EXPECT_EQ(5.6, traits::get<poor_mans_variant_traits::ids::d>(c));
-  FATAL_EXPECT_EQ(5.6, traits::get<poor_mans_variant_traits::ids::d>(r));
+  FATAL_EXPECT_EQ(5.6, traits::get<ids::d>(v));
+  FATAL_EXPECT_EQ(5.6, traits::get<ids::d>(c));
+  FATAL_EXPECT_EQ(5.6, traits::get<ids::d>(r));
 
   v.set_b(true);
-  FATAL_EXPECT_EQ(true, traits::get<poor_mans_variant_traits::ids::b>(v));
-  FATAL_EXPECT_EQ(true, traits::get<poor_mans_variant_traits::ids::b>(c));
-  FATAL_EXPECT_EQ(true, traits::get<poor_mans_variant_traits::ids::b>(r));
+  FATAL_EXPECT_EQ(true, traits::get<ids::b>(v));
+  FATAL_EXPECT_EQ(true, traits::get<ids::b>(c));
+  FATAL_EXPECT_EQ(true, traits::get<ids::b>(r));
 
-  traits::set<poor_mans_variant_traits::ids::i>(v, 97);
+  traits::set<ids::i>(v, 97);
   FATAL_EXPECT_EQ(97, v->i);
   FATAL_EXPECT_EQ(97, c->i);
   FATAL_EXPECT_EQ(97, r->i);
 
-  traits::set<poor_mans_variant_traits::ids::d>(v, 7.2);
+  traits::set<ids::d>(v, 7.2);
   FATAL_EXPECT_EQ(7.2, v->d);
   FATAL_EXPECT_EQ(7.2, c->d);
   FATAL_EXPECT_EQ(7.2, r->d);
 
-  traits::set<poor_mans_variant_traits::ids::b>(v, false);
+  traits::set<ids::b>(v, false);
   FATAL_EXPECT_EQ(false, v->b);
   FATAL_EXPECT_EQ(false, c->b);
   FATAL_EXPECT_EQ(false, r->b);
@@ -245,17 +246,23 @@ FATAL_TEST(poor_mans_variant, by_id) {
 
 FATAL_TEST(poor_mans_variant, by_type) {
   using type = poor_mans_variant;
+  using names = poor_mans_variant_traits::names;
+  using ids = poor_mans_variant_traits::ids;
   using traits = variant_traits<type>::by_type;
 
   FATAL_EXPECT_SAME<type_list<int, double, bool>, traits::tags>();
 
+  FATAL_EXPECT_SAME<names::i, traits::name<int>>();
+  FATAL_EXPECT_SAME<names::d, traits::name<double>>();
+  FATAL_EXPECT_SAME<names::b, traits::name<bool>>();
+
+  FATAL_EXPECT_SAME<ids::i, traits::id<int>>();
+  FATAL_EXPECT_SAME<ids::d, traits::id<double>>();
+  FATAL_EXPECT_SAME<ids::b, traits::id<bool>>();
+
   FATAL_EXPECT_SAME<int, traits::type<int>>();
   FATAL_EXPECT_SAME<double, traits::type<double>>();
   FATAL_EXPECT_SAME<bool, traits::type<bool>>();
-
-  FATAL_EXPECT_SAME<poor_mans_variant_traits::ids::i, traits::id<int>>();
-  FATAL_EXPECT_SAME<poor_mans_variant_traits::ids::d, traits::id<double>>();
-  FATAL_EXPECT_SAME<poor_mans_variant_traits::ids::b, traits::id<bool>>();
 
   type v;
   type const &c = v;
