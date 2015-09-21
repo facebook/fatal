@@ -65,6 +65,8 @@ public:
   using type = typename impl::type;
   using id = typename impl::id;
 
+  using names = typename impl::names;
+  using ids = typename impl::ids;
   using descriptors = typename impl::descriptors;
 
   using by_name = detail::variant_traits_impl::by<
