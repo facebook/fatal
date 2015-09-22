@@ -1075,7 +1075,7 @@ struct has_member_type {
  * TODO: DOCUMENT
  *
  *  struct getter_name {
- *    FATAL_STR(field, "field");
+ *    FATAL_STR(id_string, "member_name");
  *
  *    template <typename Owner>
  *    static reference ref(Owner &owner);
@@ -1110,7 +1110,7 @@ struct has_member_type {
       Owner && \
     >::type; \
     \
-    FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
+    FATAL_STR(id_string, FATAL_TO_STR(__VA_ARGS__)); \
     \
     template <typename Owner> \
     static reference<Owner> ref(Owner &&owner) { \
