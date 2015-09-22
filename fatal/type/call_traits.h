@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_call_traits_h
 #define FATAL_INCLUDE_fatal_type_call_traits_h
 
+#include <fatal/preprocessor.h>
+#include <fatal/type/sequence.h>
 #include <fatal/type/transform.h>
 
 #include <utility>
@@ -199,9 +201,13 @@ public:
       template <typename...> \
       static ::std::false_type sfinae(...); \
     }; \
-  \
+    \
   public: \
+    FATAL_STR(id_string, FATAL_TO_STR(__VA_ARGS__)); \
+    \
     struct member_function { \
+      using name = id_string; \
+      \
       constexpr member_function() {} \
       \
       template <typename U> \
@@ -236,6 +242,8 @@ public:
     }; \
     \
     struct static_member { \
+      using name = id_string; \
+      \
       template <typename U> \
       class bind { \
         template <typename V, typename... UArgs> \
@@ -531,6 +539,8 @@ struct call_traits {
  */
 #define FATAL_FREE_FUNCTION_CALL_TRAITS(Name, ...) \
   struct Name { \
+    FATAL_STR(id_string, FATAL_TO_STR(__VA_ARGS__)); \
+    \
     constexpr Name() {} \
     \
     template <typename... UArgs> \
