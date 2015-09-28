@@ -54,7 +54,7 @@ struct gaz {
 };
 
 #ifdef FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
-# define CHECK_REFLECT(Class, Fn, Result, CV, CVQ, ...) \
+# define CHECK_REFLECT(Class, Fn, Result, CV, CVQ, Ref, RefQ, ...) \
     do { \
       using reflected = reflect_member_function<decltype(&Class::Fn)>; \
       using expected = Result(Class::*)(__VA_ARGS__) CVQ; \
