@@ -24,8 +24,8 @@ struct abort_on_not_found;
 } // namespace detail {
 
 // TODO: DOCUMENT AND TEST
-#define FATAL_REGISTER_TYPE(Tag, Key, Metadata) \
-  Metadata operator <<(Tag, Key *)
+#define FATAL_REGISTER_TYPE(Tag, Key, ...) \
+  __VA_ARGS__ operator <<(Tag, Key *)
 
 // TODO: DOCUMENT AND TEST
 template <
