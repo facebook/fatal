@@ -31,8 +31,7 @@ namespace fatal {
  *
  * Results can be queried on the fly without
  *
- * The arithmetic has been worked out so as to eliminate numerical errors,
- * and make computation as close to lossless as possible.
+ * The arithmetic has been worked out to make the calculation numerical stable.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
