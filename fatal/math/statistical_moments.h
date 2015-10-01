@@ -27,9 +27,8 @@ namespace fatal {
  * - kurtosis
  *
  * It allows, for instance, calculating these moments from a stream of samples,
- * without the need to hold all samples in memory at the same time.
- *
- * Results can be queried on the fly without
+ * without the need to hold all samples in memory at the same time. The partial
+ * results can also be queried at any given time.
  *
  * The arithmetic has been worked out to make the calculation numerical stable.
  *
