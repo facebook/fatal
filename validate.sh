@@ -17,6 +17,10 @@ while [ "$1" ]; do
   shift
 done
 
+if [ "$USE_STD" = "c++11" ] || [ "$USE_STD" = "c++0x" ]; then
+  skip_demo=true
+fi
+
 run_validation() {
   if ! which "$1"; then
     return
