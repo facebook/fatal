@@ -100,6 +100,16 @@ public:
   }
 };
 
+/**
+ * TODO: DOCUMENT
+ *
+ * NOTE: this macro must be called from the same namespace of the variant (as
+ * returned by `Traits::type`), or some other namespace that respects the C++
+ * rules for Argument Dependent Lookup
+ * (http://en.cppreference.com/w/cpp/language/adl).
+ *
+ * @author
+ */
 #define FATAL_REGISTER_VARIANT_TRAITS(Traits) \
   FATAL_REGISTER_TYPE( \
     ::fatal::detail::variant_traits_impl::metadata_tag, \
