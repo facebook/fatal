@@ -111,6 +111,11 @@ public:
 
 FATAL_REGISTER_VARIANT_TRAITS(poor_mans_variant_traits);
 
+FATAL_TEST(variant_traits, has_variant_traits) {
+  FATAL_EXPECT_SAME<std::true_type, has_variant_traits<poor_mans_variant>>();
+  FATAL_EXPECT_SAME<std::false_type, has_variant_traits<void>>();
+}
+
 FATAL_TEST(poor_mans_variant, types) {
   using type = poor_mans_variant;
   using names = poor_mans_variant_traits::names;
