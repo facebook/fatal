@@ -496,6 +496,11 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
 /**
  * TODO: DOCUMENT
  *
+ * NOTE: this macro must be called from the same namespace of the enum (as
+ * returned by `Traits::type`), or some other namespace that respects the C++
+ * rules for Argument Dependent Lookup
+ * (http://en.cppreference.com/w/cpp/language/adl).
+ *
  * Example:
  *
  *  enum class my_enum { field0, field1 = 37, field2 };
