@@ -80,43 +80,46 @@ FATAL_REGISTER_TYPE(other::tag0, keyO1, other::m2);
 FATAL_REGISTER_TYPE(other::tag0, keyO3, mO2);
 FATAL_REGISTER_TYPE(tagO0, other::key3, mO4);
 
-FATAL_TEST(registry, default on not found) {
-  FATAL_EXPECT_SAME<m1, registry_lookup<tag1, key1, nf>>();
-  FATAL_EXPECT_SAME<m2, registry_lookup<tag1, key2, nf>>();
-  FATAL_EXPECT_SAME<m3, registry_lookup<tag1, key3, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<tag1, key4, nf>>();
+FATAL_TEST(registry, try_registry_lookup) {
+  FATAL_EXPECT_SAME<m1, try_registry_lookup<tag1, key1, nf>>();
+  FATAL_EXPECT_SAME<m2, try_registry_lookup<tag1, key2, nf>>();
+  FATAL_EXPECT_SAME<m3, try_registry_lookup<tag1, key3, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<tag1, key4, nf>>();
 
-  FATAL_EXPECT_SAME<m4, registry_lookup<tag2, key1, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<tag2, key2, nf>>();
-  FATAL_EXPECT_SAME<m6, registry_lookup<tag2, key3, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<tag2, key4, nf>>();
+  FATAL_EXPECT_SAME<m4, try_registry_lookup<tag2, key1, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<tag2, key2, nf>>();
+  FATAL_EXPECT_SAME<m6, try_registry_lookup<tag2, key3, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<tag2, key4, nf>>();
 
-  FATAL_EXPECT_SAME<nf, registry_lookup<tag3, key1, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<tag3, key2, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<tag3, key3, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<tag3, key4, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<tag3, key1, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<tag3, key2, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<tag3, key3, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<tag3, key4, nf>>();
 
-  FATAL_EXPECT_SAME<other::m0, registry_lookup<other::tag0, other::key0, nf>>();
-  FATAL_EXPECT_SAME<mO0, registry_lookup<other::tag0, other::key1, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<other::tag0, other::key2, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<other::tag0, other::key3, nf>>();
+  FATAL_EXPECT_SAME<
+    other::m0,
+    try_registry_lookup<other::tag0, other::key0, nf>
+  >();
+  FATAL_EXPECT_SAME<mO0, try_registry_lookup<other::tag0, other::key1, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<other::tag0, other::key2, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<other::tag0, other::key3, nf>>();
 
-  FATAL_EXPECT_SAME<other::m1, registry_lookup<other::tag0, keyO0, nf>>();
-  FATAL_EXPECT_SAME<other::m2, registry_lookup<other::tag0, keyO1, nf>>();
-  FATAL_EXPECT_SAME<mO1,  registry_lookup<other::tag0, keyO2, nf>>();
-  FATAL_EXPECT_SAME<mO2,  registry_lookup<other::tag0, keyO3, nf>>();
+  FATAL_EXPECT_SAME<other::m1, try_registry_lookup<other::tag0, keyO0, nf>>();
+  FATAL_EXPECT_SAME<other::m2, try_registry_lookup<other::tag0, keyO1, nf>>();
+  FATAL_EXPECT_SAME<mO1,  try_registry_lookup<other::tag0, keyO2, nf>>();
+  FATAL_EXPECT_SAME<mO2,  try_registry_lookup<other::tag0, keyO3, nf>>();
 
-  FATAL_EXPECT_SAME<nf, registry_lookup<other::tag0, key1, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<other::tag0, key2, nf>>();
-  FATAL_EXPECT_SAME<nf, registry_lookup<other::tag0, key3, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<other::tag0, key1, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<other::tag0, key2, nf>>();
+  FATAL_EXPECT_SAME<nf, try_registry_lookup<other::tag0, key3, nf>>();
 
-  FATAL_EXPECT_SAME<nf,  registry_lookup<tagO0, other::key0, nf>>();
-  FATAL_EXPECT_SAME<nf,  registry_lookup<tagO0, other::key1, nf>>();
-  FATAL_EXPECT_SAME<mO3,  registry_lookup<tagO0, other::key2, nf>>();
-  FATAL_EXPECT_SAME<mO4,  registry_lookup<tagO0, other::key3, nf>>();
+  FATAL_EXPECT_SAME<nf,  try_registry_lookup<tagO0, other::key0, nf>>();
+  FATAL_EXPECT_SAME<nf,  try_registry_lookup<tagO0, other::key1, nf>>();
+  FATAL_EXPECT_SAME<mO3,  try_registry_lookup<tagO0, other::key2, nf>>();
+  FATAL_EXPECT_SAME<mO4,  try_registry_lookup<tagO0, other::key3, nf>>();
 }
 
-FATAL_TEST(registry, abort on not found) {
+FATAL_TEST(registry, registry_lookup) {
   FATAL_EXPECT_SAME<m1, registry_lookup<tag1, key1>>();
   FATAL_EXPECT_SAME<m2, registry_lookup<tag1, key2>>();
   FATAL_EXPECT_SAME<m3, registry_lookup<tag1, key3>>();
