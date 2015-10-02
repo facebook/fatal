@@ -76,7 +76,7 @@ using has_variant_traits = std::integral_constant<
   >::value
 >;
 
-template <typename> class variant_traits_by;
+template <typename> struct variant_traits_by;
 
 /**
  * TODO: DOCUMENT
