@@ -43,9 +43,11 @@ struct custom_enum_traits {
 
 FATAL_REGISTER_ENUM_TRAITS(custom_enum_traits);
 
-///////////
-// enums //
-///////////
+FATAL_TEST(enums, has_enum_traits) {
+  FATAL_EXPECT_SAME<std::true_type, has_enum_traits<test_enum>>();
+  FATAL_EXPECT_SAME<std::true_type, has_enum_traits<custom_enum>>();
+  FATAL_EXPECT_SAME<std::false_type, has_enum_traits<void>>();
+}
 
 FATAL_TEST(enums, declare_enum) {
   FATAL_EXPECT_EQ(test_enum::state0, static_cast<test_enum>(0));

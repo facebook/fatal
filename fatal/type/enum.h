@@ -34,6 +34,38 @@ struct metadata_tag {};
 } // namespace detail {
 
 /**
+ * Tells whether the given type has `enum_traits` support available.
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `std::false_type`
+ *  using result1 = has_enum_traits<foo>;
+ *
+ *  FATAL_RICH_ENUM_CLASS(bar, field0, field1, field2);
+ *
+ *  // yields `std::true_type`
+ *  using result2 = has_enum_traits<bar>;
+ *
+ *  enum class baz { field0, field1, field2 };
+ *  FATAL_EXPORT_RICH_ENUM(baz, field0, field1, field2);
+ *
+ *  // yields `std::true_type`
+ *  using result3 = has_enum_traits<baz>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename Enum>
+using has_enum_traits = std::integral_constant<
+  bool,
+  !std::is_same<
+    try_registry_lookup<detail::enum_impl::metadata_tag, Enum, void>,
+    void
+  >::value
+>;
+
+/**
  * Provides additional functionality for enumerations like efficient
  * enum <-> string conversion, template meta-programming metadata and
  * compile-time reflection.
