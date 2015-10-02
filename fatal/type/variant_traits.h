@@ -131,10 +131,9 @@ public:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename Map>
-class variant_traits_by {
+struct variant_traits_by {
   using map = Map;
 
-public:
   using tags = typename map::keys;
 
   template <typename Tag>
