@@ -169,7 +169,13 @@ public:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_CALL_TRAITS(Name, ...) \
-  class Name { \
+  FATAL_IMPL_CALL_TRAITS( \
+    Name, \
+    FATAL_UID(FATAL_CAT(Name, _call_traits_impl)), \
+    __VA_ARGS__ \
+  )
+#define FATAL_IMPL_CALL_TRAITS(Name, Impl, ...) \
+  class Impl { \
     template <typename... UArgs> \
     struct member_fn_supports_impl { \
       template < \
@@ -202,11 +208,13 @@ public:
       static ::std::false_type sfinae(...); \
     }; \
     \
+    FATAL_STR(name_str, FATAL_TO_STR(__VA_ARGS__)); \
+    \
   public: \
-    FATAL_STR(id_string, FATAL_TO_STR(__VA_ARGS__)); \
+    using name = name_str; \
     \
     struct member_function { \
-      using name = id_string; \
+      using name = name_str; \
       \
       constexpr member_function() {} \
       \
@@ -242,7 +250,7 @@ public:
     }; \
     \
     struct static_member { \
-      using name = id_string; \
+      using name = name_str; \
       \
       template <typename U> \
       class bind { \
@@ -286,7 +294,9 @@ public:
         ) \
       ); \
     }; \
-  }
+  }; \
+  \
+  using Name = Impl
 
 /**
  * Some pre-instantiated call traits for common function names.
@@ -538,10 +548,17 @@ struct call_traits {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_FREE_FUNCTION_CALL_TRAITS(Name, ...) \
-  struct Name { \
-    FATAL_STR(id_string, FATAL_TO_STR(__VA_ARGS__)); \
+  FATAL_IMPL_FREE_FUNCTION_CALL_TRAITS( \
+    Name, \
+    FATAL_UID(FATAL_CAT(Name, _free_fn_call_traits_impl)), \
+    __VA_ARGS__ \
+  )
+
+#define FATAL_IMPL_FREE_FUNCTION_CALL_TRAITS(Name, Impl, ...) \
+  struct Impl { \
+    FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
-    constexpr Name() {} \
+    constexpr Impl() {} \
     \
     template <typename... UArgs> \
     constexpr static auto call(UArgs &&...args) \
@@ -553,6 +570,8 @@ struct call_traits {
       -> decltype(call(::std::forward<UArgs>(args)...)) \
     { return call(::std::forward<UArgs>(args)...); } \
   }; \
+  \
+  using Name = Impl
 
 /**
  * Conditionally calls a function according to the given predicate.

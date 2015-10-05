@@ -1245,10 +1245,10 @@ struct str {
   FATAL_STR(no_fn, "no_fn");
 };
 
-FATAL_TEST(id_string, member_traits) {
+FATAL_TEST(name, member_traits) {
 #define TEST_IMPL(Name, Traits) \
   do { \
-    FATAL_EXPECT_SAME<str::Name, Traits::id_string>(); \
+    FATAL_EXPECT_SAME<str::Name, Traits::name>(); \
     FATAL_EXPECT_SAME<str::Name, Traits::member_function::name>(); \
     FATAL_EXPECT_SAME<str::Name, Traits::static_member::name>(); \
   } while (false)
@@ -1259,10 +1259,10 @@ FATAL_TEST(id_string, member_traits) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(id_string, free_function) {
+FATAL_TEST(name, free_function) {
 #define TEST_IMPL(Name, Traits) \
   do { \
-    FATAL_EXPECT_SAME<str::Name, Traits::id_string>(); \
+    FATAL_EXPECT_SAME<str::Name, Traits::name>(); \
   } while (false)
 
   TEST_IMPL(test_fn, free_fn_traits);
