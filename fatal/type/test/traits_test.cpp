@@ -1424,11 +1424,11 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data>>(); \
   } while (false)
 
   TEST_IMPL(i, int);
@@ -1445,11 +1445,11 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &>>(); \
   } while (false)
 
   TEST_IMPL(i, int);
@@ -1466,11 +1466,11 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &&>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &&>>(); \
   } while (false)
 
   TEST_IMPL(i, int);
@@ -1487,11 +1487,11 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const>>(); \
   } while (false)
 
   TEST_IMPL(i, int);
@@ -1508,11 +1508,11 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const &>>(); \
   } while (false)
 
   TEST_IMPL(i, int);
@@ -1529,11 +1529,11 @@ FATAL_TEST(data_member_getter, type) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::type<data const &&>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const &&>>(); \
   } while (false)
 
   TEST_IMPL(i, int);
@@ -1553,11 +1553,11 @@ FATAL_TEST(data_member_getter, reference) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data>>(); \
   } while (false)
 
   TEST_IMPL(i, int &&);
@@ -1574,11 +1574,11 @@ FATAL_TEST(data_member_getter, reference) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &>>(); \
   } while (false)
 
   TEST_IMPL(i, int &);
@@ -1595,11 +1595,11 @@ FATAL_TEST(data_member_getter, reference) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &&>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &&>>(); \
   } while (false)
 
   TEST_IMPL(i, int &&);
@@ -1616,11 +1616,11 @@ FATAL_TEST(data_member_getter, reference) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const>>(); \
   } while (false)
 
   TEST_IMPL(i, int const &&);
@@ -1637,11 +1637,11 @@ FATAL_TEST(data_member_getter, reference) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const &>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const &>>(); \
   } while (false)
 
   TEST_IMPL(i, int const &);
@@ -1658,11 +1658,11 @@ FATAL_TEST(data_member_getter, reference) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::reference<data const &&>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const &&>>(); \
   } while (false)
 
   TEST_IMPL(i, int const &&);
@@ -1682,11 +1682,11 @@ FATAL_TEST(data_member_getter, pointer) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data>>(); \
   } while (false)
 
   TEST_IMPL(i, int *);
@@ -1703,11 +1703,11 @@ FATAL_TEST(data_member_getter, pointer) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &>>(); \
   } while (false)
 
   TEST_IMPL(i, int *);
@@ -1724,11 +1724,11 @@ FATAL_TEST(data_member_getter, pointer) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &&>>();\
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &&>>(); \
   } while (false)
 
   TEST_IMPL(i, int *);
@@ -1745,11 +1745,11 @@ FATAL_TEST(data_member_getter, pointer) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const>>(); \
   } while (false)
 
   TEST_IMPL(i, int const *);
@@ -1766,11 +1766,11 @@ FATAL_TEST(data_member_getter, pointer) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const &>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const &>>(); \
   } while (false)
 
   TEST_IMPL(i, int const *);
@@ -1787,11 +1787,11 @@ FATAL_TEST(data_member_getter, pointer) {
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     \
-    FATAL_EXPECT_SAME<\
-      data_member_getter_test::getter_name::Field,\
-      getter::id_string\
+    FATAL_EXPECT_SAME< \
+      data_member_getter_test::getter_name::Field, \
+      getter::name \
     >(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::Field::pointer<data const &&>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const &&>>(); \
   } while (false)
 
   TEST_IMPL(i, int const *);
@@ -1829,20 +1829,20 @@ FATAL_TEST(data_member_getter, get_ptr) {
   do { \
     using getter = data_member_getter_test::getter::Field; \
     \
-    FATAL_EXPECT_EQ(Field, getter::Field::ref(Data)); \
-    FATAL_EXPECT_EQ(Field, getter::Field::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Field, getter::ref(Data)); \
+    FATAL_EXPECT_EQ(Field, getter::ref_getter()(Data)); \
     \
-    FATAL_EXPECT_EQ(Data.Field, getter::Field::ref(Data)); \
-    FATAL_EXPECT_EQ(Data.Field, getter::Field::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Data.Field, getter::ref(Data)); \
+    FATAL_EXPECT_EQ(Data.Field, getter::ref_getter()(Data)); \
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Field), \
-      std::addressof(getter::Field::ref(Data)) \
+      std::addressof(getter::ref(Data)) \
     ); \
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Field), \
-      std::addressof(getter::Field::ref_getter()(Data)) \
+      std::addressof(getter::ref_getter()(Data)) \
     ); \
     \
     FATAL_EXPECT_SAME< \
@@ -1852,7 +1852,7 @@ FATAL_TEST(data_member_getter, get_ptr) {
           std::remove_reference<decltype(Data)>::type \
         >::type \
       >::type, \
-      decltype(getter::Field::ref(Data)) \
+      decltype(getter::ref(Data)) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
@@ -1862,7 +1862,7 @@ FATAL_TEST(data_member_getter, get_ptr) {
           std::remove_reference<decltype(Data)>::type \
         >::type \
       >::type, \
-      decltype(getter::Field::ref_getter()(Data)) \
+      decltype(getter::ref_getter()(Data)) \
     >(); \
   } while (false)
 
@@ -1887,16 +1887,13 @@ FATAL_TEST(data_member_getter, get_ptr) {
   do { \
     using getter = data_member_getter_test::getter::Field; \
     \
-    FATAL_EXPECT_EQ(Field, getter::Field::ref(std::move(Data))); \
-    FATAL_EXPECT_EQ(Field, getter::Field::ref_getter()(std::move(Data))); \
+    FATAL_EXPECT_EQ(Field, getter::ref(std::move(Data))); \
+    FATAL_EXPECT_EQ(Field, getter::ref_getter()(std::move(Data))); \
     \
+    FATAL_EXPECT_EQ(std::move(Data).Field, getter::ref(std::move(Data))); \
     FATAL_EXPECT_EQ( \
       std::move(Data).Field, \
-      getter::Field::ref(std::move(Data)) \
-    ); \
-    FATAL_EXPECT_EQ( \
-      std::move(Data).Field, \
-      getter::Field::ref_getter()(std::move(Data)) \
+      getter::ref_getter()(std::move(Data)) \
     ); \
     \
     FATAL_EXPECT_SAME< \
@@ -1906,7 +1903,7 @@ FATAL_TEST(data_member_getter, get_ptr) {
           std::remove_reference<decltype(std::move(Data))>::type \
         >::type \
       >::type, \
-      decltype(getter::Field::ref(std::move(Data))) \
+      decltype(getter::ref(std::move(Data))) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
@@ -1916,7 +1913,7 @@ FATAL_TEST(data_member_getter, get_ptr) {
           std::remove_reference<decltype(std::move(Data))>::type \
         >::type \
       >::type, \
-      decltype(getter::Field::ref_getter()(std::move(Data))) \
+      decltype(getter::ref_getter()(std::move(Data))) \
     >(); \
   } while (false)
 
@@ -1941,18 +1938,15 @@ FATAL_TEST(data_member_getter, get_ptr) {
   do { \
     using getter = data_member_getter_test::getter::Field; \
     \
-    FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::Field::ptr(Data)); \
-    FATAL_EXPECT_EQ( \
-      std::addressof(Data.Field), \
-      getter::Field::ptr_getter()(Data) \
-    ); \
+    FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::ptr(Data)); \
+    FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::ptr_getter()(Data)); \
     \
     FATAL_EXPECT_SAME< \
       constify_from< \
         std::remove_pointer<decltype(std::addressof(Data.Field))>::type, \
         std::remove_reference<decltype(Data)>::type \
       >::type *, \
-      decltype(getter::Field::ptr(Data)) \
+      decltype(getter::ptr(Data)) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
@@ -1960,7 +1954,7 @@ FATAL_TEST(data_member_getter, get_ptr) {
         std::remove_pointer<decltype(std::addressof(Data.Field))>::type, \
         std::remove_reference<decltype(Data)>::type \
       >::type *, \
-      decltype(getter::Field::ptr_getter()(Data)) \
+      decltype(getter::ptr_getter()(Data)) \
     >(); \
   } while (false)
 

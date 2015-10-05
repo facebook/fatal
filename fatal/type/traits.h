@@ -1075,7 +1075,7 @@ struct has_member_type {
  * TODO: DOCUMENT
  *
  *  struct getter_name {
- *    FATAL_STR(id_string, "member_name");
+ *    FATAL_STR(name, "member_name");
  *
  *    template <typename Owner>
  *    static reference ref(Owner &owner);
@@ -1096,8 +1096,54 @@ struct has_member_type {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FATAL_DATA_MEMBER_GETTER(Class, ...) \
-  struct Class { \
+#define FATAL_DATA_MEMBER_GETTER(Name, ...) \
+  FATAL_IMPL_DATA_MEMBER_GETTER( \
+    Name, \
+    FATAL_UID(FATAL_CAT(Name, _data_member_getter_impl)), \
+    __VA_ARGS__ \
+  ) \
+
+namespace detail {
+
+template <typename Impl>
+class data_member_getter {
+  using impl = Impl;
+
+public:
+  template <typename Owner>
+  using type = typename impl::template type<Owner>;
+
+  template <typename Owner>
+  using reference = typename impl::template reference<Owner>;
+
+  using name = typename impl::name;
+
+  template <typename Owner>
+  static reference<Owner> ref(Owner &&owner) {
+    return impl::ref(std::forward<Owner>(owner));
+  }
+
+  struct ref_getter {
+    template <typename Owner>
+    reference<Owner> operator ()(Owner &&owner) const {
+      return ref(std::forward<Owner>(owner));
+    }
+  };
+
+  template <typename Owner>
+  using pointer = typename std::remove_reference<reference<Owner>>::type *;
+
+  template <typename Owner>
+  static pointer<Owner> ptr(Owner &owner) { return std::addressof(ref(owner)); }
+
+  struct ptr_getter {
+    template <typename Owner>
+    pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
+  };
+};
+
+#define FATAL_IMPL_DATA_MEMBER_GETTER(Class, Impl, ...) \
+  struct Impl { \
     template <typename Owner> \
     using type = decltype(::std::declval<Owner>().__VA_ARGS__); \
     \
@@ -1110,7 +1156,7 @@ struct has_member_type {
       Owner && \
     >::type; \
     \
-    FATAL_STR(id_string, FATAL_TO_STR(__VA_ARGS__)); \
+    FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
     template <typename Owner> \
     static reference<Owner> ref(Owner &&owner) { \
@@ -1118,33 +1164,11 @@ struct has_member_type {
         ::std::forward<Owner>(owner).__VA_ARGS__ \
       ); \
     } \
-    \
-    struct ref_getter { \
-      template <typename Owner> \
-      reference<Owner> operator ()(Owner &&owner) const { \
-        return static_cast<reference<Owner>>( \
-          ::std::forward<Owner>(owner).__VA_ARGS__ \
-        ); \
-      } \
-    }; \
-    \
-    template <typename Owner> \
-    using pointer = typename ::std::remove_reference< \
-      reference<Owner> \
-    >::type *; \
-    \
-    template <typename Owner> \
-    static pointer<Owner> ptr(Owner &owner) { \
-      return ::std::addressof(owner.__VA_ARGS__); \
-    } \
-    \
-    struct ptr_getter { \
-      template <typename Owner> \
-      pointer<Owner> operator ()(Owner &owner) const { \
-        return ::std::addressof(owner.__VA_ARGS__); \
-      } \
-    }; \
-  }
+  }; \
+  \
+  using Class = ::fatal::detail::data_member_getter<Impl>
+
+} // namespace detail {
 
 ////////////////////////
 // data_member_getter //
@@ -1157,79 +1181,67 @@ struct has_member_type {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 struct data_member_getter {
-# define FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL(Class, ...) \
-  private: \
-    FATAL_DATA_MEMBER_GETTER(Class, __VA_ARGS__); \
-    \
-  public: \
-    using __VA_ARGS__ = Class
+# define FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(...) \
+  FATAL_DATA_MEMBER_GETTER(__VA_ARGS__, __VA_ARGS__); \
+  FATAL_DATA_MEMBER_GETTER(FATAL_CAT(__VA_ARGS__, _), FATAL_CAT(__VA_ARGS__, _))
 
-#   define FATAL_IMPL_DATA_MEMBER_GETTER_FOR(...) \
-    FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL(FATAL_UID(__VA_ARGS__), __VA_ARGS__)
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(allocator);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(args);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(array);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(category);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(config);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(data);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(decoder);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(difference);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(element);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(encoder);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(extension);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(first);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(flag);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(hash);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(id);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(ids);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(index);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(info);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(information);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(instance);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(item);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(iterator);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(key);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(list);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(map);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(mapped);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(mapping);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(mappings);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(member);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(members);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(name);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(names);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(pair);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(pointer);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(predicate);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(ptr);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(reader);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(ref);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(reference);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(request);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(response);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(result);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(second);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(set);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(size);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(str);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(string);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(tag);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(tuple);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(type);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(types);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(value);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(values);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(version);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(writer);
 
-#   define FATAL_IMPL_DATA_MEMBER_GETTER(...) \
-    FATAL_IMPL_DATA_MEMBER_GETTER_FOR(__VA_ARGS__); \
-    FATAL_IMPL_DATA_MEMBER_GETTER_FOR(FATAL_CAT(__VA_ARGS__, _))
-
-    FATAL_IMPL_DATA_MEMBER_GETTER(allocator);
-    FATAL_IMPL_DATA_MEMBER_GETTER(args);
-    FATAL_IMPL_DATA_MEMBER_GETTER(array);
-    FATAL_IMPL_DATA_MEMBER_GETTER(category);
-    FATAL_IMPL_DATA_MEMBER_GETTER(config);
-    FATAL_IMPL_DATA_MEMBER_GETTER(data);
-    FATAL_IMPL_DATA_MEMBER_GETTER(decoder);
-    FATAL_IMPL_DATA_MEMBER_GETTER(difference);
-    FATAL_IMPL_DATA_MEMBER_GETTER(element);
-    FATAL_IMPL_DATA_MEMBER_GETTER(encoder);
-    FATAL_IMPL_DATA_MEMBER_GETTER(extension);
-    FATAL_IMPL_DATA_MEMBER_GETTER(first);
-    FATAL_IMPL_DATA_MEMBER_GETTER(flag);
-    FATAL_IMPL_DATA_MEMBER_GETTER(hash);
-    FATAL_IMPL_DATA_MEMBER_GETTER(id);
-    FATAL_IMPL_DATA_MEMBER_GETTER(ids);
-    FATAL_IMPL_DATA_MEMBER_GETTER(index);
-    FATAL_IMPL_DATA_MEMBER_GETTER(info);
-    FATAL_IMPL_DATA_MEMBER_GETTER(information);
-    FATAL_IMPL_DATA_MEMBER_GETTER(instance);
-    FATAL_IMPL_DATA_MEMBER_GETTER(item);
-    FATAL_IMPL_DATA_MEMBER_GETTER(iterator);
-    FATAL_IMPL_DATA_MEMBER_GETTER(key);
-    FATAL_IMPL_DATA_MEMBER_GETTER(list);
-    FATAL_IMPL_DATA_MEMBER_GETTER(map);
-    FATAL_IMPL_DATA_MEMBER_GETTER(mapped);
-    FATAL_IMPL_DATA_MEMBER_GETTER(mapping);
-    FATAL_IMPL_DATA_MEMBER_GETTER(mappings);
-    FATAL_IMPL_DATA_MEMBER_GETTER(member);
-    FATAL_IMPL_DATA_MEMBER_GETTER(members);
-    FATAL_IMPL_DATA_MEMBER_GETTER(name);
-    FATAL_IMPL_DATA_MEMBER_GETTER(names);
-    FATAL_IMPL_DATA_MEMBER_GETTER(pair);
-    FATAL_IMPL_DATA_MEMBER_GETTER(pointer);
-    FATAL_IMPL_DATA_MEMBER_GETTER(predicate);
-    FATAL_IMPL_DATA_MEMBER_GETTER(ptr);
-    FATAL_IMPL_DATA_MEMBER_GETTER(reader);
-    FATAL_IMPL_DATA_MEMBER_GETTER(ref);
-    FATAL_IMPL_DATA_MEMBER_GETTER(reference);
-    FATAL_IMPL_DATA_MEMBER_GETTER(request);
-    FATAL_IMPL_DATA_MEMBER_GETTER(response);
-    FATAL_IMPL_DATA_MEMBER_GETTER(result);
-    FATAL_IMPL_DATA_MEMBER_GETTER(second);
-    FATAL_IMPL_DATA_MEMBER_GETTER(set);
-    FATAL_IMPL_DATA_MEMBER_GETTER(size);
-    FATAL_IMPL_DATA_MEMBER_GETTER(str);
-    FATAL_IMPL_DATA_MEMBER_GETTER(string);
-    FATAL_IMPL_DATA_MEMBER_GETTER(tag);
-    FATAL_IMPL_DATA_MEMBER_GETTER(tuple);
-    FATAL_IMPL_DATA_MEMBER_GETTER(type);
-    FATAL_IMPL_DATA_MEMBER_GETTER(types);
-    FATAL_IMPL_DATA_MEMBER_GETTER(value);
-    FATAL_IMPL_DATA_MEMBER_GETTER(values);
-    FATAL_IMPL_DATA_MEMBER_GETTER(version);
-    FATAL_IMPL_DATA_MEMBER_GETTER(writer);
-
-#   undef FATAL_IMPL_DATA_MEMBER_GETTER
-#   undef FATAL_IMPL_DATA_MEMBER_GETTER_FOR
-# undef FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL
+# undef FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER
 };
 
 ////////////////////////////
