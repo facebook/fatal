@@ -23,12 +23,16 @@ template <typename T, template <typename, T...> class, typename U, U>
 struct to_sequence;
 template <typename, typename TChar, TChar, TChar...> struct parse_sequence;
 template <typename, typename> struct from_sequence;
-namespace flatten_map {
+namespace expand_recursive_map {
 template <typename, typename...> struct breadth;
 template <template <typename...> class, typename...> struct depth;
-} // namespace flatten_map {
+} // namespace expand_recursive_map {
 } // namespace operation_impl {
 } // namespace detail {
+
+////////////
+// expand //
+////////////
 
 // TODO: DOCUMENT
 template <template <typename...> class T, typename U>
@@ -52,6 +56,10 @@ struct expand<T, U<Args...>> {
   template <typename... UArgs>
   using back = fatal::apply<T, UArgs..., Args...>;
 };
+
+///////////////////////
+// cartesian_product //
+///////////////////////
 
 /**
  * Computes the cartesian product between two lists.
@@ -83,6 +91,10 @@ struct cartesian_product {
     Pair, TLHS, TRHS
   >::template apply<List>;
 };
+
+/////////////
+// flatten //
+/////////////
 
 /**
   * Flattens the arguments of a specific template into a topmost list.
@@ -142,17 +154,21 @@ struct flatten {
   ::template apply<List>;
 };
 
+//////////////////////////
+// expand_recursive_map //
+//////////////////////////
+
 // TODO: DOCUMENT
 template <
   template <typename...> class Which,
   template <typename...> class List,
   template <typename...> class Row = List
 >
-struct flatten_map {
+struct expand_recursive_map {
   template <typename T>
-  using apply = typename detail::operation_impl::flatten_map::depth<Which, T>
-    ::template apply<detail::operation_impl::list<>, Row>
-    ::template apply<List>;
+  using apply = typename detail::operation_impl::expand_recursive_map::depth<
+    Which, T
+  >::template apply<detail::operation_impl::list<>, Row>::template apply<List>;
 };
 
 /////////////////
@@ -519,11 +535,11 @@ struct from_sequence<T, U<TChar, Chars...>> {
   using type = typename parse_sequence<T, TChar, Chars...>::type;
 };
 
-/////////////////
-// flatten_map //
-/////////////////
+//////////////////////////
+// expand_recursive_map //
+//////////////////////////
 
-namespace flatten_map {
+namespace expand_recursive_map {
 
 template <template <typename...> class Which, typename... Pairs>
 struct depth<Which, Which<Pairs...>> {
@@ -573,7 +589,7 @@ struct breadth<list<Prefix...>> {
   using apply = Results;
 };
 
-} // namespace flatten_map {
+} // namespace expand_recursive_map {
 } // namespace operation_impl {
 } // namespace detail {
 } // namespace fatal {
