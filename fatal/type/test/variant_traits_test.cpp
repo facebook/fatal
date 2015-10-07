@@ -27,7 +27,8 @@ class poor_mans_variant {
   };
 
 public:
-  enum class id { i, d, b, empty };
+  enum class id { empty, i, d, b };
+  id get_id() const { return id_; }
 
   int get_i() const & { return storage_.i; }
   double get_d() const & { return storage_.d; }
@@ -41,9 +42,20 @@ public:
   double &&get_d() && { return std::move(storage_.d); }
   bool &&get_b() && { return std::move(storage_.b); }
 
-  void set_i(int i) { storage_.i = i; }
-  void set_d(double d) { storage_.d = d; }
-  void set_b(bool b) { storage_.b = b; }
+  void set_i(int i) {
+    id_ = id::i;
+    storage_.i = i;
+  }
+
+  void set_d(double d) {
+    id_ = id::d;
+    storage_.d = d;
+  }
+
+  void set_b(bool b) {
+    id_ = id::b;
+    storage_.b = b;
+  }
 
   bool empty() const { return id_ == id::empty; }
   void clear() { id_ = id::empty; }
@@ -107,6 +119,10 @@ public:
       set::b::member_function
     >
   >;
+
+  static id get_id(type const &variant) { return variant.get_id(); }
+  static bool empty(type const &variant) { return variant.empty(); }
+  static void clear(type &variant) { variant.clear(); }
 };
 
 FATAL_REGISTER_VARIANT_TRAITS(poor_mans_variant_traits);
@@ -137,6 +153,55 @@ FATAL_TEST(poor_mans_variant, types) {
     poor_mans_variant_traits::descriptors,
     traits::descriptors
   >();
+}
+
+FATAL_TEST(poor_mans_variant, functions) {
+  using type = poor_mans_variant;
+  using id = poor_mans_variant::id;
+  using traits = variant_traits<type>;
+
+  type v;
+  type const &c = v;
+  type &&r = std::move(v);
+
+  FATAL_EXPECT_TRUE(traits::empty(v));
+  FATAL_EXPECT_TRUE(traits::empty(c));
+  FATAL_EXPECT_TRUE(traits::empty(r));
+  FATAL_EXPECT_EQ(id::empty, traits::get_id(v));
+  FATAL_EXPECT_EQ(id::empty, traits::get_id(c));
+  FATAL_EXPECT_EQ(id::empty, traits::get_id(r));
+
+  v.set_i(10);
+  FATAL_EXPECT_FALSE(traits::empty(v));
+  FATAL_EXPECT_FALSE(traits::empty(c));
+  FATAL_EXPECT_FALSE(traits::empty(r));
+  FATAL_EXPECT_EQ(id::i, traits::get_id(v));
+  FATAL_EXPECT_EQ(id::i, traits::get_id(c));
+  FATAL_EXPECT_EQ(id::i, traits::get_id(r));
+
+  v.set_d(5.6);
+  FATAL_EXPECT_FALSE(traits::empty(v));
+  FATAL_EXPECT_FALSE(traits::empty(c));
+  FATAL_EXPECT_FALSE(traits::empty(r));
+  FATAL_EXPECT_EQ(id::d, traits::get_id(v));
+  FATAL_EXPECT_EQ(id::d, traits::get_id(c));
+  FATAL_EXPECT_EQ(id::d, traits::get_id(r));
+
+  v.set_b(true);
+  FATAL_EXPECT_FALSE(traits::empty(v));
+  FATAL_EXPECT_FALSE(traits::empty(c));
+  FATAL_EXPECT_FALSE(traits::empty(r));
+  FATAL_EXPECT_EQ(id::b, traits::get_id(v));
+  FATAL_EXPECT_EQ(id::b, traits::get_id(c));
+  FATAL_EXPECT_EQ(id::b, traits::get_id(r));
+
+  traits::clear(v);
+  FATAL_EXPECT_TRUE(traits::empty(v));
+  FATAL_EXPECT_TRUE(traits::empty(c));
+  FATAL_EXPECT_TRUE(traits::empty(r));
+  FATAL_EXPECT_EQ(id::empty, traits::get_id(v));
+  FATAL_EXPECT_EQ(id::empty, traits::get_id(c));
+  FATAL_EXPECT_EQ(id::empty, traits::get_id(r));
 }
 
 FATAL_TEST(poor_mans_variant, by_name) {

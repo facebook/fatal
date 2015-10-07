@@ -76,7 +76,7 @@ using has_variant_traits = std::integral_constant<
   >::value
 >;
 
-template <typename> struct variant_traits_by;
+template <typename, typename> class variant_traits_by;
 
 /**
  * TODO: DOCUMENT
@@ -97,20 +97,28 @@ public:
   using descriptors = typename impl::descriptors;
 
   using by_name = variant_traits_by<
+    impl,
     typename type_map_from<get_member_type::name>
       ::template list<descriptors>
   >;
 
   using by_id = variant_traits_by<
+    impl,
     typename type_map_from<get_member_type::id>
       ::template list<descriptors>
       ::template sort<>
   >;
 
   using by_type = variant_traits_by<
+    impl,
     typename type_map_from<get_member_type::type>
       ::template list<descriptors>
   >;
+
+  template <typename U>
+  static id get_id(U &&variant) {
+    return impl::get_id(std::forward<U>(variant));
+  }
 
   // TODO: ONLY IF impl HAS empty()
   static bool empty(fast_pass<type> variant) {
@@ -130,8 +138,11 @@ public:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename Map>
-struct variant_traits_by {
+template <typename Impl, typename Map>
+class variant_traits_by {
+  using impl = Impl;
+
+public:
   using map = Map;
 
   using tags = typename map::keys;
