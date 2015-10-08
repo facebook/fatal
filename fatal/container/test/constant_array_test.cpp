@@ -12,6 +12,7 @@
 #include <fatal/test/driver.h>
 
 #include <fatal/type/list.h>
+#include <fatal/type/sequence.h>
 
 #include <type_traits>
 
@@ -88,6 +89,21 @@ FATAL_TEST(constant_array_from, list) {
   do { \
     using list = seq<Type>::list<__VA_ARGS__>; \
     using actual = constant_array_from<Type>::list<list>; \
+    CHECK_CONSTANT_ARRAY(Type, __VA_ARGS__); \
+  } while (false)
+
+  TEST_CASES(TEST_IMPL);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(constant_array_from, sequence) {
+# define TEST_IMPL(Type, ...) \
+  do { \
+    using list = seq<Type>::list<__VA_ARGS__>; \
+    using actual = constant_array_from<Type>::sequence< \
+      list::apply_typed_values<Type, constant_sequence> \
+    >; \
     CHECK_CONSTANT_ARRAY(Type, __VA_ARGS__); \
   } while (false)
 

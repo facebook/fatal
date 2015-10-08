@@ -48,7 +48,11 @@ struct constant_array {
 // TODO: DOCUMENT AND TEST
 // TODO: ADD , template <typename...> class... Transforms
 template <typename T>
-struct constant_array_from {
+class constant_array_from {
+  template <T... Values>
+  using sequence_impl = constant_array<T, Values...>;
+
+public:
   // TODO: DOCUMENT AND TEST
   template <typename... Args>
   using args = constant_array<T, Args::value...>;
@@ -56,6 +60,9 @@ struct constant_array_from {
   // TODO: DOCUMENT AND TEST
   template <typename List>
   using list = typename List::template apply<args>;
+
+  template <typename Sequence>
+  using sequence = typename Sequence::template apply<sequence_impl>;
 };
 
 ///////////////////////////////
