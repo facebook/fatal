@@ -10,8 +10,6 @@
 #ifndef FATAL_INCLUDE_fatal_container_static_array_h
 #define FATAL_INCLUDE_fatal_container_static_array_h
 
-#include <fatal/type/list.h>
-
 #include <array>
 #include <type_traits>
 
@@ -19,83 +17,122 @@ namespace fatal {
 namespace detail {
 namespace static_array_impl {
 
-template <typename...> struct head;
+template <typename T, template <typename...> class Factory, typename... Args>
+struct array {
+  using value_type = T;
+  using type = std::array<value_type, sizeof...(Args)>;
 
+  static type const get;
+};
+
+template <typename T, template <typename...> class Factory, typename... Args>
+typename array<
+  T, Factory, Args...
+>::type const array<
+  T, Factory, Args...
+>::get{{ Factory<Args>()()... }};
+
+template <typename...> struct head;
 template <typename T, typename... Args>
 struct head<T, Args...> {
   using type = T;
 };
 
-template <typename...> struct element;
+template <template <typename...> class, typename...> struct value_type;
+template <template <typename...> class Factory>
+struct value_type<Factory> {
+  template <typename... Args>
+  using apply = typename std::decay<
+    decltype(Factory<typename head<Args...>::type>()())
+  >::type;
+};
+
+template <template <typename...> class Factory, typename T>
+struct value_type<Factory, T> {
+  template <typename...>
+  using apply = T;
+};
 
 template <typename T>
-struct element<T> {
-  template <typename...>
-  using type = T;
-};
-
-template <>
-struct element<> {
-  template <typename... Args>
-  using type = typename head<Args...>::type;
-};
-
-template <typename, typename, typename...> class instance;
-template <typename... Args, typename TFactory, typename... T>
-class instance<type_list<Args...>, TFactory, T...> {
-  using list = type_list<Args...>;
-
-public:
-  using value_type = typename element<T...>::template type<
-    typename std::decay<decltype(TFactory::template create<Args>())>::type...
-  >;
-
-  using type = std::array<value_type, list::size>;
-
-  static type const get;
-};
-
-template <typename... Args, typename TFactory, typename... T>
-typename instance<
-  type_list<Args...>, TFactory, T...
->::type const instance<
-  type_list<Args...>, TFactory, T...
->::get{{
-  TFactory::template create<Args>()...
-}};
-
 struct type_value_factory {
-  template <typename T>
-  static constexpr decltype(T::value) create() { return T::type::value; }
+  constexpr decltype(T::value) operator ()() const { return T::value; }
 };
 
-template <typename TFactory, typename... T>
-struct array {
-  template <typename TList>
-  using from_list = detail::static_array_impl::instance<
-    typename TList::template indexed_transform<indexed_type_tag>,
-    TFactory,
-    T...
-  >;
+template <typename T>
+struct type_data_factory {
+  constexpr decltype(T::data()) operator ()() const { return T::data(); }
+};
 
-  template <typename... Args>
-  using from_args = from_list<type_list<Args...>>;
+template <typename T>
+struct type_z_data_factory {
+  constexpr decltype(T::z_data()) operator ()() const { return T::z_data(); }
 };
 
 } // namespace static_array_impl {
 } // namespace detail {
 
 /**
- * TODO: DOCUMENT AND TEST - T is the optional explicit type of the array values
+ * TODO: DOCUMENT - T is the optional explicit type of the array values
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename TFactory = detail::static_array_impl::type_value_factory>
-struct static_array:
-  public detail::static_array_impl::array<TFactory>
-{
-  template <typename T>
-  using type = typename detail::static_array_impl::array<TFactory, T>;
+template <typename... T>
+struct static_array {
+  static_assert(
+    sizeof...(T) <= 1,
+    "static array elements can have only one type"
+  );
+
+  // TODO: PROVIDE A CONVENIENT WAY TO GET A static_array of string_view
+  // without including that file
+
+  /**
+   * TODO: DOCUMENT - T is the optional explicit type of the array values
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class Factory>
+  struct with {
+    /**
+     * TODO: DOCUMENT - T is the optional explicit type of the array values
+     *
+     * @author: Marcelo Juchem <marcelo@fb.com>
+     */
+    template <typename... Args>
+    using apply = typename detail::static_array_impl::array<
+      typename detail::static_array_impl::value_type<Factory, T...>
+        ::template apply<Args...>,
+      Factory,
+      Args...
+    >;
+  };
+
+  /**
+   * TODO: DOCUMENT - T is the optional explicit type of the array values
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Args>
+  using value = typename with<detail::static_array_impl::type_value_factory>
+    ::template apply<Args...>;
+
+  /**
+   * TODO: DOCUMENT - T is the optional explicit type of the array values
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Args>
+  using data = typename with<detail::static_array_impl::type_data_factory>
+    ::template apply<Args...>;
+
+  /**
+   * TODO: DOCUMENT - T is the optional explicit type of the array values
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Args>
+  using z_data = typename with<detail::static_array_impl::type_z_data_factory>
+    ::template apply<Args...>;
 };
 
 } // namespace fatal {
