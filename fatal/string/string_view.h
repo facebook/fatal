@@ -303,6 +303,14 @@ private:
   const_iterator end_;
 };
 
+// TODO: DOCUMENT, TEST AND BIKE-SHED
+template <typename String>
+struct string_view_from_type {
+  constexpr string_view operator ()() const {
+    return string_view(String::data(), String::size);
+  }
+};
+
 /////////////////
 // operator == //
 /////////////////
