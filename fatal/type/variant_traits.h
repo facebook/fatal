@@ -10,7 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_variant_traits_h
 #define FATAL_INCLUDE_fatal_type_variant_traits_h
 
-
+#include <fatal/container/static_array.h>
 #include <fatal/type/fast_pass.h>
 #include <fatal/type/map.h>
 #include <fatal/type/registry.h>
@@ -78,6 +78,8 @@ using has_variant_traits = std::integral_constant<
 
 template <typename, typename> class variant_traits_by;
 
+// TODO: REMOVE name
+
 /**
  * TODO: DOCUMENT
  *
@@ -91,16 +93,9 @@ public:
   using type = typename impl::type;
   using id = typename impl::id;
 
-  using names = typename impl::names;
   using ids = typename impl::ids;
 
   using descriptors = typename impl::descriptors;
-
-  using by_name = variant_traits_by<
-    impl,
-    typename type_map_from<get_member_type::name>
-      ::template list<descriptors>
-  >;
 
   using by_id = variant_traits_by<
     impl,
@@ -114,6 +109,28 @@ public:
     typename type_map_from<get_member_type::type>
       ::template list<descriptors>
   >;
+
+  struct array {
+    /**
+     * A statically allocated array containing the names of the variant members.
+     *
+     * See `container/static_array` for more info.
+     *
+     * Example:
+     *
+     *  using array = enum_traits<my_enum>::array::names;
+     *
+     *  // prints "field0 field1 field2 "
+     *  for (auto s: array::get) {
+     *    std::cout << s << ' ';
+     *  }
+     *
+     * @author: Marcelo Juchem <marcelo@fb.com>
+     */
+    using ids = typename by_id::tags::template apply<
+      static_array<id>::template value
+    >;
+  };
 
   template <typename U>
   static id get_id(U &&variant) {
@@ -148,9 +165,6 @@ public:
   using tags = typename map::keys;
 
   template <typename Tag>
-  using name = typename map::template get<Tag>::name;
-
-  template <typename Tag>
   using id = typename map::template get<Tag>::id;
 
   template <typename Tag>
@@ -178,14 +192,11 @@ public:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <
-  typename T, typename Id, typename Name, typename Getter, typename Setter
->
+template <typename T, typename Id, typename Getter, typename Setter>
 struct variant_type_descriptor {
   using type = T;
 
   using id = Id;
-  using name = Name;
 
   using getter = Getter;
   using setter = Setter;
