@@ -50,7 +50,7 @@ struct string_view {
   using size_type = std::size_t;
   using const_iterator = char const *;
 
-  string_view(): begin_(nullptr), end_(nullptr) {}
+  constexpr string_view(): begin_(nullptr), end_(nullptr) {}
 
   string_view(const_iterator begin, const_iterator end):
     begin_(begin),
@@ -306,7 +306,7 @@ private:
 // TODO: DOCUMENT, TEST AND BIKE-SHED
 template <typename String>
 struct string_view_from_type {
-  constexpr string_view operator ()() const {
+  string_view operator ()() const {
     return string_view(String::data(), String::size);
   }
 };
