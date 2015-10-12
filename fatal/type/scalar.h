@@ -79,13 +79,7 @@ constexpr T to_scalar() noexcept {
 
 namespace detail {
 namespace scalar_impl {
-
-template <typename T, bool = std::is_enum<T>::value>
-struct to_integral_impl {
-  using type = T;
-  static type convert(T value) { return value; }
-};
-
+template <typename T, bool = std::is_enum<T>::value> struct to_integral_impl;
 } // namespace scalar_impl {
 } // namespace detail {
 
@@ -106,7 +100,7 @@ struct to_integral_impl {
  *  auto result2 = to_integral(E::a);
  *
  *  // yields `6` with type `char`
- *  auto result3 = to_integral(E::a) | to_integral(E::b);
+ *  auto result4 = to_integral(E::a) | to_integral(E::b);
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -258,6 +252,11 @@ struct to_scalar<std::ratio<Numerator, Denominator>> {
 // to_integral //
 /////////////////
 
+template <typename T>
+struct to_integral_impl<T, false> {
+  using type = T;
+  static type convert(T value) { return value; }
+};
 template <typename T>
 struct to_integral_impl<T, true> {
   using type = typename std::underlying_type<T>::type;
