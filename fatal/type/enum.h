@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_enum_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/container/static_array.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
 #include <fatal/type/registry.h>
@@ -237,6 +238,55 @@ public:
   using prefix_tree = typename names::template apply<
     fatal::build_type_prefix_tree<>::from
   >;
+
+  struct array {
+    /**
+     * A statically allocated array containing the names of the enumeration
+     * fields.
+     *
+     * See `container/static_array` for more info.
+     *
+     * Example:
+     *
+     *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+     *
+     *  using array = enum_traits<my_enum>::array::names;
+     *
+     *  // prints "field0 field1 field2 "
+     *  for (auto s: array::get) {
+     *    std::cout << s << ' ';
+     *  }
+     *
+     * @author: Marcelo Juchem <marcelo@fb.com>
+     */
+    using names = typename enum_traits::names::template apply<
+      static_array<char const *>::template z_data
+    >;
+
+    /**
+     * A statically allocated array containing the values of the enumeration
+     * fields.
+     *
+     * See `container/static_array` for more info.
+     *
+     * Example:
+     *
+     *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+     *
+     *  using traits = enum_traits<my_enum>;
+     *  using array = traits::array::names;
+     *
+     *  // prints "0 1 2 "
+     *  for (auto i: array::get) {
+     *    std::cout << static_cast<traits::int_type>(i) << ' ';
+     *  }
+     *
+     * @author: Marcelo Juchem <marcelo@fb.com>
+     */
+    using values = typename enum_traits::values::template apply<
+      static_array<type>::template value
+    >;
+  };
 
 private:
   struct parser {
