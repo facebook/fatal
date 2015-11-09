@@ -68,11 +68,11 @@ struct type_get_traits<type_list<Args...>> {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <template <typename...> class... TTransforms>
+template <template <typename...> class... Transforms>
 struct type_list_from {
   /**
    * Creates a `type_list` from a given type `T` by applying a series of
-   * transforms `TTransforms`.
+   * transforms `Transforms`.
    *
    * The resulting list will be comprised of the result of the transforms when
    * applied to `T`, in the order they are given.
@@ -99,7 +99,7 @@ struct type_list_from {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename T>
-  using type = type_list<TTransforms<T>...>;
+  using type = type_list<Transforms<T>...>;
 };
 
 /**
@@ -203,14 +203,14 @@ struct at<0, U, UArgs...> {
 
 template <bool, std::size_t, typename, typename...> struct try_at;
 
-template <std::size_t Index, typename... TDefault, typename... Args>
-struct try_at<false, Index, type_list<TDefault...>, Args...> {
-  using type = type_list<TDefault...>;
+template <std::size_t Index, typename Default, typename... Args>
+struct try_at<false, Index, Default, Args...> {
+  using type = Default;
 };
 
-template <std::size_t Index, typename... TDefault, typename... Args>
-struct try_at<true, Index, type_list<TDefault...>, Args...> {
-  using type = type_list<typename at<Index, Args...>::type>;
+template <std::size_t Index, typename Default, typename... Args>
+struct try_at<true, Index, Default, Args...> {
+  using type = typename at<Index, Args...>::type;
 };
 
 //////////////
@@ -308,7 +308,7 @@ struct conditional_visit<true> {
 };
 
 template <
-  template <typename...> class TPredicate, std::size_t Index, typename...
+  template <typename...> class Predicate, std::size_t Index, typename...
 >
 struct foreach_if {
   template <typename V, typename... VArgs>
@@ -318,16 +318,16 @@ struct foreach_if {
 };
 
 template <
-  template <typename...> class TPredicate,
+  template <typename...> class Predicate,
   std::size_t Index, typename U, typename... UArgs
 >
-struct foreach_if<TPredicate, Index, U, UArgs...> {
+struct foreach_if<Predicate, Index, U, UArgs...> {
   template <typename V, typename... VArgs>
   static constexpr std::size_t visit(
     std::size_t result, V &&visitor, VArgs &&...args
   ) {
-    return foreach_if<TPredicate, Index + 1, UArgs...>::visit(
-      result + conditional_visit<fatal::apply<TPredicate, U>::value>::visit(
+    return foreach_if<Predicate, Index + 1, UArgs...>::visit(
+      result + conditional_visit<fatal::apply<Predicate, U>::value>::visit(
         visitor, indexed_type_tag<U, Index>(), args...
       ), visitor, args...
     );
@@ -380,12 +380,12 @@ template <std::size_t, typename...> struct indexed_transform;
 template <std::size_t Index, typename T, typename... Args>
 struct indexed_transform<Index, T, Args...> {
   template <
-    template <typename, std::size_t, typename...> class TTransform,
+    template <typename, std::size_t, typename...> class Transform,
     typename... UArgs
   >
   using apply = typename indexed_transform<Index + 1, Args...>
-    ::template apply<TTransform, UArgs...>
-    ::template push_front<TTransform<T, Index>>;
+    ::template apply<Transform, UArgs...>
+    ::template push_front<Transform<T, Index>>;
 };
 
 template <std::size_t Index>
@@ -460,18 +460,18 @@ struct cumulative_transform<Inclusive, Transform, Result, Accumulator> {
 // accumulate //
 ////////////////
 
-template <template <typename...> class, typename TAccumulator, typename...>
+template <template <typename...> class, typename Accumulator, typename...>
 struct accumulate {
-  using type = TAccumulator;
+  using type = Accumulator;
 };
 
 template <
-  template <typename...> class TTransform,
-  typename TAccumulator, typename T, typename... Args
+  template <typename...> class Transform,
+  typename Accumulator, typename T, typename... Args
 >
-struct accumulate<TTransform, TAccumulator, T, Args...> {
+struct accumulate<Transform, Accumulator, T, Args...> {
   using type = typename accumulate<
-    TTransform, TTransform<TAccumulator, T>, Args...
+    Transform, Transform<Accumulator, T>, Args...
   >::type;
 };
 
@@ -486,34 +486,34 @@ template <
 > struct choose;
 
 template <
-  template <typename...> class TBinaryPredicate,
-  template <typename...> class TTransform,
-  typename TChosen, typename TCandidate, typename... Args
+  template <typename...> class BinaryPredicate,
+  template <typename...> class Transform,
+  typename Chosen, typename Candidate, typename... Args
 >
-struct choose<TBinaryPredicate, TTransform, TChosen, TCandidate, Args...> {
+struct choose<BinaryPredicate, Transform, Chosen, Candidate, Args...> {
   using type = typename choose<
-    TBinaryPredicate,
-    TTransform,
+    BinaryPredicate,
+    Transform,
     typename std::conditional<
       fatal::apply<
-        TBinaryPredicate,
-        fatal::apply<TTransform, TCandidate>,
-        fatal::apply<TTransform, TChosen>
+        BinaryPredicate,
+        fatal::apply<Transform, Candidate>,
+        fatal::apply<Transform, Chosen>
       >::value,
-      TCandidate,
-      TChosen
+      Candidate,
+      Chosen
     >::type,
     Args...
   >::type;
 };
 
 template <
-  template <typename...> class TBinaryPredicate,
-  template <typename...> class TTransform,
-  typename TChosen
+  template <typename...> class BinaryPredicate,
+  template <typename...> class Transform,
+  typename Chosen
 >
-struct choose<TBinaryPredicate, TTransform, TChosen> {
-  using type = TChosen;
+struct choose<BinaryPredicate, Transform, Chosen> {
+  using type = Chosen;
 };
 
 ///////////////////////
@@ -574,20 +574,20 @@ struct slice<Begin, End, U, UArgs...> {
 
 template <template <typename...> class, typename...> struct separate;
 
-template <template <typename...> class TPredicate>
-struct separate<TPredicate> {
+template <template <typename...> class Predicate>
+struct separate<Predicate> {
   using type = type_pair<type_list<>, type_list<>>;
 };
 
 template <
-  template <typename...> class TPredicate,
+  template <typename...> class Predicate,
   typename U, typename... UArgs
 >
-struct separate<TPredicate, U, UArgs...> {
-  using tail = typename separate<TPredicate, UArgs...>::type;
+struct separate<Predicate, U, UArgs...> {
+  using tail = typename separate<Predicate, UArgs...>::type;
 
   using type = typename std::conditional<
-    fatal::apply<TPredicate, U>::value,
+    fatal::apply<Predicate, U>::value,
     type_pair<
       typename tail::first::template push_front<U>,
       typename tail::second
@@ -664,18 +664,18 @@ struct curried_skip{
 template <template <typename...> class, typename, typename...>
 struct search;
 
-template <template <typename...> class TPredicate, typename TDefault>
-struct search<TPredicate, TDefault> { using type = TDefault; };
+template <template <typename...> class Predicate, typename Default>
+struct search<Predicate, Default> { using type = Default; };
 
 template <
-  template <typename...> class TPredicate,
-  typename TDefault, typename U, typename... UArgs
+  template <typename...> class Predicate,
+  typename Default, typename U, typename... UArgs
 >
-struct search<TPredicate, TDefault, U, UArgs...> {
+struct search<Predicate, Default, U, UArgs...> {
   using type = typename std::conditional<
-    fatal::apply<TPredicate, U>::value,
+    fatal::apply<Predicate, U>::value,
     U,
-    typename search<TPredicate, TDefault, UArgs...>::type
+    typename search<Predicate, Default, UArgs...>::type
   >::type;
 };
 
@@ -1711,17 +1711,17 @@ struct type_list {
   >::type;
 
   /**
-   * Returns a unitary list with the type at the given index.
+   * Returns a the type at the given index.
    *
-   * If there is no element at that index, returns a list with `TDefault`.
+   * If there is no element at that index, returns `Default`.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    *
-   * TODO: TEST TDefault
+   * TODO: TEST Default
    */
-  template <std::size_t Index, typename... TDefault>
+  template <std::size_t Index, typename Default>
   using try_at = typename detail::type_list_impl::try_at<
-    (Index < size), Index, type_list<TDefault...>, Args...
+    (Index < size), Index, Default, Args...
   >::type;
 
   /**
@@ -1875,12 +1875,12 @@ struct type_list {
    * Applies the elements of this list to the variadic template `T`.
    *
    * Since it's common to transform the list before applying it to a template,
-   * there's an optional sequence of transforms `TTransforms` that can be
+   * there's an optional sequence of transforms `Transforms` that can be
    * applied, in order, to each element of this list beforehand.
    *
-   * When `TTransforms` is specified, this is the same as
+   * When `Transforms` is specified, this is the same as
    *
-   *  type_list::transform<TTransforms...>::apply<T>
+   *  type_list::transform<Transforms...>::apply<T>
    *
    * Example:
    *
@@ -1996,7 +1996,7 @@ struct type_list {
 
   /**
    * Calls the given visitor for each type in the list that yields true when
-   * fed to the given condition `TPredicate`.
+   * fed to the given condition `Predicate`.
    *
    * No code for calling the visitor will be generated when the condition is
    * `false`.
@@ -2039,10 +2039,10 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TPredicate, typename V, typename... VArgs
+    template <typename...> class Predicate, typename V, typename... VArgs
   >
   static constexpr std::size_t foreach_if(V &&visitor, VArgs &&...args) {
-    return detail::type_list_impl::foreach_if<TPredicate, 0, Args...>::visit(
+    return detail::type_list_impl::foreach_if<Predicate, 0, Args...>::visit(
       0, std::forward<V>(visitor), std::forward<VArgs>(args)...
     );
   };
@@ -2161,7 +2161,7 @@ struct type_list {
   }
 
   /**
-   * Applies each transform `TTransforms`, in the order they are given,
+   * Applies each transform `Transforms`, in the order they are given,
    * to every element of this list.
    *
    * Example:
@@ -2178,14 +2178,14 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class... TTransforms>
+  template <template <typename...> class... Transforms>
   using transform = type_list<
-    typename compose<TTransforms...>::template apply<Args>...
+    typename compose<Transforms...>::template apply<Args>...
   >;
 
   /**
    * TODO: TEST
-   * Applies `TTransform` to each element of this list that's accepted
+   * Applies `Transform` to each element of this list that's accepted
    * by the predicate. Every element rejected by the predicate remains
    * untouched.
    *
@@ -2199,13 +2199,13 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TPredicate,
-    template <typename...> class... TTransforms
+    template <typename...> class Predicate,
+    template <typename...> class... Transforms
   >
   using transform_if = type_list<
     typename conditional_transform<
-      TPredicate,
-      compose<TTransforms...>::template apply
+      Predicate,
+      compose<Transforms...>::template apply
     >::template apply<Args>...
   >;
 
@@ -2225,12 +2225,12 @@ struct type_list {
    * TODO: Test additional args
    */
   template <
-    template <typename, std::size_t, typename...> class TTransform,
+    template <typename, std::size_t, typename...> class Transform,
     typename... UArgs
   >
   using indexed_transform = typename detail::type_list_impl::indexed_transform<
     0, Args...
-  >::template apply<TTransform, UArgs...>;
+  >::template apply<Transform, UArgs...>;
 
   /**
    * TODO: DOCUMENT
@@ -2301,9 +2301,9 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform, typename... TSeed>
+  template <template <typename...> class Transform, typename... Seed>
   using accumulate = typename detail::type_list_impl::accumulate<
-    TTransform, TSeed..., Args...
+    Transform, Seed..., Args...
   >::type;
 
   /**
@@ -2329,12 +2329,12 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TBinaryPredicate,
-    template <typename...> class... TTransforms
+    template <typename...> class BinaryPredicate,
+    template <typename...> class... Transforms
   >
   using choose = typename detail::type_list_impl::choose<
-    TBinaryPredicate,
-    compose<TTransforms...>::template apply,
+    BinaryPredicate,
+    compose<Transforms...>::template apply,
     Args...
   >::type;
 
@@ -2480,7 +2480,7 @@ struct type_list {
    * got accepted by the predicate and the other (second) with the types that
    * weren't accepted by it.
    *
-   * `TPredicate` is a std::integral_constant-like template whose value
+   * `Predicate` is a std::integral_constant-like template whose value
    * evaluates to a boolean when fed with an element from this list.
    *
    * Example:
@@ -2506,7 +2506,7 @@ struct type_list {
    * Returns a `type_list` containing only the types that got accepted
    * by the predicate.
    *
-   * `TPredicate` is a std::integral_constant-like template whose value
+   * `Predicate` is a std::integral_constant-like template whose value
    * evaluates to a boolean when fed with an element from this list.
    *
    * Example:
@@ -2527,7 +2527,7 @@ struct type_list {
    * Returns a `type_list` containing only the types that did not get
    * accepted by the predicate.
    *
-   * `TPredicate` is a std::integral_constant-like template whose value
+   * `Predicate` is a std::integral_constant-like template whose value
    * evaluates to a boolean when fed with an element from this list.
    *
    * Example:
@@ -2609,11 +2609,11 @@ struct type_list {
   /**
    * Searches for the first type that satisfiest the given predicate.
    *
-   * `TPredicate` is a std::integral_constant-like template whose value
+   * `Predicate` is a std::integral_constant-like template whose value
    * tells whether a given type satisfies the match or not.
    *
    * If there's no type in this list that satisfies the predicate, then
-   * `TDefault` is returned (defaults to `type_not_found_tag` when omitted).
+   * `Default` is returned (defaults to `type_not_found_tag` when omitted).
    *
    * Example:
    *
@@ -2628,11 +2628,11 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TPredicate,
-    typename TDefault = type_not_found_tag
+    template <typename...> class Predicate,
+    typename Default = type_not_found_tag
   >
   using search = typename detail::type_list_impl::search<
-    TPredicate, TDefault, Args...
+    Predicate, Default, Args...
   >::type;
 
   // TODO: UPDATE DOCS AND SUPPORT MORE THAN TWO LISTS
@@ -2886,7 +2886,7 @@ struct type_list {
    *
    * This algorithm is stable: only the first occurence of a type is kept.
    *
-   * An optional transform `TTransform` can be applied to each element of this
+   * An optional transform `Transform` can be applied to each element of this
    * list before processing the duplicates.
    *
    * Example:
@@ -2913,9 +2913,9 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform = identity>
+  template <template <typename...> class Transform = identity>
   using unique = typename detail::type_list_impl::unique<
-    type_list<>, fatal::apply<TTransform, Args>...
+    type_list<>, fatal::apply<Transform, Args>...
   >::type;
 
   /**
@@ -2923,7 +2923,7 @@ struct type_list {
    *
    * Tells whether there are duplicated elements in this list or not.
    *
-   * An optional transform `TTransform` can be applied to each element of this
+   * An optional transform `Transform` can be applied to each element of this
    * list before processing the duplicates.
    *
    * Example:
@@ -2955,12 +2955,12 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform = identity>
+  template <template <typename...> class Transform = identity>
   // TODO: OPTIMIZE
   using is_unique = typename caster<bool>::apply<
     std::is_same<
-      typename type_list::template transform<TTransform>,
-      unique<TTransform>
+      typename type_list::template transform<Transform>,
+      unique<Transform>
     >
   >;
 

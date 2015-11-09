@@ -103,25 +103,25 @@ FATAL_TEST(at, at) {
 ///////////////////////
 
 FATAL_TEST(try_at, try_at) {
-  FATAL_EXPECT_SAME<el, el::try_at<0>>();
-  FATAL_EXPECT_SAME<el, el::try_at<1>>();
-  FATAL_EXPECT_SAME<el, el::try_at<2>>();
-  FATAL_EXPECT_SAME<el, el::try_at<3>>();
+  FATAL_EXPECT_SAME<void, el::try_at<0, void>>();
+  FATAL_EXPECT_SAME<void, el::try_at<1, void>>();
+  FATAL_EXPECT_SAME<void, el::try_at<2, void>>();
+  FATAL_EXPECT_SAME<void, el::try_at<3, void>>();
 
-  FATAL_EXPECT_SAME<tp, el::try_at<0, P0, P1, P2>>();
-  FATAL_EXPECT_SAME<tp, el::try_at<1, P0, P1, P2>>();
-  FATAL_EXPECT_SAME<tp, el::try_at<2, P0, P1, P2>>();
-  FATAL_EXPECT_SAME<tp, el::try_at<3, P0, P1, P2>>();
+  FATAL_EXPECT_SAME<void, el::try_at<0, void>>();
+  FATAL_EXPECT_SAME<void, el::try_at<1, void>>();
+  FATAL_EXPECT_SAME<void, el::try_at<2, void>>();
+  FATAL_EXPECT_SAME<void, el::try_at<3, void>>();
 
-  FATAL_EXPECT_SAME<type_list<T0>, tl::try_at<0>>();
-  FATAL_EXPECT_SAME<type_list<T1>, tl::try_at<1>>();
-  FATAL_EXPECT_SAME<type_list<T2>, tl::try_at<2>>();
-  FATAL_EXPECT_SAME<el, tl::try_at<3>>();
+  FATAL_EXPECT_SAME<T0, tl::try_at<0, void>>();
+  FATAL_EXPECT_SAME<T1, tl::try_at<1, void>>();
+  FATAL_EXPECT_SAME<T2, tl::try_at<2, void>>();
+  FATAL_EXPECT_SAME<void, tl::try_at<3, void>>();
 
-  FATAL_EXPECT_SAME<type_list<T0>, tl::try_at<0, P0, P1, P2>>();
-  FATAL_EXPECT_SAME<type_list<T1>, tl::try_at<1, P0, P1, P2>>();
-  FATAL_EXPECT_SAME<type_list<T2>, tl::try_at<2, P0, P1, P2>>();
-  FATAL_EXPECT_SAME<tp, tl::try_at<3, P0, P1, P2>>();
+  FATAL_EXPECT_SAME<T0, tl::try_at<0, void>>();
+  FATAL_EXPECT_SAME<T1, tl::try_at<1, void>>();
+  FATAL_EXPECT_SAME<T2, tl::try_at<2, void>>();
+  FATAL_EXPECT_SAME<void, tl::try_at<3, void>>();
 }
 
 /////////////////////////
