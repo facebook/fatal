@@ -90,9 +90,10 @@ class enum_traits {
   static_assert(std::is_enum<Enum>::value, "enumeration expected");
 
   using impl = registry_lookup<detail::enum_impl::metadata_tag, Enum>;
+  using traits = typename impl::template at<0>;
 
   static_assert(
-    std::is_same<Enum, typename impl::type>::value,
+    std::is_same<Enum, typename traits::type>::value,
     "enum type mismatch"
   );
 
@@ -110,6 +111,50 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   using type = Enum;
+
+  /**
+   * A compile-time string representing the name of this enum.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `constant_sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>`
+   *  using result = enum_traits<my_enum>::name;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using name = typename traits::name;
+
+  /**
+   * The metadata, if any, that has been registered with this enum traits.
+   *
+   * When no metadata is registered, returns `void`.
+   *
+   * See `FATAL_REGISTER_ENUM_TRAITS`'s documentation for more information.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `void`
+   *  using result1 = enum_traits<my_enum>::metadata;
+   *
+   *  struct my_metadata {
+   *    // ...
+   *  };
+   *
+   *  // assume there's a custom traits implementation called `my_traits`
+   *  // for an enum called `my_enum_2`.
+   *
+   *  FATAL_REGISTER_ENUM_TRAITS(my_enum_traits, my_metadata);
+   *
+   *  // yields `my_metadata`
+   *  using result2 = enum_traits<my_enum_2>::metadata;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using metadata = typename impl::template try_at<1, void>;
 
   /**
    * The underlying integral type of the enumeration.
@@ -141,7 +186,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using str = typename impl::str;
+  using str = typename traits::str;
 
   /**
    * A `type_map` from name to value for each known enumeration field.
@@ -160,7 +205,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using name_to_value = typename impl::name_to_value;
+  using name_to_value = typename traits::name_to_value;
 
   /**
    * A `type_map` from value to name for each known enumeration field.
@@ -335,7 +380,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   static char const *to_string(type e, char const *fallback = nullptr) {
-    using caller = call_traits::to_string::static_member::bind<impl>;
+    using caller = call_traits::to_string::static_member::bind<traits>;
     return call_if_supported<caller, to_string_fallback>(e, fallback);
   }
 
@@ -590,6 +635,9 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
  *  struct my_traits {
  *    using type = my_enum;
  *
+ *    // see FATAL_STR
+ *    using name = constant_sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>;
+ *
  *    struct str {
  *      FATAL_STR(field0, "field0");
  *      FATAL_STR(field1, "field1");
@@ -622,11 +670,11 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FATAL_REGISTER_ENUM_TRAITS(Traits) \
+#define FATAL_REGISTER_ENUM_TRAITS(Traits, ...) \
   FATAL_REGISTER_TYPE( \
     ::fatal::detail::enum_impl::metadata_tag, \
     Traits::type, \
-    Traits \
+    type_list<Traits>::push_back<__VA_ARGS__> \
   )
 
 ////////////////////////////
@@ -664,6 +712,8 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
 ) \
   struct ClassName { \
     using type = Enum; \
+    \
+    FATAL_STR(name, FATAL_TO_STR(Enum)); \
     \
     struct str { \
       FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR, __VA_ARGS__) \
