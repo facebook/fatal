@@ -67,6 +67,8 @@ private:
   storage storage_;
 };
 
+FATAL_STR(poor_mans_variant_name, "poor_mans_variant");
+
 class poor_mans_variant_traits {
   struct get {
     FATAL_CALL_TRAITS(i, get_i);
@@ -83,6 +85,7 @@ class poor_mans_variant_traits {
 public:
   using type = poor_mans_variant;
   using id = type::id;
+  using name = poor_mans_variant_name;
 
   struct ids {
     using i = std::integral_constant<id, id::i>;
@@ -116,7 +119,12 @@ public:
   static void clear(type &variant) { variant.clear(); }
 };
 
-FATAL_REGISTER_VARIANT_TRAITS(poor_mans_variant_traits);
+struct poor_mans_variant_metadata {};
+
+FATAL_REGISTER_VARIANT_TRAITS(
+  poor_mans_variant_traits,
+  poor_mans_variant_metadata
+);
 
 FATAL_TEST(variant_traits, has_variant_traits) {
   FATAL_EXPECT_SAME<std::true_type, has_variant_traits<poor_mans_variant>>();
@@ -129,7 +137,9 @@ FATAL_TEST(poor_mans_variant, types) {
   using traits = variant_traits<type>;
 
   FATAL_EXPECT_SAME<type, traits::type>();
+  FATAL_EXPECT_SAME<poor_mans_variant_name, traits::name>();
   FATAL_EXPECT_SAME<type::id, traits::id>();
+  FATAL_EXPECT_SAME<poor_mans_variant_metadata, traits::metadata>();
 
   FATAL_EXPECT_SAME<ids::i, traits::ids::i>();
   FATAL_EXPECT_SAME<ids::d, traits::ids::d>();

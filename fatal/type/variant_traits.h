@@ -36,11 +36,11 @@ struct metadata_tag {};
  *
  * @author
  */
-#define FATAL_REGISTER_VARIANT_TRAITS(Traits) \
+#define FATAL_REGISTER_VARIANT_TRAITS(Traits, ...) \
   FATAL_REGISTER_TYPE( \
     ::fatal::detail::variant_traits_impl::metadata_tag, \
     Traits::type, \
-    Traits \
+    type_list<Traits>::push_back<__VA_ARGS__> \
   )
 
 /**
@@ -88,24 +88,28 @@ template <typename, typename> class variant_traits_by;
 template <typename T>
 class variant_traits {
   using impl = registry_lookup<detail::variant_traits_impl::metadata_tag, T>;
+  using traits = typename impl::template at<0>;
 
 public:
-  using type = typename impl::type;
-  using id = typename impl::id;
+  using type = typename traits::type;
+  using name = typename traits::name;
+  using id = typename traits::id;
 
-  using ids = typename impl::ids;
+  using metadata = typename impl::template try_at<1, void>;
 
-  using descriptors = typename impl::descriptors;
+  using ids = typename traits::ids;
+
+  using descriptors = typename traits::descriptors;
 
   using by_id = variant_traits_by<
-    impl,
+    traits,
     typename type_map_from<get_member_type::id>
       ::template list<descriptors>
       ::template sort<>
   >;
 
   using by_type = variant_traits_by<
-    impl,
+    traits,
     typename type_map_from<get_member_type::type>
       ::template list<descriptors>
   >;
@@ -134,17 +138,17 @@ public:
 
   template <typename U>
   static id get_id(U &&variant) {
-    return impl::get_id(std::forward<U>(variant));
+    return traits::get_id(std::forward<U>(variant));
   }
 
-  // TODO: ONLY IF impl HAS empty()
+  // TODO: ONLY IF traits HAS empty()
   static bool empty(fast_pass<type> variant) {
-    return impl::empty(variant);
+    return traits::empty(variant);
   }
 
-  // TODO: ONLY IF impl HAS clear()
+  // TODO: ONLY IF traits HAS clear()
   static void clear(type &variant) {
-    impl::clear(variant);
+    traits::clear(variant);
   }
 };
 
