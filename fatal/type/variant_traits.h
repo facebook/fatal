@@ -40,7 +40,7 @@ struct metadata_tag {};
   FATAL_REGISTER_TYPE( \
     ::fatal::detail::variant_traits_impl::metadata_tag, \
     Traits::type, \
-    type_list<Traits>::push_back<__VA_ARGS__> \
+    ::fatal::type_list<Traits>::push_back<__VA_ARGS__> \
   )
 
 /**
