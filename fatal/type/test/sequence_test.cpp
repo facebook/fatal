@@ -19,6 +19,7 @@
 
 namespace fatal {
 
+template <int Value> using int_val = std::integral_constant<int, Value>;
 template <char... Values> using char_seq = constant_sequence<char, Values...>;
 template <int... Values> using int_seq = constant_sequence<int, Values...>;
 
@@ -755,6 +756,64 @@ FATAL_TEST(constant_sequence, interleave) {
   FATAL_EXPECT_SAME<
     int_seq<0, 10, 20, 30, 1, 10, 20, 30, 2, 10, 20, 30, 3, 10, 20, 30, 4>,
     int_seq<0, 1, 2, 3, 4>::interleave<10, 20, 30>
+  >();
+}
+
+//////////////////////////////////
+// constant_sequence::transform //
+//////////////////////////////////
+
+template <int Value>
+using square_int = int_val<Value * Value>;
+
+FATAL_TEST(constant_sequence, transform) {
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<1>,
+    int_seq<1>::transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<81>,
+    int_seq<9>::transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
+    int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>::transform<square_int>
+  >();
+}
+
+////////////////////////////////////////
+// constant_sequence::typed_transform //
+////////////////////////////////////////
+
+template <typename T, T Value>
+using typed_square_int = std::integral_constant<T, Value * Value>;
+
+FATAL_TEST(constant_sequence, typed_transform) {
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::typed_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<1>,
+    int_seq<1>::typed_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<81>,
+    int_seq<9>::typed_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
+    int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>::typed_transform<typed_square_int>
   >();
 }
 

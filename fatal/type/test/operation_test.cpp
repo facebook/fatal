@@ -369,7 +369,11 @@ FATAL_TEST(operation, to_sequence) {
   do { \
     FATAL_EXPECT_SAME< \
       dummy_sequence<TChar, __VA_ARGS__>, \
-      to_sequence<T, Value, dummy_sequence, TChar> \
+      to_sequence<dummy_sequence, TChar>::apply<T, Value> \
+    >(); \
+    FATAL_EXPECT_SAME< \
+      dummy_sequence<TChar, __VA_ARGS__>, \
+      to_sequence<dummy_sequence, TChar>::bind<T>::apply<Value> \
     >(); \
   } while (false)
 

@@ -371,6 +371,52 @@ public:
   >::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
+   * Applies a metafunction to each element of this sequence.
+   *
+   * The metafunction should take a single parameter of type `type` and provide
+   * a `value` member with the result of type `type`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  template <int Value>
+   *  using square = std::integral_constant<int, Value * Value>;
+   *
+   *  // yields `constant_sequence<int, 16, 25, 36>`
+   *  using result1 = seq::transform<square>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <type> class Transform>
+  using transform = constant_sequence<type, Transform<Values>::value...>;
+
+  /**
+   * Applies a metafunction to each element of this sequence.
+   *
+   * The metafunction should take two parameters, the first being a type `T`
+   * and the second a value of type `T`. It must provide a `value` member with
+   * the result of type `T`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  template <typename T , T Value>
+   *  using square = std::integral_constant<T, Value * Value>;
+   *
+   *  // yields `constant_sequence<int, 16, 25, 36>`
+   *  using result1 = seq::typed_transform<square>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename, type> class Transform>
+  using typed_transform = constant_sequence<
+    type,
+    Transform<type, Values>::value...
+  >;
+
+  /**
    * Applies the values of this sequence to the given template.
    *
    * Example:
@@ -584,7 +630,8 @@ public:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, T Value, typename TChar = char>
-using to_constant_sequence = to_sequence<T, Value, constant_sequence, TChar>;
+using to_constant_sequence = typename to_sequence<constant_sequence, TChar>
+  ::template apply<T, Value>;
 
 ///////////////
 // FATAL_STR //

@@ -188,21 +188,29 @@ struct expand_recursive_map {
  * Example:
  *
  *  // yields `std::integer_sequence<char, '4', '2'>`
- *  using result1 = to_sequence<std::size_t, std::integer_sequence, 42>;
+ *  using result1 = to_sequence<std::integer_sequence>::apply<std::size_t, 42>;
  *
  *  // yields `std::integer_sequence<wchar_t, L'-', L'5', L'6'>`
- *  using result2 = to_sequence<int, -56, std::integer_sequence, wchar_t>;
+ *  using result2 = to_sequence<std::integer_sequence, wchar_t>
+ *    ::apply<int, -56>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <
-  typename T, T Value,
-  template <typename U, U...> class TSequence,
-  typename TChar = char
->
-using to_sequence = typename detail::operation_impl::to_sequence<
-  TChar, TSequence, T, Value
->::type;
+template <template <typename U, U...> class TSequence, typename TChar = char>
+struct to_sequence {
+  template <typename T>
+  struct bind {
+    template <T Value>
+    using apply = typename detail::operation_impl::to_sequence<
+      TChar, TSequence, T, Value
+    >::type;
+  };
+
+  template <typename T, T Value>
+  using apply = typename detail::operation_impl::to_sequence<
+    TChar, TSequence, T, Value
+  >::type;
+};
 
 ////////////////////
 // parse_sequence //
