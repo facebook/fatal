@@ -22,6 +22,7 @@ namespace fatal {
 template <int Value> using int_val = std::integral_constant<int, Value>;
 template <char... Values> using char_seq = constant_sequence<char, Values...>;
 template <int... Values> using int_seq = constant_sequence<int, Values...>;
+template <int... Values> using int_lst = type_list<int_val<Values>...>;
 
 using eis = int_seq<>;
 using ecs = char_seq<>;
@@ -814,6 +815,59 @@ FATAL_TEST(constant_sequence, typed_transform) {
   FATAL_EXPECT_SAME<
     int_seq<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
     int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>::typed_transform<typed_square_int>
+  >();
+}
+
+///////////////////////////////////////
+// constant_sequence::list_transform //
+///////////////////////////////////////
+
+FATAL_TEST(constant_sequence, list_transform) {
+  FATAL_EXPECT_SAME<
+    int_lst<>,
+    int_seq<>::list_transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<1>,
+    int_seq<1>::list_transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<81>,
+    int_seq<9>::list_transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
+    int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>::list_transform<square_int>
+  >();
+}
+
+/////////////////////////////////////////////
+// constant_sequence::typed_list_transform //
+/////////////////////////////////////////////
+
+FATAL_TEST(constant_sequence, typed_list_transform) {
+  FATAL_EXPECT_SAME<
+    int_lst<>,
+    int_seq<>::typed_list_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<1>,
+    int_seq<1>::typed_list_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<81>,
+    int_seq<9>::typed_list_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
+    int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>
+      ::typed_list_transform<typed_square_int>
   >();
 }
 

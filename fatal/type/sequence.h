@@ -417,6 +417,57 @@ public:
   >;
 
   /**
+   * Applies a metafunction to each element of this sequence, and returns the
+   * result as a type list.
+   *
+   * The metafunction should take a single parameter of type `type`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  template <int Value>
+   *  using square = std::integral_constant<int, Value * Value>;
+   *
+   *  // yields `type_list<
+   *  //   std::integral_constant<int, 16>,
+   *  //   std::integral_constant<int, 25>,
+   *  //   std::integral_constant<int, 36>
+   *  // >`
+   *  using result1 = seq::list_transform<square>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <type> class Transform>
+  using list_transform = type_list<Transform<Values>...>;
+
+  /**
+   * Applies a metafunction to each element of this sequence, and returns the
+   * result as a type list.
+   *
+   * The metafunction should take two parameters, the first being a type `T`
+   * and the second a value of type `T`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  template <typename T , T Value>
+   *  using square = std::integral_constant<T, Value * Value>;
+   *
+   *  // yields `type_list<
+   *  //   std::integral_constant<int, 16>,
+   *  //   std::integral_constant<int, 25>,
+   *  //   std::integral_constant<int, 36>
+   *  // >`
+   *  using result1 = seq::typed_list_transform<square>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename, type> class Transform>
+  using typed_list_transform = type_list<Transform<type, Values>...>;
+
+  /**
    * Applies the values of this sequence to the given template.
    *
    * Example:
