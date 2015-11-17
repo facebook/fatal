@@ -604,4 +604,33 @@ FATAL_TEST(operation, parse_sequence) {
 # undef TEST_IMPL
 }
 
+/////////////////////
+// composite tests //
+/////////////////////
+
+FATAL_STR(joined1, "1:2:3:4:5");
+FATAL_STR(joined2, "100");
+FATAL_STR(joined3, "1:22:333:4444:55555");
+
+FATAL_TEST(constant_sequence, int seq to joined string) {
+# define TEST_IMPL(Expected, ...) \
+    do { \
+      using expected = Expected; \
+      using input = int_seq<__VA_ARGS__>; \
+      using actual = input::typed_list_transform< \
+        to_constant_sequence<>::apply \
+      >::interleave<constant_sequence<char, ':'>>::apply< \
+        flatten_sequence<char, constant_sequence>::apply \
+      >; \
+      FATAL_EXPECT_SAME<expected, actual>(); \
+    } while (false)
+
+  TEST_IMPL(constant_sequence<char>);
+  TEST_IMPL(joined1, 1, 2, 3, 4, 5);
+  TEST_IMPL(joined2, 100);
+  TEST_IMPL(joined3, 1, 22, 333, 4444, 55555);
+
+# undef TEST_IMPL
+}
+
 } // namespace fatal {
