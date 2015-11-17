@@ -629,9 +629,19 @@ public:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename T, T Value, typename TChar = char>
-using to_constant_sequence = typename to_sequence<constant_sequence, TChar>
-  ::template apply<T, Value>;
+template <typename TChar = char>
+struct to_constant_sequence {
+  template <typename T>
+  struct bind {
+    template <T Value>
+    using apply = typename to_sequence<constant_sequence, TChar>
+      ::template apply<T, Value>;
+  };
+
+  template <typename T, T Value>
+  using apply = typename to_sequence<constant_sequence, TChar>
+    ::template apply<T, Value>;
+};
 
 ///////////////
 // FATAL_STR //

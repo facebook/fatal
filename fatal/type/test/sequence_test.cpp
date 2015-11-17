@@ -1012,7 +1012,12 @@ FATAL_TEST(to_constant_sequence, sanity_check) {
   do { \
     FATAL_EXPECT_SAME< \
       constant_sequence<TChar, __VA_ARGS__>, \
-      to_constant_sequence<T, Value, TChar> \
+      to_constant_sequence<TChar>::apply<T, Value> \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      constant_sequence<TChar, __VA_ARGS__>, \
+      to_constant_sequence<TChar>::bind<T>::apply<Value> \
     >(); \
   } while (false)
 
