@@ -103,7 +103,7 @@ struct type_list_from {
 };
 
 /**
- * A convenience comparer implementation for `binary_search()` that compares a
+ * A convenience comparer implementation for `binary_search` that compares a
  * variable against an `std::integral_constant`-like type.
  *
  * Returns `-1`, `0` or `1` when `lhs` is, respectively, less than, equal to or
@@ -139,7 +139,7 @@ struct type_value_comparer {
 };
 
 /**
- * A convenience comparer implementation for `binary_search()` that compares a
+ * A convenience comparer implementation for `binary_search` that compares a
  * variable against the `indexed_type_tag`'s `Index`.
  *
  * Returns `-1`, `0` or `1` when `lhs` is, respectively, less than, equal to or
@@ -3040,6 +3040,8 @@ struct type_list {
    */
   template <typename Comparer = type_value_comparer>
   class binary_search {
+    // TODO: ASSERT THE LIST IS SORTED
+
     using prepared = typename detail::type_list_impl::binary_search_prepare<
       Comparer, type_list<>, Args...
     >::type;
