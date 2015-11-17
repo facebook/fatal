@@ -722,6 +722,42 @@ FATAL_TEST(constant_sequence, right) {
 # undef TEST_IMPL
 }
 
+///////////////////////////////////
+// constant_sequence::interleave //
+///////////////////////////////////
+
+FATAL_TEST(constant_sequence, interleave) {
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::interleave<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::interleave<10>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::interleave<10, 20, 30>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 1, 2, 3, 4>,
+    int_seq<0, 1, 2, 3, 4>::interleave<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 10, 1, 10, 2, 10, 3, 10, 4>,
+    int_seq<0, 1, 2, 3, 4>::interleave<10>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 10, 20, 30, 1, 10, 20, 30, 2, 10, 20, 30, 3, 10, 20, 30, 4>,
+    int_seq<0, 1, 2, 3, 4>::interleave<10, 20, 30>
+  >();
+}
+
 //////////////////////////////
 // constant_sequence::apply //
 //////////////////////////////

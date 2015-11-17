@@ -347,6 +347,30 @@ public:
     ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
+   * Interleaves the given separators between each pair of elements of this
+   * sequence.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  // yields `constant_sequence<int, 4, 0, 5, 0, 6>`
+   *  using result1 = seq::interleave<0>;
+   *
+   *  // yields `constant_sequence<int, 4, 0, 1, 5, 0, 1, 6>`
+   *  using result2 = seq::interleave<0, 1>;
+   *
+   *  // yields `constant_sequence<int, 4, 5, 6>`
+   *  using result3 = seq::interleave<>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <type... Separator>
+  using interleave = typename list::template interleave<
+    std::integral_constant<type, Separator>...
+  >::template apply_typed_values<type, fatal::constant_sequence>;
+
+  /**
    * Applies the values of this sequence to the given template.
    *
    * Example:
