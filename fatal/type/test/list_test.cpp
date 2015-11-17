@@ -300,6 +300,45 @@ FATAL_TEST(push_front, push_front) {
   FATAL_EXPECT_SAME<tl::push_front<P0, P1, P2>, tpl>();
 }
 
+///////////////////////////
+// type_list::interleave //
+///////////////////////////
+
+FATAL_TEST(interleave, interleave) {
+  FATAL_EXPECT_SAME<
+    type_list<>,
+    type_list<>::interleave<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<>,
+    type_list<>::interleave<T<10>>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<>,
+    type_list<>::interleave<T<10>, T<20>, T<30>>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<T<0>, T<1>, T<2>, T<3>, T<4>>,
+    type_list<T<0>, T<1>, T<2>, T<3>, T<4>>::interleave<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<T<0>, T<10>, T<1>, T<10>, T<2>, T<10>, T<3>, T<10>, T<4>>,
+    type_list<T<0>, T<1>, T<2>, T<3>, T<4>>::interleave<T<10>>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      T<0>, T<10>, T<20>, T<30>, T<1>, T<10>, T<20>, T<30>,
+      T<2>, T<10>, T<20>, T<30>, T<3>, T<10>, T<20>, T<30>, T<4>
+    >,
+    type_list<T<0>, T<1>, T<2>, T<3>, T<4>>::interleave<T<10>, T<20>, T<30>>
+  >();
+}
+
 ///////////////////////
 // type_list::concat //
 ///////////////////////

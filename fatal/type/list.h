@@ -22,8 +22,6 @@
 
 namespace fatal {
 
-// TODO: ADD TESTS TO AVOID DOUBLE MOVES
-
 /**
  * READ ME FIRST: You probably want to jump to
  * the line that says `type_list IMPLEMENTATION`
@@ -174,1495 +172,55 @@ struct index_value_comparer {
   }
 };
 
-////////////////////////////
-// IMPLEMENTATION DETAILS //
-////////////////////////////
+////////////////////////////////////////
+// IMPLEMENTATION FORWARD DECLARATION //
+////////////////////////////////////////
 
 namespace detail {
 namespace type_list_impl {
 
-////////
-// at //
-////////
-
 template <std::size_t, typename...> struct at;
-
-template <std::size_t Distance, typename U, typename... UArgs>
-struct at<Distance, U, UArgs...> {
-  using type = typename at<Distance - 1, UArgs...>::type;
-};
-
-template <typename U, typename... UArgs>
-struct at<0, U, UArgs...> {
-  using type = U;
-};
-
-////////////
-// try_at //
-////////////
-
 template <bool, std::size_t, typename, typename...> struct try_at;
-
-template <std::size_t Index, typename Default, typename... Args>
-struct try_at<false, Index, Default, Args...> {
-  using type = Default;
-};
-
-template <std::size_t Index, typename Default, typename... Args>
-struct try_at<true, Index, Default, Args...> {
-  using type = typename at<Index, Args...>::type;
-};
-
-//////////////
-// index_of //
-//////////////
-
 template <std::size_t, typename, typename...> struct index_of;
-
-template <std::size_t Size, typename T>
-struct index_of<Size, T> {
-  using type = std::integral_constant<std::size_t, Size>;
-};
-
-template <std::size_t Index, typename T, typename... Args>
-struct index_of<Index, T, T, Args...> {
-  using type = std::integral_constant<std::size_t, Index>;
-};
-
-template <std::size_t Index, typename T, typename U, typename... Args>
-struct index_of<Index, T, U, Args...> {
-  using type = typename index_of<Index + 1, T, Args...>::type;
-};
-
-//////////////////////
-// checked_index_of //
-//////////////////////
-
 template <std::size_t, typename, typename...> struct checked_index_of;
-
-template <std::size_t Index, typename T, typename... Args>
-struct checked_index_of<Index, T, T, Args...> {
-  using type = std::integral_constant<std::size_t, Index>;
-};
-
-template <std::size_t Index, typename T, typename U, typename... Args>
-struct checked_index_of<Index, T, U, Args...> {
-  using type = typename checked_index_of<Index + 1, T, Args...>::type;
-};
-
-/////////////
-// type_at //
-/////////////
-
 template <typename...> struct type_at;
-
-template <typename U> struct type_at<U> {
-  static constexpr std::type_info const &at(std::size_t) {
-    return typeid(U);
-  }
-};
-
-// TODO: speed up search using interpolation search
-template <typename U, typename... UArgs> struct type_at<U, UArgs...> {
-  static constexpr std::type_info const &at(std::size_t index) {
-    return index ? type_at<UArgs...>::at(index - 1) : type_at<U>::at(index);
-  }
-};
-
-//////////////
-// contains //
-//////////////
-
-template <typename, typename...>
-struct contains {
-  using type = std::false_type;
-};
-
-template <typename T, typename... Args>
-struct contains<T, T, Args...> {
-  using type = std::true_type;
-};
-
-template <typename T, typename THead, typename... Args>
-struct contains<T, THead, Args...> {
-  using type = typename contains<T, Args...>::type;
-};
-
-////////////////
-// foreach_if //
-////////////////
-
-template <bool>
-struct conditional_visit {
-  template <typename V, typename... VArgs>
-  static constexpr std::size_t visit(V &&, VArgs &&...) { return 0; }
-};
-
-template <>
-struct conditional_visit<true> {
-  template <typename V, typename... VArgs>
-  static constexpr std::size_t visit(V &&visitor, VArgs &&...args) {
-    // hack to accommodate C++11's constexpr constraints
-    return visitor(std::forward<VArgs>(args)...), 1;
-  }
-};
-
-template <
-  template <typename...> class Predicate, std::size_t Index, typename...
->
-struct foreach_if {
-  template <typename V, typename... VArgs>
-  static constexpr std::size_t visit(std::size_t result, V &&, VArgs &&...) {
-    return result;
-  }
-};
-
-template <
-  template <typename...> class Predicate,
-  std::size_t Index, typename U, typename... UArgs
->
-struct foreach_if<Predicate, Index, U, UArgs...> {
-  template <typename V, typename... VArgs>
-  static constexpr std::size_t visit(
-    std::size_t result, V &&visitor, VArgs &&...args
-  ) {
-    return foreach_if<Predicate, Index + 1, UArgs...>::visit(
-      result + conditional_visit<fatal::apply<Predicate, U>::value>::visit(
-        visitor, indexed_type_tag<U, Index>(), args...
-      ), visitor, args...
-    );
-  }
-};
-
-///////////
-// visit //
-///////////
-
-// TODO: binary search for the given index
-// TODO: switch statement optimization
-
+template <typename, typename...> struct contains;
+template <template <typename...> class, std::size_t, typename...>
+struct foreach_if;
 template <std::size_t, typename...> struct visit;
-
-template <std::size_t Index, typename T, typename... Args>
-struct visit<Index, T, Args...> {
-  template <typename V, typename... VArgs>
-  static constexpr bool at(std::size_t index, V &&visitor, VArgs &&...args) {
-    return index == Index
-      ? (
-        visitor(
-          indexed_type_tag<T, Index>(),
-          std::forward<VArgs>(args)...
-        ),
-        true
-      )
-      : visit<Index + 1, Args...>::at(
-        index,
-        std::forward<V>(visitor),
-        std::forward<VArgs>(args)...
-      );
-  }
-};
-
-template <std::size_t Index>
-struct visit<Index> {
-  template <typename V, typename... VArgs>
-  static constexpr bool at(std::size_t, V &&, VArgs &&...) {
-    return false;
-  }
-};
-
-///////////////////////
-// indexed_transform //
-///////////////////////
-
 template <std::size_t, typename...> struct indexed_transform;
-
-template <std::size_t Index, typename T, typename... Args>
-struct indexed_transform<Index, T, Args...> {
-  template <
-    template <typename, std::size_t, typename...> class Transform,
-    typename... UArgs
-  >
-  using apply = typename indexed_transform<Index + 1, Args...>
-    ::template apply<Transform, UArgs...>
-    ::template push_front<Transform<T, Index>>;
-};
-
-template <std::size_t Index>
-struct indexed_transform<Index> {
-  template <template <typename, std::size_t, typename...> class, typename...>
-  using apply = type_list<>;
-};
-
-//////////////////////////
-// cumulative_transform //
-//////////////////////////
-
 template <bool, template <typename...> class, typename, typename, typename...>
 struct cumulative_transform;
-
-template <
-  template <typename...> class Transform,
-  typename Result,
-  typename Front,
-  typename T, typename... Tail
->
-// TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
-//       FOR OTHER IMPLEMENTATIONS LIKE HERE
-struct cumulative_transform<true, Transform, Result, Front, T, Tail...> {
-  using front = typename Front::template push_back<T>;
-
-  template <typename... UArgs>
-  using apply = typename cumulative_transform<
-    true,
-    Transform,
-    typename Result::template push_back<
-      typename front::template push_front<UArgs...>::template apply<Transform>
-    >,
-    front,
-    Tail...
-  >::template apply<UArgs...>;
-};
-
-template <
-  template <typename...> class Transform,
-  typename Result,
-  typename Front,
-  typename T, typename... Tail
->
-// TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
-//       FOR OTHER IMPLEMENTATIONS LIKE HERE
-struct cumulative_transform<false, Transform, Result, Front, T, Tail...> {
-  template <typename... UArgs>
-  using apply = typename cumulative_transform<
-    false,
-    Transform,
-    typename Result::template push_back<
-      typename Front::template push_front<UArgs...>::template apply<Transform>
-    >,
-    typename Front::template push_back<T>,
-    Tail...
-  >::template apply<UArgs...>;
-};
-
-template <
-  bool Inclusive,
-  template <typename...> class Transform,
-  typename Result,
-  typename Accumulator
->
-struct cumulative_transform<Inclusive, Transform, Result, Accumulator> {
-  template <typename...>
-  using apply = Result;
-};
-
-////////////////
-// accumulate //
-////////////////
-
-template <template <typename...> class, typename Accumulator, typename...>
-struct accumulate {
-  using type = Accumulator;
-};
-
-template <
-  template <typename...> class Transform,
-  typename Accumulator, typename T, typename... Args
->
-struct accumulate<Transform, Accumulator, T, Args...> {
-  using type = typename accumulate<
-    Transform, Transform<Accumulator, T>, Args...
-  >::type;
-};
-
-////////////
-// choose //
-////////////
-
-template <
-  template <typename...> class,
-  template <typename...> class,
-  typename...
-> struct choose;
-
-template <
-  template <typename...> class BinaryPredicate,
-  template <typename...> class Transform,
-  typename Chosen, typename Candidate, typename... Args
->
-struct choose<BinaryPredicate, Transform, Chosen, Candidate, Args...> {
-  using type = typename choose<
-    BinaryPredicate,
-    Transform,
-    typename std::conditional<
-      fatal::apply<
-        BinaryPredicate,
-        fatal::apply<Transform, Candidate>,
-        fatal::apply<Transform, Chosen>
-      >::value,
-      Candidate,
-      Chosen
-    >::type,
-    Args...
-  >::type;
-};
-
-template <
-  template <typename...> class BinaryPredicate,
-  template <typename...> class Transform,
-  typename Chosen
->
-struct choose<BinaryPredicate, Transform, Chosen> {
-  using type = Chosen;
-};
-
-///////////////////////
-// replace_transform //
-///////////////////////
-
-template <typename TFrom, typename TTo>
-struct replace_transform {
-  template <typename U>
-  using apply = typename std::conditional<
-    std::is_same<U, TFrom>::value, TTo, U
-  >::type;
-};
-
-//////////
-// left //
-//////////
-
-template <std::size_t, typename...> struct left;
-
-template <typename... Args>
-struct left<0, Args...> { using type = type_list<>; };
-
-template <typename T,typename... Args>
-struct left<0, T, Args...> { using type = type_list<>; };
-
-template <std::size_t Size, typename T, typename... Args>
-struct left<Size, T, Args...> {
-  static_assert(Size <= sizeof...(Args) + 1, "index out of bounds");
-  using type = typename left<Size - 1, Args...>::type::template push_front<T>;
-};
-
-///////////
-// slice //
-///////////
-
-template <std::size_t, std::size_t, typename...> struct slice;
-
-template <std::size_t End, typename... UArgs>
-struct slice<0, End, UArgs...> {
-  using type = typename left<End, UArgs...>::type;
-};
-
-template <std::size_t End, typename U, typename... UArgs>
-struct slice<0, End, U, UArgs...> {
-  using type = typename left<End, U, UArgs...>::type;
-};
-
-template <std::size_t Begin, std::size_t End, typename U, typename... UArgs>
-struct slice<Begin, End, U, UArgs...> {
-  static_assert(End >= Begin, "invalid range");
-  using type = typename slice<Begin - 1, End - 1, UArgs...>::type;
-};
-
-//////////////
-// separate //
-//////////////
-
-template <template <typename...> class, typename...> struct separate;
-
-template <template <typename...> class Predicate>
-struct separate<Predicate> {
-  using type = type_pair<type_list<>, type_list<>>;
-};
-
-template <
-  template <typename...> class Predicate,
-  typename U, typename... UArgs
->
-struct separate<Predicate, U, UArgs...> {
-  using tail = typename separate<Predicate, UArgs...>::type;
-
-  using type = typename std::conditional<
-    fatal::apply<Predicate, U>::value,
-    type_pair<
-      typename tail::first::template push_front<U>,
-      typename tail::second
-    >,
-    type_pair<
-      typename tail::first,
-      typename tail::second::template push_front<U>
-    >
-  >::type;
-};
-
-/////////
-// zip //
-/////////
-
-template <typename, typename> struct zip;
-
-template <>
-struct zip<type_list<>, type_list<>> {
-  using type = type_list<>;
-};
-
-template <typename T, typename... Args>
-struct zip<type_list<T, Args...>, type_list<>> {
-  using type = type_list<T, Args...>;
-};
-
-template <typename T, typename... Args>
-struct zip<type_list<>, type_list<T, Args...>> {
-  using type = type_list<T, Args...>;
-};
-
-template <
-  typename TLHS, typename... TLHSArgs,
-  typename TRHS, typename... TRHSArgs
->
-struct zip<type_list<TLHS, TLHSArgs...>, type_list<TRHS, TRHSArgs...>> {
-  using type = typename zip<
-    type_list<TLHSArgs...>,
-    type_list<TRHSArgs...>
-  >::type::template push_front<TLHS, TRHS>;
-};
-
-//////////
-// skip //
-//////////
-
-template <std::size_t, std::size_t, typename...> struct skip;
-
-template <std::size_t Next, std::size_t Step>
-struct skip<Next, Step> { using type = type_list<>; };
-
-template <std::size_t Step, typename U, typename... UArgs>
-struct skip<0, Step, U, UArgs...> {
-  using type = typename skip<Step, Step, UArgs...>::type
-    ::template push_front<U>;
-};
-
-template <std::size_t Next, std::size_t Step, typename U, typename... UArgs>
-struct skip<Next, Step, U, UArgs...> {
-  using type = typename skip<Next - 1, Step, UArgs...>::type;
-};
-
-template <std::size_t Step>
-struct curried_skip{
-  template <typename... UArgs>
-  using apply = skip<0, Step ? Step - 1 : 0, UArgs...>;
-};
-
-////////////
-// search //
-////////////
-
 template <template <typename...> class, typename, typename...>
-struct search;
-
-template <template <typename...> class Predicate, typename Default>
-struct search<Predicate, Default> { using type = Default; };
-
+struct accumulate;
 template <
-  template <typename...> class Predicate,
-  typename Default, typename U, typename... UArgs
->
-struct search<Predicate, Default, U, UArgs...> {
-  using type = typename std::conditional<
-    fatal::apply<Predicate, U>::value,
-    U,
-    typename search<Predicate, Default, UArgs...>::type
-  >::type;
-};
-
-//////////////////
-// deep_flatten //
-//////////////////
-
-template <std::size_t Depth, std::size_t MaxDepth, typename... Args>
-struct deep_flatten;
-
-// max depth reached - base case
-template <std::size_t MaxDepth, typename T, typename... Args>
-struct deep_flatten<MaxDepth, MaxDepth, T, Args...> {
-  using type = type_list<T, Args...>;
-};
-
-template <std::size_t Depth, std::size_t MaxDepth, typename T, typename... Args>
-struct deep_flatten<Depth, MaxDepth, T, Args...> {
-  using type = typename deep_flatten<Depth, MaxDepth, Args...>::type
-    ::template push_front<T>;
-};
-
-template <std::size_t Depth, std::size_t MaxDepth>
-struct deep_flatten<Depth, MaxDepth> {
-  using type = type_list<>;
-};
-
-template <std::size_t MaxDepth, typename... Args, typename... UArgs>
-struct deep_flatten<MaxDepth, MaxDepth, type_list<Args...>, UArgs...> {
-  using type = type_list<type_list<Args...>, UArgs...>;
-};
-
-template <
-  std::size_t Depth, std::size_t MaxDepth, typename... Args, typename... UArgs
->
-struct deep_flatten<Depth, MaxDepth, type_list<Args...>, UArgs...> {
-  using type = typename deep_flatten<Depth + 1, MaxDepth, Args...>::type
-    ::template concat<typename deep_flatten<Depth, MaxDepth, UArgs...>::type>;
-};
-
-////////////
-// concat //
-////////////
-
+  template <typename...> class, template <typename...> class, typename...
+> struct choose;
+template <typename, typename> struct replace_transform;
+template <std::size_t, typename...> struct left;
+template <std::size_t, std::size_t, typename...> struct slice;
+template <template <typename...> class, typename...> struct separate;
+template <typename, typename> struct zip;
+template <std::size_t, std::size_t, typename...> struct skip;
+template <std::size_t> struct curried_skip;
+template <template <typename...> class, typename, typename...> struct search;
+template <std::size_t, std::size_t, typename...> struct deep_flatten;
+template <typename...> struct interleave;
 template <typename...> struct concat;
-
-template <> struct concat<> { using type = type_list<>; };
-
-template <typename... Args, typename... TLists>
-struct concat<type_list<Args...>, TLists...> {
-  using type = typename concat<TLists...>::type::template push_front<Args...>;
-};
-
-///////////////////
-// insert_sorted //
-///////////////////
-
 template <template <typename...> class, typename, typename...>
 struct insert_sorted;
-
-template <template <typename...> class TLessComparer, typename T>
-struct insert_sorted<TLessComparer, T> { using type = type_list<T>; };
-
-template <
-  template <typename...> class TLessComparer,
-  typename T,
-  typename THead,
-  typename... TTail
->
-struct insert_sorted<TLessComparer, T, THead, TTail...> {
-  using type = typename std::conditional<
-    TLessComparer<T, THead>::value,
-    type_list<T, THead, TTail...>,
-    typename insert_sorted<
-      TLessComparer, T, TTail...
-    >::type::template push_front<THead>
-  >::type;
-};
-
-//////////////
-// multiply //
-//////////////
-
-template <std::size_t Multiplier, typename... Args>
-struct multiply {
-  static_assert(Multiplier > 0, "out of bounds");
-  using type = typename multiply<Multiplier - 1, Args...>::type
-    ::template push_back<Args...>;
-};
-
-template <typename... Args>
-struct multiply<0, Args...> {
-  using type = type_list<>;
-};
-
-//////////
-// tail //
-//////////
-
+template <std::size_t, typename...> struct multiply;
 template <std::size_t, typename...> struct tail;
-
-template <std::size_t Index> struct tail<Index> {
-  static_assert(Index == 0, "index out of bounds");
-  using type = type_list<>;
-};
-
-template <typename T, typename... Args>
-struct tail<0, T, Args...> { using type = type_list<T, Args...>; };
-
-template <std::size_t Index, typename T, typename... Args>
-struct tail<Index, T, Args...> {
-  static_assert(Index <= sizeof...(Args) + 1, "index out of bounds");
-  using type = typename tail<Index - 1, Args...>::type;
-};
-
-///////////
-// split //
-///////////
-
 template <std::size_t, typename...> struct split;
-
-template <>
-struct split<0> {
-  using type = type_pair<type_list<>, type_list<>>;
-};
-
-template <typename T, typename... Args>
-struct split<0, T, Args...> {
-  using type = type_pair<type_list<>, type_list<T, Args...>>;
-};
-
-template <std::size_t Index, typename T, typename... Args>
-struct split<Index, T, Args...> {
-  using tail = split<Index - 1, Args...>;
-
-  using type = type_pair<
-    typename tail::type::first::template push_front<T>,
-    typename tail::type::second
-  >;
-};
-
-///////////////
-// is_sorted //
-///////////////
-
-template <template <typename...> class, typename...>
-struct is_sorted: public std::true_type {};
-
-template <
-  template <typename...> class TLessComparer,
-  typename TLHS, typename TRHS, typename... Args
->
-struct is_sorted<TLessComparer, TLHS, TRHS, Args...>:
-  public logical::all<
-    logical::negate<TLessComparer<TRHS, TLHS>>,
-    is_sorted<TLessComparer, TRHS, Args...>
-  >
-{};
-
-///////////
-// merge //
-///////////
-
-template <template <typename...> class, typename, typename...> struct merge;
-
-template <template <typename...> class TLessComparer>
-struct merge<TLessComparer, type_list<>> { typedef type_list<> type; };
-
-template <template <typename...> class TLessComparer, typename TRHSList>
-struct merge<TLessComparer, TRHSList> { typedef TRHSList type; };
-
-template <
-  template <typename...> class TLessComparer,
-  typename TLHS, typename... TLHSArgs
->
-struct merge<TLessComparer, type_list<>, TLHS, TLHSArgs...> {
-  typedef type_list<TLHS, TLHSArgs...> type;
-};
-
-template <
-  template <typename...> class TLessComparer,
-  typename TRHSList, typename TLHS, typename... TLHSArgs
->
-struct merge<TLessComparer, TRHSList, TLHS, TLHSArgs...> {
-  typedef typename TRHSList::template at<0> rhs;
-  typedef TLessComparer<rhs, TLHS> right_merge;
-  typedef typename std::conditional<right_merge::value, rhs, TLHS>::type head;
-  typedef typename std::conditional<
-    right_merge::value,
-    merge<
-      TLessComparer, typename TRHSList::template tail<1>, TLHS, TLHSArgs...
-    >,
-    merge<TLessComparer, TRHSList, TLHSArgs...>
-  >::type::type tail;
-
-  typedef typename tail::template push_front<head> type;
-};
-
-template <
-  template <typename...> class TLessComparer,
-  typename TRHSList, typename... TLHSArgs
->
-struct merge_entry_point {
-#   ifndef NDEBUG
-  // debug only due to compilation times
-  static_assert(
-    type_list<TLHSArgs...>::template is_sorted<TLessComparer>::value,
-    "left hand side list is not sorted"
-  );
-
-  static_assert(
-    TRHSList::template is_sorted<TLessComparer>::value,
-    "right hand side list is not sorted"
-  );
-#   endif // NDEBUG
-  typedef typename merge<TLessComparer, TRHSList, TLHSArgs...>::type type;
-};
-
-//////////
-// sort //
-//////////
-
-template <template <typename...> class TLessComparer, typename TList>
-struct sort {
-  typedef typename TList::template split<TList::size / 2> unsorted;
-  typedef typename sort<
-    TLessComparer, typename unsorted::first
-  >::type sorted_left;
-  typedef typename sort<
-    TLessComparer, typename unsorted::second
-  >::type sorted_right;
-
-  static_assert(TList::size > 1, "invalid specialization");
-  using type = typename sorted_left::template merge<TLessComparer>
-    ::template list<sorted_right>;
-};
-
-template <template <typename...> class TLessComparer>
-struct sort<TLessComparer, type_list<>> { typedef type_list<> type; };
-
-template <template <typename...> class TLessComparer, typename T>
-struct sort<TLessComparer, type_list<T>> { typedef type_list<T> type; };
-
-////////////
-// unique //
-////////////
-
+template <template <typename...> class, typename...> struct is_sorted;
+template <template <typename...> class, typename, typename...>
+struct merge_entry_point;
+template <template <typename...> class, typename> struct sort;
 template <typename, typename...> struct unique;
-template <typename TResult> struct unique<TResult> { using type = TResult; };
-
-template <typename TResult, typename T, typename... Args>
-struct unique<TResult, T, Args...> {
-  using type = typename unique<
-    typename std::conditional<
-      TResult::template contains<T>::value,
-      TResult,
-      typename TResult::template push_back<T>
-    >::type,
-    Args...
-  >::type;
-};
-
-///////////////////////////
-// binary_search_prepare //
-///////////////////////////
-
 template <typename, typename, typename...> struct binary_search_prepare;
-
-template <typename Comparer, typename... Args>
-struct binary_search_prepare<Comparer, type_list<>, Args...> {
-  using type = type_list<Args...>;
-};
-
-template <typename T>
-struct binary_search_prepare<type_value_comparer, T> {
-  using type = T;
-};
-
-template <>
-struct binary_search_prepare<type_value_comparer, type_list<>> {
-  using type = type_list<>;
-};
-
-template <typename Head, typename... Tail>
-struct binary_search_prepare<type_value_comparer, type_list<>, Head, Tail...> {
-  using type = typename binary_search_prepare<
-    type_value_comparer, type_list<Head>, Tail...
-  >::type;
-};
-
-template <typename... Args, typename Head, typename... Tail>
-struct binary_search_prepare<
-  type_value_comparer, type_list<Args...>,
-  Head, Tail...
-> {
-  using list = type_list<Args...>;
-  using previous = typename list::template at<list::size - 1>;
-
-  static_assert(
-    previous::value <= Head::value,
-    "binary_search requires a sorted list as input"
-  );
-
-  using type = typename binary_search_prepare<
-    type_value_comparer,
-    typename std::conditional<
-      previous::value == Head::value,
-      list,
-      typename list::template push_back<Head>
-    >::type,
-    Tail...
-  >::type;
-};
-
-/////////////////////////
-// binary_search_exact //
-/////////////////////////
-
-template <typename Comparer, typename... Args>
-struct binary_search_exact {
-  typedef type_list<Args...> list;
-
-  using split = typename list:: template split<list::size / 2>;
-  static_assert(!split::second::empty, "invalid specialization");
-
-  using left = typename split::first;
-  using right = typename split::second::template tail<1>;
-
-  template <std::size_t Offset> using pivot = indexed_type_tag<
-    typename split::second::template at<0>,
-    Offset + left::size
-  >;
-
-  template <
-    std::size_t Offset, typename TComparison,
-    typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool impl(
-    TComparison &&comparison, Needle &&needle,
-    Visitor &&visitor, VArgs &&...args
-  ) {
-    // ternary needed due to C++11's constexpr restrictions
-    return comparison < 0
-      ? left::template apply_front<
-          type_list_impl::binary_search_exact, Comparer
-        >::template search<Offset>(
-          std::forward<Needle>(needle),
-          std::forward<Visitor>(visitor),
-          std::forward<VArgs>(args)...
-        )
-      : (0 < comparison
-        ? right::template apply_front<
-            type_list_impl::binary_search_exact, Comparer
-          >::template search<Offset + left::size + 1>(
-            std::forward<Needle>(needle),
-            std::forward<Visitor>(visitor),
-            std::forward<VArgs>(args)...
-          )
-        : (
-          // comma operator needed due to C++11's constexpr restrictions
-          visitor(
-            pivot<Offset>{},
-            std::forward<Needle>(needle),
-            std::forward<VArgs>(args)...
-          ), true
-        )
-      );
-  }
-
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    return impl<Offset>(
-      Comparer::compare(needle, pivot<Offset>{}),
-      needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
-    );
-  }
-};
-
-template <typename Comparer>
-struct binary_search_exact<Comparer> {
-  template <
-    std::size_t, typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
-    return false;
-  }
-};
-
-// optimization for low cardinality lists //
-
-#define FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(Index) \
-  ( \
-    visitor( \
-      indexed_type_tag<T##Index, Offset + 0x##Index>(), \
-      std::forward<Needle>(needle), \
-      std::forward<VArgs>(args)... \
-    ), true \
-  )
-
-template <typename T0>
-struct binary_search_exact<type_value_comparer, T0> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    return needle == T0::value
-      ? FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0)
-      : false;
-  }
-};
-
-template <typename T0, typename T1>
-struct binary_search_exact<type_value_comparer, T0, T1> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      default: return false;
-    }
-  }
-};
-
-template <typename T0, typename T1, typename T2>
-struct binary_search_exact<type_value_comparer, T0, T1, T2> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      default: return false;
-    }
-  }
-};
-
-template <typename T0, typename T1, typename T2, typename T3>
-struct binary_search_exact<type_value_comparer, T0, T1, T2, T3> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      default: return false;
-    }
-  }
-};
-
-template <typename T0, typename T1, typename T2, typename T3, typename T4>
-struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3, typename T4, typename T5
->
-struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4, T5> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6
->
-struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4, T5, T6> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7
->
-struct binary_search_exact<
-  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7, typename T8
->
-struct binary_search_exact<
-  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7, typename T8, typename T9
->
-struct binary_search_exact<
-  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
-      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7,
-  typename T8, typename T9, typename TA
->
-struct binary_search_exact<
-  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
-      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
-      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7,
-  typename T8, typename T9, typename TA, typename TB
->
-struct binary_search_exact<
-  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
-      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
-      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
-      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7,
-  typename T8, typename T9, typename TA, typename TB, typename TC
->
-struct binary_search_exact<
-  type_value_comparer,
-  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
-      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
-      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
-      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
-      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7,
-  typename T8, typename T9, typename TA, typename TB, typename TC, typename TD
->
-struct binary_search_exact<
-  type_value_comparer,
-  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
-      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
-      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
-      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
-      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
-      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7,
-  typename T8, typename T9, typename TA, typename TB,
-  typename TC, typename TD, typename TE
->
-struct binary_search_exact<
-  type_value_comparer,
-  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD, TE
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
-      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
-      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
-      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
-      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
-      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
-      case TE::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(E);
-      default: return false;
-    }
-  }
-};
-
-template <
-  typename T0, typename T1, typename T2, typename T3,
-  typename T4, typename T5, typename T6, typename T7,
-  typename T8, typename T9, typename TA, typename TB,
-  typename TC, typename TD, typename TE, typename TF
->
-struct binary_search_exact<
-  type_value_comparer,
-  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD, TE, TF
-> {
-  template <
-    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
-  >
-  static bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    switch (needle) {
-      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
-      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
-      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
-      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
-      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
-      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
-      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
-      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
-      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
-      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
-      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
-      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
-      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
-      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
-      case TE::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(E);
-      case TF::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(F);
-      default: return false;
-    }
-  }
-};
-
-///////////////////////////////
-// binary_search_lower_bound //
-///////////////////////////////
-
-template <typename... Args>
-struct binary_search_lower_bound {
-  typedef type_list<Args...> list;
-  typedef typename list:: template split<list::size / 2> split;
-  typedef typename split::first left;
-  typedef typename split::second right;
-  template <std::size_t Offset> using pivot = indexed_type_tag<
-    typename right::template at<0>,
-    Offset + left::size
-  >;
-
-  template <
-    typename Comparer, std::size_t Offset,
-    typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool impl(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    // ternary needed due to C++11's constexpr restrictions
-    return Comparer::compare(needle, pivot<Offset>{}) < 0
-      ? left::template apply<
-          type_list_impl::binary_search_lower_bound
-        >::template impl<Comparer, Offset>(
-          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
-        )
-      : right::template apply<
-          type_list_impl::binary_search_lower_bound
-        >::template impl<Comparer, Offset + left::size>(
-          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
-        );
-  }
-
-  template <
-    typename Comparer, typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    typedef indexed_type_tag<typename list::template at<0>, 0> first;
-    return Comparer::compare(needle, first{}) >= 0
-      && impl<Comparer, 0>(
-        needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
-      );
-  }
-};
-
-template <typename T>
-struct binary_search_lower_bound<T> {
-  template <
-    typename Comparer, std::size_t Offset,
-    typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool impl(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    // comma operator needed due to C++11's constexpr restrictions
-    return visitor(
-      indexed_type_tag<T, Offset>{},
-      std::forward<Needle>(needle),
-      std::forward<VArgs>(args)...
-    ), true;
-  }
-
-  template <
-    typename Comparer, typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    return Comparer::compare(needle, indexed_type_tag<T, 0>{}) >= 0
-      && impl<Comparer, 0>(
-        needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
-      );
-  }
-};
-
-template <>
-struct binary_search_lower_bound<> {
-  template <
-    typename, std::size_t,
-    typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool impl(Needle &&, Visitor &&, VArgs &&...) {
-    return false;
-  }
-
-  template <typename, typename Needle, typename Visitor, typename... VArgs>
-  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
-    return false;
-  }
-};
-
-///////////////////////////////
-// binary_search_upper_bound //
-///////////////////////////////
-
-template <typename... Args>
-struct binary_search_upper_bound {
-  typedef type_list<Args...> list;
-  typedef typename list:: template split<(list::size + 1) / 2> split;
-  typedef typename split::first left;
-  typedef typename split::second right;
-  template <std::size_t Offset> using pivot = indexed_type_tag<
-    typename left::template at<left::size - 1>,
-    Offset + (left::size - 1)
-  >;
-
-  template <
-    typename Comparer, std::size_t Offset,
-    typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    // ternary needed due to C++11's constexpr restrictions
-    return Comparer::compare(needle, pivot<Offset>{}) < 0
-      ? left::template apply<
-          type_list_impl::binary_search_upper_bound
-        >::template search<Comparer, Offset>(
-          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
-        )
-      : right::template apply<
-          type_list_impl::binary_search_upper_bound
-        >::template search<Comparer, Offset + left::size>(
-          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
-        );
-  }
-};
-
-template <typename T>
-struct binary_search_upper_bound<T> {
-  template <
-    typename Comparer, std::size_t Offset,
-    typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool search(
-    Needle &&needle, Visitor &&visitor, VArgs &&...args
-  ) {
-    return Comparer::compare(needle, indexed_type_tag<T, Offset>{}) < 0 && (
-      // comma operator needed due to C++11's constexpr restrictions
-      visitor(
-        indexed_type_tag<T, Offset>{},
-        needle,
-        std::forward<VArgs>(args)...
-      ), true
-    );
-  }
-};
-
-template <>
-struct binary_search_upper_bound<> {
-  template <
-    typename, std::size_t,
-    typename Needle, typename Visitor, typename... VArgs
-  >
-  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
-    return false;
-  }
-};
+template <typename, typename...> struct binary_search_exact;
+template <typename...> struct binary_search_lower_bound;
+template <typename...> struct binary_search_upper_bound;
 
 } // namespace type_list_impl {
 } // namespace detail {
@@ -1812,6 +370,29 @@ struct type_list {
    */
   template <typename... Prefix>
   using push_front = type_list<Prefix..., Args...>;
+
+  /**
+   * Interleaves the given separators between each pair of elements of this
+   * list.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  // yields `constant_sequence<int, 4, 0, 5, 0, 6>`
+   *  using result1 = seq::interleave<0>;
+   *
+   *  // yields `constant_sequence<int, 4, 0, 1, 5, 0, 1, 6>`
+   *  using result2 = seq::interleave<0, 1>;
+   *
+   *  // yields `constant_sequence<int, 4, 5, 6>`
+   *  using result3 = seq::interleave<>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename... Separator>
+  using interleave = typename detail::type_list_impl::interleave<Args...>
+    ::template apply<Separator...>::template after<>;
 
   /**
    * Appends the types from the given `type_list` to the end of this one.
@@ -3197,6 +1778,1481 @@ using size_list = type_list<std::integral_constant<std::size_t, Values>...>;
 template <typename... Args> constexpr std::size_t type_list<Args...>::size;
 template <typename... Args> constexpr bool type_list<Args...>::empty;
 
+////////////////////////////
+// IMPLEMENTATION DETAILS //
+////////////////////////////
+
+namespace detail {
+namespace type_list_impl {
+
+////////
+// at //
+////////
+
+template <std::size_t Distance, typename U, typename... UArgs>
+struct at<Distance, U, UArgs...> {
+  using type = typename at<Distance - 1, UArgs...>::type;
+};
+
+template <typename U, typename... UArgs>
+struct at<0, U, UArgs...> {
+  using type = U;
+};
+
+////////////
+// try_at //
+////////////
+
+template <std::size_t Index, typename Default, typename... Args>
+struct try_at<false, Index, Default, Args...> {
+  using type = Default;
+};
+
+template <std::size_t Index, typename Default, typename... Args>
+struct try_at<true, Index, Default, Args...> {
+  using type = typename at<Index, Args...>::type;
+};
+
+//////////////
+// index_of //
+//////////////
+
+template <std::size_t Size, typename T>
+struct index_of<Size, T> {
+  using type = std::integral_constant<std::size_t, Size>;
+};
+
+template <std::size_t Index, typename T, typename... Args>
+struct index_of<Index, T, T, Args...> {
+  using type = std::integral_constant<std::size_t, Index>;
+};
+
+template <std::size_t Index, typename T, typename U, typename... Args>
+struct index_of<Index, T, U, Args...> {
+  using type = typename index_of<Index + 1, T, Args...>::type;
+};
+
+//////////////////////
+// checked_index_of //
+//////////////////////
+
+template <std::size_t Index, typename T, typename... Args>
+struct checked_index_of<Index, T, T, Args...> {
+  using type = std::integral_constant<std::size_t, Index>;
+};
+
+template <std::size_t Index, typename T, typename U, typename... Args>
+struct checked_index_of<Index, T, U, Args...> {
+  using type = typename checked_index_of<Index + 1, T, Args...>::type;
+};
+
+/////////////
+// type_at //
+/////////////
+
+template <typename U> struct type_at<U> {
+  static constexpr std::type_info const &at(std::size_t) {
+    return typeid(U);
+  }
+};
+
+// TODO: speed up search using interpolation search
+template <typename U, typename... UArgs> struct type_at<U, UArgs...> {
+  static constexpr std::type_info const &at(std::size_t index) {
+    return index ? type_at<UArgs...>::at(index - 1) : type_at<U>::at(index);
+  }
+};
+
+//////////////
+// contains //
+//////////////
+
+template <typename, typename...>
+struct contains {
+  using type = std::false_type;
+};
+
+template <typename T, typename... Args>
+struct contains<T, T, Args...> {
+  using type = std::true_type;
+};
+
+template <typename T, typename THead, typename... Args>
+struct contains<T, THead, Args...> {
+  using type = typename contains<T, Args...>::type;
+};
+
+////////////////
+// foreach_if //
+////////////////
+
+template <bool>
+struct conditional_visit {
+  template <typename V, typename... VArgs>
+  static constexpr std::size_t visit(V &&, VArgs &&...) { return 0; }
+};
+
+template <>
+struct conditional_visit<true> {
+  template <typename V, typename... VArgs>
+  static constexpr std::size_t visit(V &&visitor, VArgs &&...args) {
+    // hack to accommodate C++11's constexpr constraints
+    return visitor(std::forward<VArgs>(args)...), 1;
+  }
+};
+
+template <
+  template <typename...> class Predicate, std::size_t Index, typename...
+>
+struct foreach_if {
+  template <typename V, typename... VArgs>
+  static constexpr std::size_t visit(std::size_t result, V &&, VArgs &&...) {
+    return result;
+  }
+};
+
+template <
+  template <typename...> class Predicate,
+  std::size_t Index, typename U, typename... UArgs
+>
+struct foreach_if<Predicate, Index, U, UArgs...> {
+  template <typename V, typename... VArgs>
+  static constexpr std::size_t visit(
+    std::size_t result, V &&visitor, VArgs &&...args
+  ) {
+    return foreach_if<Predicate, Index + 1, UArgs...>::visit(
+      result + conditional_visit<fatal::apply<Predicate, U>::value>::visit(
+        visitor, indexed_type_tag<U, Index>(), args...
+      ), visitor, args...
+    );
+  }
+};
+
+///////////
+// visit //
+///////////
+
+// TODO: binary search for the given index
+// TODO: switch statement optimization
+
+template <std::size_t Index, typename T, typename... Args>
+struct visit<Index, T, Args...> {
+  template <typename V, typename... VArgs>
+  static constexpr bool at(std::size_t index, V &&visitor, VArgs &&...args) {
+    return index == Index
+      ? (
+        visitor(
+          indexed_type_tag<T, Index>(),
+          std::forward<VArgs>(args)...
+        ),
+        true
+      )
+      : visit<Index + 1, Args...>::at(
+        index,
+        std::forward<V>(visitor),
+        std::forward<VArgs>(args)...
+      );
+  }
+};
+
+template <std::size_t Index>
+struct visit<Index> {
+  template <typename V, typename... VArgs>
+  static constexpr bool at(std::size_t, V &&, VArgs &&...) {
+    return false;
+  }
+};
+
+///////////////////////
+// indexed_transform //
+///////////////////////
+
+template <std::size_t Index, typename T, typename... Args>
+struct indexed_transform<Index, T, Args...> {
+  template <
+    template <typename, std::size_t, typename...> class Transform,
+    typename... UArgs
+  >
+  using apply = typename indexed_transform<Index + 1, Args...>
+    ::template apply<Transform, UArgs...>
+    ::template push_front<Transform<T, Index>>;
+};
+
+template <std::size_t Index>
+struct indexed_transform<Index> {
+  template <template <typename, std::size_t, typename...> class, typename...>
+  using apply = type_list<>;
+};
+
+//////////////////////////
+// cumulative_transform //
+//////////////////////////
+
+template <
+  template <typename...> class Transform,
+  typename Result,
+  typename Front,
+  typename T, typename... Tail
+>
+// TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
+//       FOR OTHER IMPLEMENTATIONS LIKE HERE
+struct cumulative_transform<true, Transform, Result, Front, T, Tail...> {
+  using front = typename Front::template push_back<T>;
+
+  template <typename... UArgs>
+  using apply = typename cumulative_transform<
+    true,
+    Transform,
+    typename Result::template push_back<
+      typename front::template push_front<UArgs...>::template apply<Transform>
+    >,
+    front,
+    Tail...
+  >::template apply<UArgs...>;
+};
+
+template <
+  template <typename...> class Transform,
+  typename Result,
+  typename Front,
+  typename T, typename... Tail
+>
+// TODO: BENCHMARK THE TEST FILE BY EXPLOITING TYPE DEDUCTION ON SPECIALIZATIONS
+//       FOR OTHER IMPLEMENTATIONS LIKE HERE
+struct cumulative_transform<false, Transform, Result, Front, T, Tail...> {
+  template <typename... UArgs>
+  using apply = typename cumulative_transform<
+    false,
+    Transform,
+    typename Result::template push_back<
+      typename Front::template push_front<UArgs...>::template apply<Transform>
+    >,
+    typename Front::template push_back<T>,
+    Tail...
+  >::template apply<UArgs...>;
+};
+
+template <
+  bool Inclusive,
+  template <typename...> class Transform,
+  typename Result,
+  typename Accumulator
+>
+struct cumulative_transform<Inclusive, Transform, Result, Accumulator> {
+  template <typename...>
+  using apply = Result;
+};
+
+////////////////
+// accumulate //
+////////////////
+
+template <template <typename...> class, typename Accumulator, typename...>
+struct accumulate {
+  using type = Accumulator;
+};
+
+template <
+  template <typename...> class Transform,
+  typename Accumulator, typename T, typename... Args
+>
+struct accumulate<Transform, Accumulator, T, Args...> {
+  using type = typename accumulate<
+    Transform, Transform<Accumulator, T>, Args...
+  >::type;
+};
+
+////////////
+// choose //
+////////////
+
+template <
+  template <typename...> class BinaryPredicate,
+  template <typename...> class Transform,
+  typename Chosen, typename Candidate, typename... Args
+>
+struct choose<BinaryPredicate, Transform, Chosen, Candidate, Args...> {
+  using type = typename choose<
+    BinaryPredicate,
+    Transform,
+    typename std::conditional<
+      fatal::apply<
+        BinaryPredicate,
+        fatal::apply<Transform, Candidate>,
+        fatal::apply<Transform, Chosen>
+      >::value,
+      Candidate,
+      Chosen
+    >::type,
+    Args...
+  >::type;
+};
+
+template <
+  template <typename...> class BinaryPredicate,
+  template <typename...> class Transform,
+  typename Chosen
+>
+struct choose<BinaryPredicate, Transform, Chosen> {
+  using type = Chosen;
+};
+
+///////////////////////
+// replace_transform //
+///////////////////////
+
+template <typename TFrom, typename TTo>
+struct replace_transform {
+  template <typename U>
+  using apply = typename std::conditional<
+    std::is_same<U, TFrom>::value, TTo, U
+  >::type;
+};
+
+//////////
+// left //
+//////////
+
+template <typename... Args>
+struct left<0, Args...> { using type = type_list<>; };
+
+template <typename T,typename... Args>
+struct left<0, T, Args...> { using type = type_list<>; };
+
+template <std::size_t Size, typename T, typename... Args>
+struct left<Size, T, Args...> {
+  static_assert(Size <= sizeof...(Args) + 1, "index out of bounds");
+  using type = typename left<Size - 1, Args...>::type::template push_front<T>;
+};
+
+///////////
+// slice //
+///////////
+
+template <std::size_t End, typename... UArgs>
+struct slice<0, End, UArgs...> {
+  using type = typename left<End, UArgs...>::type;
+};
+
+template <std::size_t End, typename U, typename... UArgs>
+struct slice<0, End, U, UArgs...> {
+  using type = typename left<End, U, UArgs...>::type;
+};
+
+template <std::size_t Begin, std::size_t End, typename U, typename... UArgs>
+struct slice<Begin, End, U, UArgs...> {
+  static_assert(End >= Begin, "invalid range");
+  using type = typename slice<Begin - 1, End - 1, UArgs...>::type;
+};
+
+//////////////
+// separate //
+//////////////
+
+template <template <typename...> class Predicate>
+struct separate<Predicate> {
+  using type = type_pair<type_list<>, type_list<>>;
+};
+
+template <
+  template <typename...> class Predicate,
+  typename U, typename... UArgs
+>
+struct separate<Predicate, U, UArgs...> {
+  using tail = typename separate<Predicate, UArgs...>::type;
+
+  using type = typename std::conditional<
+    fatal::apply<Predicate, U>::value,
+    type_pair<
+      typename tail::first::template push_front<U>,
+      typename tail::second
+    >,
+    type_pair<
+      typename tail::first,
+      typename tail::second::template push_front<U>
+    >
+  >::type;
+};
+
+/////////
+// zip //
+/////////
+
+template <>
+struct zip<type_list<>, type_list<>> {
+  using type = type_list<>;
+};
+
+template <typename T, typename... Args>
+struct zip<type_list<T, Args...>, type_list<>> {
+  using type = type_list<T, Args...>;
+};
+
+template <typename T, typename... Args>
+struct zip<type_list<>, type_list<T, Args...>> {
+  using type = type_list<T, Args...>;
+};
+
+template <
+  typename TLHS, typename... TLHSArgs,
+  typename TRHS, typename... TRHSArgs
+>
+struct zip<type_list<TLHS, TLHSArgs...>, type_list<TRHS, TRHSArgs...>> {
+  using type = typename zip<
+    type_list<TLHSArgs...>,
+    type_list<TRHSArgs...>
+  >::type::template push_front<TLHS, TRHS>;
+};
+
+//////////
+// skip //
+//////////
+
+template <std::size_t Next, std::size_t Step>
+struct skip<Next, Step> { using type = type_list<>; };
+
+template <std::size_t Step, typename U, typename... UArgs>
+struct skip<0, Step, U, UArgs...> {
+  using type = typename skip<Step, Step, UArgs...>::type
+    ::template push_front<U>;
+};
+
+template <std::size_t Next, std::size_t Step, typename U, typename... UArgs>
+struct skip<Next, Step, U, UArgs...> {
+  using type = typename skip<Next - 1, Step, UArgs...>::type;
+};
+
+template <std::size_t Step>
+struct curried_skip {
+  template <typename... UArgs>
+  using apply = skip<0, Step ? Step - 1 : 0, UArgs...>;
+};
+
+////////////
+// search //
+////////////
+
+template <template <typename...> class Predicate, typename Default>
+struct search<Predicate, Default> { using type = Default; };
+
+template <
+  template <typename...> class Predicate,
+  typename Default, typename U, typename... UArgs
+>
+struct search<Predicate, Default, U, UArgs...> {
+  using type = typename std::conditional<
+    fatal::apply<Predicate, U>::value,
+    U,
+    typename search<Predicate, Default, UArgs...>::type
+  >::type;
+};
+
+//////////////////
+// deep_flatten //
+//////////////////
+
+// max depth reached - base case
+template <std::size_t MaxDepth, typename T, typename... Args>
+struct deep_flatten<MaxDepth, MaxDepth, T, Args...> {
+  using type = type_list<T, Args...>;
+};
+
+template <std::size_t Depth, std::size_t MaxDepth, typename T, typename... Args>
+struct deep_flatten<Depth, MaxDepth, T, Args...> {
+  using type = typename deep_flatten<Depth, MaxDepth, Args...>::type
+    ::template push_front<T>;
+};
+
+template <std::size_t Depth, std::size_t MaxDepth>
+struct deep_flatten<Depth, MaxDepth> {
+  using type = type_list<>;
+};
+
+template <std::size_t MaxDepth, typename... Args, typename... UArgs>
+struct deep_flatten<MaxDepth, MaxDepth, type_list<Args...>, UArgs...> {
+  using type = type_list<type_list<Args...>, UArgs...>;
+};
+
+template <
+  std::size_t Depth, std::size_t MaxDepth, typename... Args, typename... UArgs
+>
+struct deep_flatten<Depth, MaxDepth, type_list<Args...>, UArgs...> {
+  using type = typename deep_flatten<Depth + 1, MaxDepth, Args...>::type
+    ::template concat<typename deep_flatten<Depth, MaxDepth, UArgs...>::type>;
+};
+
+////////////////
+// interleave //
+////////////////
+
+template <>
+struct interleave<> {
+  template <typename...>
+  struct apply {
+    template <typename... Prefix>
+    using after = type_list<Prefix...>;
+  };
+};
+
+template <typename T>
+struct interleave<T> {
+  template <typename...>
+  struct apply {
+    template <typename... Prefix>
+    using after = type_list<Prefix..., T>;
+  };
+};
+
+template <typename T, typename... Args>
+struct interleave<T, Args...> {
+  template <typename... Separator>
+  struct apply {
+    template <typename... Prefix>
+    using after = typename interleave<Args...>::template apply<Separator...>
+      :: template after<Prefix..., T, Separator...>;
+  };
+};
+
+////////////
+// concat //
+////////////
+
+template <> struct concat<> { using type = type_list<>; };
+
+template <typename... Args, typename... TLists>
+struct concat<type_list<Args...>, TLists...> {
+  using type = typename concat<TLists...>::type::template push_front<Args...>;
+};
+
+///////////////////
+// insert_sorted //
+///////////////////
+
+template <template <typename...> class TLessComparer, typename T>
+struct insert_sorted<TLessComparer, T> { using type = type_list<T>; };
+
+template <
+  template <typename...> class TLessComparer,
+  typename T,
+  typename THead,
+  typename... TTail
+>
+struct insert_sorted<TLessComparer, T, THead, TTail...> {
+  using type = typename std::conditional<
+    TLessComparer<T, THead>::value,
+    type_list<T, THead, TTail...>,
+    typename insert_sorted<
+      TLessComparer, T, TTail...
+    >::type::template push_front<THead>
+  >::type;
+};
+
+//////////////
+// multiply //
+//////////////
+
+template <std::size_t Multiplier, typename... Args>
+struct multiply {
+  static_assert(Multiplier > 0, "out of bounds");
+  using type = typename multiply<Multiplier - 1, Args...>::type
+    ::template push_back<Args...>;
+};
+
+template <typename... Args>
+struct multiply<0, Args...> {
+  using type = type_list<>;
+};
+
+//////////
+// tail //
+//////////
+
+template <std::size_t Index> struct tail<Index> {
+  static_assert(Index == 0, "index out of bounds");
+  using type = type_list<>;
+};
+
+template <typename T, typename... Args>
+struct tail<0, T, Args...> { using type = type_list<T, Args...>; };
+
+template <std::size_t Index, typename T, typename... Args>
+struct tail<Index, T, Args...> {
+  static_assert(Index <= sizeof...(Args) + 1, "index out of bounds");
+  using type = typename tail<Index - 1, Args...>::type;
+};
+
+///////////
+// split //
+///////////
+
+template <>
+struct split<0> {
+  using type = type_pair<type_list<>, type_list<>>;
+};
+
+template <typename T, typename... Args>
+struct split<0, T, Args...> {
+  using type = type_pair<type_list<>, type_list<T, Args...>>;
+};
+
+template <std::size_t Index, typename T, typename... Args>
+struct split<Index, T, Args...> {
+  using tail = split<Index - 1, Args...>;
+
+  using type = type_pair<
+    typename tail::type::first::template push_front<T>,
+    typename tail::type::second
+  >;
+};
+
+///////////////
+// is_sorted //
+///////////////
+
+template <template <typename...> class, typename...>
+struct is_sorted: public std::true_type {};
+
+template <
+  template <typename...> class TLessComparer,
+  typename TLHS, typename TRHS, typename... Args
+>
+struct is_sorted<TLessComparer, TLHS, TRHS, Args...>:
+  public logical::all<
+    logical::negate<TLessComparer<TRHS, TLHS>>,
+    is_sorted<TLessComparer, TRHS, Args...>
+  >
+{};
+
+///////////
+// merge //
+///////////
+
+template <template <typename...> class, typename, typename...> struct merge;
+
+template <template <typename...> class TLessComparer>
+struct merge<TLessComparer, type_list<>> { typedef type_list<> type; };
+
+template <template <typename...> class TLessComparer, typename TRHSList>
+struct merge<TLessComparer, TRHSList> { typedef TRHSList type; };
+
+template <
+  template <typename...> class TLessComparer,
+  typename TLHS, typename... TLHSArgs
+>
+struct merge<TLessComparer, type_list<>, TLHS, TLHSArgs...> {
+  typedef type_list<TLHS, TLHSArgs...> type;
+};
+
+template <
+  template <typename...> class TLessComparer,
+  typename TRHSList, typename TLHS, typename... TLHSArgs
+>
+struct merge<TLessComparer, TRHSList, TLHS, TLHSArgs...> {
+  typedef typename TRHSList::template at<0> rhs;
+  typedef TLessComparer<rhs, TLHS> right_merge;
+  typedef typename std::conditional<right_merge::value, rhs, TLHS>::type head;
+  typedef typename std::conditional<
+    right_merge::value,
+    merge<
+      TLessComparer, typename TRHSList::template tail<1>, TLHS, TLHSArgs...
+    >,
+    merge<TLessComparer, TRHSList, TLHSArgs...>
+  >::type::type tail;
+
+  typedef typename tail::template push_front<head> type;
+};
+
+template <
+  template <typename...> class TLessComparer,
+  typename TRHSList, typename... TLHSArgs
+>
+struct merge_entry_point {
+#   ifndef NDEBUG
+  // debug only due to compilation times
+  static_assert(
+    type_list<TLHSArgs...>::template is_sorted<TLessComparer>::value,
+    "left hand side list is not sorted"
+  );
+
+  static_assert(
+    TRHSList::template is_sorted<TLessComparer>::value,
+    "right hand side list is not sorted"
+  );
+#   endif // NDEBUG
+  typedef typename merge<TLessComparer, TRHSList, TLHSArgs...>::type type;
+};
+
+//////////
+// sort //
+//////////
+
+template <template <typename...> class TLessComparer, typename TList>
+struct sort {
+  typedef typename TList::template split<TList::size / 2> unsorted;
+  typedef typename sort<
+    TLessComparer, typename unsorted::first
+  >::type sorted_left;
+  typedef typename sort<
+    TLessComparer, typename unsorted::second
+  >::type sorted_right;
+
+  static_assert(TList::size > 1, "invalid specialization");
+  using type = typename sorted_left::template merge<TLessComparer>
+    ::template list<sorted_right>;
+};
+
+template <template <typename...> class TLessComparer>
+struct sort<TLessComparer, type_list<>> { typedef type_list<> type; };
+
+template <template <typename...> class TLessComparer, typename T>
+struct sort<TLessComparer, type_list<T>> { typedef type_list<T> type; };
+
+////////////
+// unique //
+////////////
+
+template <typename TResult> struct unique<TResult> { using type = TResult; };
+
+template <typename TResult, typename T, typename... Args>
+struct unique<TResult, T, Args...> {
+  using type = typename unique<
+    typename std::conditional<
+      TResult::template contains<T>::value,
+      TResult,
+      typename TResult::template push_back<T>
+    >::type,
+    Args...
+  >::type;
+};
+
+///////////////////////////
+// binary_search_prepare //
+///////////////////////////
+
+template <typename Comparer, typename... Args>
+struct binary_search_prepare<Comparer, type_list<>, Args...> {
+  using type = type_list<Args...>;
+};
+
+template <typename T>
+struct binary_search_prepare<type_value_comparer, T> {
+  using type = T;
+};
+
+template <>
+struct binary_search_prepare<type_value_comparer, type_list<>> {
+  using type = type_list<>;
+};
+
+template <typename Head, typename... Tail>
+struct binary_search_prepare<type_value_comparer, type_list<>, Head, Tail...> {
+  using type = typename binary_search_prepare<
+    type_value_comparer, type_list<Head>, Tail...
+  >::type;
+};
+
+template <typename... Args, typename Head, typename... Tail>
+struct binary_search_prepare<
+  type_value_comparer, type_list<Args...>,
+  Head, Tail...
+> {
+  using list = type_list<Args...>;
+  using previous = typename list::template at<list::size - 1>;
+
+  static_assert(
+    previous::value <= Head::value,
+    "binary_search requires a sorted list as input"
+  );
+
+  using type = typename binary_search_prepare<
+    type_value_comparer,
+    typename std::conditional<
+      previous::value == Head::value,
+      list,
+      typename list::template push_back<Head>
+    >::type,
+    Tail...
+  >::type;
+};
+
+/////////////////////////
+// binary_search_exact //
+/////////////////////////
+
+template <typename Comparer, typename... Args>
+struct binary_search_exact {
+  typedef type_list<Args...> list;
+
+  using split = typename list:: template split<list::size / 2>;
+  static_assert(!split::second::empty, "invalid specialization");
+
+  using left = typename split::first;
+  using right = typename split::second::template tail<1>;
+
+  template <std::size_t Offset> using pivot = indexed_type_tag<
+    typename split::second::template at<0>,
+    Offset + left::size
+  >;
+
+  template <
+    std::size_t Offset, typename TComparison,
+    typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool impl(
+    TComparison &&comparison, Needle &&needle,
+    Visitor &&visitor, VArgs &&...args
+  ) {
+    // ternary needed due to C++11's constexpr restrictions
+    return comparison < 0
+      ? left::template apply_front<
+          type_list_impl::binary_search_exact, Comparer
+        >::template search<Offset>(
+          std::forward<Needle>(needle),
+          std::forward<Visitor>(visitor),
+          std::forward<VArgs>(args)...
+        )
+      : (0 < comparison
+        ? right::template apply_front<
+            type_list_impl::binary_search_exact, Comparer
+          >::template search<Offset + left::size + 1>(
+            std::forward<Needle>(needle),
+            std::forward<Visitor>(visitor),
+            std::forward<VArgs>(args)...
+          )
+        : (
+          // comma operator needed due to C++11's constexpr restrictions
+          visitor(
+            pivot<Offset>{},
+            std::forward<Needle>(needle),
+            std::forward<VArgs>(args)...
+          ), true
+        )
+      );
+  }
+
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    return impl<Offset>(
+      Comparer::compare(needle, pivot<Offset>{}),
+      needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
+    );
+  }
+};
+
+template <typename Comparer>
+struct binary_search_exact<Comparer> {
+  template <
+    std::size_t, typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
+    return false;
+  }
+};
+
+// optimization for low cardinality lists //
+
+#define FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(Index) \
+  ( \
+    visitor( \
+      indexed_type_tag<T##Index, Offset + 0x##Index>(), \
+      std::forward<Needle>(needle), \
+      std::forward<VArgs>(args)... \
+    ), true \
+  )
+
+template <typename T0>
+struct binary_search_exact<type_value_comparer, T0> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    return needle == T0::value
+      ? FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0)
+      : false;
+  }
+};
+
+template <typename T0, typename T1>
+struct binary_search_exact<type_value_comparer, T0, T1> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      default: return false;
+    }
+  }
+};
+
+template <typename T0, typename T1, typename T2>
+struct binary_search_exact<type_value_comparer, T0, T1, T2> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      default: return false;
+    }
+  }
+};
+
+template <typename T0, typename T1, typename T2, typename T3>
+struct binary_search_exact<type_value_comparer, T0, T1, T2, T3> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      default: return false;
+    }
+  }
+};
+
+template <typename T0, typename T1, typename T2, typename T3, typename T4>
+struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3, typename T4, typename T5
+>
+struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4, T5> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6
+>
+struct binary_search_exact<type_value_comparer, T0, T1, T2, T3, T4, T5, T6> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7, typename T8
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7, typename T8, typename T9
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB
+>
+struct binary_search_exact<
+  type_value_comparer, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB, typename TC
+>
+struct binary_search_exact<
+  type_value_comparer,
+  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB, typename TC, typename TD
+>
+struct binary_search_exact<
+  type_value_comparer,
+  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
+      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB,
+  typename TC, typename TD, typename TE
+>
+struct binary_search_exact<
+  type_value_comparer,
+  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD, TE
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
+      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
+      case TE::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(E);
+      default: return false;
+    }
+  }
+};
+
+template <
+  typename T0, typename T1, typename T2, typename T3,
+  typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9, typename TA, typename TB,
+  typename TC, typename TD, typename TE, typename TF
+>
+struct binary_search_exact<
+  type_value_comparer,
+  T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TA, TB, TC, TD, TE, TF
+> {
+  template <
+    std::size_t Offset, typename Needle, typename Visitor, typename... VArgs
+  >
+  static bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    switch (needle) {
+      case T0::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(0);
+      case T1::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(1);
+      case T2::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(2);
+      case T3::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(3);
+      case T4::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(4);
+      case T5::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(5);
+      case T6::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(6);
+      case T7::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(7);
+      case T8::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(8);
+      case T9::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(9);
+      case TA::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(A);
+      case TB::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(B);
+      case TC::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(C);
+      case TD::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(D);
+      case TE::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(E);
+      case TF::value: return FATAL_BINARY_SEARCH_EXACT_VISIT_IMPL(F);
+      default: return false;
+    }
+  }
+};
+
+///////////////////////////////
+// binary_search_lower_bound //
+///////////////////////////////
+
+template <typename... Args>
+struct binary_search_lower_bound {
+  typedef type_list<Args...> list;
+  typedef typename list:: template split<list::size / 2> split;
+  typedef typename split::first left;
+  typedef typename split::second right;
+  template <std::size_t Offset> using pivot = indexed_type_tag<
+    typename right::template at<0>,
+    Offset + left::size
+  >;
+
+  template <
+    typename Comparer, std::size_t Offset,
+    typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool impl(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    // ternary needed due to C++11's constexpr restrictions
+    return Comparer::compare(needle, pivot<Offset>{}) < 0
+      ? left::template apply<
+          type_list_impl::binary_search_lower_bound
+        >::template impl<Comparer, Offset>(
+          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
+        )
+      : right::template apply<
+          type_list_impl::binary_search_lower_bound
+        >::template impl<Comparer, Offset + left::size>(
+          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
+        );
+  }
+
+  template <
+    typename Comparer, typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    typedef indexed_type_tag<typename list::template at<0>, 0> first;
+    return Comparer::compare(needle, first{}) >= 0
+      && impl<Comparer, 0>(
+        needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
+      );
+  }
+};
+
+template <typename T>
+struct binary_search_lower_bound<T> {
+  template <
+    typename Comparer, std::size_t Offset,
+    typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool impl(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    // comma operator needed due to C++11's constexpr restrictions
+    return visitor(
+      indexed_type_tag<T, Offset>{},
+      std::forward<Needle>(needle),
+      std::forward<VArgs>(args)...
+    ), true;
+  }
+
+  template <
+    typename Comparer, typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    return Comparer::compare(needle, indexed_type_tag<T, 0>{}) >= 0
+      && impl<Comparer, 0>(
+        needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
+      );
+  }
+};
+
+template <>
+struct binary_search_lower_bound<> {
+  template <
+    typename, std::size_t,
+    typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool impl(Needle &&, Visitor &&, VArgs &&...) {
+    return false;
+  }
+
+  template <typename, typename Needle, typename Visitor, typename... VArgs>
+  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
+    return false;
+  }
+};
+
+///////////////////////////////
+// binary_search_upper_bound //
+///////////////////////////////
+
+template <typename... Args>
+struct binary_search_upper_bound {
+  typedef type_list<Args...> list;
+  typedef typename list:: template split<(list::size + 1) / 2> split;
+  typedef typename split::first left;
+  typedef typename split::second right;
+  template <std::size_t Offset> using pivot = indexed_type_tag<
+    typename left::template at<left::size - 1>,
+    Offset + (left::size - 1)
+  >;
+
+  template <
+    typename Comparer, std::size_t Offset,
+    typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    // ternary needed due to C++11's constexpr restrictions
+    return Comparer::compare(needle, pivot<Offset>{}) < 0
+      ? left::template apply<
+          type_list_impl::binary_search_upper_bound
+        >::template search<Comparer, Offset>(
+          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
+        )
+      : right::template apply<
+          type_list_impl::binary_search_upper_bound
+        >::template search<Comparer, Offset + left::size>(
+          needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
+        );
+  }
+};
+
+template <typename T>
+struct binary_search_upper_bound<T> {
+  template <
+    typename Comparer, std::size_t Offset,
+    typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(
+    Needle &&needle, Visitor &&visitor, VArgs &&...args
+  ) {
+    return Comparer::compare(needle, indexed_type_tag<T, Offset>{}) < 0 && (
+      // comma operator needed due to C++11's constexpr restrictions
+      visitor(
+        indexed_type_tag<T, Offset>{},
+        needle,
+        std::forward<VArgs>(args)...
+      ), true
+    );
+  }
+};
+
+template <>
+struct binary_search_upper_bound<> {
+  template <
+    typename, std::size_t,
+    typename Needle, typename Visitor, typename... VArgs
+  >
+  static constexpr bool search(Needle &&, Visitor &&, VArgs &&...) {
+    return false;
+  }
+};
+
+} // namespace type_list_impl {
+} // namespace detail {
 } // namespace fatal {
+
+// TODO: ADD TESTS TO AVOID DOUBLE MOVES
 
 #endif // FATAL_INCLUDE_fatal_type_list_h
