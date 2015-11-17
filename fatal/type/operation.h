@@ -12,13 +12,20 @@
 
 #include <fatal/type/transform.h>
 
+////////////////////////////////////////
+// IMPLEMENTATION FORWARD DECLARATION //
+////////////////////////////////////////
+
 namespace fatal {
 namespace detail {
 namespace operation_impl {
+
 template <typename...> struct list;
 template <template <typename...> class, typename, typename>
 struct cartesian_product;
 template <template <typename...> class, typename...> struct flatten;
+template <typename...>
+struct flatten_sequence;
 template <typename T, template <typename, T...> class, typename U, U>
 struct to_sequence;
 template <typename, typename TChar, TChar, TChar...> struct parse_sequence;
@@ -26,6 +33,7 @@ template <typename, typename> struct from_sequence;
 namespace expand_recursive_map {
 template <typename, typename...> struct breadth;
 template <template <typename...> class, typename...> struct depth;
+
 } // namespace expand_recursive_map {
 } // namespace operation_impl {
 } // namespace detail {
@@ -151,7 +159,15 @@ template <template <typename...> class List, template <typename...> class Which>
 struct flatten {
   template <typename... Args>
   using apply = typename detail::operation_impl::flatten<Which, Args...>
-  ::template apply<List>;
+    ::template apply<List>;
+};
+
+// TODO: DOCUMENT AND TEST
+template <typename T, template <typename U, U...> class Sequence>
+struct flatten_sequence {
+  template <typename... Args>
+  using apply = typename detail::operation_impl::flatten_sequence<Args...>
+    ::template apply<Sequence, T>;
 };
 
 //////////////////////////
@@ -368,6 +384,28 @@ template <template <typename...> class Which>
 struct flatten<Which> {
   template <template <typename...> class List, typename... Args>
   using apply = List<Args...>;
+};
+
+//////////////////////
+// flatten_sequence //
+//////////////////////
+
+// specialization that matches `Which`
+template <
+  template <typename U, U...> class Which,
+  typename V, V... Args, typename... Tail
+>
+struct flatten_sequence<Which<V, Args...>, Tail...> {
+  template <template <typename U, U...> class Sequence, typename T, T... Prefix>
+  using apply = typename flatten_sequence<Tail...>
+    ::template apply<Sequence, T, Prefix..., Args...>;
+};
+
+// base case
+template <>
+struct flatten_sequence<> {
+  template <template <typename U, U...> class Sequence, typename T, T... Prefix>
+  using apply = Sequence<T, Prefix...>;
 };
 
 /////////////////

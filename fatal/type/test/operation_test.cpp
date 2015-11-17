@@ -25,6 +25,7 @@ template <typename> struct dummy_unit {};
 template <typename, typename> struct dummy_pair {};
 template <typename...> struct dummy_list {};
 template <typename T, T...> struct dummy_sequence {};
+template <int... Values> using int_seq = constant_sequence<int, Values...>;
 
 ////////////
 // expand //
@@ -203,6 +204,197 @@ FATAL_TEST(operation, flatten) {
   >();
 
   // TODO: ADD MORE TESTS
+}
+
+//////////////////////
+// flatten_sequence //
+//////////////////////
+
+FATAL_TEST(operation, flatten_sequence) {
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    flatten_sequence<int, constant_sequence>::apply<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<20>,
+      int_seq<30>,
+      int_seq<40>,
+      int_seq<50>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20>,
+      int_seq<>,
+      int_seq<30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20>,
+      int_seq<>,
+      int_seq<30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20>,
+      int_seq<>,
+      int_seq<30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20>,
+      int_seq<>,
+      int_seq<30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<20, 30>,
+      int_seq<40>,
+      int_seq<50, 60, 70>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20, 30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50, 60, 70>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20, 30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50, 60, 70>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20, 30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50, 60, 70>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20, 30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50, 60, 70>,
+      int_seq<>
+    >
+  >();
 }
 
 //////////////////////////
