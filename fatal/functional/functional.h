@@ -62,6 +62,37 @@ struct identity {
 };
 
 /**
+ * Takes any number of arguments and returns a default constructed instance of
+ * type `T`.
+ *
+ * Example:
+ *
+ *  default_constructer<std::string> f;
+ *
+ *  // yields an empty `std::string`
+ *  auto result1 = f(10);
+ *
+ *  // yields an empty `std::string`
+ *  auto result2 = f("hello");
+ *
+ *  // yields an empty `std::string`
+ *  auto result3 = f(std::string("world"));
+ *
+ *  std::string s("test");
+ *  // yields an empty `std::string`
+ *  auto result4 = f(s);
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+struct default_constructed {
+  template <typename... Args>
+  constexpr T operator ()(Args &&...) const noexcept(noexcept(T())) {
+    return T();
+  }
+};
+
+/**
  * A callable that accepts any number of parameters, ignores them and always
  * returns the constant represented by `T::value`.
  *
