@@ -45,11 +45,20 @@ if [ "$PRE_PROC" = "true" ]; then
   CC_ARGS="-E"
 fi
 
-echo -n "started: "; date
-set -x
-"$USE_CC" $CC_ARGS -Wall -Werror "-std=$USE_STD" -I . "$file_name" 2>&1
-set +x
-echo -n "finished: "; date
+if [ "$USE_CCACHE" = "true" ] && [ -e "$out_binary" ]; then
+  echo "using cached version of $file_name: $out_binary"
+else
+  echo -n "started: "; date
+  set -x
+  "$USE_CC" $CC_ARGS -Wall -Werror "-std=$USE_STD" -I . "$file_name" 2>&1
+  set +x
+  echo -n "finished: "; date
+fi
+
+if [ ! -e "$out_binary" ]; then
+  echo "binary for $file_name was not properly built"
+  exit 1
+fi
 
 if [ "$DO_RUN" = "true" ]; then
   "$out_binary" "$@"

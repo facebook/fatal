@@ -20,7 +20,13 @@ cpp_std="$2"
 #    type reflect_member_function || true
 #fi
 
+base_dir="/tmp/_build/$cc/$cpp_std"
+
+if [ -e "$base_dir" ]; then
+  rm -rf "$base_dir"
+fi
+
 echo "compiler: $cc"
 echo "standard: $cpp_std"
 $cc --version
-USE_CC="$cc" USE_STD="$cpp_std" NO_CLEAR=true ./validate.sh
+USE_CC="$cc" USE_STD="$cpp_std" USE_CCACHE=true NO_CLEAR=true ./validate.sh
