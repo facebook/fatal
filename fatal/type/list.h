@@ -455,14 +455,6 @@ struct type_list {
   /**
    * Applies the elements of this list to the variadic template `T`.
    *
-   * Since it's common to transform the list before applying it to a template,
-   * there's an optional sequence of transforms `Transforms` that can be
-   * applied, in order, to each element of this list beforehand.
-   *
-   * When `Transforms` is specified, this is the same as
-   *
-   *  type_list::transform<Transforms...>::apply<T>
-   *
    * Example:
    *
    *  typedef type_list<A, B, C> types;
@@ -470,20 +462,10 @@ struct type_list {
    *  // yields `std::tuple<A, B, C>`
    *  types::apply<std::tuple>
    *
-   *  template <typename> struct Foo {};
-   *
-   *  // yields `std::tuple<Foo<A>, Foo<B>, Foo<C>>`
-   *  types::apply<std::tuple, Foo>
-   *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <
-    template <typename...> class T,
-    template <typename...> class... TPreTransforms
-  >
-  using apply = fatal::apply<
-    T, typename compose<TPreTransforms...>::template apply<Args>...
-  >;
+  template <template <typename...> class T>
+  using apply = fatal::apply<T, Args...>;
 
   /**
    * Uses the std::integral_constant-like class `TGetter` to extract

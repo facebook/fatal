@@ -211,10 +211,10 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using concat = typename type_list<Args...>::template apply<
-    list::template concat,
-    get_member_type::list
-  >::template apply_typed_values<type, fatal::constant_sequence>;
+  using concat = typename type_list<Args...>
+    ::template transform<get_member_type::list>
+    ::template apply<list::template concat>
+    ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
    * Gets a sequence with all the elements positioned in the

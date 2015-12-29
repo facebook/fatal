@@ -228,10 +228,10 @@ using known_signed_integers = detail::uniquify_args_by_bit_size_impl<
 >;
 
 static_assert(
-  known_signed_integers::apply<
-    logical::all,
-    type_member_transform<std::is_signed>::apply
-  >::value,
+  known_signed_integers
+    ::transform<type_member_transform<std::is_signed>::apply>
+    ::apply<logical::all>
+    ::value,
   "invalid signed integer"
 );
 
@@ -241,10 +241,10 @@ using known_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
 >;
 
 static_assert(
-  known_unsigned_integers::apply<
-    logical::all,
-    type_member_transform<std::is_unsigned>::apply
-  >::value,
+  known_unsigned_integers
+    ::transform<type_member_transform<std::is_unsigned>::apply>
+    ::apply<logical::all>
+    ::value,
   "invalid unsigned integer"
 );
 
@@ -254,10 +254,10 @@ using known_fast_signed_integers = detail::uniquify_args_by_bit_size_impl<
 >;
 
 static_assert(
-  known_fast_signed_integers::apply<
-    logical::all,
-    type_member_transform<std::is_signed>::apply
-  >::value,
+  known_fast_signed_integers
+    ::transform<type_member_transform<std::is_signed>::apply>
+    ::apply<logical::all>
+    ::value,
   "invalid fast signed integer"
 );
 
@@ -267,10 +267,10 @@ using known_fast_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
 >;
 
 static_assert(
-  known_fast_unsigned_integers::apply<
-    logical::all,
-    type_member_transform<std::is_unsigned>::apply
-  >::value,
+  known_fast_unsigned_integers
+    ::transform<type_member_transform<std::is_unsigned>::apply>
+    ::apply<logical::all>
+    ::value,
   "invalid fast unsigned integer"
 );
 
@@ -280,10 +280,10 @@ using known_least_signed_integers = detail::uniquify_args_by_bit_size_impl<
 >;
 
 static_assert(
-  known_least_signed_integers::apply<
-    logical::all,
-    type_member_transform<std::is_signed>::apply
-  >::value,
+  known_least_signed_integers
+    ::transform<type_member_transform<std::is_signed>::apply>
+    ::apply<logical::all>
+    ::value,
   "invalid least signed integer"
 );
 
@@ -293,10 +293,10 @@ using known_least_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
 >;
 
 static_assert(
-  known_least_unsigned_integers::apply<
-    logical::all,
-    type_member_transform<std::is_unsigned>::apply
-  >::value,
+  known_least_unsigned_integers
+    ::transform<type_member_transform<std::is_unsigned>::apply>
+    ::apply<logical::all>
+    ::value,
   "invalid least unsigned integer"
 );
 
@@ -311,10 +311,10 @@ using known_floating_points = detail::uniquify_args_by_bit_size_impl<
 >;
 
 static_assert(
-  known_floating_points::apply<
-    logical::all,
-    type_member_transform<std::is_floating_point>::apply
-  >::value,
+  known_floating_points
+    ::transform<type_member_transform<std::is_floating_point>::apply>
+    ::apply<logical::all>
+    ::value,
   "invalid floating point"
 );
 
