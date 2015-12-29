@@ -23,7 +23,4 @@ cpp_std="$2"
 echo "compiler: $cc"
 echo "standard: $cpp_std"
 $cc --version
-# TODO: split prefix_tree_benchmark into several benchmarks to avoid
-#       breaking contbuild and remove the `nobuild` flag, then remove
-#       this for loop and let `validate.sh` figure the compilers out
-USE_CC="$cc" USE_STD="$cpp_std" NO_CLEAR=true ./validate.sh nobuild
+USE_CC="$cc" USE_STD="$cpp_std" NO_CLEAR=true ./validate.sh
