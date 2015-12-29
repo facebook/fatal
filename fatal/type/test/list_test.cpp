@@ -632,6 +632,24 @@ FATAL_TEST(transform, transform) {
   >();
 
   FATAL_EXPECT_SAME<el, el::transform<std::tuple>>();
+}
+
+////////////////////////////////
+// type_list::multi_transform //
+////////////////////////////////
+
+FATAL_TEST(multi_transform, multi_transform) {
+  FATAL_EXPECT_SAME<
+    type_list<std::tuple<T0>, std::tuple<T1>, std::tuple<T2>>,
+    tl::multi_transform<std::tuple>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<std::tuple<T0>>,
+    type_list<T0>::multi_transform<std::tuple>
+  >();
+
+  FATAL_EXPECT_SAME<el, el::multi_transform<std::tuple>>();
 
   FATAL_EXPECT_SAME<
     type_list<
@@ -639,15 +657,15 @@ FATAL_TEST(transform, transform) {
       std::vector<std::tuple<T1>>,
       std::vector<std::tuple<T2>>
     >,
-    tl::transform<std::tuple, std::vector>
+    tl::multi_transform<std::tuple, std::vector>
   >();
 
   FATAL_EXPECT_SAME<
     type_list<std::vector<std::tuple<T0>>>,
-    type_list<T0>::transform<std::tuple, std::vector>
+    type_list<T0>::multi_transform<std::tuple, std::vector>
   >();
 
-  FATAL_EXPECT_SAME<el, el::transform<std::tuple, std::vector>>();
+  FATAL_EXPECT_SAME<el, el::multi_transform<std::tuple, std::vector>>();
 }
 
 //////////////////////////////////

@@ -724,8 +724,26 @@ struct type_list {
   }
 
   /**
+   * Applies the transform `Transform` to every element of this list.
+   *
+   * Example:
+   *
+   *  template <typename> struct T {};
+   *  using types = type_list<A, B, C>;
+   *
+   *  // yields `type_list<T<A>, T<B>, T<C>>`
+   *  using result1 = types::transform<T>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename...> class Transform>
+  using transform = type_list<fatal::apply<Transform, Args>...>;
+
+  /**
    * Applies each transform `Transforms`, in the order they are given,
    * to every element of this list.
+   *
+   * This is a convenient alternative to calling `transform` multiple times.
    *
    * Example:
    *
@@ -734,15 +752,15 @@ struct type_list {
    *  using types = type_list<A, B, C>;
    *
    *  // yields `type_list<T<A>, T<B>, T<C>>`
-   *  using result1 = types::transform<T>;
+   *  using result1 = types::multi_transform<T>;
    *
    *  // yields `type_list<U<T<A>>, U<T<B>>, U<T<C>>>`
-   *  using result2 = types::transform<T, U>;
+   *  using result2 = types::multi_transform<T, U>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <template <typename...> class... Transforms>
-  using transform = type_list<
+  using multi_transform = type_list<
     typename compose<Transforms...>::template apply<Args>...
   >;
 
