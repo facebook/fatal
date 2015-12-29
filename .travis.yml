@@ -2,6 +2,9 @@ language: cpp
 
 sudo: false
 
+# toolchains from:
+# * https://github.com/travis-ci/apt-source-whitelist
+#   - https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
 matrix:
   include:
     - os: linux
@@ -146,38 +149,35 @@ matrix:
         COMPILER=clang++-3.6
         CPP_STD=c++1z
 
-# Not yet available
-#    - os: linux
-#      compiler: clang
-#      addons:
-#        apt:
-#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-#          packages: ['clang-3.7']
-#      env:
-#        COMPILER=clang++-3.7
-#        CPP_STD=c++11
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['clang-3.7']
+      env:
+        COMPILER=clang++-3.7
+        CPP_STD=c++11
 
-# Not yet available
-#    - os: linux
-#      compiler: clang
-#      addons:
-#        apt:
-#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-#          packages: ['clang-3.7']
-#      env:
-#        COMPILER=clang++-3.7
-#        CPP_STD=c++14
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['clang-3.7']
+      env:
+        COMPILER=clang++-3.7
+        CPP_STD=c++14
 
-# Not yet available
-#    - os: linux
-#      compiler: clang
-#      addons:
-#        apt:
-#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-#          packages: ['clang-3.7']
-#      env:
-#        COMPILER=clang++-3.7
-#        CPP_STD=c++1z
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['clang-3.7']
+      env:
+        COMPILER=clang++-3.7
+        CPP_STD=c++1z
 
 # Not yet available
 #    - os: linux
