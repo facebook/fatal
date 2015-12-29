@@ -21,12 +21,6 @@
 
 namespace fatal {
 
-//////////////////////////
-// type_map DECLARATION //
-//////////////////////////
-
-template <typename...> class type_map;
-
 ////////////////////////////////////////
 // IMPLEMENTATION FORWARD DECLARATION //
 ////////////////////////////////////////
@@ -54,6 +48,10 @@ template <typename> struct binary_search_comparer;
 
 } // namespace type_map_impl {
 } // namespace detail {
+
+//////////////
+// type_map //
+//////////////
 
 /**
  * Type map for template metaprogramming.
