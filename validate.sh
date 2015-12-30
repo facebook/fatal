@@ -22,7 +22,9 @@ if [ "$USE_STD" = "c++11" ] || [ "$USE_STD" = "c++0x" ]; then
 fi
 
 run_validation() {
-  if ! which "$1"; then
+  cc="$1"
+
+  if ! which "$cc"; then
     return
   fi
 
@@ -30,15 +32,13 @@ run_validation() {
     ./lclear.sh >&2
   fi
 
-  if [ "$skip_test" != "true" ]; then
-    CC_OPT="-O0" USE_CC="$1" NO_CLEAR=true ./test.sh
-  fi
-
   if [ "$skip_build" != "true" ]; then
-    CC_OPT="-O0" USE_CC="$1" NO_CLEAR=true ./build.sh
+    CC_OPT="-O0" USE_CC="$cc" NO_CLEAR=true ./build.sh
   fi
 
-  cc="$1"
+  if [ "$skip_test" != "true" ]; then
+    CC_OPT="-O0" USE_CC="$cc" NO_CLEAR=true ./test.sh
+  fi
 
   if [ "$skip_demo" != "true" ] && [ "$cc" != "g++-4.8" ]; then
     for demo in ytse_jam; do
