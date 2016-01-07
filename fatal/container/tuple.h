@@ -98,8 +98,8 @@ struct tuple {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTag>
-  using type_of = typename tags::template type_of<TTag, type>;
+  template <typename Tag>
+  using type_of = typename tags::template type_of<Tag, type>;
 
   /**
    * Gets the type of the element associated with the given index.
@@ -164,9 +164,9 @@ struct tuple {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTag>
-  constexpr fast_pass<type_of<TTag>> get() const noexcept {
-    return tags::template get<TTag>(data_);
+  template <typename Tag>
+  constexpr fast_pass<type_of<Tag>> get() const noexcept {
+    return tags::template get<Tag>(data_);
   }
 
   /**
@@ -187,8 +187,8 @@ struct tuple {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTag>
-  type_of<TTag> &get() noexcept { return tags::template get<TTag>(data_); }
+  template <typename Tag>
+  type_of<Tag> &get() noexcept { return tags::template get<Tag>(data_); }
 
   /**
    * Gets the element at the given index.
@@ -273,8 +273,8 @@ struct tuple {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TTransform>
-  using apply = fatal::apply<TTransform, Args...>;
+  template <template <typename...> class Transform>
+  using apply = fatal::apply<Transform, Args...>;
 
   /**
    * TODO: DOCUMENT AND TEST
@@ -282,11 +282,11 @@ struct tuple {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TTypeTransform = identity,
-    template <typename...> class TTagTransform = identity
+    template <typename...> class TypeTransform = identity,
+    template <typename...> class TagTransform = identity
   >
   using transform = typename map::template transform<
-    TTypeTransform, TTagTransform
+    TypeTransform, TagTransform
   >::contents::template apply<fatal::tuple>;
 
   /**
@@ -295,12 +295,12 @@ struct tuple {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    typename TTag,
-    template <typename...> class TTypeTransform = identity,
-    template <typename...> class TTagTransform = identity
+    typename Tag,
+    template <typename...> class TypeTransform = identity,
+    template <typename...> class TagTransform = identity
   >
   using transform_at = typename map::template transform_at<
-    TTag, TTypeTransform, TTagTransform
+    Tag, TypeTransform, TagTransform
   >::template apply<fatal::tuple>;
 
   /**
@@ -412,67 +412,142 @@ private:
 template <typename... Args>
 class tuple_from {
   template <
-    template <typename...> class TTagTransform,
-    template <typename...> class TTypeTransform
+    template <typename...> class TagTransform,
+    template <typename...> class TypeTransform
   >
   class impl {
     template <typename T>
     using pair = type_pair<
-      fatal::apply<TTagTransform, T>,
-      fatal::apply<TTypeTransform, T>
+      fatal::apply<TagTransform, T>,
+      fatal::apply<TypeTransform, T>
     >;
 
   public:
     template <typename... UArgs>
     using args = tuple<pair<UArgs>...>;
 
-    template <typename TList>
-    using list = typename TList::template apply<tuple, pair>;
+    template <typename List>
+    using list = typename List::template transform<pair>::template apply<tuple>;
 
-    template <typename TMap>
-    using map = typename TMap::template apply<
-      tuple, TTypeTransform, TTagTransform
+    template <typename Map>
+    using map = typename Map::template apply<
+      tuple, TypeTransform, TagTransform
     >;
   };
 
 public:
   /**
-   * TODO: DOCUMENT AND TEST
+   * Creates a tuple with elements coming from a variadic pack of types, by
+   * applying transforms to them to derive both the tag and the value type.
+   *
+   * Example:
+   *
+   *  template <typename Tag, typename T>
+   *  struct my_metadata {
+   *    using tag = Tag;
+   *    using type = Type;
+   *  };
+   *
+   *  // yields `tuple<
+   *  //   type_pair<int, double>,
+   *  //   type_pair<float, bool>,
+   *  //   type_pair<short, long>
+   *  // >`
+   *  using result = tuple_from<
+   *    my_metadata<int, double>,
+   *    my_metadata<float, bool>,
+   *    my_metadata<short, long>
+   *  >::args<
+   *    fatal::get_member_type::tag,
+   *    fatal::get_member_type::type
+   *  >;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TTypeTransform = identity,
-    template <typename...> class TTagTransform = identity
+    template <typename...> class TypeTransform = identity,
+    template <typename...> class TagTransform = identity
   >
-  using args = typename impl<TTagTransform, TTypeTransform>
+  using args = typename impl<TagTransform, TypeTransform>
     ::template args<Args...>;
 
   /**
-   * TODO: DOCUMENT AND TEST
+   * Creates a tuple with elements coming from a type list, by applying
+   * transforms to them to derive both the tag and the value type.
+   *
+   * Example:
+   *
+   *  template <typename Tag, typename T>
+   *  struct my_metadata {
+   *    using tag = Tag;
+   *    using type = Type;
+   *  };
+   *
+   *  using my_list = type_list<
+   *    my_metadata<int, double>,
+   *    my_metadata<float, bool>,
+   *    my_metadata<short, long>
+   *  >;
+   *
+   *  // yields `tuple<
+   *  //   type_pair<int, double>,
+   *  //   type_pair<float, bool>,
+   *  //   type_pair<short, long>
+   *  // >`
+   *  using result = tuple_from<my_list>::list<
+   *    fatal::get_member_type::tag,
+   *    fatal::get_member_type::type
+   *  >;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TTypeTransform = identity,
-    template <typename...> class TTagTransform = identity
+    template <typename...> class TypeTransform = identity,
+    template <typename...> class TagTransform = identity
   >
   using list = fatal::apply<
-    impl<TTagTransform, TTypeTransform>::template list,
+    impl<TagTransform, TypeTransform>::template list,
     Args...
   >;
 
   /**
-   * TODO: DOCUMENT AND TEST
+   * Creates a tuple with elements coming from a type map, by applying
+   * transforms to the keys to derive the tag, and to the values to derive
+   * the value type.
+   *
+   * Example:
+   *
+   *  template <typename> struct my_tag {};
+   *  template <typename> struct my_value {};
+   *
+   *  using my_map = build_type_map<
+   *    int, double,
+   *    float, bool,
+   *    short, long
+   *  >;
+   *
+   *  // yields `tuple<
+   *  //   type_pair<int, double>,
+   *  //   type_pair<float, bool>,
+   *  //   type_pair<short, long>
+   *  // >`
+   *  using result1 = tuple_from<my_map>::map<>;
+   *
+   *  // yields `tuple<
+   *  //   type_pair<my_tag<int>, my_value<double>>,
+   *  //   type_pair<my_tag<float>, my_value<bool>>,
+   *  //   type_pair<my_tag<short>, my_value<long>>
+   *  // >`
+   *  using result2 = tuple_from<my_map>::map<my_value, my_tag>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TTypeTransform = identity,
-    template <typename...> class TTagTransform = identity
+    template <typename...> class TypeTransform = identity,
+    template <typename...> class TagTransform = identity
   >
   using map = fatal::apply<
-    impl<TTagTransform, TTypeTransform>::template map,
+    impl<TagTransform, TypeTransform>::template map,
     Args...
   >;
 };
@@ -540,11 +615,11 @@ using build_tuple = typename detail::tuple_impl::builder<
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename... TTags, typename... Args>
+template <typename... Tags, typename... Args>
 constexpr auto make_tuple(Args &&...args)
-  -> tuple<type_pair<TTags, typename std::decay<Args>::type>...>
+  -> tuple<type_pair<Tags, typename std::decay<Args>::type>...>
 {
-  return tuple<type_pair<TTags, typename std::decay<Args>::type>...>(
+  return tuple<type_pair<Tags, typename std::decay<Args>::type>...>(
     std::forward<Args>(args)...
   );
 }
@@ -576,18 +651,18 @@ constexpr auto make_tuple(Args &&...args)
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename... TTags, typename... Args>
+template <typename... Tags, typename... Args>
 constexpr auto make_tuple(std::tuple<Args...> &&tuple)
-  -> fatal::tuple<type_pair<TTags, Args>...>
+  -> fatal::tuple<type_pair<Tags, Args>...>
 {
-  return fatal::tuple<type_pair<TTags, Args>...>(std::move(tuple));
+  return fatal::tuple<type_pair<Tags, Args>...>(std::move(tuple));
 }
 
-template <typename... TTags, typename... Args>
+template <typename... Tags, typename... Args>
 constexpr auto make_tuple(std::tuple<Args...> const &tuple)
-  -> fatal::tuple<type_pair<TTags, Args>...>
+  -> fatal::tuple<type_pair<Tags, Args>...>
 {
-  return fatal::tuple<type_pair<TTags, Args>...>(tuple);
+  return fatal::tuple<type_pair<Tags, Args>...>(tuple);
 }
 
 ////////////////////////////

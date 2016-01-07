@@ -40,14 +40,14 @@ namespace fatal {
     ); \
   } while (false)
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_tags(TData &&...) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
-  using actual = tuple<type_pair<TTags, typename std::decay<TData>::type>...>;
+  using actual = tuple<type_pair<Tags, typename std::decay<TData>::type>...>;
 
   FATAL_EXPECT_SAME<
-    tuple_tags<TTags...>,
+    tuple_tags<Tags...>,
     typename actual::tags
   >();
 }
@@ -56,11 +56,11 @@ FATAL_TEST(tuple, tags) {
   CHECK_IMPL(check_tags);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_type(TData &&...) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
-  using actual = tuple<type_pair<TTags, typename std::decay<TData>::type>...>;
+  using actual = tuple<type_pair<Tags, typename std::decay<TData>::type>...>;
 
   FATAL_EXPECT_SAME<
     std::tuple<typename std::decay<TData>::type...>,
@@ -72,27 +72,27 @@ FATAL_TEST(tuple, type) {
   CHECK_IMPL(check_type);
 }
 
-template <typename TTypes, typename TActual>
+template <typename Types, typename TActual>
 struct check_type_of_visitor {
-  template <typename TTag, std::size_t Index>
-  void operator ()(fatal::indexed_type_tag<TTag, Index>) const {
+  template <typename Tag, std::size_t Index>
+  void operator ()(fatal::indexed_type_tag<Tag, Index>) const {
     FATAL_EXPECT_SAME<
-      typename TTypes::template at<Index>,
-      typename TActual::template type_of<TTag>
+      typename Types::template at<Index>,
+      typename TActual::template type_of<Tag>
     >();
   }
 };
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_type_of(TData &&...) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
-  using tags = type_list<typename std::decay<TTags>::type...>;
+  using tags = type_list<typename std::decay<Tags>::type...>;
   using types = type_list<typename std::decay<TData>::type...>;
 
   static_assert(tags::size == types::size, "size mismatch");
 
-  using actual = tuple<type_pair<TTags, typename std::decay<TData>::type>...>;
+  using actual = tuple<type_pair<Tags, typename std::decay<TData>::type>...>;
 
   tags::foreach(check_type_of_visitor<types, actual>());
 }
@@ -101,13 +101,13 @@ FATAL_TEST(tuple, type_of) {
   CHECK_IMPL(check_type_of);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_default_ctor(TData &&...) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
   std::tuple<TData...> expected;
 
-  tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual;
+  tuple<type_pair<Tags, typename std::decay<TData>::type>...> actual;
 
   FATAL_EXPECT_EQ(expected, actual.data());
 }
@@ -136,13 +136,13 @@ FATAL_TEST(tuple, ctor) {
   FATAL_EXPECT_EQ(100, tuple.get<Z>()[1]);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_forwarding_ctor(TData &&...data) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
   std::tuple<TData...> expected(data...);
 
-  tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual(
+  tuple<type_pair<Tags, typename std::decay<TData>::type>...> actual(
     std::forward<TData>(data)...
   );
 
@@ -153,13 +153,13 @@ FATAL_TEST(tuple, forwarding_ctor) {
   CHECK_IMPL(check_forwarding_ctor);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_forwarding_ctor_tuple(TData &&...data) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
   std::tuple<TData...> expected(data...);
 
-  tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual(
+  tuple<type_pair<Tags, typename std::decay<TData>::type>...> actual(
     std::make_tuple(std::forward<TData>(data)...)
   );
 
@@ -199,45 +199,45 @@ struct check_get_helper<> {
   static void check(TExpected &&, TActual &&) {}
 };
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_get_const(TData &&...data) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
   auto const tuple = std::make_tuple(data...);
   fatal::tuple<
-    type_pair<TTags, typename std::decay<TData>::type>...
+    type_pair<Tags, typename std::decay<TData>::type>...
   > const actual(std::forward<TData>(data)...);
 
-  check_get_helper<TTags...>::check(tuple, actual);
+  check_get_helper<Tags...>::check(tuple, actual);
 }
 
 FATAL_TEST(tuple, get_const) {
   CHECK_IMPL(check_get_const);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_get(TData &&...data) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
   auto const tuple = std::make_tuple(data...);
-  fatal::tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual(
+  fatal::tuple<type_pair<Tags, typename std::decay<TData>::type>...> actual(
     std::forward<TData>(data)...
   );
 
-  check_get_helper<TTags...>::check(tuple, actual);
+  check_get_helper<Tags...>::check(tuple, actual);
 }
 
 FATAL_TEST(tuple, get) {
   CHECK_IMPL(check_get);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_tuple_const(TData &&...data) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
   auto const tuple = std::make_tuple(data...);
   fatal::tuple<
-    type_pair<TTags, typename std::decay<TData>::type>...
+    type_pair<Tags, typename std::decay<TData>::type>...
   > const actual(std::forward<TData>(data)...);
 
   FATAL_EXPECT_EQ(tuple, actual.data());
@@ -247,12 +247,12 @@ FATAL_TEST(tuple, tuple_const) {
   CHECK_IMPL(check_tuple_const);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_tuple(TData &&...data) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
   auto const tuple = std::make_tuple(data...);
-  fatal::tuple<type_pair<TTags, typename std::decay<TData>::type>...> actual(
+  fatal::tuple<type_pair<Tags, typename std::decay<TData>::type>...> actual(
     std::forward<TData>(data)...
   );
 
@@ -263,13 +263,13 @@ FATAL_TEST(tuple, tuple) {
   CHECK_IMPL(check_tuple);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_paired_tuple(TData &&...) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
-  using expected = tuple<type_pair<TTags, typename std::decay<TData>::type>...>;
+  using expected = tuple<type_pair<Tags, typename std::decay<TData>::type>...>;
 
-  using actual = typename type_list<TTags...>::template zip<
+  using actual = typename type_list<Tags...>::template zip<
     typename std::decay<TData>::type...
   >::template apply<build_tuple>;
 
@@ -283,14 +283,14 @@ FATAL_TEST(build_tuple, build_tuple) {
   CHECK_IMPL(check_paired_tuple);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_make_tuple(TData &&...data) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
   auto const tuple = std::make_tuple(data...);
-  auto const actual = make_tuple<TTags...>(std::forward<TData>(data)...);
+  auto const actual = make_tuple<Tags...>(std::forward<TData>(data)...);
 
   FATAL_EXPECT_SAME<
-    fatal::tuple<type_pair<TTags, typename std::decay<TData>::type>...>,
+    fatal::tuple<type_pair<Tags, typename std::decay<TData>::type>...>,
     typename std::decay<decltype(actual)>::type
   >();
 
@@ -301,14 +301,14 @@ FATAL_TEST(make_tuple, make_tuple) {
   CHECK_IMPL(check_make_tuple);
 }
 
-template <typename... TTags, typename... TData>
+template <typename... Tags, typename... TData>
 void check_make_tuple_tuple(TData &&...data) {
-  static_assert(sizeof...(TTags) == sizeof...(TData), "size mismatch");
+  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
   auto const tuple = std::make_tuple(std::forward<TData>(data)...);
-  auto const actual = make_tuple<TTags...>(tuple);
+  auto const actual = make_tuple<Tags...>(tuple);
 
   FATAL_EXPECT_SAME<
-    fatal::tuple<type_pair<TTags, typename std::decay<TData>::type>...>,
+    fatal::tuple<type_pair<Tags, typename std::decay<TData>::type>...>,
     typename std::decay<decltype(actual)>::type
   >();
 
@@ -317,6 +317,71 @@ void check_make_tuple_tuple(TData &&...data) {
 
 FATAL_TEST(make_tuple, make_tuple_tuple) {
   CHECK_IMPL(check_make_tuple_tuple);
+}
+
+template <typename> struct Foo {};
+template <typename> struct Bar {};
+
+FATAL_TEST(tuple_from, args) {
+  FATAL_EXPECT_SAME<tuple<>, tuple_from<>::args<>>();
+  FATAL_EXPECT_SAME<
+    tuple<
+      type_pair<int, int>,
+      type_pair<double, double>,
+      type_pair<float, float>,
+      type_pair<bool, bool>
+    >,
+    tuple_from<int, double, float, bool>::args<>
+  >();
+
+  FATAL_EXPECT_SAME<tuple<>, tuple_from<>::args<Foo, Bar>>();
+  FATAL_EXPECT_SAME<
+    tuple<
+      type_pair<Bar<int>, Foo<int>>,
+      type_pair<Bar<double>, Foo<double>>,
+      type_pair<Bar<float>, Foo<float>>,
+      type_pair<Bar<bool>, Foo<bool>>
+    >,
+    tuple_from<int, double, float, bool>::args<Foo, Bar>
+  >();
+}
+
+FATAL_TEST(tuple_from, list) {
+  FATAL_EXPECT_SAME<tuple<>, tuple_from<type_list<>>::list<>>();
+  FATAL_EXPECT_SAME<
+    tuple<
+      type_pair<int, int>,
+      type_pair<double, double>,
+      type_pair<float, float>,
+      type_pair<bool, bool>
+    >,
+    tuple_from<type_list<int, double, float, bool>>::list<>
+  >();
+
+  FATAL_EXPECT_SAME<tuple<>, tuple_from<type_list<>>::list<Foo, Bar>>();
+  FATAL_EXPECT_SAME<
+    tuple<
+      type_pair<Bar<int>, Foo<int>>,
+      type_pair<Bar<double>, Foo<double>>,
+      type_pair<Bar<float>, Foo<float>>,
+      type_pair<Bar<bool>, Foo<bool>>
+    >,
+    tuple_from<type_list<int, double, float, bool>>::list<Foo, Bar>
+  >();
+}
+
+FATAL_TEST(tuple_from, map) {
+  FATAL_EXPECT_SAME<tuple<>, tuple_from<type_map<>>::map<>>();
+  FATAL_EXPECT_SAME<
+    tuple<type_pair<int, double>, type_pair<float, bool>>,
+    tuple_from<build_type_map<int, double, float, bool>>::map<>
+  >();
+
+  FATAL_EXPECT_SAME<tuple<>, tuple_from<type_map<>>::map<Foo, Bar>>();
+  FATAL_EXPECT_SAME<
+    tuple<type_pair<Bar<int>, Foo<double>>, type_pair<Bar<float>, Foo<bool>>>,
+    tuple_from<build_type_map<int, double, float, bool>>::map<Foo, Bar>
+  >();
 }
 
 } // namespace fatal {
