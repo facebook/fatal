@@ -239,21 +239,14 @@ addons:
     - bash
     - coreutils
 
-before_install:
-  - echo $LANG
-  - echo $LC_ALL
-  - lsb_release -a
-  - uname -a
-
-install:
-  - apt-cache search '^g\+\+|^clang'
-
 before_script:
   - echo $LANG
   - echo $LC_ALL
   - lsb_release -a
   - uname -a
   - apt-cache search '^g\+\+|^clang'
+  - which clang++ || true
+  - which g++ || true
 
 script:
   - ./contbuild.sh "$COMPILER" "$CPP_STD"
