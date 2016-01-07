@@ -245,8 +245,8 @@ before_script:
   - lsb_release -a
   - uname -a
   - apt-cache search '^g\+\+|^clang'
-  - which clang++ || true
-  - which g++ || true
+  - which clang++ && clang++ --version || true
+  - which g++ && g++ --version || true
 
 script:
   - ./contbuild.sh "$COMPILER" "$CPP_STD"
