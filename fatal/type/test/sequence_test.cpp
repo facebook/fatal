@@ -724,6 +724,47 @@ FATAL_TEST(constant_sequence, right) {
 # undef TEST_IMPL
 }
 
+////////////////////////////////
+// constant_sequence::reverse //
+////////////////////////////////
+
+template <typename T, T... Values>
+struct check_reverse {
+  using seq = constant_sequence<T, Values...>;
+
+  template <T... Suffix>
+  struct append {
+    template <T... Expected>
+    static void check() {
+      FATAL_EXPECT_SAME<
+        constant_sequence<T, Expected..., Suffix...>,
+        typename seq::template reverse<Suffix...>
+      >();
+    }
+  };
+};
+
+FATAL_TEST(constant_sequence, reverse) {
+  check_reverse<int>::append<>::check<>();
+  check_reverse<int, 1>::append<>::check<1>();
+  check_reverse<int, 1, 2, 3, 4, 5>::append<>::check<5, 4, 3, 2, 1>();
+
+  check_reverse<int>::append<0, -1>::check<>();
+  check_reverse<int, 1>::append<0, -1>::check<1>();
+  check_reverse<int, 1, 2, 3, 4, 5>::append<0, -1>
+    ::check<5, 4, 3, 2, 1>();
+
+  check_reverse<char>::append<>::check<>();
+  check_reverse<char, '1'>::append<>::check<'1'>();
+  check_reverse<char, '1', '2', '3', '4', '5'>::append<>
+    ::check<'5', '4', '3', '2', '1'>();
+
+  check_reverse<char>::append<'0', '_'>::check<>();
+  check_reverse<char, '1'>::append<'0', '_'>::check<'1'>();
+  check_reverse<char, '1', '2', '3', '4', '5'>::append<'0', '_'>
+    ::check<'5', '4', '3', '2', '1'>();
+}
+
 ///////////////////////////////////
 // constant_sequence::interleave //
 ///////////////////////////////////

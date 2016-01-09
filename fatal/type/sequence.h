@@ -19,6 +19,22 @@
 
 namespace fatal {
 
+////////////////////////////////////////
+// IMPLEMENTATION FORWARD DECLARATION //
+////////////////////////////////////////
+
+namespace detail {
+namespace constant_sequence_impl {
+
+template <typename T, T...> struct reverse;
+
+} // namespace constant_sequence_impl {
+} // namespace detail {
+
+//////////////////////////////////////
+// constant_sequence IMPLEMENTATION //
+//////////////////////////////////////
+
 /**
  * A compile-time sequence of values for template metaprogramming.
  *
@@ -345,6 +361,27 @@ public:
   template <std::size_t N>
   using right = typename list::template right<N>
     ::template apply_typed_values<type, fatal::constant_sequence>;
+
+  /**
+   * Reverses the elements of the sequence.
+   *
+   * Optionally, appends a suffix to the reversed list.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 1, 2, 3>;
+   *
+   *  // yields `constant_sequence<int, 3, 2, 1>`
+   *  using result1 = seq::reverse<>;
+   *
+   *  // yields `constant_sequence<int, 3, 2, 1, 0, -1>`
+   *  using result2 = seq::reverse<0, -1>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <T... Suffix>
+  using reverse = typename detail::constant_sequence_impl::reverse<T, Values...>
+    ::template apply<Suffix...>;
 
   /**
    * Interleaves the given separators between each pair of elements of this
@@ -820,6 +857,10 @@ using indexes_sequence = typename detail::constant_sequence_impl::build<
 namespace detail {
 namespace constant_sequence_impl {
 
+///////////
+// build //
+///////////
+
 template <typename T, T End>
 struct build<false, true, T, End, End> {
   using type = constant_sequence<T>;
@@ -836,6 +877,22 @@ struct build<false, OpenEnd, T, Current, End> {
 
   using type = typename build<false, OpenEnd, T, Current + 1, End>::type
     ::template push_front<Current>;
+};
+
+//////////////
+// reverse  //
+//////////////
+
+template <typename T, T Head, T... Tail>
+struct reverse<T, Head, Tail...> {
+  template <T... Values>
+  using apply = typename reverse<T, Tail...>::template apply<Head, Values...>;
+};
+
+template <typename T>
+struct reverse<T> {
+  template <T... Values>
+  using apply = constant_sequence<T, Values...>;
 };
 
 ///////////////
