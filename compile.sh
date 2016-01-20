@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -41,6 +41,9 @@ if [ -z "$CC_OPT" ]; then
 fi
 
 CC_ARGS="-o $out_binary $CC_ARGS $CC_OPT -g -pthread"
+if [ "${USE_CC:0:5}" = "clang" ]; then
+  CC_ARGS="$CC_ARGS -ferror-limit=3"
+fi
 if [ "$PRE_PROC" = "true" ]; then
   CC_ARGS="-E"
 fi
