@@ -591,7 +591,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  static constexpr type const *data() { return array<>::data(); }
+  static constexpr type const *data() { return z_data<Suffix...>(); }
 
   /**
    * Gets a constexpr array with the values from this sequence,
@@ -634,7 +634,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  static constexpr type const *z_data() { return z_array<>::data(); }
+  static constexpr type const *z_data() { return z_array<Suffix...>::data(); }
 
   /**
    * The `std::basic_string` type returned by the `string()` method.
@@ -739,6 +739,8 @@ struct to_constant_sequence {
  * Instantiates a compile time string out of a string literal, in the form of a
  *`constant_sequence` class template instantiation.
  *
+ * The string is provided as a type, named as the given identifier.
+ *
  * General form:
  *
  *  FATAL_STR(identifier, "string");
@@ -755,8 +757,8 @@ struct to_constant_sequence {
  *  FATAL_STR(hi, "hi");
  *
  *  // this is equivalent to
- *  // `using hey = constant_sequence<char32_t, U'h', U'e', U'y'>;`
- *  FATAL_STR(hey, U"hey");
+ *  // `using h = constant_sequence<std::char32_t, U'h', U'e', U'y'>;`
+ *  FATAL_STR(h, U"hey");
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -767,6 +769,32 @@ struct to_constant_sequence {
     FATAL_UID(FATAL_CAT(constant_sequence_string_impl_, Id)), \
     FATAL_UID(Indexes) \
   )
+
+/**
+ * Instantiates a compile time string out of the given identifier, in the form
+ * of a `constant_sequence` class template instantiation. The characters are
+ * typed as `char`.
+ *
+ * The string is provided as a type, named as the identifier itself.
+ *
+ * General form:
+ *
+ *  FATAL_ID_STRING(identifier);
+ *
+ * Example:
+ *
+ *  // this is equivalent to
+ *  // `using hi = constant_sequence<char, 'h', 'i'>;`
+ *  FATAL_ID_STRING(hi);
+ *
+ *  // this is equivalent to
+ *  // `using hey = constant_sequence<char, 'h', 'e', 'y'>;`
+ *  FATAL_ID_STRING(hey);
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_ID_STRING(Id) \
+  FATAL_STR(Id, FATAL_TO_STR(Id))
 
 ///////////////////////////////
 // STATIC MEMBERS DEFINITION //
