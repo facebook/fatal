@@ -27,6 +27,7 @@ namespace detail {
 namespace constant_sequence_impl {
 
 template <typename T, T...> struct reverse;
+template <typename T, T...> struct polynomial;
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
@@ -382,6 +383,24 @@ public:
   template <T... Suffix>
   using reverse = typename detail::constant_sequence_impl::reverse<T, Values...>
     ::template apply<Suffix...>;
+
+  /**
+   * Evaluates the polynomial whose coefficients are represented by this
+   * sequences' elements, from least to most significant.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 5, 2, -3>;
+   *
+   *  // yields `std::integral_constant<int, -3 * 9 * 9 + 2 * 9 + 5>`
+   *  using result1 = seq::polynomial<9>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <T Variable>
+  using polynomial = typename detail::constant_sequence_impl::polynomial<
+    T, Values...
+  >::template apply<Variable, 1, 0>;
 
   /**
    * Interleaves the given separators between each pair of elements of this
@@ -921,6 +940,27 @@ template <typename T>
 struct reverse<T> {
   template <T... Values>
   using apply = constant_sequence<T, Values...>;
+};
+
+////////////////
+// polynomial //
+////////////////
+
+template <typename T, T Coefficient, T... Coefficients>
+struct polynomial<T, Coefficient, Coefficients...> {
+  template <T Variable, T VariableAccumulator, T Accumulator>
+  using apply = typename polynomial<T, Coefficients...>
+    ::template apply<
+      Variable,
+      VariableAccumulator * Variable,
+      Accumulator + VariableAccumulator * Coefficient
+    >;
+};
+
+template <typename T>
+struct polynomial<T> {
+  template <T, T, T Accumulator>
+  using apply = std::integral_constant<T, Accumulator>;
 };
 
 ///////////////

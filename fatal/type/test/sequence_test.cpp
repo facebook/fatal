@@ -766,6 +766,26 @@ FATAL_TEST(constant_sequence, reverse) {
 }
 
 ///////////////////////////////////
+// constant_sequence::polynomial //
+///////////////////////////////////
+
+template <int Expected, int Variable, int... Coefficients>
+void check_polynomial() {
+  using seq = constant_sequence<int, Coefficients...>;
+
+  FATAL_EXPECT_SAME<
+    std::integral_constant<int, Expected>,
+    typename seq::template polynomial<Variable>
+  >();
+};
+
+FATAL_TEST(constant_sequence, polynomial) {
+  check_polynomial<-3 * 9 * 9 + 2 * 9 + 5, 9, 5, 2, -3>();
+  check_polynomial<21 * 4 + 14, 4, 14, 21>();
+  check_polynomial<18 * 9 * 9 + 0 * 9 + 1, 9, 1, 0, 18>();
+}
+
+///////////////////////////////////
 // constant_sequence::interleave //
 ///////////////////////////////////
 
