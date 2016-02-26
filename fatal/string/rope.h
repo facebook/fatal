@@ -1806,12 +1806,15 @@ bool operator >=(T const &lhs, rope<SmallBufferSize> const &rhs) {
   return !(rhs > lhs);
 }
 
-///////////////////////////////
-// operator <<(std::ostream) //
-///////////////////////////////
+/////////////////////////////////////
+// operator <<(std::basic_ostream) //
+/////////////////////////////////////
 
-template <std::size_t SmallBufferSize>
-std::ostream &operator <<(std::ostream &out, rope<SmallBufferSize> const &r) {
+template <typename C, typename T, std::size_t SmallBufferSize>
+std::ostream &operator <<(
+  std::basic_ostream<C, T> &out,
+  rope<SmallBufferSize> const &r
+) {
   using piece_index = typename rope<SmallBufferSize>::piece_index;
 
   for (piece_index i = 0, pieces = r.pieces(); i < pieces; ++i) {

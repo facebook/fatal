@@ -362,11 +362,12 @@ bool operator >=(string_view lhs, T const &rhs) { return !(lhs < rhs); }
 template <typename T, typename = detail::safe_overload_t<string_view, T>>
 bool operator >=(T const &lhs, string_view rhs) { return !(rhs > lhs); }
 
-///////////////////////////////
-// operator <<(std::ostream) //
-///////////////////////////////
+/////////////////////////////////////
+// operator <<(std::basic_ostream) //
+/////////////////////////////////////
 
-std::ostream &operator <<(std::ostream &out, string_view rhs) {
+template <typename C, typename T>
+std::ostream &operator <<(std::basic_ostream<C, T> &out, string_view rhs) {
   return out.write(rhs.data(), rhs.size());
 }
 
