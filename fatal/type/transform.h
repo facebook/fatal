@@ -80,20 +80,20 @@ using is_complete = detail::transform_impl::is_complete::type<T>;
  * Example:
  *
  *  // yields `int`
- *  typedef identity<int> result1;
+ *  using result1 = identity<int>;
  *
  *  // yields `std::string`
- *  typedef identity<std::string> result2;
+ *  using result2 = identity<std::string>;
  *
  *  // yields `double`
- *  typedef identity<identity<double>>> result3;
+ *  using result3 = identity<identity<double>>>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace detail {
 namespace transform_impl {
 // needed due to gcc bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=62276
-template <typename T> struct identity { typedef T type; };
+template <typename T> struct identity { using type = T; };
 } // namespace transform_impl {
 } // namespace detail {
 
@@ -275,7 +275,7 @@ using sizeof_transform = std::integral_constant<std::size_t, sizeof(T)>;
  *  using tr = compose<T1, T2, T3>;
  *
  *  // yields `T3<T2<T1<int>>>`
- *  typedef tr::apply<int> result;
+ *  using result = tr::apply<int>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -296,6 +296,13 @@ template <>
 struct compose<> {
   template <typename T, typename...>
   using apply = T;
+};
+
+// TODO: DOCUMENT AND TEST
+template <typename... Args>
+struct applier {
+  template <typename U>
+  using apply = typename U::template apply<Args...>;
 };
 
 ////////////////
@@ -605,8 +612,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `false`
    *  comparison_transform::equal<A, B>::value
@@ -632,8 +639,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `true`
    *  comparison_transform::not_equal<A, B>::value
@@ -659,8 +666,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `true`
    *  comparison_transform::less_than<A, B>::value
@@ -686,8 +693,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `true`
    *  comparison_transform::less_than_equal<A, B>::value
@@ -713,8 +720,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `false`
    *  comparison_transform::greater_than<A, B>::value
@@ -740,8 +747,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `false`
    *  comparison_transform::greater_than_equal<A, B>::value
@@ -763,10 +770,10 @@ struct comparison_transform {
 
 /**
  * A convenient macro that creates a transform which
- * evaluates to the given member typedef.
+ * evaluates to the given member type.
  *
  * Provides a template alias named `Name` which extracts
- * the member typedef with the same name.
+ * the member type with the same name.
  *
  * Example:
  *
@@ -782,10 +789,10 @@ struct comparison_transform {
 
 /**
  * A convenient macro that creates a transform which
- * evaluates to the given member typedef.
+ * evaluates to the given member type.
  *
  * Provides a template alias named `Name` which extracts
- * the member typedef with the same name.
+ * the member type with the same name.
  *
  * Example:
  *
@@ -800,23 +807,23 @@ struct comparison_transform {
   FATAL_GET_MEMBER_TYPE_AS(Name, Name)
 
 /**
- * Provides transforms that evaluate to a member typedef of a given type.
+ * Provides transforms that evaluate to a member type of a given type.
  *
  * Example:
  *
  *  // yields `int`
- *  typedef get_member_type::type<std::add_const<int>> result1;
+ *  using result1 = get_member_type::type<std::add_const<int>>;
  *
- *  typedef std::map<double, std::string> map;
+ *  using map = std::map<double, std::string>;
  *
  *  // yields `std::pair<double, std::string>`
- *  typedef get_member_type::value_type<map> result2;
+ *  using result2 = get_member_type::value_type<map>;
  *
  *  // yields `double`
- *  typedef get_member_type::key_type<map> result3;
+ *  using result3 = get_member_type::key_type<map>;
  *
  *  // yields `std::string`
- *  typedef get_member_type::mapped_type<map> result4;
+ *  using result4 = get_member_type::mapped_type<map>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -1168,13 +1175,13 @@ class variadic_transform {
  *  using dc = type_member_transform<std::decay>;
  *
  *  // yields `int`
- *  typedef dc::apply<int const &> result1;
+ *  using result1 = dc::apply<int const &>;
  *
  *  template <typename T, template <typename...> class MyTransform>
  *  using foo = MyTransform<T>;
  *
  *  // yields `double`
- *  typedef foo<double &&, dc::template apply> result2;
+ *  using result2 = foo<double &&, dc::template apply>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -1202,13 +1209,13 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
+   *  using c1 = transform_alias<std::tuple, int, double>;
    *
    *  // yields `std::tuple<int, double>`
-   *  typedef c1::apply<> result1;
+   *  using result1 = c1::apply<>;
    *
    *  // yields `std::tuple<int, double, long, std::string, bool, float>`
-   *  typedef c1::apply<long, std::string, bool, float> result2;
+   *  using result2 = c1::apply<long, std::string, bool, float>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1221,14 +1228,14 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
-   *  typedef c1::curry<long, std::string> c2;
+   *  using c1 = transform_alias<std::tuple, int, double>;
+   *  using c2 = c1::curry<long, std::string>;
    *
    *  // yields `std::tuple<int, double, long, std::string>`
-   *  typedef c2::apply<> result1;
+   *  using result1 = c2::apply<>;
    *
    *  // yields `std::tuple<int, double, long, std::string, bool, float>`
-   *  typedef c2::apply<bool, float> result2;
+   *  using result2 = c2::apply<bool, float>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1240,14 +1247,14 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
-   *  typedef c1::rebind<long, std::string> c2;
+   *  using c1 = transform_alias<std::tuple, int, double>;
+   *  using c2 = c1::rebind<long, std::string>;
    *
    *  // yields `std::tuple<long, std::string>`
-   *  typedef c2::apply<> result1;
+   *  using result1 = c2::apply<>;
    *
    *  // yields `std::tuple<long, std::string, bool, float>`
-   *  typedef c2::apply<bool, float> result2;
+   *  using result2 = c2::apply<bool, float>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1259,18 +1266,18 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
+   *  using c1 = transform_alias<std::tuple, int, double>;
    *
-   *  typedef transform_alias<c1::template uncurry, long, std::string> c2;
+   *  using c2 = transform_alias<c1::template uncurry, long, std::string>;
    *
    *  // yields `std::tuple<long, std::string>`
-   *  typedef c2::apply<> result1;
+   *  using result1 = c2::apply<>;
    *
    *  // yields `std::tuple<long, std::string, bool, float>`
-   *  typedef c2::apply<bool, float> result2;
+   *  using result2 = c2::apply<bool, float>;
    *
    *  // yields `std::tuple<long, std::string>`
-   *  typedef c1::uncurry<long, std::string> result2;
+   *  using result3 = c1::uncurry<long, std::string>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1283,13 +1290,13 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
+   *  using c1 = transform_alias<std::tuple, int, double>;
    *
    *  // yields `V1<int, double>`
-   *  typedef c1::rebind_args<V1>::apply<> result1;
+   *  using result1 = c1::rebind_args<V1>::apply<>;
    *
    *  // yields `V1<int, double, bool, float>`
-   *  typedef c1::rebind_args<V1, bool, float>::apply<> result2;
+   *  using result2 = c1::rebind_args<V1, bool, float>::apply<>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1304,13 +1311,13 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
+   *  using c1 = transform_alias<std::tuple, int, double>;
    *
    *  // yields `V1<int, double>`
-   *  typedef c1::apply_args<V1> result1;
+   *  using result1 = c1::apply_args<V1>;
    *
    *  // yields `V1<int, double, bool, float>`
-   *  typedef c1::apply_args<V1, bool, float> result2;
+   *  using result2 = c1::apply_args<V1, bool, float>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1788,7 +1795,7 @@ struct recursive_transform {
 // TODO: write in terms of `recursive_transform`
 
 template <typename T, std::size_t Depth>
-struct recursive_type_sort_impl { typedef T type; };
+struct recursive_type_sort_impl { using type = T; };
 
 template <std::size_t Depth = std::numeric_limits<std::size_t>::max()>
 struct recursive_type_sort {
@@ -1808,7 +1815,7 @@ using full_recursive_type_sort = typename recursive_type_sort<>
  * Declaration of traits class used by `type_get`.
  *
  * This class should be specialized for new data structures so they are
- * supported by `type_get`. It must provide a member typedef `type` with
+ * supported by `type_get`. It must provide a member type `type` with
  * the `Index`-th type of the `TDataStructure` data structure.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
@@ -1834,10 +1841,10 @@ struct type_get_traits;
  *  type_list<int, void, bool> list;
  *
  *  // yields `bool`
- *  typedef third = type_get<2>::from<list>
+ *  using third = type_get<2>::from<list>;
  *
  *  // yields `int`
- *  typedef third = type_get<0>::from<list>
+ *  using first = type_get<0>::from<list>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
