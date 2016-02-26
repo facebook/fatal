@@ -104,6 +104,7 @@ using space_tokenizer = tokenizer<string_view, ' '>;
 using line_tokenizer = tokenizer<string_view, '\n'>;
 using comma_tokenizer = tokenizer<string_view, ','>;
 using colon_tokenizer = tokenizer<string_view, ':'>;
+using semicolon_tokenizer = tokenizer<string_view, ';'>;
 
 using csv_tokenizer = tokenizer<comma_tokenizer, '\n'>;
 
