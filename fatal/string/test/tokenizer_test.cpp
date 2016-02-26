@@ -29,16 +29,9 @@ void tokenizer_test(T &&data, std::vector<char const *> const &expected) {
   FATAL_EXPECT_EQ(expected.end(), i);
 }
 
-FATAL_TEST(tokenizer, space) {
-  tokenizer_test<space_tokenizer>(
-    "1 2 3 4 5  6 7 8 9",
-    {"1", "2", "3", "4", "5", "", "6", "7", "8", "9"}
-  );
-}
-
-FATAL_TEST(tokenizer, line) {
-  tokenizer_test<line_tokenizer>(
-    "1\n2\n3\n4\n5\n\n6\n 7\n8 \n9",
+FATAL_TEST(tokenizer, colon) {
+  tokenizer_test<colon_tokenizer>(
+    "1:2:3:4:5::6: 7:8 :9",
     {"1", "2", "3", "4", "5", "", "6", " 7", "8 ", "9"}
   );
 }
@@ -50,10 +43,24 @@ FATAL_TEST(tokenizer, comma) {
   );
 }
 
-FATAL_TEST(tokenizer, colon) {
-  tokenizer_test<colon_tokenizer>(
-    "1:2:3:4:5::6: 7:8 :9",
+FATAL_TEST(tokenizer, line) {
+  tokenizer_test<line_tokenizer>(
+    "1\n2\n3\n4\n5\n\n6\n 7\n8 \n9",
     {"1", "2", "3", "4", "5", "", "6", " 7", "8 ", "9"}
+  );
+}
+
+FATAL_TEST(tokenizer, semicolon) {
+  tokenizer_test<semicolon_tokenizer>(
+    "1;2;3;4;5;;6; 7;8 ;9",
+    {"1", "2", "3", "4", "5", "", "6", " 7", "8 ", "9"}
+  );
+}
+
+FATAL_TEST(tokenizer, space) {
+  tokenizer_test<space_tokenizer>(
+    "1 2 3 4 5  6 7 8 9",
+    {"1", "2", "3", "4", "5", "", "6", "7", "8", "9"}
   );
 }
 
