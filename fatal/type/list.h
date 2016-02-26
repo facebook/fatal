@@ -126,11 +126,11 @@ struct type_list_from {
  */
 // TODO: MOVE TO ANOTHER HEADER
 struct type_value_comparer {
-  template <typename TLHS, typename TRHS, std::size_t Index>
-  static constexpr int compare(TLHS &&lhs, indexed_type_tag<TRHS, Index>) {
-    return lhs < TRHS::value
+  template <typename LHS, typename RHS, std::size_t Index>
+  static constexpr int compare(LHS &&lhs, indexed_type_tag<RHS, Index>) {
+    return lhs < RHS::value
       ? -1
-      : TRHS::value < lhs
+      : RHS::value < lhs
         ? 1
         : 0;
   }
@@ -162,8 +162,8 @@ struct type_value_comparer {
  */
 // TODO: MOVE TO ANOTHER HEADER
 struct index_value_comparer {
-  template <typename TLHS, typename TRHS, std::size_t Index>
-  static constexpr int compare(TLHS &&lhs, indexed_type_tag<TRHS, Index>) {
+  template <typename LHS, typename RHS, std::size_t Index>
+  static constexpr int compare(LHS &&lhs, indexed_type_tag<RHS, Index>) {
     return lhs < Index
       ? -1
       : Index < lhs
@@ -326,7 +326,7 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C> types;
+   *  using types = type_list<A, B, C>;
    *
    *  // yields `true`
    *  types::contains<A>::value
@@ -346,10 +346,10 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C> types;
+   *  using types = type_list<A, B, C>;
    *
    *  // yields `type_list<A, B, C, D, E>`
-   *  typedef types::push_back<D, E> result;
+   *  using result = types::push_back<D, E>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -361,10 +361,10 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<C, D, E> types;
+   *  using types = type_list<C, D, E>;
    *
    *  // yields `type_list<A, B, C, D, E>`
-   *  typedef types::push_front<A, B> result;
+   *  using result = types::push_front<A, B>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -399,11 +399,11 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B> lhs;
+   *  using lhs = type_list<A, B>;
    *  type_list<C, D> rhs;
    *
    *  // yields `type_list<A, B, C, D>`
-   *  typedef lhs::concat<rhs> result;
+   *  using result = lhs::concat<rhs>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -414,36 +414,36 @@ struct type_list {
 
   /**
    * Inserts the type `T` in its sorted position from the beginning of
-   * the list, according to the order relation defined by `TLessComparer`.
+   * the list, according to the order relation defined by `LessComparer`.
    *
-   * `TLessComparer` defaults to `comparison_transform::less_than` when omitted.
+   * `LessComparer` defaults to `comparison_transform::less_than` when omitted.
    *
    * Example:
    *
    *  template <int Value>
    *  using val = std::integral_constant<int, Value>;
    *
-   *  typedef type_list<val<0>, val<1>, val<3>> list;
+   *  using list1 = type_list<val<0>, val<1>, val<3>>;
    *
    *  // yields `type_list<val<0>, val<1>, val<2>, val<3>>`
-   *  typedef list::insert_sorted<val<2>> result1;
+   *  using result1 = list1::insert_sorted<val<2>>;
    *
    *  template <typename LHS, typename RHS> struct cmp
    *  using gt = std::integral_constant<bool, (LHS::value > RHS::value)>;
    *
-   *  typedef type_list<val<5>, val<3>, val<1>> list;
+   *  using list2 = type_list<val<5>, val<3>, val<1>>;
    *
    *  // yields `type_list<val<5>, val<4>, val<3>, val<1>>`
-   *  typedef list::insert_sorted<val<4>, gt> result2;
+   *  using result2 = list2::insert_sorted<val<4>, gt>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
     typename T,
-    template <typename...> class TLessComparer = comparison_transform::less_than
+    template <typename...> class LessComparer = comparison_transform::less_than
   >
   using insert_sorted = typename detail::type_list_impl::insert_sorted<
-    TLessComparer, T, Args...
+    LessComparer, T, Args...
   >::type;
 
   // TODO: DOCUMENT
@@ -457,7 +457,7 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C> types;
+   *  using types = type_list<A, B, C>;
    *
    *  // yields `std::tuple<A, B, C>`
    *  types::apply<std::tuple>
@@ -479,19 +479,19 @@ struct type_list {
    * Example:
    *
    *  template <int... Values> struct int_sequence;
-   *  typedef type_list<
+   *  using list = type_list<
    *    std::integral_constant<int, 0>,
    *    std::integral_constant<int, 1>,
    *    std::integral_constant<int, 2>
-   *  > list;
+   *  >;
    *  template <typename T>
    *  struct double_getter: public std::integral_constant<int, T::value * 2> {};
    *
    *  // yields `int_sequence<0, 1, 2>`
-   *  typedef list::apply_values<int, int_sequence> result1;
+   *  using result1 = list::apply_values<int, int_sequence>;
    *
    *  // yields `int_sequence<0, 2, 4>`
-   *  typedef list::apply_values<int, int_sequence, double_getter> result2;
+   *  using result2 = list::apply_values<int, int_sequence, double_getter>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -513,19 +513,19 @@ struct type_list {
    * Example:
    *
    *  template <typename T, T... Values> struct sequence;
-   *  typedef type_list<
+   *  using list = type_list<
    *    std::integral_constant<int, 0>,
    *    std::integral_constant<int, 1>,
    *    std::integral_constant<int, 2>
-   *  > list;
+   *  >;
    *  template <typename T>
    *  struct double_getter: public std::integral_constant<int, T::value * 2> {};
    *
    *  // yields `sequence<0, 1, 2>`
-   *  typedef list::apply_typed_values<int, sequence> result1;
+   *  using result1 = list::apply_typed_values<int, sequence>;
    *
    *  // yields `sequence<0, 2, 4>`
-   *  typedef list::apply_typed_values<int, sequence, double_getter> result2;
+   *  using result2 = list::apply_typed_values<int, sequence, double_getter>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    *
@@ -591,7 +591,7 @@ struct type_list {
    *    // yield a compilation error since there are no such overloads
    *  };
    *
-   *  typedef type_list<double, float, long, std::string, int> list;
+   *  using list = type_list<double, float, long, std::string, int>;
    *
    *  // yields `2` and prints `
    *  //  overload for long at index 2: visited!
@@ -692,7 +692,7 @@ struct type_list {
    *    }
    *  };
    *
-   *  typedef type_list<double, float, long, bool, int> list;
+   *  using list = type_list<double, float, long, bool, int>;
    *
    *  // yields `true` and prints `overload for double at index 0: visited!`
    *  list::visit(0, visitor(), "visited!");
@@ -796,7 +796,7 @@ struct type_list {
    * Example:
    *
    *  template <typename, std::size_t> struct T {};
-   *  typedef type_list<A, B, C> types;
+   *  using types = type_list<A, B, C>;
    *
    *  // yields `type_list<T<A, 0>, T<B, 1>, T<C, 2>>`
    *  types::transform<T>
@@ -924,10 +924,10 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<int, void, int, bool> list;
+   *  using list = type_list<int, void, int, bool>;
    *
    *  // yields `type_list<double, void, double, bool>`
-   *  typedef list::replace<int, double> result;
+   *  using result = list::replace<int, double>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -944,16 +944,16 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C, D> types;
+   *  using types = type_list<A, B, C, D>;
    *
    *  // yields `type_list<B, C, D>`
-   *  typedef types::tail<1> result1;
+   *  using result1 = types::tail<1>;
    *
    *  // yields `type_list<A, B, C, D>`
-   *  typedef types::tail<0> result2;
+   *  using result2 = types::tail<0>;
    *
    *  // yields `type_list<>`
-   *  typedef types::tail<types::size> result3;
+   *  using result3 = types::tail<types::size>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -999,19 +999,19 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C, D> types;
+   *  using types = type_list<A, B, C, D>;
    *
    *  // yields `type_list<>`
-   *  typedef types::slice<2, 0> result1;
+   *  using result1 = types::slice<2, 0>;
    *
    *  // yields `type_list<C>`
-   *  typedef types::slice<2, 1> result1;
+   *  using result2 = types::slice<2, 1>;
    *
    *  // yields `type_list<C, D>`
-   *  typedef types::slice<2, 2> result1;
+   *  using result3 = types::slice<2, 2>;
    *
    *  // yields `type_list<B, C, D>`
-   *  typedef types::slice<1, 3> result2;
+   *  using result4 = types::slice<1, 3>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1025,13 +1025,13 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C, D> types;
+   *  using types = type_list<A, B, C, D>;
    *
    *  // yields `type_list<A, B>`
-   *  typedef types::left<2> result1;
+   *  using result1 = types::left<2>;
    *
    *  // yields `type_list<>`
-   *  typedef types::left<0> result2;
+   *  using result2 = types::left<0>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1043,13 +1043,13 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C, D> types;
+   *  using types = type_list<A, B, C, D>;
    *
    *  // yields `type_list<C, D>`
-   *  typedef types::right<2> result1;
+   *  using result1 = types::right<2>;
    *
    *  // yields `type_list<>`
-   *  typedef types::right<0> result2;
+   *  using result2 = types::right<0>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1066,7 +1066,7 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<int, std::string, double, long> types;
+   *  using types = type_list<int, std::string, double, long>;
    *
    *  // yields `type_pair<
    *  //   type_list<int, long>,
@@ -1092,7 +1092,7 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<int, std::string, double, long> types;
+   *  using types = type_list<int, std::string, double, long>;
    *
    *  // yields `type_list<int, long>`
    *  using result = types::filter<std::is_integral>;
@@ -1113,7 +1113,7 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<int, std::string, double, long> types;
+   *  using types = type_list<int, std::string, double, long>;
    *
    *  // yields `type_list<std::string, double>`
    *  using result = types::reject<std::is_integral>;
@@ -1130,10 +1130,10 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<int, bool, int, float, void> types;
+   *  using types = type_list<int, bool, int, float, void>;
    *
    *  // yields `type_list<bool, float>`
-   *  typedef types::remove<int, void> result;
+   *  using result = types::remove<int, void>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1170,13 +1170,13 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C, D, E, F, G, H, I> list;
+   *  using list = type_list<A, B, C, D, E, F, G, H, I>;
    *
    *  // yields type_list<A, D, G>
-   *  typedef list::unzip<3> result;
+   *  using result1 = list::unzip<3>;
    *
    *  // yields type_list<C, E, G, I>
-   *  typedef list::unzip<2, 2> result;
+   *  using result2 = list::unzip<2, 2>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1198,13 +1198,13 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<int, std::string, double, long> types;
+   *  using types = type_list<int, std::string, double, long>;
    *
    *  // yields `int`
-   *  typedef types::search<std::is_integral, void> result1;
+   *  using result1 = types::search<std::is_integral, void>;
    *
    *  // yields `void`
-   *  typedef types::search<std::is_unsigned, void> result2;
+   *  using result2 = types::search<std::is_unsigned, void>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1225,12 +1225,12 @@ struct type_list {
    *
    * Example:
    *
-   *  typedef type_list<A, B, C> left;
-   *  typedef type_list<D, E, F> right;
+   *  using left = type_list<A, B, C>;
+   *  using right = type_list<D, E, F>;
    *  template <typename, typename> struct combiner {};
    *
    *  // yields `type_list<combiner<A, D>, combiner<B, E>, combiner<C, F>>`
-   *  typedef left::combine<right, combiner> result;
+   *  using result = left::combine<right, combiner>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1247,7 +1247,7 @@ struct type_list {
    * Flattens elements from sublists into a single, topmost list.
    *
    * The topmost list can be customized with the template template parameter
-   * `TList`. when omitted, it defaults to `fatal::type_list`.
+   * `List`. when omitted, it defaults to `fatal::type_list`.
    *
    * Only a single level will be flattened. For recursive flattening,
    * use deep_flatten.
@@ -1286,8 +1286,8 @@ struct type_list {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename...> class TList = fatal::type_list>
-  using flatten = typename fatal::flatten<TList, fatal::type_list>
+  template <template <typename...> class List = fatal::type_list>
+  using flatten = typename fatal::flatten<List, fatal::type_list>
     ::template apply<Args...>;
 
   /**
@@ -1372,13 +1372,13 @@ struct type_list {
 
   /**
    * Tells whether this type_list is sorted according to the given type
-   * comparer `TLessComparer`.
+   * comparer `LessComparer`.
    *
-   * `TLessComparer` receives two types, `TLHS` and `TRHS`, as template
+   * `LessComparer` receives two types, `LHS` and `RHS`, as template
    * arguments, and must provide a static constexpr boolean member `value`
-   * telling whether `TLHS` is smaller than `TRHS` or not.
+   * telling whether `LHS` is smaller than `RHS` or not.
    *
-   * `TLessComparer` must represent a total order relation between all types.
+   * `LessComparer` must represent a total order relation between all types.
    *
    * The default comparer is `comparison_transform::less_than`.
    *
@@ -1400,38 +1400,38 @@ struct type_list {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TLessComparer = comparison_transform::less_than
+    template <typename...> class LessComparer = comparison_transform::less_than
   >
   using is_sorted = typename detail::type_list_impl::is_sorted<
-    TLessComparer, Args...
+    LessComparer, Args...
   >::type;
 
   // TODO: Update docs
   /**
    * Merges two sorted type lists into a new sorted type list, according to
-   * the given type comparer `TLessComparer`.
+   * the given type comparer `LessComparer`.
    *
-   * `TLessComparer` must represent a total order relation between all types.
+   * `LessComparer` must represent a total order relation between all types.
    *
    * The default comparer is `comparison_transform::less_than`.
    *
    * Example:
    *
-   *  typedef type_list<T<0>, T<1>, T<2>> lhs;
-   *  typedef type_list<T<3>, T<4>, T<5>> rhs;
+   *  using lhs = type_list<T<0>, T<1>, T<2>>;
+   *  using rhs = type_list<T<3>, T<4>, T<5>>;
    *
    *  // yields `type_list<T<0>, T<1>, T<2>, T<3>, T<4>, T<5>>`
-   *  typedef lhs::merge<rhs, comparison_transform::less_than> result;
+   *  using result = lhs::merge<rhs, comparison_transform::less_than>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TLessComparer = comparison_transform::less_than
+    template <typename...> class LessComparer = comparison_transform::less_than
   >
   struct merge {
-    template <typename TList>
+    template <typename List>
     using list = typename detail::type_list_impl::merge_entry_point<
-      TLessComparer, TList, Args...
+      LessComparer, List, Args...
     >::type;
 
     template <typename... UArgs>
@@ -1440,26 +1440,26 @@ struct type_list {
 
   /**
    * Sorts this `type_list` using the stable merge sort algorithm, according to
-   * the given type comparer `TLessComparer`.
+   * the given type comparer `LessComparer`.
    *
-   * `TLessComparer` must represent a total order relation between all types.
+   * `LessComparer` must represent a total order relation between all types.
    *
    * The default comparer is `comparison_transform::less_than`.
    *
    * Example:
    *
-   *  typedef type_list<T<0>, T<5>, T<4>, T<2>, T<1>, T<3>> list;
+   *  using list = type_list<T<0>, T<5>, T<4>, T<2>, T<1>, T<3>>;
    *
    *  // yields `type_list<T<0>, T<1>, T<2>, T<3>, T<4>, T<5>>`
-   *  typedef list::sort<> result;
+   *  using result = list::sort<>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TLessComparer = comparison_transform::less_than
+    template <typename...> class LessComparer = comparison_transform::less_than
   >
   using sort = typename detail::type_list_impl::sort<
-    TLessComparer, type_list
+    LessComparer, type_list
   >::type;
 
   /**
@@ -1647,7 +1647,7 @@ struct type_list {
      *    };
      *  };
      *
-     *  typedef str<'a', 'e', 'i', 'o', 'u'> list;
+     *  using list = str<'a', 'e', 'i', 'o', 'u'>;
      *
      *  // yields `false`
      *  list::binary_search<cmp>::exact('x', visitor());
@@ -1690,7 +1690,7 @@ struct type_list {
      *    };
      *  };
      *
-     *  typedef int_seq<10, 30, 50, 70> list;
+     *  using list = int_seq<10, 30, 50, 70>;
      *
      *  // yields `false`
      *  list::binary_search<cmp>::lower_bound(5, visitor());
@@ -1739,7 +1739,7 @@ struct type_list {
      *    };
      *  };
      *
-     *  typedef int_seq<10, 30, 50, 70> list;
+     *  using list = int_seq<10, 30, 50, 70>;
      *
      *  // yields `false`
      *  list::binary_search<cmp>::upper_bound(70, visitor());
@@ -2194,14 +2194,14 @@ struct zip<type_list<>, type_list<T, Args...>> {
 };
 
 template <
-  typename TLHS, typename... TLHSArgs,
-  typename TRHS, typename... TRHSArgs
+  typename LHS, typename... TLHSArgs,
+  typename RHS, typename... TRHSArgs
 >
-struct zip<type_list<TLHS, TLHSArgs...>, type_list<TRHS, TRHSArgs...>> {
+struct zip<type_list<LHS, TLHSArgs...>, type_list<RHS, TRHSArgs...>> {
   using type = typename zip<
     type_list<TLHSArgs...>,
     type_list<TRHSArgs...>
-  >::type::template push_front<TLHS, TRHS>;
+  >::type::template push_front<LHS, RHS>;
 };
 
 //////////
@@ -2328,21 +2328,21 @@ struct concat<type_list<Args...>, TLists...> {
 // insert_sorted //
 ///////////////////
 
-template <template <typename...> class TLessComparer, typename T>
-struct insert_sorted<TLessComparer, T> { using type = type_list<T>; };
+template <template <typename...> class LessComparer, typename T>
+struct insert_sorted<LessComparer, T> { using type = type_list<T>; };
 
 template <
-  template <typename...> class TLessComparer,
+  template <typename...> class LessComparer,
   typename T,
   typename THead,
   typename... TTail
 >
-struct insert_sorted<TLessComparer, T, THead, TTail...> {
+struct insert_sorted<LessComparer, T, THead, TTail...> {
   using type = typename std::conditional<
-    TLessComparer<T, THead>::value,
+    LessComparer<T, THead>::value,
     type_list<T, THead, TTail...>,
     typename insert_sorted<
-      TLessComparer, T, TTail...
+      LessComparer, T, TTail...
     >::type::template push_front<THead>
   >::type;
 };
@@ -2413,13 +2413,13 @@ template <template <typename...> class, typename...>
 struct is_sorted: public std::true_type {};
 
 template <
-  template <typename...> class TLessComparer,
-  typename TLHS, typename TRHS, typename... Args
+  template <typename...> class LessComparer,
+  typename LHS, typename RHS, typename... Args
 >
-struct is_sorted<TLessComparer, TLHS, TRHS, Args...>:
+struct is_sorted<LessComparer, LHS, RHS, Args...>:
   public logical::all<
-    logical::negate<TLessComparer<TRHS, TLHS>>,
-    is_sorted<TLessComparer, TRHS, Args...>
+    logical::negate<LessComparer<RHS, LHS>>,
+    is_sorted<LessComparer, RHS, Args...>
   >
 {};
 
@@ -2429,83 +2429,83 @@ struct is_sorted<TLessComparer, TLHS, TRHS, Args...>:
 
 template <template <typename...> class, typename, typename...> struct merge;
 
-template <template <typename...> class TLessComparer>
-struct merge<TLessComparer, type_list<>> { typedef type_list<> type; };
+template <template <typename...> class LessComparer>
+struct merge<LessComparer, type_list<>> { using type = type_list<>; };
 
-template <template <typename...> class TLessComparer, typename TRHSList>
-struct merge<TLessComparer, TRHSList> { typedef TRHSList type; };
+template <template <typename...> class LessComparer, typename TRHSList>
+struct merge<LessComparer, TRHSList> { using type = TRHSList; };
 
 template <
-  template <typename...> class TLessComparer,
-  typename TLHS, typename... TLHSArgs
+  template <typename...> class LessComparer,
+  typename LHS, typename... TLHSArgs
 >
-struct merge<TLessComparer, type_list<>, TLHS, TLHSArgs...> {
-  typedef type_list<TLHS, TLHSArgs...> type;
+struct merge<LessComparer, type_list<>, LHS, TLHSArgs...> {
+  using type = type_list<LHS, TLHSArgs...>;
 };
 
 template <
-  template <typename...> class TLessComparer,
-  typename TRHSList, typename TLHS, typename... TLHSArgs
+  template <typename...> class LessComparer,
+  typename TRHSList, typename LHS, typename... TLHSArgs
 >
-struct merge<TLessComparer, TRHSList, TLHS, TLHSArgs...> {
-  typedef typename TRHSList::template at<0> rhs;
-  typedef TLessComparer<rhs, TLHS> right_merge;
-  typedef typename std::conditional<right_merge::value, rhs, TLHS>::type head;
-  typedef typename std::conditional<
+struct merge<LessComparer, TRHSList, LHS, TLHSArgs...> {
+  using rhs = typename TRHSList::template at<0>;
+  using right_merge = LessComparer<rhs, LHS>;
+  using head = typename std::conditional<right_merge::value, rhs, LHS>::type;
+  using tail = typename std::conditional<
     right_merge::value,
     merge<
-      TLessComparer, typename TRHSList::template tail<1>, TLHS, TLHSArgs...
+      LessComparer, typename TRHSList::template tail<1>, LHS, TLHSArgs...
     >,
-    merge<TLessComparer, TRHSList, TLHSArgs...>
-  >::type::type tail;
+    merge<LessComparer, TRHSList, TLHSArgs...>
+  >::type::type;
 
-  typedef typename tail::template push_front<head> type;
+  using type = typename tail::template push_front<head>;
 };
 
 template <
-  template <typename...> class TLessComparer,
+  template <typename...> class LessComparer,
   typename TRHSList, typename... TLHSArgs
 >
 struct merge_entry_point {
 #   ifndef NDEBUG
   // debug only due to compilation times
   static_assert(
-    type_list<TLHSArgs...>::template is_sorted<TLessComparer>::value,
+    type_list<TLHSArgs...>::template is_sorted<LessComparer>::value,
     "left hand side list is not sorted"
   );
 
   static_assert(
-    TRHSList::template is_sorted<TLessComparer>::value,
+    TRHSList::template is_sorted<LessComparer>::value,
     "right hand side list is not sorted"
   );
 #   endif // NDEBUG
-  typedef typename merge<TLessComparer, TRHSList, TLHSArgs...>::type type;
+  using type = typename merge<LessComparer, TRHSList, TLHSArgs...>::type;
 };
 
 //////////
 // sort //
 //////////
 
-template <template <typename...> class TLessComparer, typename TList>
+template <template <typename...> class LessComparer, typename List>
 struct sort {
-  typedef typename TList::template split<TList::size / 2> unsorted;
-  typedef typename sort<
-    TLessComparer, typename unsorted::first
-  >::type sorted_left;
-  typedef typename sort<
-    TLessComparer, typename unsorted::second
-  >::type sorted_right;
+  using unsorted = typename List::template split<List::size / 2>;
+  using sorted_left = typename sort<
+    LessComparer, typename unsorted::first
+  >::type;
+  using sorted_right = typename sort<
+    LessComparer, typename unsorted::second
+  >::type;
 
-  static_assert(TList::size > 1, "invalid specialization");
-  using type = typename sorted_left::template merge<TLessComparer>
+  static_assert(List::size > 1, "invalid specialization");
+  using type = typename sorted_left::template merge<LessComparer>
     ::template list<sorted_right>;
 };
 
-template <template <typename...> class TLessComparer>
-struct sort<TLessComparer, type_list<>> { typedef type_list<> type; };
+template <template <typename...> class LessComparer>
+struct sort<LessComparer, type_list<>> { using type = type_list<>; };
 
-template <template <typename...> class TLessComparer, typename T>
-struct sort<TLessComparer, type_list<T>> { typedef type_list<T> type; };
+template <template <typename...> class LessComparer, typename T>
+struct sort<LessComparer, type_list<T>> { using type = type_list<T>; };
 
 ////////////
 // unique //
@@ -2581,7 +2581,7 @@ struct binary_search_prepare<
 
 template <typename Comparer, typename... Args>
 struct binary_search_exact {
-  typedef type_list<Args...> list;
+  using list = type_list<Args...>;
 
   using split = typename list:: template split<list::size / 2>;
   static_assert(!split::second::empty, "invalid specialization");
@@ -3091,10 +3091,10 @@ struct binary_search_exact<
 
 template <typename... Args>
 struct binary_search_lower_bound {
-  typedef type_list<Args...> list;
-  typedef typename list:: template split<list::size / 2> split;
-  typedef typename split::first left;
-  typedef typename split::second right;
+  using list = type_list<Args...>;
+  using split = typename list:: template split<list::size / 2>;
+  using left = typename split::first;
+  using right = typename split::second;
   template <std::size_t Offset> using pivot = indexed_type_tag<
     typename right::template at<0>,
     Offset + left::size
@@ -3127,7 +3127,7 @@ struct binary_search_lower_bound {
   static constexpr bool search(
     Needle &&needle, Visitor &&visitor, VArgs &&...args
   ) {
-    typedef indexed_type_tag<typename list::template at<0>, 0> first;
+    using first = indexed_type_tag<typename list::template at<0>, 0>;
     return Comparer::compare(needle, first{}) >= 0
       && impl<Comparer, 0>(
         needle, std::forward<Visitor>(visitor), std::forward<VArgs>(args)...
@@ -3187,10 +3187,10 @@ struct binary_search_lower_bound<> {
 
 template <typename... Args>
 struct binary_search_upper_bound {
-  typedef type_list<Args...> list;
-  typedef typename list:: template split<(list::size + 1) / 2> split;
-  typedef typename split::first left;
-  typedef typename split::second right;
+  using list = type_list<Args...>;
+  using split = typename list:: template split<(list::size + 1) / 2>;
+  using left = typename split::first;
+  using right = typename split::second;
   template <std::size_t Offset> using pivot = indexed_type_tag<
     typename left::template at<left::size - 1>,
     Offset + (left::size - 1)
