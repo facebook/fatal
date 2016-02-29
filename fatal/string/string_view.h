@@ -175,8 +175,8 @@ struct string_view {
   const_iterator end() const { return end_; }
 
   // TODO: DOCUMENT AND TEST
-  template <typename String>
-  String to() {
+  template <typename T>
+  T to() const {
     return String(data(), size());
   }
 
