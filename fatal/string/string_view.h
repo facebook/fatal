@@ -177,7 +177,7 @@ struct string_view {
   // TODO: DOCUMENT AND TEST
   template <typename T>
   T to() const {
-    return String(data(), size());
+    return T(data(), size());
   }
 
   string_view &operator +=(size_type i) {
