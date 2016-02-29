@@ -77,6 +77,9 @@ FATAL_TEST(begin, ) {
 FATAL_TEST(end, ) {
 }
 
+FATAL_TEST(to, std::string) {
+}
+
 FATAL_TEST(operator +=, ) {
 }
 

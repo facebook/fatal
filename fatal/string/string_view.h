@@ -174,6 +174,12 @@ struct string_view {
   const_iterator cend() const { return end_; }
   const_iterator end() const { return end_; }
 
+  // TODO: DOCUMENT AND TEST
+  template <typename String>
+  String to() {
+    return String(data(), size());
+  }
+
   string_view &operator +=(size_type i) {
     assert(i <= size());
     std::advance(begin_, i);
