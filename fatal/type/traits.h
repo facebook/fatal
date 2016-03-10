@@ -932,11 +932,13 @@ using safe_overload_t = enable_when::is_true<is_safe_overload<Class, Args...>>;
  * This macro creates a class named `Class` that can check whether some
  * type has a nested member type with name `Member`.
  *
+ * NOTE: the member `check` is deprecated, `apply` should be used instead.
+ *
  * The class created by this macro looks like this:
  *
  *  struct Class {
  *    template <typename T>
- *    using check = <either std::true_type or std::false_type>;
+ *    using apply = <either std::true_type or std::false_type>;
  *  };
  *
  * Example:
@@ -948,13 +950,13 @@ using safe_overload_t = enable_when::is_true<is_safe_overload<Class, Args...>>;
  *  struct baz {};
  *
  *  // yields `std::true_type`
- *  using result1 = has_xyz::check<foo>;
+ *  using result1 = has_xyz::apply<foo>;
  *
  *  // yields `std::true_type`
- *  using result2 = has_xyz::check<bar>;
+ *  using result2 = has_xyz::apply<bar>;
  *
  *  // yields `std::false_type`
- *  using result3 = has_xyz::check<baz>;
+ *  using result3 = has_xyz::apply<baz>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -967,7 +969,10 @@ using safe_overload_t = enable_when::is_true<is_safe_overload<Class, Args...>>;
     static std::false_type sfinae(...); \
     \
     template <typename T> \
-    using check = decltype(sfinae<T>(nullptr)); \
+    using apply = decltype(sfinae<T>(nullptr)); \
+    \
+    template <typename T> \
+    using check = apply<T>; \
   }
 
 /////////////////////
@@ -981,7 +986,7 @@ struct has_member_type {
     \
   public: \
     template <typename T> \
-    using Name = typename Class::template check<T>
+    using Name = typename Class::template apply<T>
 
 #   define FATAL_IMPL_HAS_MEMBER_TYPE(Name) \
     FATAL_IMPL_HAS_MEMBER_TYPE_DECL( \

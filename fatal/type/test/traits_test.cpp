@@ -1349,17 +1349,17 @@ namespace has_member_type_test {
 FATAL_TEST(traits, has_member_type) {
   FATAL_EXPECT_SAME<
     std::true_type,
-    has_member_type_test::has_xyz::check<has_member_type_test::foo>
+    has_member_type_test::has_xyz::apply<has_member_type_test::foo>
   >();
 
   FATAL_EXPECT_SAME<
     std::true_type,
-    has_member_type_test::has_xyz::check<has_member_type_test::bar>
+    has_member_type_test::has_xyz::apply<has_member_type_test::bar>
   >();
 
   FATAL_EXPECT_SAME<
     std::false_type,
-    has_member_type_test::has_xyz::check<has_member_type_test::baz>
+    has_member_type_test::has_xyz::apply<has_member_type_test::baz>
   >();
 }
 
