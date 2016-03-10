@@ -12,7 +12,7 @@ if [ -z "$USE_STD" ]; then
 fi
 
 if [ -z "$USE_CC" ]; then
-  export USE_CC="clang++-3.8"
+  export USE_CC="clang++-3.9"
 fi
 
 file_name="$1"

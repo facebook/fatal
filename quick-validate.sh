@@ -6,7 +6,7 @@ if [ "$NO_CLEAR" != "true" ]; then
   ./lclear.sh >&2
 fi
 
-for cc in clang++-3.8; do
+for cc in clang++-3.9; do
   NO_CLEAR=true CC_OPT="-O0" USE_CC="$cc" ./validate.sh "$@"
 done
 

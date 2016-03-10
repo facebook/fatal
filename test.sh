@@ -8,7 +8,7 @@ fi
 
 if [ -z "$1" ]; then
   if [ -z "$USE_CC" ]; then
-    for cc in g++-4.8 clang++-3.8 g++-5 clang++-3.4; do
+    for cc in g++-4.8 clang++-3.9 g++-5 clang++-3.4; do
       for f in `find . -name \*_test.cpp`; do
         USE_CC="$cc" NO_CLEAR=true "$0" "$f" "$@"
       done

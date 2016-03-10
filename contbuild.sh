@@ -15,11 +15,6 @@ fi
 
 cpp_std="$2"
 
-#if [ "$cc" = "g++-4.8" ]; then
-#  USE_CC=$cc NO_CLEAR=true PRE_PROC=true ./test.sh \
-#    type reflect_member_function || true
-#fi
-
 base_dir="/tmp/_build/$cc/$cpp_std"
 
 if [ -e "$base_dir" ]; then
