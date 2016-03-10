@@ -1079,24 +1079,31 @@ struct has_member_type {
 /**
  * TODO: DOCUMENT
  *
- *  struct getter_name {
- *    FATAL_STR(name, "member_name");
+ *  template <typename Owner>
+ *  using type;
  *
+ *  template <typename Owner>
+ *  using reference;
+ *
+ *  using name = typename impl::name;
+ *
+ *  template <typename Owner>
+ *  static reference<Owner> ref(Owner &&owner);
+ *
+ *  struct ref_getter {
  *    template <typename Owner>
- *    static reference ref(Owner &owner);
+ *    reference<Owner> operator ()(Owner &&owner) const;
+ *  };
  *
- *    struct ref_getter {
- *      template <typename Owner>
- *      reference operator ()(Owner &owner);
- *    };
+ *  template <typename Owner>
+ *  using pointer;
  *
+ *  template <typename Owner>
+ *  static pointer<Owner> ptr(Owner &owner);
+ *
+ *  struct ptr_getter {
  *    template <typename Owner>
- *    static pointer ptr(Owner &owner);
- *
- *    struct ptr_getter {
- *      template <typename Owner>
- *      pointer operator ()(Owner &owner);
- *    };
+ *    pointer<Owner> operator ()(Owner &owner) const;
  *  };
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
@@ -1119,18 +1126,20 @@ public:
   using type = typename impl::template type<Owner>;
 
   template <typename Owner>
-  using reference = typename impl::template reference<Owner>;
+  using reference = typename impl::template reference<Owner>::type;
 
   using name = typename impl::name;
 
   template <typename Owner>
   static reference<Owner> ref(Owner &&owner) {
+    static_assert(std::is_reference<reference<Owner>>::value, "");
     return impl::ref(std::forward<Owner>(owner));
   }
 
   struct ref_getter {
     template <typename Owner>
     reference<Owner> operator ()(Owner &&owner) const {
+      static_assert(std::is_reference<reference<Owner>>::value, "");
       return ref(std::forward<Owner>(owner));
     }
   };
@@ -1139,11 +1148,17 @@ public:
   using pointer = typename std::remove_reference<reference<Owner>>::type *;
 
   template <typename Owner>
-  static pointer<Owner> ptr(Owner &owner) { return std::addressof(ref(owner)); }
+  static pointer<Owner> ptr(Owner &owner) {
+    static_assert(std::is_pointer<pointer<Owner>>::value, "");
+    return std::addressof(ref(owner));
+  }
 
   struct ptr_getter {
     template <typename Owner>
-    pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
+    pointer<Owner> operator ()(Owner &owner) const {
+      static_assert(std::is_pointer<pointer<Owner>>::value, "");
+      return ptr(owner);
+    }
   };
 };
 
@@ -1153,19 +1168,23 @@ public:
     using type = decltype(::std::declval<Owner>().__VA_ARGS__); \
     \
     template <typename Owner> \
-    using reference = typename ::fatal::add_reference_from< \
-      typename ::fatal::constify_from< \
-        type<Owner>, \
-        typename ::std::remove_reference<Owner>::type \
-      >::type, \
-      Owner && \
-    >::type; \
+    struct reference { \
+      using type = typename ::fatal::add_reference_from< \
+        typename ::fatal::constify_from< \
+          type<Owner>, \
+          typename ::std::remove_reference<Owner>::type \
+        >::type, \
+        Owner && \
+      >::type; \
+      \
+      static_assert(std::is_reference<type>::value, ""); \
+    }; \
     \
     FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
     template <typename Owner> \
-    static reference<Owner> ref(Owner &&owner) { \
-      return static_cast<reference<Owner>>( \
+    static typename reference<Owner>::type ref(Owner &&owner) { \
+      return static_cast<typename reference<Owner>::type>( \
         ::std::forward<Owner>(owner).__VA_ARGS__ \
       ); \
     } \
