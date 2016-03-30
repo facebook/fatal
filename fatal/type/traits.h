@@ -1268,6 +1268,90 @@ struct data_member_getter {
 # undef FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER
 };
 
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename...> class chained_data_member_getter;
+
+template <typename OuterGetter, typename... Getters>
+class chained_data_member_getter<OuterGetter, Getters...> {
+  using tail = chained_data_member_getter<Getters...>;
+
+public:
+  template <typename Owner>
+  using type = typename tail::template type<
+    typename OuterGetter::template type<Owner>
+  >;
+
+  template <typename Owner>
+  using reference = typename tail::template reference<
+    typename OuterGetter::template reference<Owner>
+  >;
+
+  template <typename Owner>
+  static reference<Owner> ref(Owner &&owner) {
+    return tail::ref(OuterGetter::ref(std::forward<Owner>(owner)));
+  }
+
+  struct ref_getter {
+    template <typename Owner>
+    reference<Owner> operator ()(Owner &&owner) const {
+      return ref(std::forward<Owner>(owner));
+    }
+  };
+
+  template <typename Owner>
+  using pointer = typename tail::template pointer<
+    typename OuterGetter::template reference<Owner>
+  >;
+
+  template <typename Owner>
+  static pointer<Owner> ptr(Owner &owner) {
+    auto &&local = OuterGetter::ref(std::forward<Owner>(owner));
+    return tail::ptr(local);
+  }
+
+  struct ptr_getter {
+    template <typename Owner>
+    pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
+  };
+};
+
+template <>
+class chained_data_member_getter<> {
+public:
+  template <typename Owner>
+  using type = Owner;
+
+  template <typename Owner>
+  using reference = Owner &&;
+
+  template <typename Owner>
+  static reference<Owner> ref(Owner &&owner) {
+    return std::forward<Owner>(owner);
+  }
+
+  struct ref_getter {
+    template <typename Owner>
+    reference<Owner> operator ()(Owner &&owner) const {
+      return ref(std::forward<Owner>(owner));
+    }
+  };
+
+  template <typename Owner>
+  using pointer = typename std::remove_reference<Owner>::type *;
+
+  template <typename Owner>
+  static pointer<Owner> ptr(Owner &owner) { return std::addressof(owner); }
+
+  struct ptr_getter {
+    template <typename Owner>
+    pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
+  };
+};
+
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
 ////////////////////////////
