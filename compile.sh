@@ -17,9 +17,9 @@ fi
 
 file_name="$1"
 shift
-base_dir="/tmp/_build/$USE_CC/$USE_STD"
+base_dir="/tmp/.build/$USE_CC/$USE_STD"
 out_dir="$base_dir/`dirname "$file_name"`"
-link_dir="/tmp/_bin"
+link_dir="/tmp/.bin"
 
 if [ ! -d "$out_dir" ]; then
   mkdir -p "$out_dir"
