@@ -5,5 +5,6 @@ if [ -z "$USE_STD" ]; then
 fi
 
 file_name="demo/$1.cpp"
+shift
 
-./compile.sh "$file_name" && "/tmp/_bin/demo/$1" "$@"
+DO_RUN=true ./compile.sh "$file_name" "$@"
