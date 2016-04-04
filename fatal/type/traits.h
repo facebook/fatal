@@ -1126,7 +1126,7 @@ public:
   using type = typename impl::template type<Owner>;
 
   template <typename Owner>
-  using reference = typename impl::template reference<Owner>::type;
+  using reference = typename impl::template reference<Owner>::ref_impl;
 
   using name = typename impl::name;
 
@@ -1169,7 +1169,7 @@ public:
     \
     template <typename Owner> \
     struct reference { \
-      using type = typename ::fatal::add_reference_from< \
+      using ref_impl = typename ::fatal::add_reference_from< \
         typename ::fatal::constify_from< \
           type<Owner>, \
           typename ::std::remove_reference<Owner>::type \
@@ -1177,14 +1177,14 @@ public:
         Owner && \
       >::type; \
       \
-      static_assert(std::is_reference<type>::value, ""); \
+      static_assert(std::is_reference<ref_impl>::value, ""); \
     }; \
     \
     FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
     template <typename Owner> \
-    static typename reference<Owner>::type ref(Owner &&owner) { \
-      return static_cast<typename reference<Owner>::type>( \
+    static typename reference<Owner>::ref_impl ref(Owner &&owner) { \
+      return static_cast<typename reference<Owner>::ref_impl>( \
         ::std::forward<Owner>(owner).__VA_ARGS__ \
       ); \
     } \

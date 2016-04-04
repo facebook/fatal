@@ -1820,7 +1820,7 @@ FATAL_TEST(data_member_getter, getter) {
 
 # define TEST_IMPL(Data, Field) \
   do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
+    TEST_PREAMBLE_IMPL(Field); \
     \
     FATAL_EXPECT_EQ(Field, getter::ref(Data)); \
     FATAL_EXPECT_EQ(Field, getter::ref_getter()(Data)); \
@@ -1912,7 +1912,7 @@ FATAL_TEST(data_member_getter, getter) {
 # undef TEST_IMPL
 # define TEST_IMPL(Data, Field) \
   do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
+    TEST_PREAMBLE_IMPL(Field); \
     \
     FATAL_EXPECT_EQ(Field, getter::ref(std::move(Data))); \
     FATAL_EXPECT_EQ(Field, getter::ref_getter()(std::move(Data))); \
@@ -1994,7 +1994,7 @@ FATAL_TEST(data_member_getter, getter) {
 # undef TEST_IMPL
 # define TEST_IMPL(Data, Field) \
   do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
+    TEST_PREAMBLE_IMPL(Field); \
     \
     FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::ptr(Data)); \
     FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::ptr_getter()(Data)); \
