@@ -6,6 +6,10 @@ if [ "$NO_CLEAR" != "true" ]; then
   ./lclear.sh >&2
 fi
 
+if [ -z "$CC_OPT" ]; then
+  export CC_OPT='-O0'
+fi
+
 if [ -z "$1" ]; then
   if [ -z "$USE_CC" ]; then
     for cc in g++-4.8 clang++-3.9 g++-5 clang++-3.4; do
