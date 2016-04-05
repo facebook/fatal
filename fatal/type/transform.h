@@ -1025,7 +1025,7 @@ class transform_traits {
     template <typename T, typename = TTransform<T>>
     static std::true_type sfinae(T *);
 
-    template <typename = void>
+    template <typename...>
     static std::false_type sfinae(...);
   };
 
