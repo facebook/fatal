@@ -1,13 +1,15 @@
 #!/bin/sh
 
+. ./scripts.inc
+
 set -e
 
 if [ "$NO_CLEAR" != "true" ]; then
-  ./lclear.sh >&2
+  lclear
 fi
 
 if [ -z "$USE_CC" ]; then
-  for cc in clang++-3.9 g++-4.8 g++-5 clang++-3.4 clang++-3.5 clang++-3.6 clang++-3.7 clang++-3.8 g++-4.9; do
+  for cc in $full_compilers_list; do
     if which $cc; then
       USE_CC="$cc" NO_CLEAR=true "$0" "$@"
     fi

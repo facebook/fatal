@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. ./scripts.inc
+
 set -e
 
 if [ -z "$1" ]; then
@@ -27,7 +29,7 @@ out_binary="${out_path}.o"
 out_prof="${out_binary}.memory.trace.pbf"
 
 if [ "$NO_CLEAR" != "true" ]; then
-  ./lclear.sh >&2
+  lclear
 fi
 
 echo -n "started: "; date

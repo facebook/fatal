@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. ./scripts.inc
+
 if [ -z "$USE_STD" ]; then
   export USE_STD="c++1y"
 fi

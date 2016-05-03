@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ./scripts.inc
+
 set -e
 
 cc="$1"

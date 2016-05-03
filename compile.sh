@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ./scripts.inc
+
 set -e
 
 if [ -z "$1" ]; then
@@ -12,7 +14,7 @@ if [ -z "$USE_STD" ]; then
 fi
 
 if [ -z "$USE_CC" ]; then
-  export USE_CC="clang++-3.9"
+  export USE_CC="$default_compiler"
 fi
 
 file_name="$1"
@@ -33,7 +35,7 @@ ln -s "$base_dir" "$link_dir"
 out_binary="$out_dir/`basename "$file_name" .cpp`"
 
 if [ "$NO_CLEAR" != "true" ]; then
-  ./lclear.sh >&2
+  lclear
 fi
 
 if [ -z "$CC_OPT" ]; then

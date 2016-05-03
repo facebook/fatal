@@ -1,5 +1,7 @@
 #/bin/sh
 
+. ./scripts.inc
+
 set -xe
 
 skip_test=false
@@ -29,7 +31,7 @@ run_validation() {
   fi
 
   if [ "$NO_CLEAR" != "true" ]; then
-    ./lclear.sh >&2
+    lclear
   fi
 
   if [ "$skip_build" != "true" ]; then
@@ -50,7 +52,7 @@ run_validation() {
 if [ "$USE_CC" ]; then
   run_validation "$USE_CC"
 else
-  for cc in clang++-3.9 g++-4.8 g++-5 clang++-3.4 clang++-3.5 clang++-3.6 clang++-3.7 clang++-3.8 g++-4.9; do
+  for cc in $full_compilers_list; do
     run_validation "$cc"
   done
 fi
