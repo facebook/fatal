@@ -867,7 +867,6 @@ constexpr std::size_t distance(T begin, T end) {
     : throw "The start of the constant_range must not be greater than the end";
 }
 
-
 } // namespace constant_sequence_impl {
 } // namespace detail {
 
