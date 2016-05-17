@@ -26,8 +26,8 @@ namespace fatal {
 namespace detail {
 namespace constant_sequence_impl {
 
-template <typename T, T...> struct reverse;
-template <typename T, T...> struct polynomial;
+template <typename, typename> struct reverse;
+template <typename T, typename, T, T, T> struct polynomial;
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
@@ -381,8 +381,9 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <T... Suffix>
-  using reverse = typename detail::constant_sequence_impl::reverse<T, Values...>
-    ::template apply<Suffix...>;
+  using reverse = typename detail::constant_sequence_impl::reverse<
+    constant_sequence, constant_sequence<T, Suffix...>
+  >::type;
 
   /**
    * Evaluates the polynomial whose coefficients are represented by this
@@ -399,8 +400,8 @@ public:
    */
   template <T Variable>
   using polynomial = typename detail::constant_sequence_impl::polynomial<
-    T, Values...
-  >::template apply<Variable, 1, 0>;
+    T, constant_sequence, Variable, 1, 0
+  >::type;
 
   /**
    * Interleaves the given separators between each pair of elements of this
@@ -836,7 +837,35 @@ using size_sequence = constant_sequence<std::size_t, Values...>;
 namespace detail {
 namespace constant_sequence_impl {
 
-template <bool, bool, typename T, T, T> struct build;
+enum class build_strategy { done, repeat, recurse };
+
+constexpr build_strategy strategy(std::size_t cur, std::size_t end) {
+  return cur >= end
+    ? build_strategy::done
+    : cur * 2 <= end
+      ? build_strategy::repeat
+      : build_strategy::recurse;
+}
+
+template<
+  std::size_t End,
+  typename State = size_sequence<0>,
+  build_strategy Status = strategy(State::size, End)
+>
+struct build;
+
+template<typename, typename>
+struct concat;
+
+template<typename T, T Offset, typename>
+struct coerce;
+
+template<typename T>
+constexpr std::size_t distance(T begin, T end) {
+  return begin <= end
+    ? static_cast<std::size_t>(end - begin)
+    : throw "The start of the constant_range must not be greater than the end";
+}
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
@@ -844,6 +873,31 @@ template <bool, bool, typename T, T, T> struct build;
 /////////////////////
 // SUPPORT LIBRARY //
 /////////////////////
+
+/**
+ * A convenient shortcut that builds a `constant_sequence` of
+ * type `std::size_t` with elements in the range `[0, End)`.
+ *
+ * Example:
+ *
+ * // yields `constant_sequence<std::size_t, 0, 1, 2, 3, 4>`
+ * using result1 = indexes_sequence<5>;
+ *
+ * // yields `constant_sequence<std::size_t, 0, 1, 2>`
+ * using result2 = indexes_sequence<3>;
+ *
+ * // yields `constant_sequence<std::size_t, 0, 1, 2, 3, 4, 5>`
+ * using result3 = indexes_sequence<6>;
+ *
+ * // yields `constant_sequence<std::size_t, 0, 1, 2, 3>`
+ * using result4 = indexes_sequence<4>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <std::size_t Size>
+using indexes_sequence = typename detail::constant_sequence_impl::build<
+  Size
+>::type;
 
 /**
  * Builds a `constant_sequence` with elements in the range `[Begin, End)`,
@@ -868,33 +922,12 @@ template <bool, bool, typename T, T, T> struct build;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, T Begin, T End, bool OpenEnd = true>
-using constant_range = typename detail::constant_sequence_impl::build<
-  false, OpenEnd, T, Begin, End
->::type;
-
-/**
- * A convenient shortcut that builds a `constant_sequence` of
- * type `std::size_t` with elements in the range `[0, End)`.
- *
- * Example:
- *
- * // yields `constant_sequence<std::size_t, 1, 2, 3, 4>`
- * using result1 = indexes_sequence<5>;
- *
- * // yields `constant_sequence<std::size_t, 1, 2>`
- * using result2 = indexes_sequence<3>;
- *
- * // yields `constant_sequence<std::size_t, 1, 2, 3, 4, 5>`
- * using result3 = indexes_sequence<6>;
- *
- * // yields `constant_sequence<std::size_t,  3>`
- * using result4 = indexes_sequence<4>;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <std::size_t Size>
-using indexes_sequence = typename detail::constant_sequence_impl::build<
-  false, true, std::size_t, 0, Size
+using constant_range = typename detail::constant_sequence_impl::coerce<
+  T,
+  Begin,
+  indexes_sequence<
+    detail::constant_sequence_impl::distance(Begin, End) + !OpenEnd
+  >
 >::type;
 
 ///////////////////////////////////////
@@ -904,63 +937,65 @@ using indexes_sequence = typename detail::constant_sequence_impl::build<
 namespace detail {
 namespace constant_sequence_impl {
 
-///////////
-// build //
-///////////
-
-template <typename T, T End>
-struct build<false, true, T, End, End> {
-  using type = constant_sequence<T>;
+template<std::size_t... UValues, std::size_t... VValues>
+struct concat<size_sequence<UValues...>, size_sequence<VValues...>> {
+  using type = size_sequence<UValues..., (VValues + sizeof...(UValues))...>;
 };
 
-template <typename T, T End>
-struct build<false, false, T, End, End> {
-  using type = constant_sequence<T, End>;
+template<std::size_t End, typename State, build_strategy Status>
+struct build {
+  using type = State;
 };
 
-template <bool OpenEnd, typename T, T Current, T End>
-struct build<false, OpenEnd, T, Current, End> {
-  static_assert(Current < End, "begin must not be past end");
+template<>
+struct build<0u, size_sequence<0>, build_strategy::done> {
+  using type = size_sequence<>;
+};
 
-  using type = typename build<false, OpenEnd, T, Current + 1, End>::type
-    ::template push_front<Current>;
+template<std::size_t End, std::size_t... Values>
+struct build<End, size_sequence<Values...>, build_strategy::repeat>
+  : build<End, size_sequence<Values..., (Values + sizeof...(Values))...>>
+{};
+
+template<std::size_t End, typename State>
+struct build<End, State, build_strategy::recurse>
+  : concat<State, typename build<End - State::size>::type>
+{};
+
+template<typename T, T Offset, std::size_t... Values>
+struct coerce<T, Offset, size_sequence<Values...>> {
+  using type = constant_sequence<T, static_cast<T>(static_cast<T>(Values) + Offset)...>;
 };
 
 //////////////
 // reverse  //
 //////////////
 
-template <typename T, T Head, T... Tail>
-struct reverse<T, Head, Tail...> {
-  template <T... Values>
-  using apply = typename reverse<T, Tail...>::template apply<Head, Values...>;
-};
+template<typename T, T Head, T... Tail, T... Values>
+struct reverse<constant_sequence<T, Head, Tail...>, constant_sequence<T, Values...>>
+  : reverse<constant_sequence<T, Tail...>, constant_sequence<T, Head, Values...>>
+{};
 
-template <typename T>
-struct reverse<T> {
-  template <T... Values>
-  using apply = constant_sequence<T, Values...>;
+template<typename T, T... Values>
+struct reverse<constant_sequence<T>, constant_sequence<T, Values...>> {
+  using type = constant_sequence<T, Values...>;
 };
 
 ////////////////
 // polynomial //
 ////////////////
 
-template <typename T, T Coefficient, T... Coefficients>
-struct polynomial<T, Coefficient, Coefficients...> {
-  template <T Variable, T VariableAccumulator, T Accumulator>
-  using apply = typename polynomial<T, Coefficients...>
-    ::template apply<
+template <typename T, T Coefficient, T... Coefficients, T Variable, T VariableAccumulator, T Accumulator>
+struct polynomial<T, constant_sequence<T, Coefficient, Coefficients...>, Variable, VariableAccumulator, Accumulator>
+  : polynomial<T, constant_sequence<T, Coefficients...>,
       Variable,
       VariableAccumulator * Variable,
-      Accumulator + VariableAccumulator * Coefficient
-    >;
-};
+      Accumulator + VariableAccumulator * Coefficient>
+{};
 
-template <typename T>
-struct polynomial<T> {
-  template <T, T, T Accumulator>
-  using apply = std::integral_constant<T, Accumulator>;
+template <typename T, T Variable, T VariableAccumulator, T Accumulator>
+struct polynomial<T, constant_sequence<T>, Variable, VariableAccumulator, Accumulator> {
+  using type = std::integral_constant<T, Accumulator>;
 };
 
 ///////////////
