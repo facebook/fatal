@@ -17,6 +17,12 @@
 
 #include <type_traits>
 
+
+#if ((defined(__clang__) && __clang_major__ >= 3 && __clang_minor__ >= 8) || \
+     (defined(_MSC_VER) && _MSC_FULL_VER >= 190023918))
+#define FATAL_HAS_MAKE_INTEGER_SEQ 1
+#endif
+
 namespace fatal {
 
 ////////////////////////////////////////
@@ -867,6 +873,11 @@ constexpr std::size_t distance(T begin, T end) {
     : throw "The start of the constant_range must not be greater than the end";
 }
 
+#if FATAL_HAS_MAKE_INTEGER_SEQ
+template <class T, T N>
+__make_integer_seq<constant_sequence, T, N> make_constant_sequence_();
+#endif
+
 } // namespace constant_sequence_impl {
 } // namespace detail {
 
@@ -894,10 +905,16 @@ constexpr std::size_t distance(T begin, T end) {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+#if FATAL_HAS_MAKE_INTEGER_SEQ
+template <std::size_t Size>
+using indexes_sequence = decltype(detail::constant_sequence_impl::
+  make_constant_sequence_<std::size_t, Size>());
+#else
 template <std::size_t Size>
 using indexes_sequence = typename detail::constant_sequence_impl::build<
   Size
 >::type;
+#endif
 
 /**
  * Builds a `constant_sequence` with elements in the range `[Begin, End)`,
@@ -1012,24 +1029,26 @@ constexpr std::size_t size(T const (&)[Size]) {
 }
 
 #define FATAL_BUILD_STR_IMPL(Id, String, Class, Indexes) \
-  template <::std::size_t... Indexes> \
   struct Class { \
-    static_assert( \
-      !((String)[sizeof...(Indexes)]), \
-      "expecting a valid null-terminated string" \
-    ); \
-    \
     using value_type = typename ::std::decay<decltype(*(String))>::type; \
     \
-    using type = ::fatal::constant_sequence< \
-      value_type, \
-      (String)[Indexes]... \
-    >; \
+  private: \
+    template <::std::size_t... Indexes> \
+    static ::fatal::constant_sequence<value_type, (String)[Indexes]...> \
+      make_string_(::fatal::size_sequence<Indexes...> *); \
+    static_assert( \
+      !((String)[::fatal::detail::constant_sequence_impl::size(String)]), \
+      "expecting a valid null-terminated string" \
+    ); \
+  public: \
+    \
+    using type = decltype(Class::make_string_(static_cast< \
+      ::fatal::indexes_sequence< \
+        ::fatal::detail::constant_sequence_impl::size(String) \
+      > *>(nullptr))); \
   }; \
   \
-  using Id = typename ::fatal::constant_range< \
-    ::std::size_t, 0, ::fatal::detail::constant_sequence_impl::size(String) \
-  >::apply<Class>::type
+  using Id = Class::type;
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
