@@ -17,12 +17,6 @@
 
 #include <type_traits>
 
-
-#if ((defined(__clang__) && __clang_major__ >= 3 && __clang_minor__ >= 8) || \
-     (defined(_MSC_VER) && _MSC_FULL_VER >= 190023918))
-#define FATAL_HAS_MAKE_INTEGER_SEQ 1
-#endif
-
 namespace fatal {
 
 ////////////////////////////////////////
@@ -873,9 +867,14 @@ constexpr std::size_t distance(T begin, T end) {
     : throw "The start of the constant_range must not be greater than the end";
 }
 
-#if FATAL_HAS_MAKE_INTEGER_SEQ
+#if ((defined(__clang__) && __clang_major__ >= 3 && __clang_minor__ >= 8) || \
+     (defined(_MSC_VER) && _MSC_FULL_VER >= 190023918))
+# define FATAL_IMPL_HAS_MAKE_INTEGER_SEQ 1
+#endif
+
+#if FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
 template <class T, T N>
-__make_integer_seq<constant_sequence, T, N> make_constant_sequence_();
+__make_integer_seq<constant_sequence, T, N> make_constant_sequence();
 #endif
 
 } // namespace constant_sequence_impl {
@@ -905,10 +904,11 @@ __make_integer_seq<constant_sequence, T, N> make_constant_sequence_();
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#if FATAL_HAS_MAKE_INTEGER_SEQ
+#if FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
 template <std::size_t Size>
-using indexes_sequence = decltype(detail::constant_sequence_impl::
-  make_constant_sequence_<std::size_t, Size>());
+using indexes_sequence = decltype(
+  detail::constant_sequence_impl::make_constant_sequence<std::size_t, Size>()
+);
 #else
 template <std::size_t Size>
 using indexes_sequence = typename detail::constant_sequence_impl::build<
@@ -1034,21 +1034,25 @@ constexpr std::size_t size(T const (&)[Size]) {
     \
   private: \
     template <::std::size_t... Indexes> \
-    static ::fatal::constant_sequence<value_type, (String)[Indexes]...> \
-      make_string_(::fatal::size_sequence<Indexes...> *); \
+    static ::fatal::constant_sequence< \
+      value_type, (String)[Indexes]... \
+    > make_string(::fatal::size_sequence<Indexes...> *); \
+    \
     static_assert( \
       !((String)[::fatal::detail::constant_sequence_impl::size(String)]), \
       "expecting a valid null-terminated string" \
     ); \
-  public: \
     \
-    using type = decltype(Class::make_string_(static_cast< \
+  public: \
+    using type = decltype(Class::make_string(static_cast< \
       ::fatal::indexes_sequence< \
         ::fatal::detail::constant_sequence_impl::size(String) \
       > *>(nullptr))); \
   }; \
   \
-  using Id = Class::type;
+  using Id = Class::type
+
+#undef FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
