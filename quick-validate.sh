@@ -4,9 +4,7 @@
 
 set -e
 
-if [ "$NO_CLEAR" != "true" ]; then
-  lclear
-fi
+lclear
 
 no_build_flag=""
 for cc in $short_compilers_list; do

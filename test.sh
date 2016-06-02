@@ -4,9 +4,7 @@
 
 set -e
 
-if [ "$NO_CLEAR" != "true" ]; then
-  lclear
-fi
+lclear
 
 if [ -z "$CC_OPT" ]; then
   export CC_OPT='-O0'

@@ -14,8 +14,10 @@ system_clang="clang++"
 system_gcc="g++"
 
 lclear() {
-  for f in `seq 0 5000`; do
-    echo >&2
-  done
-  clear >&2
+  if [ "$NO_CLEAR" != "true" ]; then
+    for f in `seq 0 5000`; do
+      echo >&2
+    done
+    clear >&2
+  fi
 }

@@ -4,9 +4,7 @@
 
 set -e
 
-if [ "$NO_CLEAR" != "true" ]; then
-  lclear
-fi
+lclear
 
 if [ -z "$USE_CC" ]; then
   for cc in $full_compilers_list; do

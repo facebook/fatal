@@ -34,9 +34,7 @@ ln -s "$base_dir" "$link_dir"
 
 out_binary="$out_dir/`basename "$file_name" .cpp`"
 
-if [ "$NO_CLEAR" != "true" ]; then
-  lclear
-fi
+lclear
 
 if [ -z "$CC_OPT" ]; then
   CC_OPT="-O2"

@@ -30,9 +30,7 @@ run_validation() {
     return
   fi
 
-  if [ "$NO_CLEAR" != "true" ]; then
-    lclear
-  fi
+  lclear
 
   if [ "$skip_build" != "true" ]; then
     CC_OPT="-O0" USE_CC="$cc" NO_CLEAR=true ./build.sh
