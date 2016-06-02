@@ -47,6 +47,18 @@ FATAL_TEST(functional, identity) {
   FATAL_EXPECT_EQ("hello, world", z);
 }
 
+FATAL_TEST(functional, identity) {
+  default_constructed<std::string> f;
+
+  int x = 10;
+  FATAL_EXPECT_EQ(std::string(), f(x));
+  FATAL_EXPECT_EQ(10, x);
+
+  std::string z("hello, world");
+  FATAL_EXPECT_EQ(std::string(), f(z));
+  FATAL_EXPECT_EQ("hello, world", z);
+}
+
 FATAL_TEST(functional, constant) {
   using w = std::integral_constant<unsigned, 56>;
   constant<w> f;

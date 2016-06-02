@@ -19,6 +19,23 @@
 
 namespace fatal {
 
+////////////////////////////////////////
+// IMPLEMENTATION FORWARD DECLARATION //
+////////////////////////////////////////
+
+namespace detail {
+namespace constant_sequence_impl {
+
+template <typename, typename> struct reverse;
+template <typename T, typename, T, T, T> struct polynomial;
+
+} // namespace constant_sequence_impl {
+} // namespace detail {
+
+//////////////////////////////////////
+// constant_sequence IMPLEMENTATION //
+//////////////////////////////////////
+
 /**
  * A compile-time sequence of values for template metaprogramming.
  *
@@ -211,10 +228,10 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using concat = typename type_list<Args...>::template apply<
-    list::template concat,
-    get_member_type::list
-  >::template apply_typed_values<type, fatal::constant_sequence>;
+  using concat = typename type_list<Args...>
+    ::template transform<get_member_type::list>
+    ::template apply<list::template concat>
+    ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
    * Gets a sequence with all the elements positioned in the
@@ -347,6 +364,167 @@ public:
     ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
+   * Reverses the elements of the sequence.
+   *
+   * Optionally, appends a suffix to the reversed list.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 1, 2, 3>;
+   *
+   *  // yields `constant_sequence<int, 3, 2, 1>`
+   *  using result1 = seq::reverse<>;
+   *
+   *  // yields `constant_sequence<int, 3, 2, 1, 0, -1>`
+   *  using result2 = seq::reverse<0, -1>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <T... Suffix>
+  using reverse = typename detail::constant_sequence_impl::reverse<
+    constant_sequence, constant_sequence<T, Suffix...>
+  >::type;
+
+  /**
+   * Evaluates the polynomial whose coefficients are represented by this
+   * sequences' elements, from least to most significant.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 5, 2, -3>;
+   *
+   *  // yields `std::integral_constant<int, -3 * 9 * 9 + 2 * 9 + 5>`
+   *  using result1 = seq::polynomial<9>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <T Variable>
+  using polynomial = typename detail::constant_sequence_impl::polynomial<
+    T, constant_sequence, Variable, 1, 0
+  >::type;
+
+  /**
+   * Interleaves the given separators between each pair of elements of this
+   * sequence.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  // yields `constant_sequence<int, 4, 0, 5, 0, 6>`
+   *  using result1 = seq::interleave<0>;
+   *
+   *  // yields `constant_sequence<int, 4, 0, 1, 5, 0, 1, 6>`
+   *  using result2 = seq::interleave<0, 1>;
+   *
+   *  // yields `constant_sequence<int, 4, 5, 6>`
+   *  using result3 = seq::interleave<>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <type... Separator>
+  using interleave = typename list::template interleave<
+    std::integral_constant<type, Separator>...
+  >::template apply_typed_values<type, fatal::constant_sequence>;
+
+  /**
+   * Applies a metafunction to each element of this sequence.
+   *
+   * The metafunction should take a single parameter of type `type` and provide
+   * a `value` member with the result of type `type`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  template <int Value>
+   *  using square = std::integral_constant<int, Value * Value>;
+   *
+   *  // yields `constant_sequence<int, 16, 25, 36>`
+   *  using result1 = seq::transform<square>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <type> class Transform>
+  using transform = constant_sequence<type, Transform<Values>::value...>;
+
+  /**
+   * Applies a metafunction to each element of this sequence.
+   *
+   * The metafunction should take two parameters, the first being a type `T`
+   * and the second a value of type `T`. It must provide a `value` member with
+   * the result of type `T`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  template <typename T , T Value>
+   *  using square = std::integral_constant<T, Value * Value>;
+   *
+   *  // yields `constant_sequence<int, 16, 25, 36>`
+   *  using result1 = seq::typed_transform<square>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename, type> class Transform>
+  using typed_transform = constant_sequence<
+    type,
+    Transform<type, Values>::value...
+  >;
+
+  /**
+   * Applies a metafunction to each element of this sequence, and returns the
+   * result as a type list.
+   *
+   * The metafunction should take a single parameter of type `type`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  template <int Value>
+   *  using square = std::integral_constant<int, Value * Value>;
+   *
+   *  // yields `type_list<
+   *  //   std::integral_constant<int, 16>,
+   *  //   std::integral_constant<int, 25>,
+   *  //   std::integral_constant<int, 36>
+   *  // >`
+   *  using result1 = seq::list_transform<square>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <type> class Transform>
+  using list_transform = type_list<Transform<Values>...>;
+
+  /**
+   * Applies a metafunction to each element of this sequence, and returns the
+   * result as a type list.
+   *
+   * The metafunction should take two parameters, the first being a type `T`
+   * and the second a value of type `T`.
+   *
+   * Example:
+   *
+   *  using seq = constant_sequence<int, 4, 5, 6>;
+   *
+   *  template <typename T , T Value>
+   *  using square = std::integral_constant<T, Value * Value>;
+   *
+   *  // yields `type_list<
+   *  //   std::integral_constant<int, 16>,
+   *  //   std::integral_constant<int, 25>,
+   *  //   std::integral_constant<int, 36>
+   *  // >`
+   *  using result1 = seq::typed_list_transform<square>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <template <typename, type> class Transform>
+  using typed_list_transform = type_list<Transform<type, Values>...>;
+
+  /**
    * Applies the values of this sequence to the given template.
    *
    * Example:
@@ -433,7 +611,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  static constexpr type const *data() { return array<>::data(); }
+  static constexpr type const *data() { return z_data<Suffix...>(); }
 
   /**
    * Gets a constexpr array with the values from this sequence,
@@ -476,7 +654,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  static constexpr type const *z_data() { return z_array<>::data(); }
+  static constexpr type const *z_data() { return z_array<Suffix...>::data(); }
 
   /**
    * The `std::basic_string` type returned by the `string()` method.
@@ -559,8 +737,19 @@ public:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename T, T Value, typename TChar = char>
-using to_constant_sequence = to_sequence<T, Value, constant_sequence, TChar>;
+template <typename TChar = char>
+struct to_constant_sequence {
+  template <typename T>
+  struct bind {
+    template <T Value>
+    using apply = typename to_sequence<constant_sequence, TChar>
+      ::template apply<T, Value>;
+  };
+
+  template <typename T, T Value>
+  using apply = typename to_sequence<constant_sequence, TChar>
+    ::template apply<T, Value>;
+};
 
 ///////////////
 // FATAL_STR //
@@ -569,6 +758,8 @@ using to_constant_sequence = to_sequence<T, Value, constant_sequence, TChar>;
 /**
  * Instantiates a compile time string out of a string literal, in the form of a
  *`constant_sequence` class template instantiation.
+ *
+ * The string is provided as a type, named as the given identifier.
  *
  * General form:
  *
@@ -586,8 +777,8 @@ using to_constant_sequence = to_sequence<T, Value, constant_sequence, TChar>;
  *  FATAL_STR(hi, "hi");
  *
  *  // this is equivalent to
- *  // `using hey = constant_sequence<char32_t, U'h', U'e', U'y'>;`
- *  FATAL_STR(hey, U"hey");
+ *  // `using h = constant_sequence<std::char32_t, U'h', U'e', U'y'>;`
+ *  FATAL_STR(h, U"hey");
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -598,6 +789,32 @@ using to_constant_sequence = to_sequence<T, Value, constant_sequence, TChar>;
     FATAL_UID(FATAL_CAT(constant_sequence_string_impl_, Id)), \
     FATAL_UID(Indexes) \
   )
+
+/**
+ * Instantiates a compile time string out of the given identifier, in the form
+ * of a `constant_sequence` class template instantiation. The characters are
+ * typed as `char`.
+ *
+ * The string is provided as a type, named as the identifier itself.
+ *
+ * General form:
+ *
+ *  FATAL_ID_STRING(identifier);
+ *
+ * Example:
+ *
+ *  // this is equivalent to
+ *  // `using hi = constant_sequence<char, 'h', 'i'>;`
+ *  FATAL_ID_STRING(hi);
+ *
+ *  // this is equivalent to
+ *  // `using hey = constant_sequence<char, 'h', 'e', 'y'>;`
+ *  FATAL_ID_STRING(hey);
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_ID_STRING(Id) \
+  FATAL_STR(Id, FATAL_TO_STR(Id))
 
 ///////////////////////////////
 // STATIC MEMBERS DEFINITION //
@@ -620,7 +837,45 @@ using size_sequence = constant_sequence<std::size_t, Values...>;
 namespace detail {
 namespace constant_sequence_impl {
 
-template <bool, bool, typename T, T, T> struct build;
+enum class build_strategy { done, repeat, recurse };
+
+constexpr build_strategy strategy(std::size_t cur, std::size_t end) {
+  return cur >= end
+    ? build_strategy::done
+    : cur * 2 <= end
+      ? build_strategy::repeat
+      : build_strategy::recurse;
+}
+
+template<
+  std::size_t End,
+  typename State = size_sequence<0>,
+  build_strategy Status = strategy(State::size, End)
+>
+struct build;
+
+template<typename, typename>
+struct concat;
+
+template<typename T, T Offset, typename>
+struct coerce;
+
+template<typename T>
+constexpr std::size_t distance(T begin, T end) {
+  return begin <= end
+    ? static_cast<std::size_t>(end - begin)
+    : throw "The start of the constant_range must not be greater than the end";
+}
+
+#if ((defined(__clang__) && __clang_major__ >= 3 && __clang_minor__ >= 8) || \
+     (defined(_MSC_VER) && _MSC_FULL_VER >= 190023918))
+# define FATAL_IMPL_HAS_MAKE_INTEGER_SEQ 1
+#endif
+
+#if FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
+template <class T, T N>
+__make_integer_seq<constant_sequence, T, N> make_constant_sequence();
+#endif
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
@@ -628,6 +883,38 @@ template <bool, bool, typename T, T, T> struct build;
 /////////////////////
 // SUPPORT LIBRARY //
 /////////////////////
+
+/**
+ * A convenient shortcut that builds a `constant_sequence` of
+ * type `std::size_t` with elements in the range `[0, End)`.
+ *
+ * Example:
+ *
+ * // yields `constant_sequence<std::size_t, 0, 1, 2, 3, 4>`
+ * using result1 = indexes_sequence<5>;
+ *
+ * // yields `constant_sequence<std::size_t, 0, 1, 2>`
+ * using result2 = indexes_sequence<3>;
+ *
+ * // yields `constant_sequence<std::size_t, 0, 1, 2, 3, 4, 5>`
+ * using result3 = indexes_sequence<6>;
+ *
+ * // yields `constant_sequence<std::size_t, 0, 1, 2, 3>`
+ * using result4 = indexes_sequence<4>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#if FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
+template <std::size_t Size>
+using indexes_sequence = decltype(
+  detail::constant_sequence_impl::make_constant_sequence<std::size_t, Size>()
+);
+#else
+template <std::size_t Size>
+using indexes_sequence = typename detail::constant_sequence_impl::build<
+  Size
+>::type;
+#endif
 
 /**
  * Builds a `constant_sequence` with elements in the range `[Begin, End)`,
@@ -652,33 +939,12 @@ template <bool, bool, typename T, T, T> struct build;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, T Begin, T End, bool OpenEnd = true>
-using constant_range = typename detail::constant_sequence_impl::build<
-  false, OpenEnd, T, Begin, End
->::type;
-
-/**
- * A convenient shortcut that builds a `constant_sequence` of
- * type `std::size_t` with elements in the range `[0, End)`.
- *
- * Example:
- *
- * // yields `constant_sequence<std::size_t, 1, 2, 3, 4>`
- * using result1 = indexes_sequence<5>;
- *
- * // yields `constant_sequence<std::size_t, 1, 2>`
- * using result2 = indexes_sequence<3>;
- *
- * // yields `constant_sequence<std::size_t, 1, 2, 3, 4, 5>`
- * using result3 = indexes_sequence<6>;
- *
- * // yields `constant_sequence<std::size_t,  3>`
- * using result4 = indexes_sequence<4>;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <std::size_t Size>
-using indexes_sequence = typename detail::constant_sequence_impl::build<
-  false, true, std::size_t, 0, Size
+using constant_range = typename detail::constant_sequence_impl::coerce<
+  T,
+  Begin,
+  indexes_sequence<
+    detail::constant_sequence_impl::distance(Begin, End) + !OpenEnd
+  >
 >::type;
 
 ///////////////////////////////////////
@@ -688,22 +954,65 @@ using indexes_sequence = typename detail::constant_sequence_impl::build<
 namespace detail {
 namespace constant_sequence_impl {
 
-template <typename T, T End>
-struct build<false, true, T, End, End> {
-  using type = constant_sequence<T>;
+template<std::size_t... UValues, std::size_t... VValues>
+struct concat<size_sequence<UValues...>, size_sequence<VValues...>> {
+  using type = size_sequence<UValues..., (VValues + sizeof...(UValues))...>;
 };
 
-template <typename T, T End>
-struct build<false, false, T, End, End> {
-  using type = constant_sequence<T, End>;
+template<std::size_t End, typename State, build_strategy Status>
+struct build {
+  using type = State;
 };
 
-template <bool OpenEnd, typename T, T Current, T End>
-struct build<false, OpenEnd, T, Current, End> {
-  static_assert(Current < End, "begin must not be past end");
+template<>
+struct build<0u, size_sequence<0>, build_strategy::done> {
+  using type = size_sequence<>;
+};
 
-  using type = typename build<false, OpenEnd, T, Current + 1, End>::type
-    ::template push_front<Current>;
+template<std::size_t End, std::size_t... Values>
+struct build<End, size_sequence<Values...>, build_strategy::repeat>
+  : build<End, size_sequence<Values..., (Values + sizeof...(Values))...>>
+{};
+
+template<std::size_t End, typename State>
+struct build<End, State, build_strategy::recurse>
+  : concat<State, typename build<End - State::size>::type>
+{};
+
+template<typename T, T Offset, std::size_t... Values>
+struct coerce<T, Offset, size_sequence<Values...>> {
+  using type = constant_sequence<T, static_cast<T>(static_cast<T>(Values) + Offset)...>;
+};
+
+//////////////
+// reverse  //
+//////////////
+
+template<typename T, T Head, T... Tail, T... Values>
+struct reverse<constant_sequence<T, Head, Tail...>, constant_sequence<T, Values...>>
+  : reverse<constant_sequence<T, Tail...>, constant_sequence<T, Head, Values...>>
+{};
+
+template<typename T, T... Values>
+struct reverse<constant_sequence<T>, constant_sequence<T, Values...>> {
+  using type = constant_sequence<T, Values...>;
+};
+
+////////////////
+// polynomial //
+////////////////
+
+template <typename T, T Coefficient, T... Coefficients, T Variable, T VariableAccumulator, T Accumulator>
+struct polynomial<T, constant_sequence<T, Coefficient, Coefficients...>, Variable, VariableAccumulator, Accumulator>
+  : polynomial<T, constant_sequence<T, Coefficients...>,
+      Variable,
+      VariableAccumulator * Variable,
+      Accumulator + VariableAccumulator * Coefficient>
+{};
+
+template <typename T, T Variable, T VariableAccumulator, T Accumulator>
+struct polynomial<T, constant_sequence<T>, Variable, VariableAccumulator, Accumulator> {
+  using type = std::integral_constant<T, Accumulator>;
 };
 
 ///////////////
@@ -720,24 +1029,30 @@ constexpr std::size_t size(T const (&)[Size]) {
 }
 
 #define FATAL_BUILD_STR_IMPL(Id, String, Class, Indexes) \
-  template <::std::size_t... Indexes> \
   struct Class { \
+    using value_type = typename ::std::decay<decltype(*(String))>::type; \
+    \
+  private: \
+    template <::std::size_t... Indexes> \
+    static ::fatal::constant_sequence< \
+      value_type, (String)[Indexes]... \
+    > make_string(::fatal::size_sequence<Indexes...> *); \
+    \
     static_assert( \
-      !((String)[sizeof...(Indexes)]), \
+      !((String)[::fatal::detail::constant_sequence_impl::size(String)]), \
       "expecting a valid null-terminated string" \
     ); \
     \
-    using value_type = typename ::std::decay<decltype(*(String))>::type; \
-    \
-    using type = ::fatal::constant_sequence< \
-      value_type, \
-      (String)[Indexes]... \
-    >; \
+  public: \
+    using type = decltype(Class::make_string(static_cast< \
+      ::fatal::indexes_sequence< \
+        ::fatal::detail::constant_sequence_impl::size(String) \
+      > *>(nullptr))); \
   }; \
   \
-  using Id = typename ::fatal::constant_range< \
-    ::std::size_t, 0, ::fatal::detail::constant_sequence_impl::size(String) \
-  >::apply<Class>::type
+  using Id = Class::type
+
+#undef FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
 
 } // namespace constant_sequence_impl {
 } // namespace detail {

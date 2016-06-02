@@ -11,8 +11,10 @@
 #define FATAL_INCLUDE_fatal_type_enum_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/container/static_array.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
+#include <fatal/type/registry.h>
 #include <fatal/type/sequence.h>
 #include <fatal/type/traits.h>
 
@@ -31,6 +33,38 @@ struct metadata_tag {};
 
 } // namespace enum_impl {
 } // namespace detail {
+
+/**
+ * Tells whether the given type has `enum_traits` support available.
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `std::false_type`
+ *  using result1 = has_enum_traits<foo>;
+ *
+ *  FATAL_RICH_ENUM_CLASS(bar, field0, field1, field2);
+ *
+ *  // yields `std::true_type`
+ *  using result2 = has_enum_traits<bar>;
+ *
+ *  enum class baz { field0, field1, field2 };
+ *  FATAL_EXPORT_RICH_ENUM(baz, field0, field1, field2);
+ *
+ *  // yields `std::true_type`
+ *  using result3 = has_enum_traits<baz>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename Enum>
+using has_enum_traits = std::integral_constant<
+  bool,
+  !std::is_same<
+    try_registry_lookup<detail::enum_impl::metadata_tag, Enum, void>,
+    void
+  >::value
+>;
 
 /**
  * Provides additional functionality for enumerations like efficient
@@ -55,12 +89,11 @@ template <typename Enum>
 class enum_traits {
   static_assert(std::is_enum<Enum>::value, "enumeration expected");
 
-  using impl = decltype(
-    detail::enum_impl::metadata_tag() << static_cast<Enum *>(nullptr)
-  );
+  using impl = registry_lookup<detail::enum_impl::metadata_tag, Enum>;
+  using traits = typename impl::template at<0>;
 
   static_assert(
-    std::is_same<Enum, typename impl::type>::value,
+    std::is_same<Enum, typename traits::type>::value,
     "enum type mismatch"
   );
 
@@ -78,6 +111,50 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   using type = Enum;
+
+  /**
+   * A compile-time string representing the name of this enum.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `constant_sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>`
+   *  using result = enum_traits<my_enum>::name;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using name = typename traits::name;
+
+  /**
+   * The metadata, if any, that has been registered with this enum traits.
+   *
+   * When no metadata is registered, returns `void`.
+   *
+   * See `FATAL_REGISTER_ENUM_TRAITS`'s documentation for more information.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  // yields `void`
+   *  using result1 = enum_traits<my_enum>::metadata;
+   *
+   *  struct my_metadata {
+   *    // ...
+   *  };
+   *
+   *  // assume there's a custom traits implementation called `my_traits`
+   *  // for an enum called `my_enum_2`.
+   *
+   *  FATAL_REGISTER_ENUM_TRAITS(my_enum_traits, my_metadata);
+   *
+   *  // yields `my_metadata`
+   *  using result2 = enum_traits<my_enum_2>::metadata;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  using metadata = typename impl::template try_at<1, void>;
 
   /**
    * The underlying integral type of the enumeration.
@@ -109,7 +186,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using str = typename impl::str;
+  using str = typename traits::str;
 
   /**
    * A `type_map` from name to value for each known enumeration field.
@@ -128,7 +205,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using name_to_value = typename impl::name_to_value;
+  using name_to_value = typename traits::name_to_value;
 
   /**
    * A `type_map` from value to name for each known enumeration field.
@@ -207,6 +284,55 @@ public:
     fatal::build_type_prefix_tree<>::from
   >;
 
+  struct array {
+    /**
+     * A statically allocated array containing the names of the enumeration
+     * fields.
+     *
+     * See `container/static_array` for more info.
+     *
+     * Example:
+     *
+     *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+     *
+     *  using array = enum_traits<my_enum>::array::names;
+     *
+     *  // prints "field0 field1 field2 "
+     *  for (auto s: array::get) {
+     *    std::cout << s << ' ';
+     *  }
+     *
+     * @author: Marcelo Juchem <marcelo@fb.com>
+     */
+    using names = typename enum_traits::names::template apply<
+      static_array<char const *>::template z_data
+    >;
+
+    /**
+     * A statically allocated array containing the values of the enumeration
+     * fields.
+     *
+     * See `container/static_array` for more info.
+     *
+     * Example:
+     *
+     *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+     *
+     *  using traits = enum_traits<my_enum>;
+     *  using array = traits::array::names;
+     *
+     *  // prints "0 1 2 "
+     *  for (auto i: array::get) {
+     *    std::cout << static_cast<traits::int_type>(i) << ' ';
+     *  }
+     *
+     * @author: Marcelo Juchem <marcelo@fb.com>
+     */
+    using values = typename enum_traits::values::template apply<
+      static_array<type>::template value
+    >;
+  };
+
 private:
   struct parser {
     template <typename TString>
@@ -254,7 +380,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   static char const *to_string(type e, char const *fallback = nullptr) {
-    using caller = call_traits::to_string::static_member::bind<impl>;
+    using caller = call_traits::to_string::static_member::bind<traits>;
     return call_if_supported<caller, to_string_fallback>(e, fallback);
   }
 
@@ -497,12 +623,20 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
 /**
  * TODO: DOCUMENT
  *
+ * NOTE: this macro must be called from the same namespace of the enum (as
+ * returned by `Traits::type`), or some other namespace that respects the C++
+ * rules for Argument Dependent Lookup
+ * (http://en.cppreference.com/w/cpp/language/adl).
+ *
  * Example:
  *
  *  enum class my_enum { field0, field1 = 37, field2 };
  *
  *  struct my_traits {
  *    using type = my_enum;
+ *
+ *    // see FATAL_STR
+ *    using name = constant_sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>;
  *
  *    struct str {
  *      FATAL_STR(field0, "field0");
@@ -511,18 +645,18 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
  *    };
  *
  *    using name_to_value = build_type_map<
- *      str::field0, std::integral_constant<my_enum, my_enum::field0>,
- *      str::field1, std::integral_constant<my_enum, my_enum::field1>,
- *      str::field2, std::integral_constant<my_enum, my_enum::field2>
+ *      str::field0, std::integral_constant<type, type::field0>,
+ *      str::field1, std::integral_constant<type, type::field1>,
+ *      str::field2, std::integral_constant<type, type::field2>
  *    >;
  *
  *    // this function is optional but its presence greatly
  *    // improves build times and runtime performance
- *    static char const *to_string(my_enum e, char const *fallback) {
+ *    static char const *to_string(type e, char const *fallback) {
  *      switch (e) {
- *        case my_enum::field0: return "field0";
- *        case my_enum::field1: return "field1";
- *        case my_enum::field2: return "field2";
+ *        case type::field0: return "field0";
+ *        case type::field1: return "field1";
+ *        case type::field2: return "field2";
  *        default: return fallback;
  *      }
  *    }
@@ -536,8 +670,12 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FATAL_REGISTER_ENUM_TRAITS(Traits) \
-  Traits operator <<(::fatal::detail::enum_impl::metadata_tag, Traits::type *)
+#define FATAL_REGISTER_ENUM_TRAITS(Traits, ...) \
+  FATAL_REGISTER_TYPE( \
+    ::fatal::detail::enum_impl::metadata_tag, \
+    Traits::type, \
+    ::fatal::type_list<Traits>::push_back<__VA_ARGS__> \
+  )
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
@@ -575,6 +713,8 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
   struct ClassName { \
     using type = Enum; \
     \
+    FATAL_STR(name, FATAL_TO_STR(Enum)); \
+    \
     struct str { \
       FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR, __VA_ARGS__) \
     }; \
@@ -583,7 +723,7 @@ char const *enum_to_string(Enum e, char const *fallback = nullptr) {
       FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR_VALUE_LIST, ~, __VA_ARGS__) \
     >; \
     \
-    static char const *to_string(Enum e, char const *fallback) { \
+    static char const *to_string(type e, char const *fallback) { \
       switch (e) { \
         FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_TO_STR, __VA_ARGS__) \
         default: return fallback; \

@@ -132,14 +132,14 @@ FATAL_TEST(traits, is_complete) {
   FATAL_EXPECT_FALSE((is_complete<std::tuple_element<2, pair>>::value));
 }
 
-////////////////////////
-// identity_transform //
-////////////////////////
+//////////////
+// identity //
+//////////////
 
-FATAL_TEST(identity_transform, identity_transform) {
-  FATAL_EXPECT_SAME <int, identity_transform<int>>();
-  FATAL_EXPECT_SAME <std::string, identity_transform<std::string>>();
-  FATAL_EXPECT_SAME <double, identity_transform<identity_transform<double>>>();
+FATAL_TEST(identity, identity) {
+  FATAL_EXPECT_SAME <int, identity<int>>();
+  FATAL_EXPECT_SAME <std::string, identity<std::string>>();
+  FATAL_EXPECT_SAME <double, identity<identity<double>>>();
 }
 
 /////////////////////
@@ -154,7 +154,7 @@ FATAL_TEST(fixed_transform, fixed_transform) {
   FATAL_EXPECT_SAME<int, i::apply<std::string>>();
   FATAL_EXPECT_SAME<int, i::apply<double>>();
   FATAL_EXPECT_SAME<int, i::apply<double, void>>();
-  FATAL_EXPECT_SAME<int, i::apply<identity_transform<double>>>();
+  FATAL_EXPECT_SAME<int, i::apply<identity<double>>>();
 
   typedef fixed_transform<bool> b;
   FATAL_EXPECT_SAME<bool, b::apply<>>();
@@ -163,7 +163,7 @@ FATAL_TEST(fixed_transform, fixed_transform) {
   FATAL_EXPECT_SAME<bool, b::apply<std::string>>();
   FATAL_EXPECT_SAME<bool, b::apply<double>>();
   FATAL_EXPECT_SAME<bool, b::apply<double, void>>();
-  FATAL_EXPECT_SAME<bool, b::apply<identity_transform<double>>>();
+  FATAL_EXPECT_SAME<bool, b::apply<identity<double>>>();
 }
 
 ////////////////////////
@@ -179,7 +179,7 @@ FATAL_TEST(constant_transform, constant_transform) {
   FATAL_EXPECT_EQ(ic, (i::apply<std::string>::value));
   FATAL_EXPECT_EQ(ic, (i::apply<double>::value));
   FATAL_EXPECT_EQ(ic, (i::apply<double, void>::value));
-  FATAL_EXPECT_EQ(ic, (i::apply<identity_transform<double>>::value));
+  FATAL_EXPECT_EQ(ic, (i::apply<identity<double>>::value));
 
   constexpr bool bc = true;
   typedef constant_transform<std::decay<decltype(bc)>::type, bc> b;
@@ -189,52 +189,50 @@ FATAL_TEST(constant_transform, constant_transform) {
   FATAL_EXPECT_EQ(bc, (b::apply<std::string>::value));
   FATAL_EXPECT_EQ(bc, (b::apply<double>::value));
   FATAL_EXPECT_EQ(bc, (b::apply<double, void>::value));
-  FATAL_EXPECT_EQ(bc, (b::apply<identity_transform<double>>::value));
+  FATAL_EXPECT_EQ(bc, (b::apply<identity<double>>::value));
 }
 
-////////////////////////
-// transform_sequence //
-////////////////////////
+/////////////
+// compose //
+/////////////
 
 template <typename TNested, typename TExpected, typename T>
-void check_transform_sequence() {
+void check_compose() {
   FATAL_EXPECT_SAME<TExpected, typename TNested::template apply<T>>();
 }
 
-FATAL_TEST(transform_sequence, transform_sequence) {
-  typedef transform_sequence<T1, T2, T3> ttt;
+FATAL_TEST(compose, compose) {
+  typedef compose<T1, T2, T3> ttt;
 
-  check_transform_sequence<ttt, T3<T2<T1<int>>>, int>();
-  check_transform_sequence<ttt, T3<T2<T1<int &&>>>, int &&>();
-  check_transform_sequence<ttt, T3<T2<T1<int const &>>>, int const &>();
-  check_transform_sequence<ttt, T3<T2<T1<std::string>>>, std::string>();
-  check_transform_sequence<ttt, T3<T2<T1<std::string &&>>>, std::string &&>();
-  check_transform_sequence<
+  check_compose<ttt, T3<T2<T1<int>>>, int>();
+  check_compose<ttt, T3<T2<T1<int &&>>>, int &&>();
+  check_compose<ttt, T3<T2<T1<int const &>>>, int const &>();
+  check_compose<ttt, T3<T2<T1<std::string>>>, std::string>();
+  check_compose<ttt, T3<T2<T1<std::string &&>>>, std::string &&>();
+  check_compose<
     ttt, T3<T2<T1<std::string const &>>>, std::string const &
   >();
 
-  using dttt = transform_sequence<
+  using dttt = compose<
     type_member_transform<std::decay>::template apply, ttt::template apply
   >;
 
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int>();
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int &&>();
-  check_transform_sequence<dttt, T3<T2<T1<int>>>, int const &>();
-  check_transform_sequence<dttt, T3<T2<T1<std::string>>>, std::string>();
-  check_transform_sequence<dttt, T3<T2<T1<std::string>>>, std::string &&>();
-  check_transform_sequence<
-    dttt, T3<T2<T1<std::string>>>, std::string const &
-  >();
+  check_compose<dttt, T3<T2<T1<int>>>, int>();
+  check_compose<dttt, T3<T2<T1<int>>>, int &&>();
+  check_compose<dttt, T3<T2<T1<int>>>, int const &>();
+  check_compose<dttt, T3<T2<T1<std::string>>>, std::string>();
+  check_compose<dttt, T3<T2<T1<std::string>>>, std::string &&>();
+  check_compose<dttt, T3<T2<T1<std::string>>>, std::string const &>();
 }
 
-//////////////////////////
-// arithmetic_transform //
-//////////////////////////
+////////////////
+// arithmetic //
+////////////////
 
 template <int... Values>
-using test_add = transform_int<arithmetic_transform::add, Values...>;
+using test_add = transform_int<arithmetic::add, Values...>;
 
-FATAL_TEST(arithmetic_transform, add) {
+FATAL_TEST(arithmetic, add) {
 # define FATAL_TEST_IMPL(Expected, ...) \
   do { \
     using actual = __VA_ARGS__; \
@@ -269,9 +267,9 @@ FATAL_TEST(arithmetic_transform, add) {
 }
 
 template <int... Values>
-using test_subtract = transform_int<arithmetic_transform::subtract, Values...>;
+using test_subtract = transform_int<arithmetic::subtract, Values...>;
 
-FATAL_TEST(arithmetic_transform, subtract) {
+FATAL_TEST(arithmetic, subtract) {
 # define FATAL_TEST_IMPL(Expected, ...) \
   do { \
     using actual = __VA_ARGS__; \
@@ -300,9 +298,9 @@ FATAL_TEST(arithmetic_transform, subtract) {
 }
 
 template <int... Values>
-using test_multiply = transform_int<arithmetic_transform::multiply, Values...>;
+using test_multiply = transform_int<arithmetic::multiply, Values...>;
 
-FATAL_TEST(arithmetic_transform, multiply) {
+FATAL_TEST(arithmetic, multiply) {
 # define FATAL_TEST_IMPL(Expected, ...) \
   do { \
     using actual = __VA_ARGS__; \
@@ -337,9 +335,9 @@ FATAL_TEST(arithmetic_transform, multiply) {
 }
 
 template <int... Values>
-using test_divide = transform_int<arithmetic_transform::divide, Values...>;
+using test_divide = transform_int<arithmetic::divide, Values...>;
 
-FATAL_TEST(arithmetic_transform, divide) {
+FATAL_TEST(arithmetic, divide) {
 # define FATAL_TEST_IMPL(Expected, ...) \
   do { \
     using actual = __VA_ARGS__; \
@@ -368,9 +366,9 @@ FATAL_TEST(arithmetic_transform, divide) {
 }
 
 template <int... Values>
-using test_modulo = transform_int<arithmetic_transform::modulo, Values...>;
+using test_modulo = transform_int<arithmetic::modulo, Values...>;
 
-FATAL_TEST(arithmetic_transform, modulo) {
+FATAL_TEST(arithmetic, modulo) {
 # define FATAL_TEST_IMPL(Expected, ...) \
   do { \
     using actual = __VA_ARGS__; \
@@ -398,20 +396,20 @@ FATAL_TEST(arithmetic_transform, modulo) {
 # undef FATAL_TEST_IMPL
 }
 
-///////////////////////
-// logical_transform //
-///////////////////////
+/////////////
+// logical //
+/////////////
 
 #define FATAL_TEST_IMPL(Transform, Expected, ...) \
   do { \
-    using result = bool_seq<__VA_ARGS__>::apply<logical_transform::Transform>; \
+    using result = bool_seq<__VA_ARGS__>::apply<logical::Transform>; \
     FATAL_EXPECT_SAME<bool, result::value_type>(); \
     auto const actual = result::value; \
     bool const expected = Expected; \
     FATAL_EXPECT_EQ(expected, actual); \
   } while (false)
 
-FATAL_TEST(logical_transform, all) {
+FATAL_TEST(logical, all) {
   FATAL_TEST_IMPL(all, true);
 
   FATAL_TEST_IMPL(all, true, true);
@@ -449,7 +447,7 @@ FATAL_TEST(logical_transform, all) {
   FATAL_TEST_IMPL(all, false, false, false, false, false);
 }
 
-FATAL_TEST(logical_transform, any) {
+FATAL_TEST(logical, any) {
   FATAL_TEST_IMPL(any, false);
 
   FATAL_TEST_IMPL(any, true, true);
@@ -489,14 +487,14 @@ FATAL_TEST(logical_transform, any) {
 
 #undef FATAL_TEST_IMPL
 
-FATAL_TEST(logical_transform, negate) {
-  FATAL_EXPECT_TRUE(logical_transform::negate<std::false_type>::value);
-  FATAL_EXPECT_FALSE(logical_transform::negate<std::true_type>::value);
+FATAL_TEST(logical, negate) {
+  FATAL_EXPECT_TRUE(logical::negate<std::false_type>::value);
+  FATAL_EXPECT_FALSE(logical::negate<std::true_type>::value);
 }
 
-///////////////////////
-// bitwise_transform //
-///////////////////////
+/////////////
+// bitwise //
+/////////////
 
 #define FATAL_TEST_IMPL(Expected, ...) \
   do { \
@@ -506,11 +504,11 @@ FATAL_TEST(logical_transform, negate) {
   } while (false)
 
 template <int... Args>
-using all_test_impl = bitwise_transform::all<
+using all_test_impl = bitwise::all<
   std::integral_constant<int, Args>...
 >;
 
-FATAL_TEST(bitwise_transform, all) {
+FATAL_TEST(bitwise, all) {
   FATAL_TEST_IMPL(99, all_test_impl<99>);
   FATAL_TEST_IMPL(0, all_test_impl<1, 2, 4>);
   FATAL_TEST_IMPL(3, all_test_impl<7, 11>);
@@ -518,22 +516,22 @@ FATAL_TEST(bitwise_transform, all) {
 }
 
 template <int... Args>
-using any_test_impl = bitwise_transform::any<
+using any_test_impl = bitwise::any<
   std::integral_constant<int, Args>...
 >;
 
-FATAL_TEST(bitwise_transform, any) {
+FATAL_TEST(bitwise, any) {
   FATAL_TEST_IMPL(99, any_test_impl<99>);
   FATAL_TEST_IMPL(7, any_test_impl<1, 2, 4>);
   FATAL_TEST_IMPL(8 | 9 | 57, any_test_impl<8, 9, 57>);
 }
 
 template <int... Args>
-using diff_test_impl = bitwise_transform::diff<
+using diff_test_impl = bitwise::diff<
   std::integral_constant<int, Args>...
 >;
 
-FATAL_TEST(bitwise_transform, diff) {
+FATAL_TEST(bitwise, diff) {
   FATAL_TEST_IMPL(99, diff_test_impl<99>);
   FATAL_TEST_IMPL(3, diff_test_impl<1, 2>);
   FATAL_TEST_IMPL(12, diff_test_impl<7, 11>);
@@ -543,10 +541,10 @@ FATAL_TEST(bitwise_transform, diff) {
 
 #undef FATAL_TEST_IMPL
 
-FATAL_TEST(bitwise_transform, complement) {
+FATAL_TEST(bitwise, complement) {
 # define FATAL_TEST_IMPL(x) \
   do { \
-    using result = bitwise_transform::complement< \
+    using result = bitwise::complement< \
       std::integral_constant<unsigned, (x)> \
     >; \
     FATAL_EXPECT_SAME<unsigned, result::value_type>(); \
@@ -560,7 +558,7 @@ FATAL_TEST(bitwise_transform, complement) {
 
   FATAL_EXPECT_EQ(
     static_cast<uint8_t>(0xf0),
-    (bitwise_transform::complement<std::integral_constant<uint8_t, 0xf>>::value)
+    (bitwise::complement<std::integral_constant<uint8_t, 0xf>>::value)
   );
 
 # undef FATAL_TEST_IMPL
@@ -921,9 +919,9 @@ FATAL_TEST(variadic_transform, types) {
   >();
 }
 
-FATAL_TEST(variadic_transform, arithmetic_transform) {
+FATAL_TEST(variadic_transform, arithmetic) {
   check_variadic_transform<
-    arithmetic_transform::add,
+    arithmetic::add,
     op<5>::mul, op<3>::mul, op<1>::mul, op<0>::mul, op<2>::mul
   >::expect<
     int_val<5 * 1 + 3 * 2 + 1 * 3 + 0 * 4 + 2 * 5>
@@ -935,7 +933,7 @@ FATAL_TEST(variadic_transform, arithmetic_transform) {
 FATAL_TEST(variadic_transform, comparison_transform) {
   check_variadic_transform<
     comparison_transform::less_than,
-    identity_transform, identity_transform
+    identity, identity
   >::check_value<
     std::true_type,
     int_val<1>, int_val<2>
@@ -943,7 +941,7 @@ FATAL_TEST(variadic_transform, comparison_transform) {
 
   check_variadic_transform<
     comparison_transform::less_than,
-    identity_transform, op<9>::mul
+    identity, op<9>::mul
   >::check_value<
     std::true_type,
     int_val<1>, int_val<2>
@@ -951,7 +949,7 @@ FATAL_TEST(variadic_transform, comparison_transform) {
 
   check_variadic_transform<
     comparison_transform::less_than,
-    op<5>::mul, identity_transform
+    op<5>::mul, identity
   >::check_value<
     std::false_type,
     int_val<1>, int_val<2>
@@ -1153,7 +1151,7 @@ FATAL_TEST(transform_alias, apply_args) {
 //////////////////////
 
 FATAL_TEST(transform_switch, empty_identity) {
-  using transform = identity_transform_switch<>;
+  using transform = identity_switch<>;
 
   FATAL_EXPECT_SAME<int, transform::apply<int>>();
 }
@@ -1165,7 +1163,7 @@ FATAL_TEST(transform_switch, empty_T1) {
 }
 
 FATAL_TEST(transform_switch, identity) {
-  using transform = identity_transform_switch<
+  using transform = identity_switch<
     is_tuple, type_member_transform<tuple_as_list>::template apply,
     is_vector, get_value_type,
     is_string, get_value_type
@@ -1232,13 +1230,13 @@ FATAL_TEST(member_transformer, transform) {
     FATAL_EXPECT_SAME<expected, actual_bind>(); \
   } while (false)
 
-  TEST_IMPL(identity_transform);
-  TEST_IMPL(identity_transform, void);
-  TEST_IMPL(identity_transform, int);
-  TEST_IMPL(identity_transform, int, void);
-  TEST_IMPL(identity_transform, int, void, test_list<>);
-  TEST_IMPL(identity_transform, int, void, test_list<float>);
-  TEST_IMPL(identity_transform, int, void, test_list<float, bool>);
+  TEST_IMPL(identity);
+  TEST_IMPL(identity, void);
+  TEST_IMPL(identity, int);
+  TEST_IMPL(identity, int, void);
+  TEST_IMPL(identity, int, void, test_list<>);
+  TEST_IMPL(identity, int, void, test_list<float>);
+  TEST_IMPL(identity, int, void, test_list<float, bool>);
   TEST_IMPL(T1);
   TEST_IMPL(T1, void);
   TEST_IMPL(T1, int);
@@ -1575,8 +1573,8 @@ template <
   template <typename...> class TPredicate,
   template <typename...> class TTransform,
   std::size_t Depth,
-  template <typename...> class TPreTransform = identity_transform,
-  template <typename...> class TPostTransform = identity_transform,
+  template <typename...> class TPreTransform = identity,
+  template <typename...> class TPostTransform = identity,
   template <typename, template <typename...> class, typename...>
     class TTransformer = member_transformer::transform<>::use
 >
@@ -1599,47 +1597,47 @@ FATAL_TEST(recursive_transform, identity) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
   check_recursive_list_transform<
     test_list<void>,
     test_list<void>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
   check_recursive_list_transform<
     test_list<void, int>,
     test_list<void, int>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>>,
     test_list<void, test_list<>>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>, int>,
     test_list<void, test_list<>, int>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double>, int>,
     test_list<void, test_list<double>, int>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool>, int>,
     test_list<void, test_list<double, bool>, int>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<>>, int>,
     test_list<void, test_list<double, bool, test_list<>>, int>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<float>>, int>,
     test_list<void, test_list<double, bool, test_list<float>>, int>,
-    is_list, identity_transform, std::numeric_limits<std::size_t>::max()
+    is_list, identity, std::numeric_limits<std::size_t>::max()
   >();
 }
 
@@ -1647,47 +1645,47 @@ FATAL_TEST(recursive_transform, identity_0) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
   check_recursive_list_transform<
     test_list<void>,
     test_list<void>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
   check_recursive_list_transform<
     test_list<void, int>,
     test_list<void, int>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>>,
     test_list<void, test_list<>>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>, int>,
     test_list<void, test_list<>, int>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double>, int>,
     test_list<void, test_list<double>, int>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool>, int>,
     test_list<void, test_list<double, bool>, int>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<>>, int>,
     test_list<void, test_list<double, bool, test_list<>>, int>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<float>>, int>,
     test_list<void, test_list<double, bool, test_list<float>>, int>,
-    is_list, identity_transform, 0
+    is_list, identity, 0
   >();
 }
 
@@ -1695,47 +1693,47 @@ FATAL_TEST(recursive_transform, identity_1) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
   check_recursive_list_transform<
     test_list<void>,
     test_list<void>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
   check_recursive_list_transform<
     test_list<void, int>,
     test_list<void, int>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>>,
     test_list<void, test_list<>>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>, int>,
     test_list<void, test_list<>, int>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double>, int>,
     test_list<void, test_list<double>, int>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool>, int>,
     test_list<void, test_list<double, bool>, int>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<>>, int>,
     test_list<void, test_list<double, bool, test_list<>>, int>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<float>>, int>,
     test_list<void, test_list<double, bool, test_list<float>>, int>,
-    is_list, identity_transform, 1
+    is_list, identity, 1
   >();
 }
 
@@ -1743,47 +1741,47 @@ FATAL_TEST(recursive_transform, identity_2) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
   check_recursive_list_transform<
     test_list<void>,
     test_list<void>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
   check_recursive_list_transform<
     test_list<void, int>,
     test_list<void, int>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>>,
     test_list<void, test_list<>>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>, int>,
     test_list<void, test_list<>, int>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double>, int>,
     test_list<void, test_list<double>, int>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool>, int>,
     test_list<void, test_list<double, bool>, int>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<>>, int>,
     test_list<void, test_list<double, bool, test_list<>>, int>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<float>>, int>,
     test_list<void, test_list<double, bool, test_list<float>>, int>,
-    is_list, identity_transform, 2
+    is_list, identity, 2
   >();
 }
 
@@ -1791,47 +1789,47 @@ FATAL_TEST(recursive_transform, identity_3) {
   check_recursive_list_transform<
     test_list<>,
     test_list<>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
   check_recursive_list_transform<
     test_list<void>,
     test_list<void>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
   check_recursive_list_transform<
     test_list<void, int>,
     test_list<void, int>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>>,
     test_list<void, test_list<>>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
   check_recursive_list_transform<
     test_list<void, test_list<>, int>,
     test_list<void, test_list<>, int>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double>, int>,
     test_list<void, test_list<double>, int>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool>, int>,
     test_list<void, test_list<double, bool>, int>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<>>, int>,
     test_list<void, test_list<double, bool, test_list<>>, int>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
   check_recursive_list_transform<
     test_list<void, test_list<double, bool, test_list<float>>, int>,
     test_list<void, test_list<double, bool, test_list<float>>, int>,
-    is_list, identity_transform, 3
+    is_list, identity, 3
   >();
 }
 
@@ -2085,55 +2083,55 @@ FATAL_TEST(recursive_transform, pre_post_identity) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void>>,
     T0<test_list<void>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, int>>,
     T0<test_list<void, int>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<>>>>,
     T0<test_list<void, T0<test_list<>>>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<>>, int>>,
     T0<test_list<void, T0<test_list<>>, int>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double>>, int>>,
     T0<test_list<void, T0<test_list<double>>, int>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool>>, int>>,
     T0<test_list<void, T0<test_list<double, bool>>, int>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool, V1<test_list<>>>>, int>>,
     T0<test_list<void, T0<test_list<double, bool, T0<test_list<>>>>, int>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool, V1<test_list<float>>>>, int>>,
     T0<test_list<void, T0<test_list<double, bool, T0<test_list<float>>>>, int>>,
-    is_T0_list, identity_transform, std::numeric_limits<std::size_t>::max(),
+    is_T0_list, identity, std::numeric_limits<std::size_t>::max(),
     get_t0, V1
   >();
 }
@@ -2142,47 +2140,47 @@ FATAL_TEST(recursive_transform, pre_post_identity_0) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void>>,
     T0<test_list<void>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, int>>,
     T0<test_list<void, int>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, test_list<>>>,
     T0<test_list<void, test_list<>>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, test_list<>, int>>,
     T0<test_list<void, test_list<>, int>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, test_list<double>, int>>,
     T0<test_list<void, test_list<double>, int>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, test_list<double, bool>, int>>,
     T0<test_list<void, test_list<double, bool>, int>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, test_list<double, bool, test_list<>>, int>>,
     T0<test_list<void, test_list<double, bool, test_list<>>, int>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, test_list<double, bool, test_list<float>>, int>>,
     T0<test_list<void, test_list<double, bool, test_list<float>>, int>>,
-    is_T0_list, identity_transform, 0, get_t0, V1
+    is_T0_list, identity, 0, get_t0, V1
   >();
 }
 
@@ -2190,47 +2188,47 @@ FATAL_TEST(recursive_transform, pre_post_identity_1) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void>>,
     T0<test_list<void>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, int>>,
     T0<test_list<void, int>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<>>>>,
     T0<test_list<void, T0<test_list<>>>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<>>, int>>,
     T0<test_list<void, T0<test_list<>>, int>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double>>, int>>,
     T0<test_list<void, T0<test_list<double>>, int>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool>>, int>>,
     T0<test_list<void, T0<test_list<double, bool>>, int>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool, test_list<>>>, int>>,
     T0<test_list<void, T0<test_list<double, bool, test_list<>>>, int>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool, test_list<float>>>, int>>,
     T0<test_list<void, T0<test_list<double, bool, test_list<float>>>, int>>,
-    is_T0_list, identity_transform, 1, get_t0, V1
+    is_T0_list, identity, 1, get_t0, V1
   >();
 }
 
@@ -2238,47 +2236,47 @@ FATAL_TEST(recursive_transform, pre_post_identity_2) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void>>,
     T0<test_list<void>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, int>>,
     T0<test_list<void, int>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<>>>>,
     T0<test_list<void, T0<test_list<>>>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<>>, int>>,
     T0<test_list<void, T0<test_list<>>, int>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double>>, int>>,
     T0<test_list<void, T0<test_list<double>>, int>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool>>, int>>,
     T0<test_list<void, T0<test_list<double, bool>>, int>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool, V1<test_list<>>>>, int>>,
     T0<test_list<void, T0<test_list<double, bool, T0<test_list<>>>>, int>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool, V1<test_list<float>>>>, int>>,
     T0<test_list<void, T0<test_list<double, bool, T0<test_list<float>>>>, int>>,
-    is_T0_list, identity_transform, 2, get_t0, V1
+    is_T0_list, identity, 2, get_t0, V1
   >();
 }
 
@@ -2286,47 +2284,47 @@ FATAL_TEST(recursive_transform, pre_post_identity_3) {
   check_recursive_list_transform<
     V1<test_list<>>,
     T0<test_list<>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void>>,
     T0<test_list<void>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, int>>,
     T0<test_list<void, int>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<>>>>,
     T0<test_list<void, T0<test_list<>>>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<>>, int>>,
     T0<test_list<void, T0<test_list<>>, int>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double>>, int>>,
     T0<test_list<void, T0<test_list<double>>, int>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool>>, int>>,
     T0<test_list<void, T0<test_list<double, bool>>, int>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool, V1<test_list<>>>>, int>>,
     T0<test_list<void, T0<test_list<double, bool, T0<test_list<>>>>, int>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
   check_recursive_list_transform<
     V1<test_list<void, V1<test_list<double, bool, V1<test_list<float>>>>, int>>,
     T0<test_list<void, T0<test_list<double, bool, T0<test_list<float>>>>, int>>,
-    is_T0_list, identity_transform, 3, get_t0, V1
+    is_T0_list, identity, 3, get_t0, V1
   >();
 }
 

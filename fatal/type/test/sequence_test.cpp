@@ -19,8 +19,10 @@
 
 namespace fatal {
 
+template <int Value> using int_val = std::integral_constant<int, Value>;
 template <char... Values> using char_seq = constant_sequence<char, Values...>;
 template <int... Values> using int_seq = constant_sequence<int, Values...>;
+template <int... Values> using int_lst = type_list<int_val<Values>...>;
 
 using eis = int_seq<>;
 using ecs = char_seq<>;
@@ -722,6 +724,214 @@ FATAL_TEST(constant_sequence, right) {
 # undef TEST_IMPL
 }
 
+////////////////////////////////
+// constant_sequence::reverse //
+////////////////////////////////
+
+template <typename T, T... Values>
+struct check_reverse {
+  using seq = constant_sequence<T, Values...>;
+
+  template <T... Suffix>
+  struct append {
+    template <T... Expected>
+    static void check() {
+      FATAL_EXPECT_SAME<
+        constant_sequence<T, Expected..., Suffix...>,
+        typename seq::template reverse<Suffix...>
+      >();
+    }
+  };
+};
+
+FATAL_TEST(constant_sequence, reverse) {
+  check_reverse<int>::append<>::check<>();
+  check_reverse<int, 1>::append<>::check<1>();
+  check_reverse<int, 1, 2, 3, 4, 5>::append<>::check<5, 4, 3, 2, 1>();
+
+  check_reverse<int>::append<0, -1>::check<>();
+  check_reverse<int, 1>::append<0, -1>::check<1>();
+  check_reverse<int, 1, 2, 3, 4, 5>::append<0, -1>
+    ::check<5, 4, 3, 2, 1>();
+
+  check_reverse<char>::append<>::check<>();
+  check_reverse<char, '1'>::append<>::check<'1'>();
+  check_reverse<char, '1', '2', '3', '4', '5'>::append<>
+    ::check<'5', '4', '3', '2', '1'>();
+
+  check_reverse<char>::append<'0', '_'>::check<>();
+  check_reverse<char, '1'>::append<'0', '_'>::check<'1'>();
+  check_reverse<char, '1', '2', '3', '4', '5'>::append<'0', '_'>
+    ::check<'5', '4', '3', '2', '1'>();
+}
+
+///////////////////////////////////
+// constant_sequence::polynomial //
+///////////////////////////////////
+
+template <int Expected, int Variable, int... Coefficients>
+void check_polynomial() {
+  using seq = constant_sequence<int, Coefficients...>;
+
+  FATAL_EXPECT_SAME<
+    std::integral_constant<int, Expected>,
+    typename seq::template polynomial<Variable>
+  >();
+};
+
+FATAL_TEST(constant_sequence, polynomial) {
+  check_polynomial<-3 * 9 * 9 + 2 * 9 + 5, 9, 5, 2, -3>();
+  check_polynomial<21 * 4 + 14, 4, 14, 21>();
+  check_polynomial<18 * 9 * 9 + 0 * 9 + 1, 9, 1, 0, 18>();
+}
+
+///////////////////////////////////
+// constant_sequence::interleave //
+///////////////////////////////////
+
+FATAL_TEST(constant_sequence, interleave) {
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::interleave<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::interleave<10>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::interleave<10, 20, 30>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 1, 2, 3, 4>,
+    int_seq<0, 1, 2, 3, 4>::interleave<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 10, 1, 10, 2, 10, 3, 10, 4>,
+    int_seq<0, 1, 2, 3, 4>::interleave<10>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 10, 20, 30, 1, 10, 20, 30, 2, 10, 20, 30, 3, 10, 20, 30, 4>,
+    int_seq<0, 1, 2, 3, 4>::interleave<10, 20, 30>
+  >();
+}
+
+//////////////////////////////////
+// constant_sequence::transform //
+//////////////////////////////////
+
+template <int Value>
+using square_int = int_val<Value * Value>;
+
+FATAL_TEST(constant_sequence, transform) {
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<1>,
+    int_seq<1>::transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<81>,
+    int_seq<9>::transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
+    int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>::transform<square_int>
+  >();
+}
+
+////////////////////////////////////////
+// constant_sequence::typed_transform //
+////////////////////////////////////////
+
+template <typename T, T Value>
+using typed_square_int = std::integral_constant<T, Value * Value>;
+
+FATAL_TEST(constant_sequence, typed_transform) {
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    int_seq<>::typed_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<1>,
+    int_seq<1>::typed_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<81>,
+    int_seq<9>::typed_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
+    int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>::typed_transform<typed_square_int>
+  >();
+}
+
+///////////////////////////////////////
+// constant_sequence::list_transform //
+///////////////////////////////////////
+
+FATAL_TEST(constant_sequence, list_transform) {
+  FATAL_EXPECT_SAME<
+    int_lst<>,
+    int_seq<>::list_transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<1>,
+    int_seq<1>::list_transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<81>,
+    int_seq<9>::list_transform<square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
+    int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>::list_transform<square_int>
+  >();
+}
+
+/////////////////////////////////////////////
+// constant_sequence::typed_list_transform //
+/////////////////////////////////////////////
+
+FATAL_TEST(constant_sequence, typed_list_transform) {
+  FATAL_EXPECT_SAME<
+    int_lst<>,
+    int_seq<>::typed_list_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<1>,
+    int_seq<1>::typed_list_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<81>,
+    int_seq<9>::typed_list_transform<typed_square_int>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_lst<0, 1, 4, 9, 16, 25, 36, 49, 64, 81>,
+    int_seq<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>
+      ::typed_list_transform<typed_square_int>
+  >();
+}
+
 //////////////////////////////
 // constant_sequence::apply //
 //////////////////////////////
@@ -917,7 +1127,12 @@ FATAL_TEST(to_constant_sequence, sanity_check) {
   do { \
     FATAL_EXPECT_SAME< \
       constant_sequence<TChar, __VA_ARGS__>, \
-      to_constant_sequence<T, Value, TChar> \
+      to_constant_sequence<TChar>::apply<T, Value> \
+    >(); \
+    \
+    FATAL_EXPECT_SAME< \
+      constant_sequence<TChar, __VA_ARGS__>, \
+      to_constant_sequence<TChar>::bind<T>::apply<Value> \
     >(); \
   } while (false)
 

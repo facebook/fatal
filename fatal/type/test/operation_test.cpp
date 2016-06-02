@@ -12,13 +12,66 @@
 #include <fatal/test/driver.h>
 
 #include <fatal/preprocessor.h>
+#include <fatal/type/map.h>
+#include <fatal/type/sequence.h>
 #include <fatal/type/test/parse_sequence_input.h>
+
+#include <tuple>
+#include <type_traits>
 
 namespace fatal {
 
+template <typename> struct dummy_unit {};
 template <typename, typename> struct dummy_pair {};
 template <typename...> struct dummy_list {};
 template <typename T, T...> struct dummy_sequence {};
+template <int... Values> using int_seq = constant_sequence<int, Values...>;
+
+////////////
+// expand //
+////////////
+
+FATAL_TEST(operation, expand) {
+  FATAL_EXPECT_SAME<
+    type_list<void, int, double>,
+    expand<type_list, void>::front<int, double>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<int, double, void>,
+    expand<type_list, void>::back<int, double>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<void, int, double>,
+    expand<type_list, dummy_unit<void>>::front<int, double>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<int, double, void>,
+    expand<type_list, dummy_unit<void>>::back<int, double>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<void, bool, int, double>,
+    expand<type_list, dummy_pair<void, bool>>::front<int, double>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<int, double, void, bool>,
+    expand<type_list, dummy_pair<void, bool>>::back<int, double>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<void, bool, int, double>,
+    expand<type_list, dummy_list<void, bool>>::front<int, double>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<int, double, void, bool>,
+    expand<type_list, dummy_list<void, bool>>::back<int, double>
+  >();
+}
 
 ///////////////////////
 // cartesian_product //
@@ -153,6 +206,352 @@ FATAL_TEST(operation, flatten) {
   // TODO: ADD MORE TESTS
 }
 
+//////////////////////
+// flatten_sequence //
+//////////////////////
+
+FATAL_TEST(operation, flatten_sequence) {
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    flatten_sequence<int, constant_sequence>::apply<>
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<20>,
+      int_seq<30>,
+      int_seq<40>,
+      int_seq<50>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20>,
+      int_seq<>,
+      int_seq<30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20>,
+      int_seq<>,
+      int_seq<30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20>,
+      int_seq<>,
+      int_seq<30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20>,
+      int_seq<>,
+      int_seq<30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<20, 30>,
+      int_seq<40>,
+      int_seq<50, 60, 70>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20, 30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50, 60, 70>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20, 30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50, 60, 70>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20, 30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50, 60, 70>,
+      int_seq<>
+    >
+  >();
+
+  FATAL_EXPECT_SAME<
+    int_seq<10, 20, 30, 40, 50, 60, 70>,
+    flatten_sequence<int, constant_sequence>::apply<
+      int_seq<>,
+      int_seq<10>,
+      int_seq<>,
+      int_seq<20, 30>,
+      int_seq<>,
+      int_seq<40>,
+      int_seq<>,
+      int_seq<50, 60, 70>,
+      int_seq<>
+    >
+  >();
+}
+
+//////////////////////////
+// expand_recursive_map //
+//////////////////////////
+
+template <int Value>
+using iv = std::integral_constant<int, Value>;
+
+template <int Value>
+struct tr: public std::integral_constant<int, Value> {};
+
+template <typename T>
+using to_seq = typename T::template apply_typed_values<int, constant_sequence>;
+
+template <typename T>
+using cut_last = typename T::template split<T::size - 1>::template transform<
+  to_seq,
+  type_get_first
+>;
+
+FATAL_TEST(operation, expand_recursive_map) {
+  using small_map = build_type_map<
+    iv<0>, build_type_map<
+      iv<4>, build_type_map<
+        iv<3>, build_type_map<
+          iv<3>, tr<0>,
+          iv<1>, tr<1>
+        >,
+        iv<2>, build_type_map<
+          iv<0>, tr<2>
+        >
+      >
+    >
+  >;
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      dummy_list<iv<0>, iv<4>, iv<3>, iv<3>, tr<0>>,
+      dummy_list<iv<0>, iv<4>, iv<3>, iv<1>, tr<1>>,
+      dummy_list<iv<0>, iv<4>, iv<2>, iv<0>, tr<2>>
+    >,
+    expand_recursive_map<type_map, type_list, dummy_list>::apply<small_map>
+  >();
+
+  using big_map = build_type_map<
+    iv<0>, build_type_map<
+      iv<4>, build_type_map<
+        iv<3>, build_type_map<
+          iv<3>, tr<0>,
+          iv<1>, tr<1>
+        >,
+        iv<2>, build_type_map<
+          iv<0>, tr<2>
+        >
+      >,
+      iv<5>, build_type_map<
+        iv<1>, build_type_map<
+          iv<2>, build_type_map<
+            iv<3>, build_type_map<
+              iv<4>, build_type_map<
+                iv<5>, tr<3>,
+                iv<6>, tr<4>
+              >,
+              iv<7>, build_type_map<
+                iv<8>, build_type_map<
+                  iv<9>, tr<5>
+                >
+              >
+            >,
+            iv<0>, tr<6>
+          >,
+          iv<1>, tr<7>
+        >
+      >,
+      iv<6>, tr<8>
+    >,
+    iv<2>, build_type_map<
+      iv<7>, tr<9>,
+      iv<2>, tr<10>,
+      iv<0>, tr<11>
+    >,
+    iv<3>, build_type_map<
+      iv<9>, tr<12>,
+      iv<8>, build_type_map<
+        iv<0>, tr<13>
+      >,
+      iv<6>, tr<14>
+    >
+  >;
+
+  FATAL_EXPECT_SAME<
+    dummy_list<
+      std::tuple<iv<0>, iv<4>, iv<3>, iv<3>, tr<0>>,
+      std::tuple<iv<0>, iv<4>, iv<3>, iv<1>, tr<1>>,
+      std::tuple<iv<0>, iv<4>, iv<2>, iv<0>, tr<2>>,
+      std::tuple<iv<0>, iv<5>, iv<1>, iv<2>, iv<3>, iv<4>, iv<5>, tr<3>>,
+      std::tuple<iv<0>, iv<5>, iv<1>, iv<2>, iv<3>, iv<4>, iv<6>, tr<4>>,
+      std::tuple<iv<0>, iv<5>, iv<1>, iv<2>, iv<3>, iv<7>, iv<8>, iv<9>, tr<5>>,
+      std::tuple<iv<0>, iv<5>, iv<1>, iv<2>, iv<0>, tr<6>>,
+      std::tuple<iv<0>, iv<5>, iv<1>, iv<1>, tr<7>>,
+      std::tuple<iv<0>, iv<6>, tr<8>>,
+      std::tuple<iv<2>, iv<7>, tr<9>>,
+      std::tuple<iv<2>, iv<2>, tr<10>>,
+      std::tuple<iv<2>, iv<0>, tr<11>>,
+      std::tuple<iv<3>, iv<9>, tr<12>>,
+      std::tuple<iv<3>, iv<8>, iv<0>, tr<13>>,
+      std::tuple<iv<3>, iv<6>, tr<14>>
+    >,
+    expand_recursive_map<type_map, dummy_list, std::tuple>::apply<big_map>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_list<
+      constant_sequence<int, 0, 4, 3, 3, 0>,
+      constant_sequence<int, 0, 4, 3, 1, 1>,
+      constant_sequence<int, 0, 4, 2, 0, 2>,
+      constant_sequence<int, 0, 5, 1, 2, 3, 4, 5, 3>,
+      constant_sequence<int, 0, 5, 1, 2, 3, 4, 6, 4>,
+      constant_sequence<int, 0, 5, 1, 2, 3, 7, 8, 9, 5>,
+      constant_sequence<int, 0, 5, 1, 2, 0, 6>,
+      constant_sequence<int, 0, 5, 1, 1, 7>,
+      constant_sequence<int, 0, 6, 8>,
+      constant_sequence<int, 2, 7, 9>,
+      constant_sequence<int, 2, 2, 10>,
+      constant_sequence<int, 2, 0, 11>,
+      constant_sequence<int, 3, 9, 12>,
+      constant_sequence<int, 3, 8, 0, 13>,
+      constant_sequence<int, 3, 6, 14>
+    >,
+    expand_recursive_map<type_map, type_list>::apply<big_map>
+      ::transform<to_seq>
+  >();
+
+  FATAL_EXPECT_SAME<
+    type_map<
+      type_pair<constant_sequence<int, 0, 4, 3, 3>, tr<0>>,
+      type_pair<constant_sequence<int, 0, 4, 3, 1>, tr<1>>,
+      type_pair<constant_sequence<int, 0, 4, 2, 0>, tr<2>>,
+      type_pair<constant_sequence<int, 0, 5, 1, 2, 3, 4, 5>, tr<3>>,
+      type_pair<constant_sequence<int, 0, 5, 1, 2, 3, 4, 6>, tr<4>>,
+      type_pair<constant_sequence<int, 0, 5, 1, 2, 3, 7, 8, 9>, tr<5>>,
+      type_pair<constant_sequence<int, 0, 5, 1, 2, 0>, tr<6>>,
+      type_pair<constant_sequence<int, 0, 5, 1, 1>, tr<7>>,
+      type_pair<constant_sequence<int, 0, 6>, tr<8>>,
+      type_pair<constant_sequence<int, 2, 7>, tr<9>>,
+      type_pair<constant_sequence<int, 2, 2>, tr<10>>,
+      type_pair<constant_sequence<int, 2, 0>, tr<11>>,
+      type_pair<constant_sequence<int, 3, 9>, tr<12>>,
+      type_pair<constant_sequence<int, 3, 8, 0>, tr<13>>,
+      type_pair<constant_sequence<int, 3, 6>, tr<14>>
+    >,
+    expand_recursive_map<type_map, type_list>::apply<big_map>
+      ::transform<cut_last>::apply<type_map>
+  >();
+}
+
 /////////////////
 // to_sequence //
 /////////////////
@@ -162,7 +561,11 @@ FATAL_TEST(operation, to_sequence) {
   do { \
     FATAL_EXPECT_SAME< \
       dummy_sequence<TChar, __VA_ARGS__>, \
-      to_sequence<T, Value, dummy_sequence, TChar> \
+      to_sequence<dummy_sequence, TChar>::apply<T, Value> \
+    >(); \
+    FATAL_EXPECT_SAME< \
+      dummy_sequence<TChar, __VA_ARGS__>, \
+      to_sequence<dummy_sequence, TChar>::bind<T>::apply<Value> \
     >(); \
   } while (false)
 
@@ -197,6 +600,35 @@ FATAL_TEST(operation, parse_sequence) {
   } while (false)
 
   FATAL_IMPL_PARSE_SEQUENCE_TEST_CALLS(TEST_IMPL);
+
+# undef TEST_IMPL
+}
+
+/////////////////////
+// composite tests //
+/////////////////////
+
+FATAL_STR(joined1, "1:2:3:4:5");
+FATAL_STR(joined2, "100");
+FATAL_STR(joined3, "1:22:333:4444:55555");
+
+FATAL_TEST(constant_sequence, int seq to joined string) {
+# define TEST_IMPL(Expected, ...) \
+    do { \
+      using expected = Expected; \
+      using input = int_seq<__VA_ARGS__>; \
+      using actual = input::typed_list_transform< \
+        to_constant_sequence<>::apply \
+      >::interleave<constant_sequence<char, ':'>>::apply< \
+        flatten_sequence<char, constant_sequence>::apply \
+      >; \
+      FATAL_EXPECT_SAME<expected, actual>(); \
+    } while (false)
+
+  TEST_IMPL(constant_sequence<char>);
+  TEST_IMPL(joined1, 1, 2, 3, 4, 5);
+  TEST_IMPL(joined2, 100);
+  TEST_IMPL(joined3, 1, 22, 333, 4444, 55555);
 
 # undef TEST_IMPL
 }

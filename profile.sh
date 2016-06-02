@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. ./scripts.inc
+
 set -e
 
 if [ -z "$1" ]; then
@@ -26,9 +28,7 @@ out_path="$out_dir/`basename "$file_name" .cpp`"
 out_binary="${out_path}.o"
 out_prof="${out_binary}.memory.trace.pbf"
 
-if [ "$NO_CLEAR" != "true" ]; then
-  ./lclear.sh >&2
-fi
+lclear
 
 echo -n "started: "; date
 set -x

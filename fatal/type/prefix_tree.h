@@ -58,9 +58,7 @@ struct type_prefix_tree {
    * A boolean std::integral_constant-like member
    * telling whether this is a terminal node or not.
    */
-  using is_terminal = logical_transform::negate<
-    std::is_same<sequence, non_terminal_tag>
-  >;
+  using is_terminal = logical::negate<std::is_same<sequence, non_terminal_tag>>;
 
   /**
    * A `type_map` of all child nodes reachable from this node.

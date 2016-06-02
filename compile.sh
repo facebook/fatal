@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+. ./scripts.inc
 
 set -e
 
@@ -12,14 +14,14 @@ if [ -z "$USE_STD" ]; then
 fi
 
 if [ -z "$USE_CC" ]; then
-  export USE_CC="clang++-3.8"
+  export USE_CC="$default_compiler"
 fi
 
 file_name="$1"
 shift
-base_dir="/tmp/_build/$USE_CC/$USE_STD"
+base_dir="/tmp/.build/$USE_CC/$USE_STD"
 out_dir="$base_dir/`dirname "$file_name"`"
-link_dir="/tmp/_bin"
+link_dir="/tmp/.bin"
 
 if [ ! -d "$out_dir" ]; then
   mkdir -p "$out_dir"
@@ -32,24 +34,34 @@ ln -s "$base_dir" "$link_dir"
 
 out_binary="$out_dir/`basename "$file_name" .cpp`"
 
-if [ "$NO_CLEAR" != "true" ]; then
-  ./lclear.sh >&2
-fi
+lclear
 
 if [ -z "$CC_OPT" ]; then
   CC_OPT="-O2"
 fi
 
 CC_ARGS="-o $out_binary $CC_ARGS $CC_OPT -g -pthread"
+if [ "${USE_CC:0:5}" = "clang" ]; then
+  CC_ARGS="$CC_ARGS -ferror-limit=3"
+fi
 if [ "$PRE_PROC" = "true" ]; then
   CC_ARGS="-E"
 fi
 
-echo -n "started: "; date
-set -x
-"$USE_CC" $CC_ARGS -Wall -Werror "-std=$USE_STD" -I . "$file_name" 2>&1
-set +x
-echo -n "finished: "; date
+if [ "$USE_CCACHE" = "true" ] && [ -e "$out_binary" ]; then
+  echo "using cached version of $file_name: $out_binary"
+else
+  echo -n "started: "; date
+  set -x
+  "$USE_CC" $CC_ARGS -Wall -Werror "-std=$USE_STD" -I . "$file_name" 2>&1
+  set +x
+  echo -n "finished: "; date
+fi
+
+if [ ! -e "$out_binary" ]; then
+  echo "binary for $file_name was not properly built"
+  exit 1
+fi
 
 if [ "$DO_RUN" = "true" ]; then
   "$out_binary" "$@"

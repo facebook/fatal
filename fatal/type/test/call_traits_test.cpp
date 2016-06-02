@@ -1236,4 +1236,38 @@ FATAL_TEST(call_if_supported, static_member_unbound) {
   );
 }
 
+//////////
+// name //
+//////////
+
+struct str {
+  FATAL_STR(test_fn, "test_fn");
+  FATAL_STR(no_fn, "no_fn");
+};
+
+FATAL_TEST(name, member_traits) {
+#define TEST_IMPL(Name, Traits) \
+  do { \
+    FATAL_EXPECT_SAME<str::Name, Traits::name>(); \
+    FATAL_EXPECT_SAME<str::Name, Traits::member_function::name>(); \
+    FATAL_EXPECT_SAME<str::Name, Traits::static_member::name>(); \
+  } while (false)
+
+  TEST_IMPL(test_fn, test_fn_traits);
+  TEST_IMPL(no_fn, no_fn_traits);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(name, free_function) {
+#define TEST_IMPL(Name, Traits) \
+  do { \
+    FATAL_EXPECT_SAME<str::Name, Traits::name>(); \
+  } while (false)
+
+  TEST_IMPL(test_fn, free_fn_traits);
+
+# undef TEST_IMPL
+}
+
 } // namespace fatal {

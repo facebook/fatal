@@ -21,7 +21,7 @@ Fatal is a header only library, therefore no building is required.
 
 
 ## Requirements
-A compliant C++11 compiler. Currently tested under Clang {3.4, 3.5, 3.6, 3.7, 3.8} and GCC {4.8, 4.9, 5.1}.
+A compliant C++11 compiler. Currently tested under Clang {[3.4](https://packages.debian.org/sid/clang-3.4), [3.5](https://packages.debian.org/sid/clang-3.5), [3.6](https://packages.debian.org/sid/clang-3.6), [3.7](https://packages.debian.org/sid/clang-3.7), [3.8](https://packages.debian.org/sid/clang-3.8), [3.9](https://packages.debian.org/sid/clang-3.9)} and GCC {[4.8.5+](https://packages.debian.org/sid/g++-4.8), [4.9](https://packages.debian.org/sid/g++-4.9), [5](https://packages.debian.org/sid/g++-5), [6](https://packages.debian.org/sid/g++-6)}.
 
 There are no other external dependencies.
 
@@ -37,9 +37,9 @@ There are no other external dependencies.
 ## Philosophy
 Fatal moves fast, therefore it uses the latest and greatest in C++ standards. It aims to adopt new standard features as soon as they're officially out, as long as they provide benefits like performance, productivity and usability improvements.
 
-The [`master`](https://github.com/facebook/fatal/) branch is considered the stable version of the library and should not change often.
+The [`master`](https://github.com/facebook/fatal/) branch is considered the stable version of the library and should not change often. Look out for breaking changes whenever master is updated (see below).
 
-The [`dev`](https://github.com/facebook/fatal/tree/dev/) branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice.
+The [`dev`](https://github.com/facebook/fatal/tree/dev/) branch is considered the development version of the library and experiences frequent updates. If you want the bleeding edge, that's the branch for you. Be advised, though, that it is under heavy development: breaking changes might be introduced without notice. They'll be tagged with the string `[break]` in the first line of the commit message.
 
 
 ## Installation

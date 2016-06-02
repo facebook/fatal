@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_test_random_data_h
 #define FATAL_INCLUDE_fatal_test_random_data_h
 
+#include <array>
 #include <iterator>
 #include <random>
 #include <string>
@@ -17,6 +18,7 @@
 
 #include <cassert>
 #include <climits>
+#include <cstring>
 
 namespace fatal {
 
@@ -59,6 +61,14 @@ struct random_data {
     string(result.begin(), result.end(), alphabet, alphabet_size);
     assert(result.size() == size);
     return result;
+  }
+
+  std::string string(std::size_t size) {
+    auto const alphabet = "0123456789"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz";
+    assert(std::strlen(alphabet) == 62);
+    return string(size, alphabet, 62);
   }
 
   template <typename T>

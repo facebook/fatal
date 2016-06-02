@@ -59,7 +59,7 @@ FATAL_TEST(optional, default_ctor) {
 // emplace_ctor //
 //////////////////
 
-#define FATAL_IMPL_EMPLACE_CTOR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_EMPLACE_CTOR(Type, Value1, ...) \
   do { \
     optional<Type> o(Value1); \
     FATAL_EXPECT_FALSE(o.empty()); \
@@ -88,7 +88,7 @@ FATAL_TEST(optional, emplace_ctor) {
 // const_dereference_operator //
 ////////////////////////////////
 
-#define FATAL_IMPL_CONST_DEREFERENCE_OPERATOR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_CONST_DEREFERENCE_OPERATOR(Type, Value1, ...) \
   do { \
     optional<Type> const o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -104,7 +104,7 @@ FATAL_TEST(optional, const_dereference_operator) {
 // dereference_operator //
 //////////////////////////
 
-#define FATAL_IMPL_DEREFERENCE_OPERATOR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_DEREFERENCE_OPERATOR(Type, Value1, ...) \
   do { \
     optional<Type> o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -120,12 +120,12 @@ FATAL_TEST(optional, dereference_operator) {
 // const_arrow_operator //
 //////////////////////////
 
-#define FATAL_IMPL_CONST_ARROW_OPERATOR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_CONST_ARROW_OPERATOR(Type, Value1, ...) \
   do { \
     optional<Type> const o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_SAME<Type const *, decltype(o.operator ->())>(); \
-    FATAL_ASSERT_NE(nullptr, o.operator ->()); \
+    FATAL_ASSERT_NOT_NULL(o.operator ->()); \
     FATAL_EXPECT_EQ(Value1, *(o.operator ->())); \
   } while (false)
 
@@ -137,12 +137,12 @@ FATAL_TEST(optional, const_arrow_operator) {
 // arrow_operator //
 ////////////////////
 
-#define FATAL_IMPL_ARROW_OPERATOR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_ARROW_OPERATOR(Type, Value1, ...) \
   do { \
     optional<Type> o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_SAME<Type *, decltype(o.operator ->())>(); \
-    FATAL_ASSERT_NE(nullptr, o.operator ->()); \
+    FATAL_ASSERT_NOT_NULL(o.operator ->()); \
     FATAL_EXPECT_EQ(Value1, *(o.operator ->())); \
   } while (false)
 
@@ -154,7 +154,7 @@ FATAL_TEST(optional, arrow_operator) {
 // const_cref //
 ////////////////
 
-#define FATAL_IMPL_CONST_CREF(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_CONST_CREF(Type, Value1, ...) \
   do { \
     optional<Type> const o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -170,7 +170,7 @@ FATAL_TEST(optional, const_cref) {
 // cref //
 //////////
 
-#define FATAL_IMPL_CREF(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_CREF(Type, Value1, ...) \
   do { \
     optional<Type> o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -186,7 +186,7 @@ FATAL_TEST(optional, cref) {
 // const_ref //
 ///////////////
 
-#define FATAL_IMPL_CONST_REF(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_CONST_REF(Type, Value1, ...) \
   do { \
     optional<Type> const o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -202,7 +202,7 @@ FATAL_TEST(optional, const_ref) {
 // ref //
 /////////
 
-#define FATAL_IMPL_REF(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_REF(Type, Value1, ...) \
   do { \
     optional<Type> o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -218,12 +218,12 @@ FATAL_TEST(optional, ref) {
 // const_cptr //
 ////////////////
 
-#define FATAL_IMPL_CONST_CPTR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_CONST_CPTR(Type, Value1, ...) \
   do { \
     optional<Type> const o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_SAME<Type const *, decltype(o.cptr())>(); \
-    FATAL_ASSERT_NE(nullptr, o.cptr()); \
+    FATAL_ASSERT_NOT_NULL(o.cptr()); \
     FATAL_EXPECT_EQ(Value1, *o.cptr()); \
   } while (false)
 
@@ -235,12 +235,12 @@ FATAL_TEST(optional, const_cptr) {
 // cptr //
 //////////
 
-#define FATAL_IMPL_CPTR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_CPTR(Type, Value1, ...) \
   do { \
     optional<Type> o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_SAME<Type const *, decltype(o.cptr())>(); \
-    FATAL_ASSERT_NE(nullptr, o.cptr()); \
+    FATAL_ASSERT_NOT_NULL(o.cptr()); \
     FATAL_EXPECT_EQ(Value1, *o.cptr()); \
   } while (false)
 
@@ -252,12 +252,12 @@ FATAL_TEST(optional, cptr) {
 // const_ptr //
 ///////////////
 
-#define FATAL_IMPL_CONST_PTR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_CONST_PTR(Type, Value1, ...) \
   do { \
     optional<Type> const o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_SAME<Type const *, decltype(o.ptr())>(); \
-    FATAL_ASSERT_NE(nullptr, o.ptr()); \
+    FATAL_ASSERT_NOT_NULL(o.ptr()); \
     FATAL_EXPECT_EQ(Value1, *o.ptr()); \
   } while (false)
 
@@ -269,17 +269,53 @@ FATAL_TEST(optional, const_ptr) {
 // ptr //
 /////////
 
-#define FATAL_IMPL_PTR(Type, Value1, Value2, ...) \
+#define FATAL_IMPL_PTR(Type, Value1, ...) \
   do { \
     optional<Type> o(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_SAME<Type *, decltype(o.ptr())>(); \
-    FATAL_ASSERT_NE(nullptr, o.ptr()); \
+    FATAL_ASSERT_NOT_NULL(o.ptr()); \
     FATAL_EXPECT_EQ(Value1, *o.ptr()); \
   } while (false)
 
 FATAL_TEST(optional, ptr) {
   FATAL_IMPL_CALL(FATAL_IMPL_PTR);
+}
+
+///////////////////
+// const_try_get //
+///////////////////
+
+#define FATAL_IMPL_CONST_TRY_GET(Type, Value1, ...) \
+  do { \
+    optional<Type> const e; \
+    FATAL_EXPECT_NULL(e.try_get()); \
+    optional<Type> const o(Value1); \
+    FATAL_EXPECT_SAME<Type const *, decltype(o.try_get())>(); \
+    FATAL_ASSERT_NOT_NULL(o.try_get()); \
+    FATAL_EXPECT_EQ(Value1, *o.try_get()); \
+  } while (false)
+
+FATAL_TEST(optional, const_try_get) {
+  FATAL_IMPL_CALL(FATAL_IMPL_CONST_TRY_GET);
+}
+
+/////////////
+// try_get //
+/////////////
+
+#define FATAL_IMPL_TRY_GET(Type, Value1, ...) \
+  do { \
+    optional<Type> e; \
+    FATAL_EXPECT_NULL(e.try_get()); \
+    optional<Type> o(Value1); \
+    FATAL_EXPECT_SAME<Type *, decltype(o.try_get())>(); \
+    FATAL_ASSERT_NOT_NULL(o.try_get()); \
+    FATAL_EXPECT_EQ(Value1, *o.try_get()); \
+  } while (false)
+
+FATAL_TEST(optional, try_get) {
+  FATAL_IMPL_CALL(FATAL_IMPL_TRY_GET);
 }
 
 /////////////////////

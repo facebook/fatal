@@ -12,24 +12,62 @@
 
 #include <fatal/type/transform.h>
 
+////////////////////////////////////////
+// IMPLEMENTATION FORWARD DECLARATION //
+////////////////////////////////////////
+
 namespace fatal {
 namespace detail {
 namespace operation_impl {
 
+template <typename...> struct list;
 template <template <typename...> class, typename, typename>
 struct cartesian_product;
-
 template <template <typename...> class, typename...> struct flatten;
-
+template <typename...>
+struct flatten_sequence;
 template <typename T, template <typename, T...> class, typename U, U>
 struct to_sequence;
-
-template <typename T, typename TChar, TChar, TChar...> struct parse_sequence;
-
+template <typename, typename TChar, TChar, TChar...> struct parse_sequence;
 template <typename, typename> struct from_sequence;
+namespace expand_recursive_map {
+template <typename, typename...> struct breadth;
+template <template <typename...> class, typename...> struct depth;
 
+} // namespace expand_recursive_map {
 } // namespace operation_impl {
 } // namespace detail {
+
+////////////
+// expand //
+////////////
+
+// TODO: DOCUMENT
+template <template <typename...> class T, typename U>
+struct expand {
+  template <typename... UArgs>
+  using front = fatal::apply<T, U, UArgs...>;
+
+  template <typename... UArgs>
+  using back = fatal::apply<T, UArgs..., U>;
+};
+
+template <
+  template <typename...> class T,
+  template <typename...> class U,
+  typename... Args
+>
+struct expand<T, U<Args...>> {
+  template <typename... UArgs>
+  using front = fatal::apply<T, Args..., UArgs...>;
+
+  template <typename... UArgs>
+  using back = fatal::apply<T, UArgs..., Args...>;
+};
+
+///////////////////////
+// cartesian_product //
+///////////////////////
 
 /**
  * Computes the cartesian product between two lists.
@@ -54,16 +92,17 @@ template <typename, typename> struct from_sequence;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <
-  template <typename...> class TList,
-  template <typename...> class TPair
->
+template <template <typename...> class List, template <typename...> class Pair >
 struct cartesian_product {
   template <typename TLHS, typename TRHS>
   using apply = typename detail::operation_impl::cartesian_product<
-    TPair, TLHS, TRHS
-  >::template apply<TList>;
+    Pair, TLHS, TRHS
+  >::template apply<List>;
 };
+
+/////////////
+// flatten //
+/////////////
 
 /**
   * Flattens the arguments of a specific template into a topmost list.
@@ -72,8 +111,8 @@ struct cartesian_product {
   *
   * Parameters:
   *
-  *  - TList: the template for the topmost list to be returned
-  *  - TWhich: which template to flatten
+  *  - List: the template for the topmost list to be returned
+  *  - Which: which template to flatten
   *  - Args...: the list of types to be flattened
   *
   * Example:
@@ -116,14 +155,36 @@ struct cartesian_product {
   *
   * @author: Marcelo Juchem <marcelo@fb.com>
   */
-template <
-  template <typename...> class TList,
-  template <typename...> class TWhich
->
+template <template <typename...> class List, template <typename...> class Which>
 struct flatten {
   template <typename... Args>
-  using apply = typename detail::operation_impl::flatten<TWhich, Args...>
-  ::template apply<TList>;
+  using apply = typename detail::operation_impl::flatten<Which, Args...>
+    ::template apply<List>;
+};
+
+// TODO: DOCUMENT AND TEST
+template <typename T, template <typename U, U...> class Sequence>
+struct flatten_sequence {
+  template <typename... Args>
+  using apply = typename detail::operation_impl::flatten_sequence<Args...>
+    ::template apply<Sequence, T>;
+};
+
+//////////////////////////
+// expand_recursive_map //
+//////////////////////////
+
+// TODO: DOCUMENT
+template <
+  template <typename...> class Which,
+  template <typename...> class List,
+  template <typename...> class Row = List
+>
+struct expand_recursive_map {
+  template <typename T>
+  using apply = typename detail::operation_impl::expand_recursive_map::depth<
+    Which, T
+  >::template apply<detail::operation_impl::list<>, Row>::template apply<List>;
 };
 
 /////////////////
@@ -143,21 +204,29 @@ struct flatten {
  * Example:
  *
  *  // yields `std::integer_sequence<char, '4', '2'>`
- *  using result1 = to_sequence<std::size_t, std::integer_sequence, 42>;
+ *  using result1 = to_sequence<std::integer_sequence>::apply<std::size_t, 42>;
  *
  *  // yields `std::integer_sequence<wchar_t, L'-', L'5', L'6'>`
- *  using result2 = to_sequence<int, -56, std::integer_sequence, wchar_t>;
+ *  using result2 = to_sequence<std::integer_sequence, wchar_t>
+ *    ::apply<int, -56>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <
-  typename T, T Value,
-  template <typename U, U...> class TSequence,
-  typename TChar = char
->
-using to_sequence = typename detail::operation_impl::to_sequence<
-  TChar, TSequence, T, Value
->::type;
+template <template <typename U, U...> class TSequence, typename TChar = char>
+struct to_sequence {
+  template <typename T>
+  struct bind {
+    template <T Value>
+    using apply = typename detail::operation_impl::to_sequence<
+      TChar, TSequence, T, Value
+    >::type;
+  };
+
+  template <typename T, T Value>
+  using apply = typename detail::operation_impl::to_sequence<
+    TChar, TSequence, T, Value
+  >::type;
+};
 
 ////////////////////
 // parse_sequence //
@@ -256,25 +325,32 @@ struct parse_sequence {
 namespace detail {
 namespace operation_impl {
 
-template <typename...> struct list;
+template <typename... Args>
+struct list {
+  template <template <typename...> class T>
+  using apply = fatal::apply<T, Args...>;
+
+  template <typename... Suffix>
+  using push_back = list<Args..., Suffix...>;
+};
 
 ///////////////////////
 // cartesian_product //
 ///////////////////////
 
 template <
-  template <typename...> class TPair,
+  template <typename...> class Pair,
   template <typename...> class T,
   typename... TArgs,
   template <typename...> class U,
   typename... UArgs
 >
-struct cartesian_product<TPair, T<TArgs...>, U<UArgs...>> {
+struct cartesian_product<Pair, T<TArgs...>, U<UArgs...>> {
 template <typename V>
-  using impl = list<TPair<V, UArgs>...>;
+  using impl = list<Pair<V, UArgs>...>;
 
-  template <template <typename...> class TList>
-  using apply = typename fatal::flatten<TList, list>
+  template <template <typename...> class List>
+  using apply = typename fatal::flatten<List, list>
     ::template apply<impl<TArgs>...>;
 };
 
@@ -282,29 +358,54 @@ template <typename V>
 // flatten //
 /////////////
 
+// specialization that matches `Which`
 template <
-  template <typename...> class T,
+  template <typename...> class Which,
   typename... Args,
   typename... UArgs
 >
-struct flatten<T, T<Args...>, UArgs...> {
-  template <template <typename...> class U, typename... VArgs>
-  using apply = typename flatten<T, UArgs...>
-    ::template apply<U, VArgs..., Args...>;
+struct flatten<Which, Which<Args...>, UArgs...> {
+  template <template <typename...> class List, typename... VArgs>
+  using apply = typename flatten<Which, UArgs...>
+    ::template apply<List, VArgs..., Args...>;
 };
 
-template <template <typename...> class T, typename THead, typename... Args>
-struct flatten<T, THead, Args...> {
-  template <template <typename...> class U, typename... VArgs>
-  using apply = typename flatten<T, Args...>::template apply<
-    U, VArgs..., THead
+// specialization for items that don't match `Which`
+template <template <typename...> class Which, typename THead, typename... Args>
+struct flatten<Which, THead, Args...> {
+  template <template <typename...> class List, typename... VArgs>
+  using apply = typename flatten<Which, Args...>::template apply<
+    List, VArgs..., THead
   >;
 };
 
-template <template <typename...> class T>
-struct flatten<T> {
-  template <template <typename...> class U, typename... Args>
-  using apply = U<Args...>;
+// base case
+template <template <typename...> class Which>
+struct flatten<Which> {
+  template <template <typename...> class List, typename... Args>
+  using apply = List<Args...>;
+};
+
+//////////////////////
+// flatten_sequence //
+//////////////////////
+
+// specialization that matches `Which`
+template <
+  template <typename U, U...> class Which,
+  typename V, V... Args, typename... Tail
+>
+struct flatten_sequence<Which<V, Args...>, Tail...> {
+  template <template <typename U, U...> class Sequence, typename T, T... Prefix>
+  using apply = typename flatten_sequence<Tail...>
+    ::template apply<Sequence, T, Prefix..., Args...>;
+};
+
+// base case
+template <>
+struct flatten_sequence<> {
+  template <template <typename U, U...> class Sequence, typename T, T... Prefix>
+  using apply = Sequence<T, Prefix...>;
 };
 
 /////////////////
@@ -480,6 +581,61 @@ struct from_sequence<T, U<TChar, Chars...>> {
   using type = typename parse_sequence<T, TChar, Chars...>::type;
 };
 
+//////////////////////////
+// expand_recursive_map //
+//////////////////////////
+
+namespace expand_recursive_map {
+
+template <template <typename...> class Which, typename... Pairs>
+struct depth<Which, Which<Pairs...>> {
+  template <
+    typename Results,
+    template <typename...> class Row,
+    typename... Prefix
+  >
+  using apply = typename breadth<list<Prefix...>, Pairs...>::template apply<
+    Which, Row, Results
+  >;
+};
+
+template <template <typename...> class Which, typename Terminal>
+struct depth<Which, Terminal> {
+  template <
+    typename Results,
+    template <typename...> class Row,
+    typename... Prefix
+  >
+  using apply = typename Results::template push_back<
+    fatal::apply<Row, Prefix..., Terminal>
+  >;
+};
+
+template <typename... Prefix, typename Pair, typename... Siblings>
+struct breadth<list<Prefix...>, Pair, Siblings...> {
+  template <
+    template <typename...> class Which,
+    template <typename...> class Row,
+    typename Results
+  >
+  using apply = typename breadth<list<Prefix...>, Siblings...>::template apply<
+    Which, Row, typename depth<Which, type_get_second<Pair>>::template apply<
+      Results, Row, Prefix..., type_get_first<Pair>
+    >
+  >;
+};
+
+template <typename... Prefix>
+struct breadth<list<Prefix...>> {
+  template <
+    template <typename...> class,
+    template <typename...> class,
+    typename Results
+  >
+  using apply = Results;
+};
+
+} // namespace expand_recursive_map {
 } // namespace operation_impl {
 } // namespace detail {
 } // namespace fatal {

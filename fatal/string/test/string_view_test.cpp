@@ -7,13 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/string/string_ref.h>
+#include <fatal/string/string_view.h>
 
 #include <fatal/test/driver.h>
 
 namespace fatal {
 
-FATAL_TEST(string_ref, sanity_check) {
+FATAL_TEST(string_view, sanity_check) {
   // TODO: IMPLEMENT TESTS
 }
 
@@ -75,6 +75,9 @@ FATAL_TEST(begin, ) {
 }
 
 FATAL_TEST(end, ) {
+}
+
+FATAL_TEST(to, std::string) {
 }
 
 FATAL_TEST(operator +=, ) {

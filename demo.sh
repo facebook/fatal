@@ -1,9 +1,12 @@
 #!/bin/sh
 
+. ./scripts.inc
+
 if [ -z "$USE_STD" ]; then
   export USE_STD="c++1y"
 fi
 
 file_name="demo/$1.cpp"
+shift
 
-./compile.sh "$file_name" && "/tmp/_bin/demo/$1" "$@"
+DO_RUN=true ./compile.sh "$file_name" "$@"

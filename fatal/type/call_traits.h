@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_call_traits_h
 #define FATAL_INCLUDE_fatal_type_call_traits_h
 
+#include <fatal/preprocessor.h>
+#include <fatal/type/sequence.h>
 #include <fatal/type/transform.h>
 
 #include <utility>
@@ -167,7 +169,13 @@ public:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_CALL_TRAITS(Name, ...) \
-  class Name { \
+  FATAL_IMPL_CALL_TRAITS( \
+    Name, \
+    FATAL_UID(FATAL_CAT(Name, _call_traits_impl)), \
+    __VA_ARGS__ \
+  )
+#define FATAL_IMPL_CALL_TRAITS(Name, Impl, ...) \
+  class Impl { \
     template <typename... UArgs> \
     struct member_fn_supports_impl { \
       template < \
@@ -199,9 +207,15 @@ public:
       template <typename...> \
       static ::std::false_type sfinae(...); \
     }; \
-  \
+    \
+    FATAL_STR(name_str, FATAL_TO_STR(__VA_ARGS__)); \
+    \
   public: \
+    using name = name_str; \
+    \
     struct member_function { \
+      using name = name_str; \
+      \
       constexpr member_function() {} \
       \
       template <typename U> \
@@ -236,6 +250,8 @@ public:
     }; \
     \
     struct static_member { \
+      using name = name_str; \
+      \
       template <typename U> \
       class bind { \
         template <typename V, typename... UArgs> \
@@ -278,7 +294,9 @@ public:
         ) \
       ); \
     }; \
-  }
+  }; \
+  \
+  using Name = Impl
 
 /**
  * Some pre-instantiated call traits for common function names.
@@ -530,8 +548,17 @@ struct call_traits {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_FREE_FUNCTION_CALL_TRAITS(Name, ...) \
-  struct Name { \
-    constexpr Name() {} \
+  FATAL_IMPL_FREE_FUNCTION_CALL_TRAITS( \
+    Name, \
+    FATAL_UID(FATAL_CAT(Name, _free_fn_call_traits_impl)), \
+    __VA_ARGS__ \
+  )
+
+#define FATAL_IMPL_FREE_FUNCTION_CALL_TRAITS(Name, Impl, ...) \
+  struct Impl { \
+    FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
+    \
+    constexpr Impl() {} \
     \
     template <typename... UArgs> \
     constexpr static auto call(UArgs &&...args) \
@@ -543,6 +570,8 @@ struct call_traits {
       -> decltype(call(::std::forward<UArgs>(args)...)) \
     { return call(::std::forward<UArgs>(args)...); } \
   }; \
+  \
+  using Name = Impl
 
 /**
  * Conditionally calls a function according to the given predicate.

@@ -268,7 +268,9 @@ struct constify_from<T, TFrom const> {
 /////////////////
 
 namespace detail {
-template <template <typename...> class, typename> struct is_template_impl;
+namespace traits_impl {
+template <template <typename...> class, typename> struct is_template;
+} // namespace traits_impl {
 } // namespace detail {
 
 /**
@@ -303,11 +305,11 @@ template <template <typename...> class, typename> struct is_template_impl;
 template <template <typename...> class... TTemplates>
 class is_template {
   template <template <typename...> class TTemplate, typename T>
-  using impl = is_complete<detail::is_template_impl<TTemplate, T>>;
+  using impl = is_complete<detail::traits_impl::is_template<TTemplate, T>>;
 
 public:
   template <typename T>
-  using type = logical_transform::any<impl<TTemplates, T>...>;
+  using type = logical::any<impl<TTemplates, T>...>;
 };
 
 /////////////////
@@ -315,7 +317,9 @@ public:
 /////////////////
 
 namespace detail {
-template <typename T, bool = std::is_enum<T>::value> struct integral_of_impl;
+namespace traits_impl {
+template <typename T, bool = std::is_enum<T>::value> struct integral_of;
+} // namespace traits_impl {
 } // namespace detail {
 
 /**
@@ -339,7 +343,7 @@ template <typename T, bool = std::is_enum<T>::value> struct integral_of_impl;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using integral_of = typename detail::integral_of_impl<T>::type;
+using integral_of = typename detail::traits_impl::integral_of<T>::type;
 
 /////////////////
 // as_integral //
@@ -367,7 +371,9 @@ using integral_of = typename detail::integral_of_impl<T>::type;
  */
 template <typename T>
 integral_of<typename std::decay<T>::type> as_integral(T value) noexcept {
-  return detail::integral_of_impl<typename std::decay<T>::type>::convert(value);
+  return detail::traits_impl::integral_of<
+    typename std::decay<T>::type
+  >::convert(value);
 }
 
 /////////////////
@@ -375,7 +381,9 @@ integral_of<typename std::decay<T>::type> as_integral(T value) noexcept {
 /////////////////
 
 namespace detail {
-template <typename...> class is_callable_impl;
+namespace traits_impl {
+template <typename...> class is_callable;
+} // namespace traits_impl {
 } // namespace detail {
 
 /**
@@ -418,7 +426,7 @@ template <typename...> class is_callable_impl;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, typename... Args>
-using is_callable = typename detail::is_callable_impl<Args...>
+using is_callable = typename detail::traits_impl::is_callable<Args...>
   ::template type<T>;
 
 /////////////////
@@ -507,7 +515,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using all_true = typename std::enable_if<
-    logical_transform::all<Predicates...>::value
+    logical::all<Predicates...>::value
   >::type;
 
   /**
@@ -549,7 +557,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using any_true = typename std::enable_if<
-    logical_transform::any<Predicates...>::value
+    logical::any<Predicates...>::value
   >::type;
 
   /**
@@ -616,7 +624,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using all_false = typename std::enable_if<
-    !logical_transform::any<Predicates...>::value
+    !logical::any<Predicates...>::value
   >::type;
 
   /**
@@ -654,7 +662,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using any_false = typename std::enable_if<
-    !logical_transform::all<Predicates...>::value
+    !logical::all<Predicates...>::value
   >::type;
 
   /**
@@ -783,7 +791,7 @@ struct enable_when {
   template <typename T>
   using movable = all_true<
     std::is_rvalue_reference<T &&>,
-    logical_transform::negate<
+    logical::negate<
       std::is_const<
         typename std::remove_reference<T>::type
       >
@@ -827,16 +835,16 @@ struct enable_when {
   using callable = is_true<is_callable<T, Args...>>;
 };
 
-///////////////////
-// safe_overload //
-///////////////////
+/////////////////////
+// safe_overload_t //
+/////////////////////
 
 /**
  * Type traits to prevent the universal constructor from overloading
  * the copy/move constructor.
  *
- * For more information, see http://ericniebler.com/2013/08/07/ \
- *     universal-references-and-the-copy-constructo/
+ * For more information, see
+ *   ericniebler.com/2013/08/07/universal-references-and-the-copy-constructo
  *
  * Usage:
  *
@@ -851,7 +859,7 @@ struct enable_when {
  *   template <
  *     typename T,
  *     typename X = typename std::enable_if<
- *       safe_overload<Foo, T>::value, void
+ *       is_safe_overload<Foo, T>::value, void
  *     >::type
  *   >
  *   Foo(T &&value) { ... }
@@ -870,7 +878,7 @@ struct enable_when {
  *   template <
  *     typename... Args,
  *     typename X = typename std::enable_if<
- *       safe_overload<Foo, Args...>::value, void
+ *       is_safe_overload<Foo, Args...>::value, void
  *     >::type
  *   >
  *   Foo(Args &&...args) { ... }
@@ -878,27 +886,20 @@ struct enable_when {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+namespace detail {
+namespace traits_impl {
 template <typename, typename...>
-struct safe_overload: public std::true_type {};
+struct is_safe_overload { using type = std::true_type; };
+} // namespace traits_impl {
+} // namespace detail {
 
-template <typename Class, typename T>
-struct safe_overload<Class, T>:
-  public bool_constant<
-    !std::is_base_of<
-      Class,
-      typename std::remove_cv<
-        typename std::remove_reference<T>::type
-      >::type
-    >::value
-  >
-{};
-
-/////////////////////
-// safe_overload_t //
-/////////////////////
+template <typename Class, typename... Args>
+using is_safe_overload = typename detail::traits_impl::is_safe_overload<
+  Class, Args...
+>::type;
 
 /**
- * Template alias for safe_overload above.
+ * Template alias for is_safe_overload above.
  *
  * Usage:
  *
@@ -919,8 +920,9 @@ struct safe_overload<Class, T>:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+// TODO: RENAME TO safe_overload
 template <typename Class, typename... Args>
-using safe_overload_t = enable_when::is_true<safe_overload<Class, Args...>>;
+using safe_overload_t = enable_when::is_true<is_safe_overload<Class, Args...>>;
 
 ///////////////////////////
 // FATAL_HAS_MEMBER_TYPE //
@@ -930,11 +932,13 @@ using safe_overload_t = enable_when::is_true<safe_overload<Class, Args...>>;
  * This macro creates a class named `Class` that can check whether some
  * type has a nested member type with name `Member`.
  *
+ * NOTE: the member `check` is deprecated, `apply` should be used instead.
+ *
  * The class created by this macro looks like this:
  *
  *  struct Class {
  *    template <typename T>
- *    using check = <either std::true_type or std::false_type>;
+ *    using apply = <either std::true_type or std::false_type>;
  *  };
  *
  * Example:
@@ -946,13 +950,13 @@ using safe_overload_t = enable_when::is_true<safe_overload<Class, Args...>>;
  *  struct baz {};
  *
  *  // yields `std::true_type`
- *  using result1 = has_xyz::check<foo>;
+ *  using result1 = has_xyz::apply<foo>;
  *
  *  // yields `std::true_type`
- *  using result2 = has_xyz::check<bar>;
+ *  using result2 = has_xyz::apply<bar>;
  *
  *  // yields `std::false_type`
- *  using result3 = has_xyz::check<baz>;
+ *  using result3 = has_xyz::apply<baz>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -965,7 +969,10 @@ using safe_overload_t = enable_when::is_true<safe_overload<Class, Args...>>;
     static std::false_type sfinae(...); \
     \
     template <typename T> \
-    using check = decltype(sfinae<T>(nullptr)); \
+    using apply = decltype(sfinae<T>(nullptr)); \
+    \
+    template <typename T> \
+    using check = apply<T>; \
   }
 
 /////////////////////
@@ -979,89 +986,89 @@ struct has_member_type {
     \
   public: \
     template <typename T> \
-    using Name = typename Class::template check<T>
+    using Name = typename Class::template apply<T>
 
-# define FATAL_IMPL_HAS_MEMBER_TYPE(Name) \
-  FATAL_IMPL_HAS_MEMBER_TYPE_DECL( \
-    FATAL_UID(FATAL_CAT(has_member_type_impl, Name)), \
-    Name \
-  )
+#   define FATAL_IMPL_HAS_MEMBER_TYPE(Name) \
+    FATAL_IMPL_HAS_MEMBER_TYPE_DECL( \
+      FATAL_UID(FATAL_CAT(has_member_type_impl, Name)), \
+      Name \
+    )
 
-  FATAL_IMPL_HAS_MEMBER_TYPE(char_type);
-  FATAL_IMPL_HAS_MEMBER_TYPE(type);
-  FATAL_IMPL_HAS_MEMBER_TYPE(types);
+    FATAL_IMPL_HAS_MEMBER_TYPE(char_type);
+    FATAL_IMPL_HAS_MEMBER_TYPE(type);
+    FATAL_IMPL_HAS_MEMBER_TYPE(types);
 
-# define FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(Name) \
-  FATAL_IMPL_HAS_MEMBER_TYPE(Name); \
-  FATAL_IMPL_HAS_MEMBER_TYPE(Name##_type)
+#   define FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(Name) \
+    FATAL_IMPL_HAS_MEMBER_TYPE(Name); \
+    FATAL_IMPL_HAS_MEMBER_TYPE(Name##_type)
 
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(allocator);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(args);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(array);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(category);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(config);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_iterator);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_pointer);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_ptr);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_ref);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_reference);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_reverse_iterator);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(data);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(decode);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(decoder);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(difference);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(element);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(encode);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(encoder);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(extension);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(first);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(flag);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(hash);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(id);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ids);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(index);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(info);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(information);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(instance);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(item);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(iterator);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(key);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(list);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(map);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mapped);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mapping);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mappings);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(member);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(members);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(name);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(names);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(pair);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(pointer);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(predicate);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ptr);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reader);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ref);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reference);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(request);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(response);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(result);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reverse);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reverse_iterator);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(second);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(set);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(size);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(str);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(string);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(tag);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(traits);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(tuple);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(value);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(values);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(version);
-  FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(writer);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(allocator);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(args);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(array);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(category);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(config);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_iterator);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_pointer);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_ptr);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_ref);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_reference);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(const_reverse_iterator);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(data);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(decode);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(decoder);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(difference);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(element);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(encode);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(encoder);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(extension);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(first);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(flag);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(hash);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(id);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ids);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(index);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(info);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(information);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(instance);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(item);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(iterator);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(key);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(list);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(map);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mapped);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mapping);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(mappings);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(member);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(members);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(name);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(names);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(pair);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(pointer);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(predicate);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ptr);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reader);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(ref);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reference);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(request);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(response);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(result);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reverse);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(reverse_iterator);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(second);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(set);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(size);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(str);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(string);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(tag);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(traits);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(tuple);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(value);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(values);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(version);
+    FATAL_IMPL_HAS_MEMBER_TYPE_TYPE(writer);
 
-# undef FATAL_IMPL_HAS_MEMBER_TYPE_TYPE
-# undef FATAL_IMPL_HAS_MEMBER_TYPE
+#   undef FATAL_IMPL_HAS_MEMBER_TYPE_TYPE
+#   undef FATAL_IMPL_HAS_MEMBER_TYPE
 # undef FATAL_IMPL_HAS_MEMBER_TYPE_DECL
 };
 
@@ -1072,77 +1079,120 @@ struct has_member_type {
 /**
  * TODO: DOCUMENT
  *
- *  struct getter_name {
- *    FATAL_STR(field, "field");
+ *  template <typename Owner>
+ *  using type;
  *
+ *  template <typename Owner>
+ *  using reference;
+ *
+ *  using name = typename impl::name;
+ *
+ *  template <typename Owner>
+ *  static reference<Owner> ref(Owner &&owner);
+ *
+ *  struct ref_getter {
  *    template <typename Owner>
- *    static reference ref(Owner &owner);
+ *    reference<Owner> operator ()(Owner &&owner) const;
+ *  };
  *
- *    struct ref_getter {
- *      template <typename Owner>
- *      reference operator ()(Owner &owner);
- *    };
+ *  template <typename Owner>
+ *  using pointer;
  *
+ *  template <typename Owner>
+ *  static pointer<Owner> ptr(Owner &owner);
+ *
+ *  struct ptr_getter {
  *    template <typename Owner>
- *    static pointer ptr(Owner &owner);
- *
- *    struct ptr_getter {
- *      template <typename Owner>
- *      pointer operator ()(Owner &owner);
- *    };
+ *    pointer<Owner> operator ()(Owner &owner) const;
  *  };
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-#define FATAL_DATA_MEMBER_GETTER(Class, ...) \
-  struct Class { \
+#define FATAL_DATA_MEMBER_GETTER(Name, ...) \
+  FATAL_IMPL_DATA_MEMBER_GETTER( \
+    Name, \
+    FATAL_UID(FATAL_CAT(Name, _data_member_getter_impl)), \
+    __VA_ARGS__ \
+  ) \
+
+namespace detail {
+
+template <typename Impl>
+class data_member_getter {
+  using impl = Impl;
+
+public:
+  template <typename Owner>
+  using type = typename impl::template type<Owner>;
+
+  template <typename Owner>
+  using reference = typename impl::template reference<Owner>::ref_impl;
+
+  using name = typename impl::name;
+
+  template <typename Owner>
+  static reference<Owner> ref(Owner &&owner) {
+    static_assert(std::is_reference<reference<Owner>>::value, "");
+    return impl::ref(std::forward<Owner>(owner));
+  }
+
+  struct ref_getter {
+    template <typename Owner>
+    reference<Owner> operator ()(Owner &&owner) const {
+      static_assert(std::is_reference<reference<Owner>>::value, "");
+      return ref(std::forward<Owner>(owner));
+    }
+  };
+
+  template <typename Owner>
+  using pointer = typename std::remove_reference<reference<Owner>>::type *;
+
+  template <typename Owner>
+  static pointer<Owner> ptr(Owner &owner) {
+    static_assert(std::is_pointer<pointer<Owner>>::value, "");
+    return std::addressof(ref(owner));
+  }
+
+  struct ptr_getter {
+    template <typename Owner>
+    pointer<Owner> operator ()(Owner &owner) const {
+      static_assert(std::is_pointer<pointer<Owner>>::value, "");
+      return ptr(owner);
+    }
+  };
+};
+
+#define FATAL_IMPL_DATA_MEMBER_GETTER(Class, Impl, ...) \
+  struct Impl { \
     template <typename Owner> \
     using type = decltype(::std::declval<Owner>().__VA_ARGS__); \
     \
     template <typename Owner> \
-    using reference = typename ::fatal::add_reference_from< \
-      typename ::fatal::constify_from< \
-        type<Owner>, \
-        typename ::std::remove_reference<Owner>::type \
-      >::type, \
-      Owner && \
-    >::type; \
+    struct reference { \
+      using ref_impl = typename ::fatal::add_reference_from< \
+        typename ::fatal::constify_from< \
+          type<Owner>, \
+          typename ::std::remove_reference<Owner>::type \
+        >::type, \
+        Owner && \
+      >::type; \
+      \
+      static_assert(std::is_reference<ref_impl>::value, ""); \
+    }; \
     \
     FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
     template <typename Owner> \
-    static reference<Owner> ref(Owner &&owner) { \
-      return static_cast<reference<Owner>>( \
+    static typename reference<Owner>::ref_impl ref(Owner &&owner) { \
+      return static_cast<typename reference<Owner>::ref_impl>( \
         ::std::forward<Owner>(owner).__VA_ARGS__ \
       ); \
     } \
-    \
-    struct ref_getter { \
-      template <typename Owner> \
-      reference<Owner> operator ()(Owner &&owner) const { \
-        return static_cast<reference<Owner>>( \
-          ::std::forward<Owner>(owner).__VA_ARGS__ \
-        ); \
-      } \
-    }; \
-    \
-    template <typename Owner> \
-    using pointer = typename ::std::remove_reference< \
-      reference<Owner> \
-    >::type *; \
-    \
-    template <typename Owner> \
-    static pointer<Owner> ptr(Owner &owner) { \
-      return ::std::addressof(owner.__VA_ARGS__); \
-    } \
-    \
-    struct ptr_getter { \
-      template <typename Owner> \
-      pointer<Owner> operator ()(Owner &owner) const { \
-        return ::std::addressof(owner.__VA_ARGS__); \
-      } \
-    }; \
-  }
+  }; \
+  \
+  using Class = ::fatal::detail::data_member_getter<Impl>
+
+} // namespace detail {
 
 ////////////////////////
 // data_member_getter //
@@ -1155,79 +1205,151 @@ struct has_member_type {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 struct data_member_getter {
-# define FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL(Class, ...) \
-  private: \
-    FATAL_DATA_MEMBER_GETTER(Class, __VA_ARGS__); \
-    \
-  public: \
-    using __VA_ARGS__ = Class
+# define FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(...) \
+  FATAL_DATA_MEMBER_GETTER(__VA_ARGS__, __VA_ARGS__); \
+  FATAL_DATA_MEMBER_GETTER(FATAL_CAT(__VA_ARGS__, _), FATAL_CAT(__VA_ARGS__, _))
 
-# define FATAL_IMPL_DATA_MEMBER_GETTER_FOR(...) \
-  FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL(FATAL_UID(__VA_ARGS__), __VA_ARGS__)
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(allocator);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(args);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(array);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(category);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(config);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(data);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(decoder);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(difference);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(element);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(encoder);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(extension);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(first);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(flag);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(hash);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(id);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(ids);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(index);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(info);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(information);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(instance);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(item);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(iterator);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(key);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(list);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(map);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(mapped);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(mapping);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(mappings);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(member);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(members);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(name);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(names);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(pair);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(pointer);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(predicate);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(ptr);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(reader);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(ref);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(reference);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(request);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(response);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(result);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(second);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(set);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(size);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(str);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(string);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(tag);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(tuple);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(type);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(types);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(value);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(values);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(version);
+  FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(writer);
 
-# define FATAL_IMPL_DATA_MEMBER_GETTER(...) \
-  FATAL_IMPL_DATA_MEMBER_GETTER_FOR(__VA_ARGS__); \
-  FATAL_IMPL_DATA_MEMBER_GETTER_FOR(FATAL_CAT(__VA_ARGS__, _))
+# undef FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER
+};
 
-  FATAL_IMPL_DATA_MEMBER_GETTER(allocator);
-  FATAL_IMPL_DATA_MEMBER_GETTER(args);
-  FATAL_IMPL_DATA_MEMBER_GETTER(array);
-  FATAL_IMPL_DATA_MEMBER_GETTER(category);
-  FATAL_IMPL_DATA_MEMBER_GETTER(config);
-  FATAL_IMPL_DATA_MEMBER_GETTER(data);
-  FATAL_IMPL_DATA_MEMBER_GETTER(decoder);
-  FATAL_IMPL_DATA_MEMBER_GETTER(difference);
-  FATAL_IMPL_DATA_MEMBER_GETTER(element);
-  FATAL_IMPL_DATA_MEMBER_GETTER(encoder);
-  FATAL_IMPL_DATA_MEMBER_GETTER(extension);
-  FATAL_IMPL_DATA_MEMBER_GETTER(first);
-  FATAL_IMPL_DATA_MEMBER_GETTER(flag);
-  FATAL_IMPL_DATA_MEMBER_GETTER(hash);
-  FATAL_IMPL_DATA_MEMBER_GETTER(id);
-  FATAL_IMPL_DATA_MEMBER_GETTER(ids);
-  FATAL_IMPL_DATA_MEMBER_GETTER(index);
-  FATAL_IMPL_DATA_MEMBER_GETTER(info);
-  FATAL_IMPL_DATA_MEMBER_GETTER(information);
-  FATAL_IMPL_DATA_MEMBER_GETTER(instance);
-  FATAL_IMPL_DATA_MEMBER_GETTER(item);
-  FATAL_IMPL_DATA_MEMBER_GETTER(iterator);
-  FATAL_IMPL_DATA_MEMBER_GETTER(key);
-  FATAL_IMPL_DATA_MEMBER_GETTER(list);
-  FATAL_IMPL_DATA_MEMBER_GETTER(map);
-  FATAL_IMPL_DATA_MEMBER_GETTER(mapped);
-  FATAL_IMPL_DATA_MEMBER_GETTER(mapping);
-  FATAL_IMPL_DATA_MEMBER_GETTER(mappings);
-  FATAL_IMPL_DATA_MEMBER_GETTER(member);
-  FATAL_IMPL_DATA_MEMBER_GETTER(members);
-  FATAL_IMPL_DATA_MEMBER_GETTER(name);
-  FATAL_IMPL_DATA_MEMBER_GETTER(names);
-  FATAL_IMPL_DATA_MEMBER_GETTER(pair);
-  FATAL_IMPL_DATA_MEMBER_GETTER(pointer);
-  FATAL_IMPL_DATA_MEMBER_GETTER(predicate);
-  FATAL_IMPL_DATA_MEMBER_GETTER(ptr);
-  FATAL_IMPL_DATA_MEMBER_GETTER(reader);
-  FATAL_IMPL_DATA_MEMBER_GETTER(ref);
-  FATAL_IMPL_DATA_MEMBER_GETTER(reference);
-  FATAL_IMPL_DATA_MEMBER_GETTER(request);
-  FATAL_IMPL_DATA_MEMBER_GETTER(response);
-  FATAL_IMPL_DATA_MEMBER_GETTER(result);
-  FATAL_IMPL_DATA_MEMBER_GETTER(second);
-  FATAL_IMPL_DATA_MEMBER_GETTER(set);
-  FATAL_IMPL_DATA_MEMBER_GETTER(size);
-  FATAL_IMPL_DATA_MEMBER_GETTER(str);
-  FATAL_IMPL_DATA_MEMBER_GETTER(string);
-  FATAL_IMPL_DATA_MEMBER_GETTER(tag);
-  FATAL_IMPL_DATA_MEMBER_GETTER(tuple);
-  FATAL_IMPL_DATA_MEMBER_GETTER(type);
-  FATAL_IMPL_DATA_MEMBER_GETTER(types);
-  FATAL_IMPL_DATA_MEMBER_GETTER(value);
-  FATAL_IMPL_DATA_MEMBER_GETTER(values);
-  FATAL_IMPL_DATA_MEMBER_GETTER(version);
-  FATAL_IMPL_DATA_MEMBER_GETTER(writer);
+/**
+ * TODO: DOCUMENT
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename...> class chained_data_member_getter;
 
-# undef FATAL_IMPL_DATA_MEMBER_GETTER
-# undef FATAL_IMPL_DATA_MEMBER_GETTER_FOR
-# undef FATAL_IMPL_DATA_MEMBER_GETTER_FOR_IMPL
+template <typename OuterGetter, typename... Getters>
+class chained_data_member_getter<OuterGetter, Getters...> {
+  using tail = chained_data_member_getter<Getters...>;
+
+public:
+  template <typename Owner>
+  using type = typename tail::template type<
+    typename OuterGetter::template type<Owner>
+  >;
+
+  template <typename Owner>
+  using reference = typename tail::template reference<
+    typename OuterGetter::template reference<Owner>
+  >;
+
+  template <typename Owner>
+  static reference<Owner> ref(Owner &&owner) {
+    return tail::ref(OuterGetter::ref(std::forward<Owner>(owner)));
+  }
+
+  struct ref_getter {
+    template <typename Owner>
+    reference<Owner> operator ()(Owner &&owner) const {
+      return ref(std::forward<Owner>(owner));
+    }
+  };
+
+  template <typename Owner>
+  using pointer = typename tail::template pointer<
+    typename OuterGetter::template reference<Owner>
+  >;
+
+  template <typename Owner>
+  static pointer<Owner> ptr(Owner &owner) {
+    auto &&local = OuterGetter::ref(std::forward<Owner>(owner));
+    return tail::ptr(local);
+  }
+
+  struct ptr_getter {
+    template <typename Owner>
+    pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
+  };
+};
+
+template <>
+class chained_data_member_getter<> {
+public:
+  template <typename Owner>
+  using type = Owner;
+
+  template <typename Owner>
+  using reference = Owner &&;
+
+  template <typename Owner>
+  static reference<Owner> ref(Owner &&owner) {
+    return std::forward<Owner>(owner);
+  }
+
+  struct ref_getter {
+    template <typename Owner>
+    reference<Owner> operator ()(Owner &&owner) const {
+      return ref(std::forward<Owner>(owner));
+    }
+  };
+
+  template <typename Owner>
+  using pointer = typename std::remove_reference<Owner>::type *;
+
+  template <typename Owner>
+  static pointer<Owner> ptr(Owner &owner) { return std::addressof(owner); }
+
+  struct ptr_getter {
+    template <typename Owner>
+    pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
+  };
 };
 
 ////////////////////////////
@@ -1235,12 +1357,21 @@ struct data_member_getter {
 ////////////////////////////
 
 namespace detail {
+namespace traits_impl {
+
+/////////////////
+// is_template //
+/////////////////
 
 template <template <typename...> class T, typename... Args>
-struct is_template_impl<T, T<Args...>> {};
+struct is_template<T, T<Args...>> {};
+
+/////////////////
+// integral_of //
+/////////////////
 
 template <typename T, bool IsEnum>
-struct integral_of_impl {
+struct integral_of {
   static_assert(IsEnum, "wrong specialization");
 
   using type = typename std::underlying_type<T>::type;
@@ -1249,14 +1380,14 @@ struct integral_of_impl {
 };
 
 template <typename T, T Value>
-struct integral_of_impl<std::integral_constant<T, Value>, false> {
+struct integral_of<std::integral_constant<T, Value>, false> {
   using type = T;
 
   static type convert(T) { return Value; }
 };
 
 template <typename T>
-struct integral_of_impl<T, false> {
+struct integral_of<T, false> {
   static_assert(
     std::is_integral<T>::value,
     "type does not represent an integral"
@@ -1267,8 +1398,12 @@ struct integral_of_impl<T, false> {
   static type convert(T value) { return value; }
 };
 
+/////////////////
+// is_callable //
+/////////////////
+
 template <typename... Args>
-class is_callable_impl {
+class is_callable {
   struct impl {
     template <
       typename T,
@@ -1293,6 +1428,23 @@ public:
   );
 };
 
+//////////////////////
+// is_safe_overload //
+//////////////////////
+
+template <typename Class, typename T>
+struct is_safe_overload<Class, T> {
+  using type = bool_constant<
+    !std::is_base_of<
+      Class,
+      typename std::remove_cv<
+        typename std::remove_reference<T>::type
+      >::type
+    >::value
+  >;
+};
+
+} // namespace traits_impl {
 } // namespace detail {
 } // namespace fatal
 

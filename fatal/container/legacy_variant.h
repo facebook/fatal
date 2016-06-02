@@ -10,15 +10,16 @@
 #ifndef FATAL_INCLUDE_fatal_container_legacy_variant_h
 #define FATAL_INCLUDE_fatal_container_legacy_variant_h
 
+#include <fatal/container/optional.h>
 #include <fatal/container/unitary_union.h>
 #include <fatal/functional/functional.h>
 #include <fatal/math/numerics.h>
 #include <fatal/type/list.h>
 #include <fatal/type/traits.h>
 
+#include <functional>
 #include <memory>
 #include <utility>
-#include <functional>
 
 #include <cassert>
 
@@ -76,7 +77,7 @@ struct variant_automatic_policy_impl {
   static std::false_type sfinae(...);
 
   template <typename T>
-  using type = logical_transform::all<
+  using type = logical::all<
     is_complete<T>,
     decltype(sfinae(static_cast<T *>(nullptr)))
   >;
@@ -484,7 +485,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
     assert(depth == Depth);
     return typeid(
       typename fatal::try_transform<
-        fatal::transform_sequence<TTransforms...>::template apply
+        fatal::compose<TTransforms...>::template apply
       >::template apply<value_type>
     );
   }
@@ -1057,7 +1058,7 @@ public:
   {}
 
   legacy_variant(legacy_variant const &other)
-    noexcept(logical_transform::all<nothrow_cp_ctor<Args>...>::value):
+    noexcept(logical::all<nothrow_cp_ctor<Args>...>::value):
     control_(copy_impl(other))
   {
     static_assert(
@@ -1067,7 +1068,7 @@ public:
   }
 
   legacy_variant(legacy_variant &&other)
-    noexcept(logical_transform::all<nothrow_mv_ctor<Args>...>::value):
+    noexcept(logical::all<nothrow_mv_ctor<Args>...>::value):
     control_(move_impl(std::move(other)))
   {}
 
@@ -1413,7 +1414,7 @@ public:
 
   legacy_variant &operator =(legacy_variant const &other)
     noexcept(
-      logical_transform::all<std::true_type, nothrow_cp_assign<Args>...>::value
+      logical::all<std::true_type, nothrow_cp_assign<Args>...>::value
     )
   {
     static_assert(
@@ -1430,13 +1431,13 @@ public:
   }
 
   legacy_variant &operator =(legacy_variant &other)
-    noexcept(logical_transform::all<nothrow_cp_assign<Args>...>::value)
+    noexcept(logical::all<nothrow_cp_assign<Args>...>::value)
   {
     return (*this = static_cast<legacy_variant const &>(other));
   }
 
   legacy_variant &operator =(legacy_variant &&other)
-    noexcept(logical_transform::all<nothrow_mv_assign<Args>...>::value)
+    noexcept(logical::all<nothrow_mv_assign<Args>...>::value)
   {
     if (this != std::addressof(other)) {
       unset_impl(control_.allocator());
@@ -1738,42 +1739,23 @@ struct visitor_wrapper {
   using result_type = TResult;
 
   explicit visitor_wrapper(visitor_type &visitor):
-    visitor_(visitor),
-    has_value_(false)
+    visitor_(visitor)
   {}
 
   template <typename... UArgs>
   void operator()(UArgs &&...args) {
-    new (std::addressof(result_.value)) result_type(
-      visitor_(std::forward<UArgs>(args)...)
-    );
-
-    has_value_ = true;
+    result_.emplace(visitor_(std::forward<UArgs>(args)...));
   }
 
-  bool has_value() const { return has_value_; }
+  bool has_value() const { return !result_.empty(); }
 
-  fast_pass<result_type> value() const {
-    assert(has_value_);
-    return result_.value;
-  }
+  fast_pass<result_type> value() const { return *result_; }
 
-  result_type &value() {
-    assert(has_value_);
-    return result_.value;
-  }
+  result_type &value() { return result_.ref(); }
 
 private:
   visitor_type &visitor_;
-  union placeholder {
-    placeholder() {}
-    placeholder(placeholder const &) {}
-    placeholder(placeholder &&) {}
-    ~placeholder() {}
-
-    result_type value;
-  } result_;
-  bool has_value_;
+  optional<result_type> result_;
 };
 
 /**

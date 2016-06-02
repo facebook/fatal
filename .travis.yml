@@ -1,34 +1,306 @@
 language: cpp
 
-os:
-  - linux
-
-compiler:
-  - clang
-
 sudo: false
+
+# toolchains from:
+# * https://github.com/travis-ci/apt-source-whitelist
+#   - https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-4.8']
+      env:
+        COMPILER=g++-4.8
+        CPP_STD=c++0x
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-4.9']
+      env:
+        COMPILER=g++-4.9
+        CPP_STD=c++11
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-4.9']
+      env:
+        COMPILER=g++-4.9
+        CPP_STD=c++14
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-5']
+      env:
+        COMPILER=g++-5
+        CPP_STD=c++11
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-5']
+      env:
+        COMPILER=g++-5
+        CPP_STD=c++14
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-5']
+      env:
+        COMPILER=g++-5
+        CPP_STD=c++1z
+
+#    - os: linux
+#      compiler: gcc
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test']
+#          packages: ['g++-6']
+#      env:
+#        COMPILER=g++-6
+#        CPP_STD=c++11
+#
+#    - os: linux
+#      compiler: gcc
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test']
+#          packages: ['g++-6']
+#      env:
+#        COMPILER=g++-6
+#        CPP_STD=c++14
+#
+#    - os: linux
+#      compiler: gcc
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test']
+#          packages: ['g++-6']
+#      env:
+#        COMPILER=g++-6
+#        CPP_STD=c++1z
+
+# Disabling Travis' faulty clang 3.4
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.4' ]
+#          packages: ['clang-3.4', 'libc++']
+#      env:
+#        COMPILER=clang++
+#        CPP_STD=c++11
+
+# Disabling Travis' faulty clang 3.4
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.4' ]
+#          packages: ['clang-3.4', 'libc++']
+#      env:
+#        COMPILER=clang++
+#        CPP_STD=c++1y
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
+          packages: ['clang-3.5']
+      env:
+        COMPILER=clang++-3.5
+        CPP_STD=c++11
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
+          packages: ['clang-3.5']
+      env:
+        COMPILER=clang++-3.5
+        CPP_STD=c++14
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
+          packages: ['clang-3.5']
+      env:
+        COMPILER=clang++-3.5
+        CPP_STD=c++1z
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
+          packages: ['clang-3.6']
+      env:
+        COMPILER=clang++-3.6
+        CPP_STD=c++11
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
+          packages: ['clang-3.6']
+      env:
+        COMPILER=clang++-3.6
+        CPP_STD=c++14
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
+          packages: ['clang-3.6']
+      env:
+        COMPILER=clang++-3.6
+        CPP_STD=c++1z
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['clang-3.7']
+      env:
+        COMPILER=clang++-3.7
+        CPP_STD=c++11
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['clang-3.7']
+      env:
+        COMPILER=clang++-3.7
+        CPP_STD=c++14
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['clang-3.7']
+      env:
+        COMPILER=clang++-3.7
+        CPP_STD=c++1z
+
+# Not yet available
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise']
+#          packages: ['clang-3.8']
+#      env:
+#        COMPILER=clang++-3.8
+#        CPP_STD=c++11
+
+# Not yet available
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise']
+#          packages: ['clang-3.8']
+#      env:
+#        COMPILER=clang++-3.8
+#        CPP_STD=c++14
+
+# Not yet available
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise']
+#          packages: ['clang-3.8']
+#      env:
+#        COMPILER=clang++-3.8
+#        CPP_STD=c++1z
+
+# Not yet available
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise']
+#          packages: ['clang-3.9']
+#      env:
+#        COMPILER=clang++-3.9
+#        CPP_STD=c++11
+
+# Not yet available
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise']
+#          packages: ['clang-3.9']
+#      env:
+#        COMPILER=clang++-3.9
+#        CPP_STD=c++14
+
+# Not yet available
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise']
+#          packages: ['clang-3.9']
+#      env:
+#        COMPILER=clang++-3.9
+#        CPP_STD=c++1z
+
+# Activate when we are allowed to use MacOS X
+#    - os: osx
+#      compiler: clang
+#      env:
+#        COMPILER=clang++
+#        CPP_STD=c++11
+
+# Activate when we are allowed to use MacOS X
+#    - os: osx
+#      compiler: clang
+#      env:
+#        COMPILER=clang++
+#        CPP_STD=c++14
+
+# Activate when we are allowed to use MacOS X
+#    - os: osx
+#      compiler: clang
+#      env:
+#        COMPILER=clang++
+#        CPP_STD=c++1z
 
 addons:
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
     packages:
     - bash
     - coreutils
-    - g++-4.8
-    - g++-4.9
-    - g++-5
-    - clang-3.4
-    - clang-3.5
-
-before_install:
-  - echo $LANG
-  - echo $LC_ALL
-  - lsb_release -a
-  - uname -a
-
-install:
-  - apt-cache search '^g\+\+|^clang'
 
 before_script:
   - echo $LANG
@@ -36,9 +308,11 @@ before_script:
   - lsb_release -a
   - uname -a
   - apt-cache search '^g\+\+|^clang'
+  - which clang++ && clang++ --version || true
+  - which g++ && g++ --version || true
 
 script:
-  - ./contbuild.sh
+  - ./contbuild.sh "$COMPILER" "$CPP_STD"
 
 branches:
   only:

@@ -54,7 +54,7 @@ struct flag_set {
   );
 
   static_assert(
-    logical_transform::all<
+    logical::all<
       std::true_type,
       std::is_same<Flags, typename std::decay<Flags>::type>...
     >::value,
@@ -65,7 +65,7 @@ private:
   using range_mask = mersenne_number<tag_list::size>;
 
   template <bool IgnoreUnsupported, typename... UFlags>
-  using mask_for = bitwise_transform::any<
+  using mask_for = bitwise::any<
     std::integral_constant<flags_type, 0>,
     std::integral_constant<
       typename std::enable_if<

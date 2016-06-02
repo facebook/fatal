@@ -45,6 +45,26 @@ struct constant_array {
   static constexpr value_type const *data() { return get.data(); }
 };
 
+// TODO: DOCUMENT AND TEST
+// TODO: ADD , template <typename...> class... Transforms
+template <typename T>
+class constant_array_from {
+  template <T... Values>
+  using sequence_impl = constant_array<T, Values...>;
+
+public:
+  // TODO: DOCUMENT AND TEST
+  template <typename... Args>
+  using args = constant_array<T, Args::value...>;
+
+  // TODO: DOCUMENT AND TEST
+  template <typename List>
+  using list = typename List::template apply<args>;
+
+  template <typename Sequence>
+  using sequence = typename Sequence::template apply<sequence_impl>;
+};
+
 ///////////////////////////////
 // STATIC MEMBERS DEFINITION //
 ///////////////////////////////

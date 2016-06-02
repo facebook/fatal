@@ -21,221 +21,37 @@
 
 namespace fatal {
 
-//////////////////////////
-// type_map DECLARATION //
-//////////////////////////
-
-template <typename...> class type_map;
-
-/////////////////////
-// SUPPORT LIBRARY //
-/////////////////////
+////////////////////////////////////////
+// IMPLEMENTATION FORWARD DECLARATION //
+////////////////////////////////////////
 
 namespace detail {
 namespace type_map_impl {
 
-/////////////////////
-// build_pair_list //
-/////////////////////
-
 template <typename...> struct build_pair_list;
-
-template <typename TKey, typename TValue, typename... Args>
-struct build_pair_list<TKey, TValue, Args...> {
-  using type = typename build_pair_list<Args...>::type::template push_front<
-    type_pair<TKey, TValue>
-  >;
-};
-
-template <>
-struct build_pair_list<> {
-  using type = type_list<>;
-};
-
-////////////
-// concat //
-////////////
-
-template <typename T, typename... Prefix>
-struct concat;
-
+template <typename, typename...> struct concat;
+template <typename, template <typename...> class, template <typename...> class>
+struct transform;
 template <
-  template <typename...> class T, typename... Suffix, typename... Prefix
+  typename, typename, template <typename...> class, template <typename...> class
 >
-struct concat<T<Suffix...>, Prefix...> {
-  using type = type_map<Prefix..., Suffix...>;
-};
-
-///////////////
-// transform //
-///////////////
-
-template <
-  typename TPair,
-  template <typename...> class TKeyTransform,
-  template <typename...> class TMappedTransform
->
-using transform = typename TPair::template transform<
-  TKeyTransform, TMappedTransform
->;
-
-//////////////////
-// transform_at //
-//////////////////
-
-template <
-  typename TKey,
-  typename TPair,
-  template <typename...> class TKeyTransform,
-  template <typename...> class TMappedTransform
->
-using transform_at = typename std::conditional<
-  std::is_same<TKey, type_get_first<TPair>>::value,
-  typename TPair::template transform<TKeyTransform, TMappedTransform>,
-  TPair
->::type;
-
-////////////
-// invert //
-////////////
-
-template <
-  typename TPair,
-  template <typename...> class TKeyTransform,
-  template <typename...> class TMappedTransform
->
-using invert_transform = typename TPair::template transform<
-  TKeyTransform, TMappedTransform
->::invert;
-
-//////////
-// find //
-//////////
-
+struct transform_at;
+template <typename, template <typename...> class, template <typename...> class>
+struct invert_transform;
 template <typename, typename, typename...> struct find;
-
-template <typename TDefault, typename TKey>
-struct find<TDefault, TKey> {
-  using type = TDefault;
-};
-
-template <typename TDefault, typename TKey, typename TValue, typename... Args>
-struct find<TDefault, TKey, type_pair<TKey, TValue>, Args...> {
-  using type = TValue;
-};
-
-template <typename TDefault, typename TKey, typename T, typename... Args>
-struct find<TDefault, TKey, T, Args...> {
-  using type = typename find<TDefault, TKey, Args...>::type;
-};
-
-/////////
-// get //
-/////////
-
 template <typename, typename...> struct get;
-
-template <typename TKey, typename TValue, typename... Args>
-struct get<TKey, type_pair<TKey, TValue>, Args...> {
-  using type = TValue;
-};
-
-template <typename TKey, typename T, typename... Args>
-struct get<TKey, T, Args...> {
-  using type = typename get<TKey, Args...>::type;
-};
-
-//////////////
-// separate //
-//////////////
-
-template <template <typename...> class TPredicate, typename TList>
-struct separate {
-  using separated = typename TList::template separate<
-    transform_sequence<type_get_first, TPredicate>::template apply
-  >;
-
-  using type = type_pair<
-    typename type_get_first<separated>::template apply<type_map>,
-    typename type_get_second<separated>::template apply<type_map>
-  >;
-};
-
-/////////////
-// cluster //
-/////////////
-
-template <typename T>
-struct cluster_transform {
-  template <typename U>
-  using add = typename U::template push_back<T>;
-};
-
-template <typename... Args>
-struct cluster {
-  using type = type_map<>;
-};
-
-template <typename T, typename... Args>
-struct cluster<T, Args...> {
-  using tail = typename cluster<Args...>::type;
-  using key = type_get_first<T>;
-  using mapped = type_get_second<T>;
-
-  using type = typename std::conditional<
-    tail::template contains<key>::value,
-    typename tail::template transform_at<
-      key,
-      cluster_transform<mapped>::template add
-    >,
-    typename tail::template push_back<key, type_list<mapped>>
-  >::type;
-};
-
-///////////
-// visit //
-///////////
-
+template <template <typename...> class, typename> struct separate;
+template <typename...> struct cluster;
 struct visit_not_found {};
-
-template <typename TKey, typename TMapped>
-struct visit_visitor {
-  template <typename TVisitor, typename... VArgs>
-  static constexpr bool visit(TVisitor &&visitor, VArgs &&...args) {
-    // comma operator needed due to C++11's constexpr restrictions
-    return visitor(
-      type_pair<TKey, TMapped>(),
-      std::forward<VArgs>(args)...
-    ), true;
-  }
-};
-
-template <typename TKey>
-struct visit_visitor<TKey, visit_not_found> {
-  template <typename TVisitor, typename... VArgs>
-  static constexpr bool visit(TVisitor &&, VArgs &&...) { return false; }
-};
-
-///////////////////
-// binary_search //
-///////////////////
-
-template <typename TComparer>
-struct binary_search_comparer {
-  template <typename TNeedle, typename TKey, typename TValue, std::size_t Index>
-  static constexpr int compare(
-    TNeedle &&needle,
-    indexed_type_tag<type_pair<TKey, TValue>, Index>
-  ) {
-    return TComparer::compare(
-      std::forward<TNeedle>(needle),
-      indexed_type_tag<TKey, Index>{}
-    );
-  }
-};
+template <typename, typename> struct visit_visitor;
+template <typename> struct binary_search_comparer;
 
 } // namespace type_map_impl {
 } // namespace detail {
+
+//////////////
+// type_map //
+//////////////
 
 /**
  * Type map for template metaprogramming.
@@ -286,30 +102,32 @@ public:
 
   // TODO: DOCUMENT AND TEST
   template <
-    template <typename...> class TMappedTransform = identity_transform,
-    template <typename...> class TKeyTransform = identity_transform
+    template <typename...> class TMappedTransform = identity,
+    template <typename...> class TKeyTransform = identity
   >
   using transform = type_map<
-    detail::type_map_impl::transform<Args, TKeyTransform, TMappedTransform>...
+    typename detail::type_map_impl::transform<
+      Args, TKeyTransform, TMappedTransform
+    >::type...
   >;
 
   // TODO: DOCUMENT AND TEST
   template <
     typename TKey,
-    template <typename...> class TMappedTransform = identity_transform,
-    template <typename...> class TKeyTransform = identity_transform
+    template <typename...> class TMappedTransform = identity,
+    template <typename...> class TKeyTransform = identity
   >
   using transform_at = type_map<
-    detail::type_map_impl::transform_at<
+    typename detail::type_map_impl::transform_at<
       TKey, Args, TKeyTransform, TMappedTransform
-    >...
+    >::type...
   >;
 
   // TODO: DOCUMENT AND TEST
   template <
     template <typename...> class TTransform,
-    template <typename...> class TMappedTransform = identity_transform,
-    template <typename...> class TKeyTransform = identity_transform
+    template <typename...> class TMappedTransform = identity,
+    template <typename...> class TKeyTransform = identity
   >
   using apply = typename transform<TMappedTransform, TKeyTransform>
     ::contents::template apply<TTransform>;
@@ -352,13 +170,13 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <
-    template <typename...> class TKeyTransform = identity_transform,
-    template <typename...> class TMappedTransform = identity_transform
+    template <typename...> class TKeyTransform = identity,
+    template <typename...> class TMappedTransform = identity
   >
   using invert = type_map<
-    detail::type_map_impl::invert_transform<
+    typename detail::type_map_impl::invert_transform<
       Args, TKeyTransform, TMappedTransform
-    >...
+    >::type...
   >;
 
   /**
@@ -435,7 +253,7 @@ public:
     typename TDefault = type_not_found_tag
   >
   using search = typename contents::template search<
-    transform_sequence<type_get_first, TPredicate>::template apply,
+    compose<type_get_first, TPredicate>::template apply,
     TDefault
   >;
 
@@ -677,7 +495,7 @@ public:
    */
   template <typename... UArgs>
   using remove = typename contents::template reject<
-    transform_sequence<
+    compose<
       type_get_first,
       type_list<UArgs...>::template contains
     >::template apply
@@ -818,11 +636,13 @@ public:
   >::template apply<fatal::type_map>;
 
   template <
-    template <typename...> class TKeyTransform = identity_transform,
-    template <typename...> class TMappedTransform = identity_transform
+    template <typename...> class TKeyTransform = identity,
+    template <typename...> class TMappedTransform = identity
   >
   using cluster = typename detail::type_map_impl::cluster<
-    detail::type_map_impl::transform<Args, TKeyTransform, TMappedTransform>...
+    typename detail::type_map_impl::transform<
+      Args, TKeyTransform, TMappedTransform
+    >::type...
   >::type;
 
   template <
@@ -1189,8 +1009,8 @@ using build_type_map = typename detail::type_map_impl::build_pair_list<Args...>
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <
-  template <typename...> class TKeyTransform = identity_transform,
-  template <typename...> class TValueTransform = identity_transform
+  template <typename...> class TKeyTransform = identity,
+  template <typename...> class TValueTransform = identity
 >
 struct type_map_from {
   template <typename... UArgs>
@@ -1271,6 +1091,206 @@ struct recursive_type_sort_impl<type_map<T...>, Depth> {
   >::type;
 };
 
+namespace detail {
+namespace type_map_impl {
+
+/////////////////////
+// build_pair_list //
+/////////////////////
+
+template <typename TKey, typename TValue, typename... Args>
+struct build_pair_list<TKey, TValue, Args...> {
+  using type = typename build_pair_list<Args...>::type::template push_front<
+    type_pair<TKey, TValue>
+  >;
+};
+
+template <>
+struct build_pair_list<> {
+  using type = type_list<>;
+};
+
+////////////
+// concat //
+////////////
+
+template <
+  template <typename...> class T, typename... Suffix, typename... Prefix
+>
+struct concat<T<Suffix...>, Prefix...> {
+  using type = type_map<Prefix..., Suffix...>;
+};
+
+///////////////
+// transform //
+///////////////
+
+template <
+  typename TPair,
+  template <typename...> class TKeyTransform,
+  template <typename...> class TMappedTransform
+>
+struct transform {
+  using type = typename TPair::template transform<
+    TKeyTransform, TMappedTransform
+  >;
+};
+
+//////////////////
+// transform_at //
+//////////////////
+
+template <
+  typename TKey,
+  typename TPair,
+  template <typename...> class TKeyTransform,
+  template <typename...> class TMappedTransform
+>
+struct transform_at {
+  using type = typename std::conditional<
+    std::is_same<TKey, type_get_first<TPair>>::value,
+    typename TPair::template transform<TKeyTransform, TMappedTransform>,
+    TPair
+  >::type;
+};
+
+////////////
+// invert //
+////////////
+
+template <
+  typename TPair,
+  template <typename...> class TKeyTransform,
+  template <typename...> class TMappedTransform
+>
+struct invert_transform {
+  using type = typename TPair::template transform<
+    TKeyTransform, TMappedTransform
+  >::invert;
+};
+
+//////////
+// find //
+//////////
+
+template <typename TDefault, typename TKey>
+struct find<TDefault, TKey> {
+  using type = TDefault;
+};
+
+template <typename TDefault, typename TKey, typename TValue, typename... Args>
+struct find<TDefault, TKey, type_pair<TKey, TValue>, Args...> {
+  using type = TValue;
+};
+
+template <typename TDefault, typename TKey, typename T, typename... Args>
+struct find<TDefault, TKey, T, Args...> {
+  using type = typename find<TDefault, TKey, Args...>::type;
+};
+
+/////////
+// get //
+/////////
+
+template <typename TKey, typename TValue, typename... Args>
+struct get<TKey, type_pair<TKey, TValue>, Args...> {
+  using type = TValue;
+};
+
+template <typename TKey, typename T, typename... Args>
+struct get<TKey, T, Args...> {
+  using type = typename get<TKey, Args...>::type;
+};
+
+//////////////
+// separate //
+//////////////
+
+template <template <typename...> class TPredicate, typename TList>
+struct separate {
+  using separated = typename TList::template separate<
+    compose<type_get_first, TPredicate>::template apply
+  >;
+
+  using type = type_pair<
+    typename type_get_first<separated>::template apply<type_map>,
+    typename type_get_second<separated>::template apply<type_map>
+  >;
+};
+
+/////////////
+// cluster //
+/////////////
+
+template <typename T>
+struct cluster_transform {
+  template <typename U>
+  using add = typename U::template push_back<T>;
+};
+
+template <typename... Args>
+struct cluster {
+  using type = type_map<>;
+};
+
+template <typename T, typename... Args>
+struct cluster<T, Args...> {
+  using tail = typename cluster<Args...>::type;
+  using key = type_get_first<T>;
+  using mapped = type_get_second<T>;
+
+  using type = typename std::conditional<
+    tail::template contains<key>::value,
+    typename tail::template transform_at<
+      key,
+      cluster_transform<mapped>::template add
+    >,
+    typename tail::template push_back<key, type_list<mapped>>
+  >::type;
+};
+
+///////////
+// visit //
+///////////
+
+template <typename TKey, typename TMapped>
+struct visit_visitor {
+  template <typename TVisitor, typename... VArgs>
+  static constexpr bool visit(TVisitor &&visitor, VArgs &&...args) {
+    // comma operator needed due to C++11's constexpr restrictions
+    return visitor(
+      type_pair<TKey, TMapped>(),
+      std::forward<VArgs>(args)...
+    ), true;
+  }
+};
+
+template <typename TKey>
+struct visit_visitor<TKey, visit_not_found> {
+  template <typename TVisitor, typename... VArgs>
+  static constexpr bool visit(TVisitor &&, VArgs &&...) { return false; }
+};
+
+///////////////////
+// binary_search //
+///////////////////
+
+template <typename TComparer>
+struct binary_search_comparer {
+  template <typename TNeedle, typename TKey, typename TValue, std::size_t Index>
+  static constexpr int compare(
+    TNeedle &&needle,
+    indexed_type_tag<type_pair<TKey, TValue>, Index>
+  ) {
+    return TComparer::compare(
+      std::forward<TNeedle>(needle),
+      indexed_type_tag<TKey, Index>{}
+    );
+  }
+};
+
+} // namespace type_map_impl {
+} // namespace detail {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_map_h

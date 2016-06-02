@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_transform_h
 #define FATAL_INCLUDE_fatal_type_transform_h
 
+#include <fatal/type/apply.h>
+#include <fatal/type/maybe.h>
 #include <fatal/type/tag.h>
 
 #include <limits>
@@ -45,8 +47,9 @@ namespace fatal {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace detail {
+namespace transform_impl {
 
-class is_complete_impl {
+class is_complete {
   struct impl {
     template <typename T, std::size_t = sizeof(T)>
     static std::true_type sfinae(T *);
@@ -60,33 +63,15 @@ public:
   using type = decltype(impl::sfinae(static_cast<T *>(nullptr)));
 };
 
+} // namespace transform_impl {
 } // namespace detail {
 
 template <typename T>
-using is_complete = detail::is_complete_impl::type<T>;
+using is_complete = detail::transform_impl::is_complete::type<T>;
 
-///////////
-// apply //
-///////////
-
-namespace detail {
-
-template <template <typename...> class T, typename... Args>
-struct apply_impl { using type = T<Args...>; };
-
-} // namespace detail {
-
-/**
- * Applies arguments to a transform.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <template <typename...> class TTransform, typename... Args>
-using apply = typename detail::apply_impl<TTransform, Args...>::type;
-
-////////////////////////
-// identity_transform //
-////////////////////////
+//////////////
+// identity //
+//////////////
 
 /**
  * Helper alias similar to std::decay_t, that resolves to the type
@@ -95,23 +80,25 @@ using apply = typename detail::apply_impl<TTransform, Args...>::type;
  * Example:
  *
  *  // yields `int`
- *  typedef identity_transform<int> result1;
+ *  using result1 = identity<int>;
  *
  *  // yields `std::string`
- *  typedef identity_transform<std::string> result2;
+ *  using result2 = identity<std::string>;
  *
  *  // yields `double`
- *  typedef identity_transform<identity_transform<double>>> result3;
+ *  using result3 = identity<identity<double>>>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace detail {
+namespace transform_impl {
 // needed due to gcc bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=62276
-template <typename T> struct identity_transform_impl { typedef T type; };
+template <typename T> struct identity { using type = T; };
+} // namespace transform_impl {
 } // namespace detail {
 
 template <typename T>
-using identity_transform = typename detail::identity_transform_impl<T>::type;
+using identity = typename detail::transform_impl::identity<T>::type;
 
 /////////////////////
 // fixed_transform //
@@ -211,20 +198,20 @@ template <typename...> using false_predicate = std::false_type;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename TTo>
-struct cast_transform {
+struct caster {
   template <typename T>
   using apply = std::integral_constant<TTo, static_cast<TTo>(T::value)>;
 };
 
 /**
- * A convenience specialization of `cast_transform` for `bool`.
+ * A convenience specialization of `caster` for `bool`.
  *
  * TODO: DOCUMENT AND TEST
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using is_true_transform = typename cast_transform<bool>::template apply<T>;
+using is_true_transform = typename caster<bool>::template apply<T>;
 
 /**
  * A convenience transform which returns the logical
@@ -268,16 +255,16 @@ using not_zero_transform = std::integral_constant<bool, T::value != 0>;
 template <typename T>
 using sizeof_transform = std::integral_constant<std::size_t, sizeof(T)>;
 
-////////////////////////
-// transform_sequence //
-////////////////////////
+/////////////
+// compose //
+/////////////
 
 /**
  * A convenience adapter that allows nesting multiple transforms into one.
  *
  * The transforms are applied in the order specified.
  *
- * If no transforms are given, it acts like `identity_transform`.
+ * If no transforms are given, it acts like `identity`.
  *
  * Example:
  *
@@ -285,44 +272,53 @@ using sizeof_transform = std::integral_constant<std::size_t, sizeof(T)>;
  *  template <typename> struct T2 {};
  *  template <typename> struct T3 {};
  *
- *  typedef transform_sequence<T1, T2, T3> tr;
+ *  using tr = compose<T1, T2, T3>;
  *
  *  // yields `T3<T2<T1<int>>>`
- *  typedef tr::apply<int> result;
+ *  using result = tr::apply<int>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <template <typename...> class...> struct transform_sequence;
+template <template <typename...> class...> struct compose;
 
 template <
   template <typename...> class TTransform,
   template <typename...> class... TTransforms
 >
-struct transform_sequence<TTransform, TTransforms...> {
+struct compose<TTransform, TTransforms...> {
   template <typename... Args>
-  using apply = typename transform_sequence<TTransforms...>::template apply<
+  using apply = typename compose<TTransforms...>::template apply<
     typename fatal::apply<TTransform, Args...>
   >;
 };
 
 template <>
-struct transform_sequence<> {
+struct compose<> {
   template <typename T, typename...>
   using apply = T;
 };
 
-//////////////////////////
-// arithmetic_transform //
-//////////////////////////
+// TODO: DOCUMENT AND TEST
+template <typename... Args>
+struct applier {
+  template <typename U>
+  using apply = typename U::template apply<Args...>;
+};
+
+////////////////
+// arithmetic //
+////////////////
 
 namespace detail {
-namespace arithmetic_transform_impl {
+namespace transform_impl {
+namespace arithmetic {
 template <typename...> struct add;
 template <typename...> struct subtract;
 template <typename...> struct multiply;
 template <typename...> struct divide;
 template <typename...> struct modulo;
-} // namespace arithmetic_transform_impl {
+} // namespace arithmetic {
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -330,14 +326,14 @@ template <typename...> struct modulo;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-struct arithmetic_transform {
+struct arithmetic {
   /**
    * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using add = typename detail::arithmetic_transform_impl::add<Args...>::type;
+  using add = typename detail::transform_impl::arithmetic::add<Args...>::type;
 
   /**
    * TODO: DOCUMENT
@@ -345,7 +341,7 @@ struct arithmetic_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using subtract = typename detail::arithmetic_transform_impl::subtract<
+  using subtract = typename detail::transform_impl::arithmetic::subtract<
     Args...
   >::type;
 
@@ -355,7 +351,7 @@ struct arithmetic_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using multiply = typename detail::arithmetic_transform_impl::multiply<
+  using multiply = typename detail::transform_impl::arithmetic::multiply<
     Args...
   >::type;
 
@@ -365,7 +361,7 @@ struct arithmetic_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using divide = typename detail::arithmetic_transform_impl::divide<
+  using divide = typename detail::transform_impl::arithmetic::divide<
     Args...
   >::type;
 
@@ -375,20 +371,22 @@ struct arithmetic_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using modulo = typename detail::arithmetic_transform_impl::modulo<
+  using modulo = typename detail::transform_impl::arithmetic::modulo<
     Args...
   >::type;
 };
 
-///////////////////////
-// logical_transform //
-///////////////////////
+/////////////
+// logical //
+/////////////
 
 namespace detail {
-namespace logical_transform_impl {
+namespace transform_impl {
+namespace logical {
 template <typename...> struct all;
 template <typename...> struct any;
-} // namespace logical_transform_impl {
+} // namespace logical {
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -396,7 +394,7 @@ template <typename...> struct any;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-struct logical_transform {
+struct logical {
   /**
    * Helper class similar to std::integral_constant whose value is the logical
    * AND of the value of each `Arg`.
@@ -404,7 +402,7 @@ struct logical_transform {
    * Example:
    *
    *  template <typename A, typename B, typename C>
-   *  using all_equal = logical_transform::all<
+   *  using all_equal = logical::all<
    *    std::is_same<A, B>, std::is_same<B, C>
    *  >;
    *
@@ -420,7 +418,7 @@ struct logical_transform {
    *  template <typename... Args>
    *  struct Foo {
    *    static_assert(
-   *      logical_transform::all<std::is_signed<Args>...)::value,
+   *      logical::all<std::is_signed<Args>...)::value,
    *      "Args should be signed arithmetic types"
    *    );
    *  }
@@ -428,7 +426,7 @@ struct logical_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using all = typename detail::logical_transform_impl::all<Args...>::type;
+  using all = typename detail::transform_impl::logical::all<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the logical
@@ -437,7 +435,7 @@ struct logical_transform {
    * Example:
    *
    *  template <typename A, typename B, typename C>
-   *  using has_duplicate = logical_transform::any<
+   *  using has_duplicate = logical::any<
    *    std::is_same<A, B>, std::is_same<B, C>, std::is_same<A, C>
    *  >;
    *
@@ -453,7 +451,7 @@ struct logical_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using any = typename detail::logical_transform_impl::any<Args...>::type;
+  using any = typename detail::transform_impl::logical::any<Args...>::type;
 
   /**
    * Helper class similar to std::integral whose value is the logical
@@ -465,7 +463,7 @@ struct logical_transform {
    *  using is_negative = std::integral_constant<bool, (X < 0)>;
    *
    *  template <int X>
-   *  using is_non_negative = logical_transform::negate<is_negative<X>>;
+   *  using is_non_negative = logical::negate<is_negative<X>>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -484,16 +482,18 @@ struct logical_transform {
   using none = negate<any<Args...>>;
 };
 
-///////////////////////
-// bitwise_transform //
-///////////////////////
+/////////////
+// bitwise //
+/////////////
 
 namespace detail {
-namespace bitwise_transform_impl {
+namespace transform_impl {
+namespace bitwise {
 template <typename...> struct all;
 template <typename...> struct any;
 template <typename...> struct diff;
-} // namespace bitwise_transform_impl {
+} // namespace bitwise {
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -501,7 +501,7 @@ template <typename...> struct diff;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-struct bitwise_transform {
+struct bitwise {
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
    * AND of the value of each `Arg`.
@@ -509,7 +509,7 @@ struct bitwise_transform {
    * Example:
    *
    *  template <int... Args>
-   *  using all = bitwise_transform::all<
+   *  using all = bitwise::all<
    *    std::integral_constant<int, Args>...
    *  >;
    *
@@ -522,7 +522,7 @@ struct bitwise_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using all = typename detail::bitwise_transform_impl::all<Args...>::type;
+  using all = typename detail::transform_impl::bitwise::all<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -531,7 +531,7 @@ struct bitwise_transform {
    * Example:
    *
    *  template <int... Args>
-   *  using any = bitwise_transform::any<
+   *  using any = bitwise::any<
    *    std::integral_constant<int, Args>...
    *  >;
    *
@@ -541,7 +541,7 @@ struct bitwise_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using any = typename detail::bitwise_transform_impl::any<Args...>::type;
+  using any = typename detail::transform_impl::bitwise::any<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -550,7 +550,7 @@ struct bitwise_transform {
    * Example:
    *
    *  template <int... Args>
-   *  using diff = bitwise_transform::diff<
+   *  using diff = bitwise::diff<
    *    std::integral_constant<int, Args>...
    *  >;
    *
@@ -563,7 +563,7 @@ struct bitwise_transform {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using diff = typename detail::bitwise_transform_impl::diff<Args...>::type;
+  using diff = typename detail::transform_impl::bitwise::diff<Args...>::type;
 
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
@@ -572,7 +572,7 @@ struct bitwise_transform {
    * Example:
    *
    *  // yields `0xf0`
-   *  bitwise_transform::complement<
+   *  bitwise::complement<
    *    std::integral_constant<std::uint8_t, 0xf>
    *  >::value
    *
@@ -612,8 +612,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `false`
    *  comparison_transform::equal<A, B>::value
@@ -639,8 +639,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `true`
    *  comparison_transform::not_equal<A, B>::value
@@ -666,8 +666,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `true`
    *  comparison_transform::less_than<A, B>::value
@@ -693,8 +693,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `true`
    *  comparison_transform::less_than_equal<A, B>::value
@@ -720,8 +720,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `false`
    *  comparison_transform::greater_than<A, B>::value
@@ -747,8 +747,8 @@ struct comparison_transform {
    *
    * Example:
    *
-   *  typedef std::integral_constant<int, 10> A;
-   *  typedef std::integral_constant<int, 20> B;
+   *  using A = std::integral_constant<int, 10>;
+   *  using B = std::integral_constant<int, 20>;
    *
    *  // yields `false`
    *  comparison_transform::greater_than_equal<A, B>::value
@@ -770,10 +770,10 @@ struct comparison_transform {
 
 /**
  * A convenient macro that creates a transform which
- * evaluates to the given member typedef.
+ * evaluates to the given member type.
  *
  * Provides a template alias named `Name` which extracts
- * the member typedef with the same name.
+ * the member type with the same name.
  *
  * Example:
  *
@@ -789,10 +789,10 @@ struct comparison_transform {
 
 /**
  * A convenient macro that creates a transform which
- * evaluates to the given member typedef.
+ * evaluates to the given member type.
  *
  * Provides a template alias named `Name` which extracts
- * the member typedef with the same name.
+ * the member type with the same name.
  *
  * Example:
  *
@@ -807,23 +807,23 @@ struct comparison_transform {
   FATAL_GET_MEMBER_TYPE_AS(Name, Name)
 
 /**
- * Provides transforms that evaluate to a member typedef of a given type.
+ * Provides transforms that evaluate to a member type of a given type.
  *
  * Example:
  *
  *  // yields `int`
- *  typedef get_member_type::type<std::add_const<int>> result1;
+ *  using result1 = get_member_type::type<std::add_const<int>>;
  *
- *  typedef std::map<double, std::string> map;
+ *  using map = std::map<double, std::string>;
  *
  *  // yields `std::pair<double, std::string>`
- *  typedef get_member_type::value_type<map> result2;
+ *  using result2 = get_member_type::value_type<map>;
  *
  *  // yields `double`
- *  typedef get_member_type::key_type<map> result3;
+ *  using result3 = get_member_type::key_type<map>;
  *
  *  // yields `std::string`
- *  typedef get_member_type::mapped_type<map> result4;
+ *  using result4 = get_member_type::mapped_type<map>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -833,8 +833,7 @@ struct get_member_type {
   FATAL_GET_MEMBER_TYPE(Name)
 
   FATAL_IMPL_GET_MEMBER_TYPE(char_type);
-  FATAL_IMPL_GET_MEMBER_TYPE(type);
-  FATAL_IMPL_GET_MEMBER_TYPE(types);
+  FATAL_IMPL_GET_MEMBER_TYPE(return_type);
 
 # define FATAL_IMPL_GET_MEMBER_TYPE_TYPE(Name) \
   FATAL_IMPL_GET_MEMBER_TYPE(Name); \
@@ -844,6 +843,8 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(args);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(array);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(category);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(client);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(clients);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(config);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_iterator);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_pointer);
@@ -851,6 +852,8 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_ref);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_reference);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(const_reverse_iterator);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(constant);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(constants);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(data);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(decode);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(decoder);
@@ -858,9 +861,13 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(element);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(encode);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(encoder);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(enums);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(extension);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(first);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(flag);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(get);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(getter);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(getters);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(hash);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(id);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(ids);
@@ -872,6 +879,13 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(item);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(iterator);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(key);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(legacy);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(legacy_geter);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(legacy_id);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(legacy_name);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(legacy_property);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(legacy_setter);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(legacy_value);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(list);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(map);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(mapped);
@@ -879,6 +893,7 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(mappings);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(member);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(members);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(metadata);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(name);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(names);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(pair);
@@ -894,13 +909,22 @@ struct get_member_type {
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(reverse);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(reverse_iterator);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(second);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(service);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(services);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(set);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(setter);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(setters);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(size);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(str);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(string);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(structs);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(tag);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(traits);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(tuple);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(type);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(type_class);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(types);
+  FATAL_IMPL_GET_MEMBER_TYPE_TYPE(unions);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(value);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(values);
   FATAL_IMPL_GET_MEMBER_TYPE_TYPE(version);
@@ -915,6 +939,7 @@ struct get_member_type {
 ///////////////////////////
 
 namespace detail {
+namespace transform_impl {
 
 template <
   bool,
@@ -937,6 +962,7 @@ struct conditional_transform_impl<
   using type = TWhenFalseTransform<T>;
 };
 
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -944,7 +970,7 @@ struct conditional_transform_impl<
  * depending whether the predicate `TPredicate` returns, respectively, true or
  * false, when applied to to the type `T`.
  *
- * The default transform for `TWhenFalseTransform` is `identity_transform`.
+ * The default transform for `TWhenFalseTransform` is `identity`.
  *
  * Example:
  *
@@ -976,11 +1002,11 @@ struct conditional_transform_impl<
 template <
   template <typename...> class TPredicate,
   template <typename...> class TWhenTrueTransform,
-  template <typename...> class TWhenFalseTransform = identity_transform
+  template <typename...> class TWhenFalseTransform = identity
 >
 struct conditional_transform {
   template <typename T>
-  using apply = typename detail::conditional_transform_impl<
+  using apply = typename detail::transform_impl::conditional_transform_impl<
     fatal::apply<TPredicate, T>::value,
     TWhenTrueTransform,
     TWhenFalseTransform,
@@ -999,7 +1025,7 @@ class transform_traits {
     template <typename T, typename = TTransform<T>>
     static std::true_type sfinae(T *);
 
-    template <typename = void>
+    template <typename...>
     static std::false_type sfinae(...);
   };
 
@@ -1016,7 +1042,7 @@ public:
 // TODO: DOCUMENT AND TEST
 template <
   template <typename...> class TTransform,
-  template <typename...> class TFallback = identity_transform
+  template <typename...> class TFallback = identity
 >
 struct try_transform {
   template <typename T>
@@ -1032,12 +1058,13 @@ struct try_transform {
 //////////////////////////
 
 namespace detail {
+namespace transform_impl {
 
 template <
   template <typename...> class TAggregator,
   template <typename...> class... TTransforms
 >
-struct transform_aggregator_impl {
+struct transform_aggregator {
   template <typename... Args>
   class apply {
     template <template <typename...> class TTransform>
@@ -1048,6 +1075,7 @@ struct transform_aggregator_impl {
   };
 };
 
+} // namespace transform_impl {
 } // namespace detail {
 
 /**
@@ -1070,7 +1098,7 @@ template <
 >
 struct transform_aggregator {
   template <typename... Args>
-  using apply = typename detail::transform_aggregator_impl<
+  using apply = typename detail::transform_impl::transform_aggregator<
     TAggregator, TTransforms...
   >::template apply<Args...>::type;
 };
@@ -1083,10 +1111,10 @@ struct transform_aggregator {
  * TODO: DOCUMENT AND TEST
  *
  *  TAggregator<
- *    transform_sequence<TTransforms...>::apply<Arg_0>,
- *    transform_sequence<TTransforms...>::apply<Arg_1>,
+ *    compose<TTransforms...>::apply<Arg_0>,
+ *    compose<TTransforms...>::apply<Arg_1>,
  *    ...
- *    transform_sequence<TTransforms...>::apply<Arg_n>
+ *    compose<TTransforms...>::apply<Arg_n>
  *  >
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
@@ -1097,7 +1125,7 @@ template <
 >
 class transform_distributor {
   template <typename T>
-  using impl = typename transform_sequence<TTransforms...>::template apply<T>;
+  using impl = typename compose<TTransforms...>::template apply<T>;
 
 public:
   template <typename... Args>
@@ -1155,13 +1183,13 @@ class variadic_transform {
  *  using dc = type_member_transform<std::decay>;
  *
  *  // yields `int`
- *  typedef dc::apply<int const &> result1;
+ *  using result1 = dc::apply<int const &>;
  *
  *  template <typename T, template <typename...> class MyTransform>
  *  using foo = MyTransform<T>;
  *
  *  // yields `double`
- *  typedef foo<double &&, dc::template apply> result2;
+ *  using result2 = foo<double &&, dc::template apply>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -1189,13 +1217,13 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
+   *  using c1 = transform_alias<std::tuple, int, double>;
    *
    *  // yields `std::tuple<int, double>`
-   *  typedef c1::apply<> result1;
+   *  using result1 = c1::apply<>;
    *
    *  // yields `std::tuple<int, double, long, std::string, bool, float>`
-   *  typedef c1::apply<long, std::string, bool, float> result2;
+   *  using result2 = c1::apply<long, std::string, bool, float>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1208,14 +1236,14 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
-   *  typedef c1::curry<long, std::string> c2;
+   *  using c1 = transform_alias<std::tuple, int, double>;
+   *  using c2 = c1::curry<long, std::string>;
    *
    *  // yields `std::tuple<int, double, long, std::string>`
-   *  typedef c2::apply<> result1;
+   *  using result1 = c2::apply<>;
    *
    *  // yields `std::tuple<int, double, long, std::string, bool, float>`
-   *  typedef c2::apply<bool, float> result2;
+   *  using result2 = c2::apply<bool, float>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1227,14 +1255,14 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
-   *  typedef c1::rebind<long, std::string> c2;
+   *  using c1 = transform_alias<std::tuple, int, double>;
+   *  using c2 = c1::rebind<long, std::string>;
    *
    *  // yields `std::tuple<long, std::string>`
-   *  typedef c2::apply<> result1;
+   *  using result1 = c2::apply<>;
    *
    *  // yields `std::tuple<long, std::string, bool, float>`
-   *  typedef c2::apply<bool, float> result2;
+   *  using result2 = c2::apply<bool, float>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1246,18 +1274,18 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
+   *  using c1 = transform_alias<std::tuple, int, double>;
    *
-   *  typedef transform_alias<c1::template uncurry, long, std::string> c2;
+   *  using c2 = transform_alias<c1::template uncurry, long, std::string>;
    *
    *  // yields `std::tuple<long, std::string>`
-   *  typedef c2::apply<> result1;
+   *  using result1 = c2::apply<>;
    *
    *  // yields `std::tuple<long, std::string, bool, float>`
-   *  typedef c2::apply<bool, float> result2;
+   *  using result2 = c2::apply<bool, float>;
    *
    *  // yields `std::tuple<long, std::string>`
-   *  typedef c1::uncurry<long, std::string> result2;
+   *  using result3 = c1::uncurry<long, std::string>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1270,13 +1298,13 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
+   *  using c1 = transform_alias<std::tuple, int, double>;
    *
    *  // yields `V1<int, double>`
-   *  typedef c1::rebind_args<V1>::apply<> result1;
+   *  using result1 = c1::rebind_args<V1>::apply<>;
    *
    *  // yields `V1<int, double, bool, float>`
-   *  typedef c1::rebind_args<V1, bool, float>::apply<> result2;
+   *  using result2 = c1::rebind_args<V1, bool, float>::apply<>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1291,13 +1319,13 @@ struct transform_alias {
    *
    * Example:
    *
-   *  typedef transform_alias<std::tuple, int, double> c1;
+   *  using c1 = transform_alias<std::tuple, int, double>;
    *
    *  // yields `V1<int, double>`
-   *  typedef c1::apply_args<V1> result1;
+   *  using result1 = c1::apply_args<V1>;
    *
    *  // yields `V1<int, double, bool, float>`
-   *  typedef c1::apply_args<V1, bool, float> result2;
+   *  using result2 = c1::apply_args<V1, bool, float>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
@@ -1442,18 +1470,18 @@ struct transform_switch {
   >;
 };
 
-///////////////////////////////
-// identity_transform_switch //
-///////////////////////////////
+/////////////////////
+// identity_switch //
+/////////////////////
 
 /**
- * A convenience version of `transform_switch` that uses `identity_transform`
+ * A convenience version of `transform_switch` that uses `identity`
  * as the fallback transform.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <template <typename...> class... Args>
-using identity_transform_switch = transform_switch<identity_transform, Args...>;
+using identity_switch = transform_switch<identity, Args...>;
 
 //////////////////////
 // member_transform //
@@ -1466,8 +1494,8 @@ using identity_transform_switch = transform_switch<identity_transform, Args...>;
  */
 #define FATAL_MEMBER_TRANSFORM(Name, Member) \
   template < \
-    template <typename...> class TPreTransform = ::fatal::identity_transform, \
-    template <typename...> class TPostTransform = ::fatal::identity_transform \
+    template <typename...> class TPreTransform = ::fatal::identity, \
+    template <typename...> class TPostTransform = ::fatal::identity \
   > \
   struct Name { \
     template <typename... Args> \
@@ -1513,12 +1541,12 @@ struct member_transform {
  */
 #define FATAL_MEMBER_TRANSFORMER(Name, Member) \
   template < \
-    template <typename...> class TPreTransform = ::fatal::identity_transform, \
-    template <typename...> class TPostTransform = ::fatal::identity_transform \
+    template <typename...> class TPreTransform = ::fatal::identity, \
+    template <typename...> class TPostTransform = ::fatal::identity \
   > \
   struct Name { \
     template < \
-      template <typename...> class TTransform = ::fatal::identity_transform, \
+      template <typename...> class TTransform = ::fatal::identity, \
       typename... Args \
     > \
     struct bind { \
@@ -1583,14 +1611,14 @@ struct member_transformer_stack {
     struct post {
       template <
         typename T,
-        template <typename...> class TTransform = identity_transform,
+        template <typename...> class TTransform = identity,
         typename... UArgs
       >
-      using use = typename transform_sequence<
+      using use = typename compose<
         TPostTransforms...
       >::template apply<
         TMember<
-          typename transform_sequence<TPreTransforms...>::template apply<T>,
+          typename compose<TPreTransforms...>::template apply<T>,
           TTransform,
           UArgs...
         >
@@ -1599,7 +1627,7 @@ struct member_transformer_stack {
 
     template <
       typename T,
-      template <typename...> class TTransform = identity_transform,
+      template <typename...> class TTransform = identity,
       typename... UArgs
     >
     using use = typename post<>::template use<T, TTransform, UArgs...>;
@@ -1609,17 +1637,17 @@ struct member_transformer_stack {
   struct post {
     template <
       typename T,
-      template <typename...> class TTransform = identity_transform,
+      template <typename...> class TTransform = identity,
       typename... UArgs
     >
-    using use = typename transform_sequence<TPostTransforms...>::template apply<
+    using use = typename compose<TPostTransforms...>::template apply<
       TMember<T, TTransform, UArgs...>
     >;
   };
 
   template <
     typename T,
-    template <typename...> class TTransform = identity_transform,
+    template <typename...> class TTransform = identity,
     typename... UArgs
   >
   using use = typename pre<>::template post<>::template use<
@@ -1725,7 +1753,7 @@ struct recurse<true, 0, TPre, TPost, TPredicate, TTransformer, TTransform> {
   template <typename T>
   using apply = typename conditional_transform<
     TPredicate,
-    transform_sequence<TPre, TPost>::template apply,
+    compose<TPre, TPost>::template apply,
     TTransform
   >::template apply<T>;
 };
@@ -1749,8 +1777,8 @@ template <
 >
 struct recursive_transform {
   template <
-    template <typename...> class TPreTransform = identity_transform,
-    template <typename...> class TPostTransform = identity_transform,
+    template <typename...> class TPreTransform = identity,
+    template <typename...> class TPostTransform = identity,
     std::size_t Depth = std::numeric_limits<std::size_t>::max()
   >
   // TODO: split into pre, post and depth
@@ -1761,7 +1789,7 @@ struct recursive_transform {
     TPostTransform,
     TPredicate,
     TTransformer,
-    transform_sequence<TTransforms...>::template apply
+    compose<TTransforms...>::template apply
   >;
 
   template <typename T>
@@ -1775,7 +1803,7 @@ struct recursive_transform {
 // TODO: write in terms of `recursive_transform`
 
 template <typename T, std::size_t Depth>
-struct recursive_type_sort_impl { typedef T type; };
+struct recursive_type_sort_impl { using type = T; };
 
 template <std::size_t Depth = std::numeric_limits<std::size_t>::max()>
 struct recursive_type_sort {
@@ -1795,7 +1823,7 @@ using full_recursive_type_sort = typename recursive_type_sort<>
  * Declaration of traits class used by `type_get`.
  *
  * This class should be specialized for new data structures so they are
- * supported by `type_get`. It must provide a member typedef `type` with
+ * supported by `type_get`. It must provide a member type `type` with
  * the `Index`-th type of the `TDataStructure` data structure.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
@@ -1821,10 +1849,10 @@ struct type_get_traits;
  *  type_list<int, void, bool> list;
  *
  *  // yields `bool`
- *  typedef third = type_get<2>::from<list>
+ *  using third = type_get<2>::from<list>;
  *
  *  // yields `int`
- *  typedef third = type_get<0>::from<list>
+ *  using first = type_get<0>::from<list>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -1970,119 +1998,6 @@ struct type_get_second_comparer {
 // IMPLEMENTATION DETAILS //
 ////////////////////////////
 
-///////////
-// apply //
-///////////
-
-namespace detail {
-
-template <template <typename> class T, typename U>
-struct apply_impl<T, U> { using type = T<U>; };
-
-template <template <typename, typename> class T, typename U0, typename U1>
-struct apply_impl<T, U0, U1> { using type = T<U0, U1>; };
-
-template <
-  template <typename, typename, typename> class T,
-  typename U0, typename U1, typename U2
->
-struct apply_impl<T, U0, U1, U2> { using type = T<U0, U1, U2>; };
-
-template <
-  template <typename, typename, typename, typename> class T,
-  typename U0, typename U1, typename U2, typename U3
->
-struct apply_impl<T, U0, U1, U2, U3> { using type = T<U0, U1, U2, U3>; };
-
-template <
-  template <typename, typename, typename, typename, typename> class T,
-  typename U0, typename U1, typename U2, typename U3, typename U4
->
-struct apply_impl<T, U0, U1, U2, U3, U4> {
-  using type = T<U0, U1, U2, U3, U4>;
-};
-
-template <
-  template <typename, typename, typename, typename, typename, typename> class T,
-  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5
->
-struct apply_impl<T, U0, U1, U2, U3, U4, U5> {
-  using type = T<U0, U1, U2, U3, U4, U5>;
-};
-
-template <
-  template <
-    typename, typename, typename, typename, typename, typename, typename
-  > class T,
-  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
-  typename V0
->
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0> {
-  using type = T<U0, U1, U2, U3, U4, U5, V0>;
-};
-
-template <
-  template <
-    typename, typename, typename, typename, typename, typename,
-    typename, typename
-  > class T,
-  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
-  typename V0, typename V1
->
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1> {
-  using type = T<U0, U1, U2, U3, U4, U5, V0, V1>;
-};
-
-template <
-  template <
-    typename, typename, typename, typename, typename, typename,
-    typename, typename, typename
-  > class T,
-  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
-  typename V0, typename V1, typename V2
->
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2> {
-  using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2>;
-};
-
-template <
-  template <
-    typename, typename, typename, typename, typename, typename,
-    typename, typename, typename, typename
-  > class T,
-  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
-  typename V0, typename V1, typename V2, typename V3
->
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3> {
-  using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3>;
-};
-
-template <
-  template <
-    typename, typename, typename, typename, typename, typename,
-    typename, typename, typename, typename, typename
-  > class T,
-  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
-  typename V0, typename V1, typename V2, typename V3, typename V4
->
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4> {
-  using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4>;
-};
-
-template <
-  template <
-    typename, typename, typename, typename, typename, typename,
-    typename, typename, typename, typename, typename, typename
-  > class T,
-  typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
-  typename V0, typename V1, typename V2, typename V3, typename V4, typename V5
->
-struct apply_impl<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
-  using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5>;
-};
-
-} // namespace detail {
-
 /////////////////////
 // type_get_traits //
 /////////////////////
@@ -2121,76 +2036,70 @@ struct type_get_traits<std::tuple<Args...>> {
   >::type;
 };
 
-// TODO: DOCUMENT AND TEST
-class check_compilability {
-  template <typename...> struct args;
+namespace detail {
+namespace check_compilability_impl {
 
-  template <template <typename...> class T>
-  struct unary_impl {
-    template <typename U, typename = T<U>>
-    static constexpr std::true_type sfinae(args<U> *) {
-      return std::true_type();
-    }
+template <typename...> struct args;
 
-    template <typename...>
-    static constexpr std::false_type sfinae(...) {
-      return std::false_type();
-    }
-  };
+template <template <typename...> class T, std::size_t Arity>
+struct checker {
+  static_assert(Arity > 0, "");
 
-  template <template <typename...> class T>
-  struct variadic_impl {
-    template <typename... Args, typename = T<Args...>>
-    static constexpr std::true_type sfinae(args<Args...> *) {
-      return std::true_type();
-    }
+  template <typename U, typename... Args, typename = T<U, Args...>>
+  static std::true_type sfinae(args<U, Args...> *);
 
-    template <typename...>
-    static constexpr std::false_type sfinae(...) {
-      return std::false_type();
-    }
-  };
+  template <typename... Args, typename = T<Args...>>
+  static std::true_type sfinae(args<Args...> *);
 
-  template <template <typename...> class T>
-  struct t_variadic_impl {
-    template <typename U, typename... Args, typename = T<U, Args...>>
-    static constexpr std::true_type sfinae(args<U, Args...> *) {
-      return std::true_type();
-    }
-
-    template <typename...>
-    static constexpr std::false_type sfinae(...) {
-      return std::false_type();
-    }
-  };
-
-public:
-  // TODO: UNIFY ALL INTERFACES BELOW
-
-  // TODO: DOCUMENT AND TEST
-  template <template <typename...> class T, typename U>
-  using unary_template = decltype(
-    unary_impl<T>::sfinae(static_cast<args<U> *>(nullptr))
-  );
-
-  // TODO: DOCUMENT AND TEST
-  template <template <typename...> class T, typename... Args>
-  using variadic_template = decltype(
-    variadic_impl<T>::sfinae(static_cast<args<Args...> *>(nullptr))
-  );
-  // TODO: DOCUMENT AND TEST
-  template <template <typename...> class T, typename U, typename... Args>
-  using t_variadic_template = decltype(
-    t_variadic_impl<T>::sfinae(static_cast<args<U, Args...> *>(nullptr))
-  );
+  template <typename...>
+  static std::false_type sfinae(...);
 };
+
+template <template <typename...> class T>
+struct checker<T, 1> {
+  template <typename U, typename = T<U>>
+  static std::true_type sfinae(args<U> *);
+
+  template <typename...>
+  static std::false_type sfinae(...);
+};
+
+template <template <typename...> class T>
+struct checker<T, 2> {
+  template <typename U0, typename U1, typename = T<U0, U1>>
+  static std::true_type sfinae(args<U0, U1> *);
+
+  template <typename...>
+  static std::false_type sfinae(...);
+};
+
+template <template <typename...> class T>
+struct checker<T, 3> {
+  template <typename U0, typename U1, typename U2, typename = T<U0, U1, U2>>
+  static std::true_type sfinae(args<U0, U1, U2> *);
+
+  template <typename...>
+  static std::false_type sfinae(...);
+};
+
+} // namespace check_compilability_impl {
+} // namespace detail {
+
+// TODO: DOCUMENT AND TEST
+template <template <typename...> class T, typename... Args>
+using check_compilability = decltype(
+  detail::check_compilability_impl::checker<T, sizeof...(Args)>::sfinae(
+    static_cast<detail::check_compilability_impl::args<Args...> *>(nullptr)
+  )
+);
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
 ////////////////////////////
 
 namespace detail {
-namespace arithmetic_transform_impl {
+namespace transform_impl {
+namespace arithmetic {
 
 /////////
 // add //
@@ -2294,9 +2203,9 @@ struct modulo<TLHS, TRHS> {
   >;
 };
 
-} // namespace arithmetic_transform_impl {
+} // namespace arithmetic {
 
-namespace logical_transform_impl {
+namespace logical {
 
 /////////
 // all //
@@ -2332,9 +2241,9 @@ struct any<> {
   using type = std::false_type;
 };
 
-} // logical_transform_impl logical_transform {
+} // logical {
 
-namespace bitwise_transform_impl {
+namespace bitwise {
 
 /////////
 // all //
@@ -2396,8 +2305,9 @@ struct diff<T> {
   >;
 };
 
-} // namespace bitwise_transform_impl {
+} // namespace bitwise {
+} // namespace transform_impl {
 } // namespace detail {
-} // namespace fatal
+} // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_transform_h

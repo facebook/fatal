@@ -22,11 +22,15 @@ FATAL_RICH_ENUM(
   (state2, 97),
   state3
 );
+FATAL_STR(test_enum_name, "test_enum");
 
 enum class custom_enum { field0, field1 = 37, field2 };
+FATAL_STR(custom_enum_name, "custom_enum");
 
 struct custom_enum_traits {
   using type = custom_enum;
+
+  using name = custom_enum_name;
 
   struct str {
     FATAL_STR(field0, "field0");
@@ -41,11 +45,26 @@ struct custom_enum_traits {
   >;
 };
 
-FATAL_REGISTER_ENUM_TRAITS(custom_enum_traits);
+struct custom_metadata {};
 
-///////////
-// enums //
-///////////
+FATAL_REGISTER_ENUM_TRAITS(custom_enum_traits, custom_metadata);
+
+FATAL_TEST(enums, has_enum_traits) {
+  FATAL_EXPECT_SAME<std::true_type, has_enum_traits<test_enum>>();
+  FATAL_EXPECT_SAME<std::true_type, has_enum_traits<custom_enum>>();
+  FATAL_EXPECT_SAME<std::false_type, has_enum_traits<void>>();
+}
+
+FATAL_TEST(enums, types) {
+  FATAL_EXPECT_SAME<test_enum, enum_traits<test_enum>::type>();
+  FATAL_EXPECT_SAME<custom_enum, enum_traits<custom_enum>::type>();
+
+  FATAL_EXPECT_SAME<test_enum_name, enum_traits<test_enum>::name>();
+  FATAL_EXPECT_SAME<custom_enum_name, enum_traits<custom_enum>::name>();
+
+  FATAL_EXPECT_SAME<void, enum_traits<test_enum>::metadata>();
+  FATAL_EXPECT_SAME<custom_metadata, enum_traits<custom_enum>::metadata>();
+}
 
 FATAL_TEST(enums, declare_enum) {
   FATAL_EXPECT_EQ(test_enum::state0, static_cast<test_enum>(0));

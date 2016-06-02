@@ -119,33 +119,33 @@ namespace test {
 #define FATAL_WARN_SAME \
   FATAL_IMPL_TEMPLATE_TEST(warning, same_type())
 
-#define FATAL_WARN_EQ(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(warning, is_equal(), LHS, RHS)
+#define FATAL_WARN_EQ(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(warning, is_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_WARN_NE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(warning, not_equal(), LHS, RHS)
+#define FATAL_WARN_NE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(warning, not_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_WARN_LT(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(warning, less_than(), LHS, RHS)
+#define FATAL_WARN_LT(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(warning, less_than(), LHS, __VA_ARGS__)
 
-#define FATAL_WARN_LE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(warning, less_equal(), LHS, RHS)
+#define FATAL_WARN_LE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(warning, less_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_WARN_GT(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(warning, greater_than(), LHS, RHS)
+#define FATAL_WARN_GT(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(warning, greater_than(), LHS, __VA_ARGS__)
 
-#define FATAL_WARN_GE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(warning, greater_equal(), LHS, RHS)
+#define FATAL_WARN_GE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(warning, greater_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_WARN_TEMPLATE_COMPILES(Arity, ...) \
-  FATAL_WARN_TRUE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_WARN_EQ_SAME(Type, LHS, ...) \
+  FATAL_WARN_SAME<Type, decltype(__VA_ARGS__)>(); \
+  FATAL_WARN_EQ(LHS, __VA_ARGS__)
 
-#define FATAL_WARN_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
-  FATAL_WARN_FALSE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_WARN_TEMPLATE_COMPILES(...) \
+  FATAL_WARN_TRUE((::fatal::check_compilability<__VA_ARGS__>::value))
+
+#define FATAL_WARN_TEMPLATE_DOESNT_COMPILE(...) \
+  FATAL_WARN_FALSE((::fatal::check_compilability<__VA_ARGS__>::value))
 
 
 #define FATAL_EXPECT_UNREACHABLE() \
@@ -174,33 +174,33 @@ namespace test {
 #define FATAL_EXPECT_SAME \
   FATAL_IMPL_TEMPLATE_TEST(expectation, same_type())
 
-#define FATAL_EXPECT_EQ(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(expectation, is_equal(), LHS, RHS)
+#define FATAL_EXPECT_EQ(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(expectation, is_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_EXPECT_NE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(expectation, not_equal(), LHS, RHS)
+#define FATAL_EXPECT_NE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(expectation, not_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_EXPECT_LT(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(expectation, less_than(), LHS, RHS)
+#define FATAL_EXPECT_LT(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(expectation, less_than(), LHS, __VA_ARGS__)
 
-#define FATAL_EXPECT_LE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(expectation, less_equal(), LHS, RHS)
+#define FATAL_EXPECT_LE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(expectation, less_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_EXPECT_GT(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(expectation, greater_than(), LHS, RHS)
+#define FATAL_EXPECT_GT(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(expectation, greater_than(), LHS, __VA_ARGS__)
 
-#define FATAL_EXPECT_GE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(expectation, greater_equal(), LHS, RHS)
+#define FATAL_EXPECT_GE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(expectation, greater_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_EXPECT_TEMPLATE_COMPILES(Arity, ...) \
-  FATAL_EXPECT_TRUE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_EXPECT_EQ_SAME(Type, LHS, ...) \
+  FATAL_EXPECT_SAME<Type, decltype(__VA_ARGS__)>(); \
+  FATAL_EXPECT_EQ(LHS, __VA_ARGS__)
 
-#define FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
-  FATAL_EXPECT_FALSE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_EXPECT_TEMPLATE_COMPILES(...) \
+  FATAL_EXPECT_TRUE((::fatal::check_compilability<__VA_ARGS__>::value))
+
+#define FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(...) \
+  FATAL_EXPECT_FALSE((::fatal::check_compilability<__VA_ARGS__>::value))
 
 
 #define FATAL_ASSERT_UNREACHABLE() \
@@ -227,35 +227,35 @@ namespace test {
 #define FATAL_ASSERT_SAME \
   FATAL_IMPL_TEMPLATE_TEST(assertion, same_type())
 
-#define FATAL_ASSERT_EQ(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(assertion, is_equal(), LHS, RHS)
+#define FATAL_ASSERT_EQ(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(assertion, is_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_ASSERT_NE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(assertion, not_equal(), LHS, RHS)
+#define FATAL_ASSERT_NE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(assertion, not_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_ASSERT_LT(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(assertion, less_than(), LHS, RHS)
+#define FATAL_ASSERT_LT(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(assertion, less_than(), LHS, __VA_ARGS__)
 
-#define FATAL_ASSERT_LE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(assertion, less_equal(), LHS, RHS)
+#define FATAL_ASSERT_LE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(assertion, less_equal(), LHS, __VA_ARGS__)
 
-#define FATAL_ASSERT_GT(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(assertion, greater_than(), LHS, RHS)
+#define FATAL_ASSERT_GT(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(assertion, greater_than(), LHS, __VA_ARGS__)
 
-#define FATAL_ASSERT_GE(LHS, RHS) \
-  FATAL_IMPL_BINARY_TEST(assertion, greater_equal(), LHS, RHS)
+#define FATAL_ASSERT_GE(LHS, ...) \
+  FATAL_IMPL_BINARY_TEST(assertion, greater_equal(), LHS, __VA_ARGS__)
 
-// TODO: FIX IT SO IT DISPLAYS THE PROPER MESSAGE OTHER THAN (is not true)
-#define FATAL_ASSERT_TEMPLATE_COMPILES(Arity, ...) \
-  FATAL_ASSERT_TRUE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_ASSERT_EQ_SAME(Type, LHS, ...) \
+  FATAL_ASSERT_SAME<Type, decltype(__VA_ARGS__)>(); \
+  FATAL_ASSERT_EQ(LHS, __VA_ARGS__)
 
 // TODO: FIX IT SO IT DISPLAYS THE PROPER MESSAGE OTHER THAN (is not true)
-#define FATAL_ASSERT_TEMPLATE_DOESNT_COMPILE(Arity, ...) \
-  FATAL_ASSERT_FALSE(( \
-    ::fatal::check_compilability::Arity##_template<__VA_ARGS__>::value \
-  ))
+#define FATAL_ASSERT_TEMPLATE_COMPILES(...) \
+  FATAL_ASSERT_TRUE((::fatal::check_compilability<__VA_ARGS__>::value))
+
+// TODO: FIX IT SO IT DISPLAYS THE PROPER MESSAGE OTHER THAN (is not true)
+#define FATAL_ASSERT_TEMPLATE_DOESNT_COMPILE(...) \
+  FATAL_ASSERT_FALSE((::fatal::check_compilability<__VA_ARGS__>::value))
 
 using clock = std::chrono::system_clock;
 using duration_t = clock::duration;
@@ -384,14 +384,14 @@ struct abort_test_run_exception {};
     ::std::tuple<char const *>(FATAL_TO_STR(Expression)) \
   ).check(Expression)
 
-#define FATAL_IMPL_BINARY_TEST(Category, Predicate, LHS, RHS) \
+#define FATAL_IMPL_BINARY_TEST(Category, Predicate, LHS, ...) \
   FATAL_IMPL_TEST_WRAP_CHECK( \
     Category, Predicate, \
     (::std::tuple<char const *, char const *>( \
       FATAL_TO_STR(LHS), \
-      FATAL_TO_STR(RHS) \
+      FATAL_TO_STR(__VA_ARGS__) \
     )) \
-  ).check((LHS), (RHS))
+  ).check((LHS), (__VA_ARGS__))
 
 #define FATAL_IMPL_TEMPLATE_TEST(Category, Predicate) \
   FATAL_IMPL_TEST_WRAP_CHECK(Category, Predicate, ::std::tuple<>()).check

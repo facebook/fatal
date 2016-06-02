@@ -11,7 +11,7 @@
 #define FATAL_INCLUDE_fatal_string_tokenizer_h
 
 #include <fatal/container/uninitialized.h>
-#include <fatal/string/string_ref.h>
+#include <fatal/string/string_view.h>
 #include <fatal/type/traits.h>
 
 #include <type_traits>
@@ -24,8 +24,8 @@ struct tokenizer {
   using token = Token;
   using delimiter = std::integral_constant<char, Delimiter>;
 
-  template <typename U, typename = safe_overload_t<tokenizer, U>>
-  explicit tokenizer(U &&data): data_(std::forward<U>(data)) {}
+  template <typename... Args, typename = safe_overload_t<tokenizer, Args...>>
+  explicit tokenizer(Args &&...args): data_(std::forward<Args>(args)...) {}
 
   struct const_iterator {
     const_iterator(const_iterator const &rhs):
@@ -40,7 +40,7 @@ struct tokenizer {
       token_.construct(std::move(*rhs.token_));
     }
 
-    explicit const_iterator(string_ref data):
+    explicit const_iterator(string_view data):
       data_(data)
     {
       token_.construct(data_.split_step(delimiter::value));
@@ -72,7 +72,7 @@ struct tokenizer {
     }
 
   private:
-    string_ref data_;
+    string_view data_;
     uninitialized<token, true> token_;
   };
 
@@ -81,7 +81,7 @@ struct tokenizer {
   const_iterator begin() const { return cbegin(); }
 
   const_iterator cend() const {
-    return const_iterator(string_ref(data_.end(), data_.end()));
+    return const_iterator(string_view(data_.end(), data_.end()));
   }
 
   const_iterator end() const { return cend(); }
@@ -96,14 +96,15 @@ struct tokenizer {
   bool operator !=(tokenizer const &rhs) const { return !(*this == rhs); }
 
 private:
-  string_ref data_;
+  string_view data_;
 };
 
 
-using space_tokenizer = tokenizer<string_ref, ' '>;
-using line_tokenizer = tokenizer<string_ref, '\n'>;
-using comma_tokenizer = tokenizer<string_ref, ','>;
-using colon_tokenizer = tokenizer<string_ref, ':'>;
+using colon_tokenizer = tokenizer<string_view, ':'>;
+using comma_tokenizer = tokenizer<string_view, ','>;
+using line_tokenizer = tokenizer<string_view, '\n'>;
+using semicolon_tokenizer = tokenizer<string_view, ';'>;
+using space_tokenizer = tokenizer<string_view, ' '>;
 
 using csv_tokenizer = tokenizer<comma_tokenizer, '\n'>;
 
