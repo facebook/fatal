@@ -67,6 +67,36 @@ matrix:
         COMPILER=g++-5
         CPP_STD=c++1z
 
+#    - os: linux
+#      compiler: gcc
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test']
+#          packages: ['g++-6']
+#      env:
+#        COMPILER=g++-6
+#        CPP_STD=c++11
+#
+#    - os: linux
+#      compiler: gcc
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test']
+#          packages: ['g++-6']
+#      env:
+#        COMPILER=g++-6
+#        CPP_STD=c++14
+#
+#    - os: linux
+#      compiler: gcc
+#      addons:
+#        apt:
+#          sources: ['ubuntu-toolchain-r-test']
+#          packages: ['g++-6']
+#      env:
+#        COMPILER=g++-6
+#        CPP_STD=c++1z
+
 # Disabling Travis' faulty clang 3.4
 #    - os: linux
 #      compiler: clang
