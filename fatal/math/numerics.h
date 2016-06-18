@@ -97,7 +97,7 @@ struct integral_reverser<T, EndPhase, U, EndPhase, Mask> {
 
 /**
  * Reverses the bytes of an integral in Big Theta(lg k), where k is the size of
- * the integral in bits.
+ * the integral in bytes.
  *
  * Example:
  *
