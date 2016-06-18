@@ -66,10 +66,10 @@ typename std::make_unsigned<T>::type unsigned_cast(T value) {
  * Example:
  *
  *  // yields `1`, assuming int is 32 bit
- *  auto result1 = reverse_integral(0b10000000000000000000000000000000);
+ *  auto result1 = reverse_integral_bits(0b10000000000000000000000000000000);
  *
  *  // yields `5000`
- *  auto result2 = reverse_integral<std::uint16_t>(0xa);
+ *  auto result2 = reverse_integral_bits<std::uint16_t>(0xa);
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -81,12 +81,12 @@ template <
   std::size_t Phase = ((sizeof(T) * CHAR_BIT) >> 1),
   U Mask = U(~U(0)) ^ U(U(~U(0)) << Phase)
 >
-struct integral_reverser {
+struct integral_bits_reverser {
   static_assert(sizeof(T) == sizeof(U), "internal error");
   static_assert(!(Phase & (Phase - 1)), "Phase must be a power of two");
   static_assert(std::is_integral<T>::value, "only integrals can be reversed");
 
-  using tail = integral_reverser<
+  using tail = integral_bits_reverser<
     T,
     U,
     (Phase >> 1),
@@ -101,15 +101,15 @@ struct integral_reverser {
 };
 
 template <typename T, typename U, U Mask>
-struct integral_reverser<T, U, 0, Mask> {
+struct integral_bits_reverser<T, U, 0, Mask> {
   static constexpr T reverse(T value) noexcept { return value; }
 };
 
 } // namespace detailreverse {
 
 template <typename T>
-T reverse_integral(T value) {
-  return detail::integral_reverser<T>::reverse(value);
+T reverse_integral_bits(T value) {
+  return detail::integral_bits_reverser<T>::reverse(value);
 }
 
 /**
