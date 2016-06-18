@@ -102,9 +102,9 @@ struct integral_reverser<T, EndPhase, U, EndPhase, Mask> {
  * Example:
  *
  *  // yields `1`, assuming int is 32 bit
- *  auto result1 = reverse_integral_bits(0b10000000000000000000000000000000);
+ *  auto result1 = reverse_integral_bits(0x01000000);
  *
- *  // yields `0100`
+ *  // yields `0x0a00`
  *  auto result2 = reverse_integral_bits<std::uint16_t>(0xa);
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
