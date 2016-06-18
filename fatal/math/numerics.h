@@ -60,8 +60,8 @@ typename std::make_unsigned<T>::type unsigned_cast(T value) {
 }
 
 /**
- * Reverses the bits of an integral in Theta(lg k), where k is the size of the
- * integral in bits.
+ * Reverses the bits of an integral in Big Theta(lg k), where k is the size of
+ * the integral in bits.
  *
  * Example:
  *
