@@ -196,7 +196,13 @@ public:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename T, typename Id, typename Getter, typename Setter>
+template <
+  typename T,
+  typename Id,
+  typename Getter,
+  typename Setter,
+  typename Metadata = void
+>
 struct variant_type_descriptor {
   using type = T;
 
@@ -204,6 +210,8 @@ struct variant_type_descriptor {
 
   using getter = Getter;
   using setter = Setter;
+
+  using metadata = Metadata;
 };
 
 } // namespace fatal
