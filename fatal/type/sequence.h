@@ -1050,7 +1050,7 @@ constexpr std::size_t size(T const (&)[Size]) {
       > *>(nullptr))); \
   }; \
   \
-  using Id = Class::type
+  using Id = typename Class::type
 
 #undef FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
 

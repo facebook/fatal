@@ -71,6 +71,27 @@ FATAL_STR(ws_56, L"-56");
   Fn<utf16_str>(UTF16_STR); \
   Fn<utf32_str>(UTF32_STR)
 
+///////////////
+// FATAL_STR //
+///////////////
+
+FATAL_STR(string_holder_s, "string_holder");
+FATAL_STR(templated_string_holder_s, "templated_string_holder");
+
+struct string_holder {
+  FATAL_STR(str, "string_holder");
+};
+
+template <typename = void>
+struct templated_string_holder {
+  FATAL_STR(str, "templated_string_holder");
+};
+
+FATAL_TEST(fatal_str, members) {
+  FATAL_EXPECT_SAME<string_holder_s, string_holder::str>();
+  FATAL_EXPECT_SAME<templated_string_holder_s, templated_string_holder<>::str>();
+}
+
 //////////////////////////////////////////
 // constant_sequence::type / value_type //
 //////////////////////////////////////////
