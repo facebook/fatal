@@ -168,26 +168,26 @@ public:
 
   using tags = typename map::keys;
 
+  // TODO: TEST
   template <typename Tag>
-  using id = typename map::template get<Tag>::id;
+  using descriptor = typename map::template get<Tag>;
 
   template <typename Tag>
-  using type = typename map::template get<Tag>::type;
+  using id = typename descriptor<Tag>::id;
+
+  template <typename Tag>
+  using type = typename descriptor<Tag>::type;
 
   template <typename Tag, typename U>
   static auto get(U &&variant)
-    -> decltype(
-      typename map::template get<Tag>::getter()(std::forward<U>(variant))
-    )
+    -> decltype(typename descriptor<Tag>::getter()(std::forward<U>(variant)))
   {
-    return typename map::template get<Tag>::getter()(std::forward<U>(variant));
+    return typename descriptor<Tag>::getter()(std::forward<U>(variant));
   }
 
   template <typename Tag, typename U, typename... Args>
   static void set(U &variant, Args &&...args) {
-    typename map::template get<Tag>::setter()(
-      variant, std::forward<Args>(args)...
-    );
+    typename descriptor<Tag>::setter()(variant, std::forward<Args>(args)...);
   }
 };
 
@@ -211,6 +211,7 @@ struct variant_type_descriptor {
   using getter = Getter;
   using setter = Setter;
 
+  // TODO: TEST
   using metadata = Metadata;
 };
 
