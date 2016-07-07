@@ -187,6 +187,7 @@ template <typename...> struct type_at;
 template <typename, typename...> struct contains;
 template <template <typename...> class, std::size_t, typename...>
 struct foreach_if;
+template <std::size_t, typename...> struct foreach;
 template <std::size_t, typename...> struct visit;
 template <std::size_t, typename...> struct indexed_transform;
 template <bool, template <typename...> class, typename, typename, typename...>
@@ -654,9 +655,9 @@ struct type_list {
    */
   template <typename V, typename... VArgs>
   static constexpr bool foreach(V &&visitor, VArgs &&...args) {
-    return foreach_if<
-      fixed_transform<std::true_type>::template apply
-    >(std::forward<V>(visitor), std::forward<VArgs>(args)...) != 0;
+    return detail::type_list_impl::foreach<0, Args...>::visit(
+      std::forward<V>(visitor), std::forward<VArgs>(args)...
+    ), sizeof...(Args) != 0;
   };
 
   /**
@@ -1925,6 +1926,25 @@ struct foreach_if<Predicate, Index, U, UArgs...> {
         visitor, indexed_type_tag<U, Index>(), args...
       ), visitor, args...
     );
+  }
+};
+
+/////////////
+// foreach //
+/////////////
+
+template <std::size_t Index, typename...>
+struct foreach {
+  template <typename V, typename... VArgs>
+  static void visit(V &&, VArgs &&...) {}
+};
+
+template <std::size_t Index, typename U, typename... UArgs>
+struct foreach<Index, U, UArgs...> {
+  template <typename V, typename... VArgs>
+  static void visit(V &&visitor, VArgs &&...args) {
+    visitor(indexed_type_tag<U, Index>(), args...);
+    foreach<Index + 1, UArgs...>::visit(visitor, args...);
   }
 };
 
