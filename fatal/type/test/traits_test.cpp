@@ -1445,6 +1445,7 @@ FATAL_TEST(data_member_getter, name) {
 # define TEST_IMPL(Field, ...) \
   do { \
     using getter = data_member_getter_test::getter::Field; \
+    \
     FATAL_EXPECT_SAME< \
       data_member_getter_test::getter_name::Field, \
       getter::name \
@@ -1463,110 +1464,67 @@ FATAL_TEST(data_member_getter, name) {
 }
 
 FATAL_TEST(data_member_getter, type) {
-# define TEST_PREAMBLE_IMPL(Field, ...) \
+# define TEST_IMPL(Owner, Field, ...) \
+  do { \
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     using chained_getter = chained_data_member_getter< \
       data_member_getter_test::getter::Field \
-    >;
-
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::type<data>>(); \
+    >; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<Owner>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::type<Owner>>(); \
   } while (false)
 
-  TEST_IMPL(i, int);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &&);
-  TEST_IMPL(dc, double const);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short>);
-  TEST_IMPL(fcr, float const &&);
+  TEST_IMPL(data, i, int);
+  TEST_IMPL(data, scl, std::string const &);
+  TEST_IMPL(data, lr, long &&);
+  TEST_IMPL(data, dc, double const);
+  TEST_IMPL(data, bl, bool &);
+  TEST_IMPL(data, v, std::vector<short>);
+  TEST_IMPL(data, fcr, float const &&);
+
+  TEST_IMPL(data &, i, int);
+  TEST_IMPL(data &, scl, std::string const &);
+  TEST_IMPL(data &, lr, long &&);
+  TEST_IMPL(data &, dc, double const);
+  TEST_IMPL(data &, bl, bool &);
+  TEST_IMPL(data &, v, std::vector<short>);
+  TEST_IMPL(data &, fcr, float const &&);
+
+  TEST_IMPL(data &&, i, int);
+  TEST_IMPL(data &&, scl, std::string const &);
+  TEST_IMPL(data &&, lr, long &&);
+  TEST_IMPL(data &&, dc, double const);
+  TEST_IMPL(data &&, bl, bool &);
+  TEST_IMPL(data &&, v, std::vector<short>);
+  TEST_IMPL(data &&, fcr, float const &&);
+
+  TEST_IMPL(data const, i, int);
+  TEST_IMPL(data const, scl, std::string const &);
+  TEST_IMPL(data const, lr, long &&);
+  TEST_IMPL(data const, dc, double const);
+  TEST_IMPL(data const, bl, bool &);
+  TEST_IMPL(data const, v, std::vector<short>);
+  TEST_IMPL(data const, fcr, float const &&);
+
+  TEST_IMPL(data const &, i, int);
+  TEST_IMPL(data const &, scl, std::string const &);
+  TEST_IMPL(data const &, lr, long &&);
+  TEST_IMPL(data const &, dc, double const);
+  TEST_IMPL(data const &, bl, bool &);
+  TEST_IMPL(data const &, v, std::vector<short>);
+  TEST_IMPL(data const &, fcr, float const &&);
+
+  TEST_IMPL(data const &&, i, int);
+  TEST_IMPL(data const &&, scl, std::string const &);
+  TEST_IMPL(data const &&, lr, long &&);
+  TEST_IMPL(data const &&, dc, double const);
+  TEST_IMPL(data const &&, bl, bool &);
+  TEST_IMPL(data const &&, v, std::vector<short>);
+  TEST_IMPL(data const &&, fcr, float const &&);
 
 # undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::type<data &>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &&);
-  TEST_IMPL(dc, double const);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short>);
-  TEST_IMPL(fcr, float const &&);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &&>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::type<data &&>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &&);
-  TEST_IMPL(dc, double const);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short>);
-  TEST_IMPL(fcr, float const &&);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::type<data const>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &&);
-  TEST_IMPL(dc, double const);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short>);
-  TEST_IMPL(fcr, float const &&);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const &>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::type<data const &>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &&);
-  TEST_IMPL(dc, double const);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short>);
-  TEST_IMPL(fcr, float const &&);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const &&>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::type<data const &&>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &&);
-  TEST_IMPL(dc, double const);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short>);
-  TEST_IMPL(fcr, float const &&);
-
-# undef TEST_IMPL
-# undef TEST_PREAMBLE_IMPL
 }
 
 FATAL_TEST(data_member_getter, has) {
@@ -1574,12 +1532,13 @@ FATAL_TEST(data_member_getter, has) {
   do { \
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
+    \
     FATAL_EXPECT_EQ(Expected, getter::has<Owner>::value); \
   } while (false)
   // TODO: for when chained_data_member_getter::has is implemented
-  // using chained_getter = chained_data_member_getter< \
-  //   data_member_getter_test::getter::Field \
-  // >; \
+  // using chained_getter = chained_data_member_getter<
+  //   data_member_getter_test::getter::Field
+  // >;
   // FATAL_EXPECT_EQ(Expected, chained_getter::has<Owner>::value);
 
   TEST_IMPL(data, i, true);
@@ -1652,220 +1611,131 @@ FATAL_TEST(data_member_getter, has) {
 }
 
 FATAL_TEST(data_member_getter, reference) {
-# define TEST_PREAMBLE_IMPL(Field, ...) \
+# define TEST_IMPL(Owner, Field, ...) \
+  do { \
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     using chained_getter = chained_data_member_getter< \
       data_member_getter_test::getter::Field \
-    >;
-
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::reference<data>>(); \
+    >; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<Owner>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::reference<Owner>>(); \
   } while (false)
 
-  TEST_IMPL(i, int &&);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &&);
-  TEST_IMPL(dc, double const &&);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short> &&);
-  TEST_IMPL(fcr, float const &&);
+  TEST_IMPL(data, i, int &&);
+  TEST_IMPL(data, scl, std::string const &);
+  TEST_IMPL(data, lr, long &&);
+  TEST_IMPL(data, dc, double const &&);
+  TEST_IMPL(data, bl, bool &);
+  TEST_IMPL(data, v, std::vector<short> &&);
+  TEST_IMPL(data, fcr, float const &&);
+
+  TEST_IMPL(data &, i, int &);
+  TEST_IMPL(data &, scl, std::string const &);
+  TEST_IMPL(data &, lr, long &);
+  TEST_IMPL(data &, dc, double const &);
+  TEST_IMPL(data &, bl, bool &);
+  TEST_IMPL(data &, v, std::vector<short> &);
+  TEST_IMPL(data &, fcr, float const &);
+
+  TEST_IMPL(data &&, i, int &&);
+  TEST_IMPL(data &&, scl, std::string const &);
+  TEST_IMPL(data &&, lr, long &&);
+  TEST_IMPL(data &&, dc, double const &&);
+  TEST_IMPL(data &&, bl, bool &);
+  TEST_IMPL(data &&, v, std::vector<short> &&);
+  TEST_IMPL(data &&, fcr, float const &&);
+
+  TEST_IMPL(data const, i, int const &&);
+  TEST_IMPL(data const, scl, std::string const &);
+  TEST_IMPL(data const, lr, long const &&);
+  TEST_IMPL(data const, dc, double const &&);
+  TEST_IMPL(data const, bl, bool const &);
+  TEST_IMPL(data const, v, std::vector<short> const &&);
+  TEST_IMPL(data const, fcr, float const &&);
+
+  TEST_IMPL(data const &, i, int const &);
+  TEST_IMPL(data const &, scl, std::string const &);
+  TEST_IMPL(data const &, lr, long const &);
+  TEST_IMPL(data const &, dc, double const &);
+  TEST_IMPL(data const &, bl, bool const &);
+  TEST_IMPL(data const &, v, std::vector<short> const &);
+  TEST_IMPL(data const &, fcr, float const &);
+
+  TEST_IMPL(data const &&, i, int const &&);
+  TEST_IMPL(data const &&, scl, std::string const &);
+  TEST_IMPL(data const &&, lr, long const &&);
+  TEST_IMPL(data const &&, dc, double const &&);
+  TEST_IMPL(data const &&, bl, bool const &);
+  TEST_IMPL(data const &&, v, std::vector<short> const &&);
+  TEST_IMPL(data const &&, fcr, float const &&);
 
 # undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::reference<data &>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int &);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &);
-  TEST_IMPL(dc, double const &);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short> &);
-  TEST_IMPL(fcr, float const &);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &&>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::reference<data &&>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int &&);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long &&);
-  TEST_IMPL(dc, double const &&);
-  TEST_IMPL(bl, bool &);
-  TEST_IMPL(v, std::vector<short> &&);
-  TEST_IMPL(fcr, float const &&);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::reference<data const>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int const &&);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long const &&);
-  TEST_IMPL(dc, double const &&);
-  TEST_IMPL(bl, bool const &);
-  TEST_IMPL(v, std::vector<short> const &&);
-  TEST_IMPL(fcr, float const &&);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const &>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::reference<data const &>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int const &);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long const &);
-  TEST_IMPL(dc, double const &);
-  TEST_IMPL(bl, bool const &);
-  TEST_IMPL(v, std::vector<short> const &);
-  TEST_IMPL(fcr, float const &);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const &&>>(); \
-    FATAL_EXPECT_SAME< \
-      __VA_ARGS__, \
-      chained_getter::reference<data const &&> \
-    >(); \
-  } while (false)
-
-  TEST_IMPL(i, int const &&);
-  TEST_IMPL(scl, std::string const &);
-  TEST_IMPL(lr, long const &&);
-  TEST_IMPL(dc, double const &&);
-  TEST_IMPL(bl, bool const &);
-  TEST_IMPL(v, std::vector<short> const &&);
-  TEST_IMPL(fcr, float const &&);
-
-# undef TEST_IMPL
-# undef TEST_PREAMBLE_IMPL
 }
 
 FATAL_TEST(data_member_getter, pointer) {
-# define TEST_PREAMBLE_IMPL(Field, ...) \
+# define TEST_IMPL(Owner, Field, ...) \
+  do { \
     using getter = data_member_getter_test::getter::Field; \
     using data = data_member_getter_test::data; \
     using chained_getter = chained_data_member_getter< \
       data_member_getter_test::getter::Field \
-    >;
-
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::pointer<data>>(); \
+    >; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<Owner>>(); \
+    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::pointer<Owner>>(); \
   } while (false)
 
-  TEST_IMPL(i, int *);
-  TEST_IMPL(scl, std::string const *);
-  TEST_IMPL(lr, long *);
-  TEST_IMPL(dc, double const *);
-  TEST_IMPL(bl, bool *);
-  TEST_IMPL(v, std::vector<short> *);
-  TEST_IMPL(fcr, float const *);
+  TEST_IMPL(data, i, int *);
+  TEST_IMPL(data, scl, std::string const *);
+  TEST_IMPL(data, lr, long *);
+  TEST_IMPL(data, dc, double const *);
+  TEST_IMPL(data, bl, bool *);
+  TEST_IMPL(data, v, std::vector<short> *);
+  TEST_IMPL(data, fcr, float const *);
+
+  TEST_IMPL(data &, i, int *);
+  TEST_IMPL(data &, scl, std::string const *);
+  TEST_IMPL(data &, lr, long *);
+  TEST_IMPL(data &, dc, double const *);
+  TEST_IMPL(data &, bl, bool *);
+  TEST_IMPL(data &, v, std::vector<short> *);
+  TEST_IMPL(data &, fcr, float const *);
+
+  TEST_IMPL(data &&, i, int *);
+  TEST_IMPL(data &&, scl, std::string const *);
+  TEST_IMPL(data &&, lr, long *);
+  TEST_IMPL(data &&, dc, double const *);
+  TEST_IMPL(data &&, bl, bool *);
+  TEST_IMPL(data &&, v, std::vector<short> *);
+  TEST_IMPL(data &&, fcr, float const *);
+
+  TEST_IMPL(data const, i, int const *);
+  TEST_IMPL(data const, scl, std::string const *);
+  TEST_IMPL(data const, lr, long const *);
+  TEST_IMPL(data const, dc, double const *);
+  TEST_IMPL(data const, bl, bool const *);
+  TEST_IMPL(data const, v, std::vector<short> const *);
+  TEST_IMPL(data const, fcr, float const *);
+
+  TEST_IMPL(data const &, i, int const *);
+  TEST_IMPL(data const &, scl, std::string const *);
+  TEST_IMPL(data const &, lr, long const *);
+  TEST_IMPL(data const &, dc, double const *);
+  TEST_IMPL(data const &, bl, bool const *);
+  TEST_IMPL(data const &, v, std::vector<short> const *);
+  TEST_IMPL(data const &, fcr, float const *);
+
+  TEST_IMPL(data const &&, i, int const *);
+  TEST_IMPL(data const &&, scl, std::string const *);
+  TEST_IMPL(data const &&, lr, long const *);
+  TEST_IMPL(data const &&, dc, double const *);
+  TEST_IMPL(data const &&, bl, bool const *);
+  TEST_IMPL(data const &&, v, std::vector<short> const *);
+  TEST_IMPL(data const &&, fcr, float const *);
 
 # undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::pointer<data &>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int *);
-  TEST_IMPL(scl, std::string const *);
-  TEST_IMPL(lr, long *);
-  TEST_IMPL(dc, double const *);
-  TEST_IMPL(bl, bool *);
-  TEST_IMPL(v, std::vector<short> *);
-  TEST_IMPL(fcr, float const *);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &&>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::pointer<data &&>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int *);
-  TEST_IMPL(scl, std::string const *);
-  TEST_IMPL(lr, long *);
-  TEST_IMPL(dc, double const *);
-  TEST_IMPL(bl, bool *);
-  TEST_IMPL(v, std::vector<short> *);
-  TEST_IMPL(fcr, float const *);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::pointer<data const>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int const *);
-  TEST_IMPL(scl, std::string const *);
-  TEST_IMPL(lr, long const *);
-  TEST_IMPL(dc, double const *);
-  TEST_IMPL(bl, bool const *);
-  TEST_IMPL(v, std::vector<short> const *);
-  TEST_IMPL(fcr, float const *);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const &>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::pointer<data const &>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int const *);
-  TEST_IMPL(scl, std::string const *);
-  TEST_IMPL(lr, long const *);
-  TEST_IMPL(dc, double const *);
-  TEST_IMPL(bl, bool const *);
-  TEST_IMPL(v, std::vector<short> const *);
-  TEST_IMPL(fcr, float const *);
-
-# undef TEST_IMPL
-# define TEST_IMPL(Field, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Field, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const &&>>(); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, chained_getter::pointer<data const &&>>(); \
-  } while (false)
-
-  TEST_IMPL(i, int const *);
-  TEST_IMPL(scl, std::string const *);
-  TEST_IMPL(lr, long const *);
-  TEST_IMPL(dc, double const *);
-  TEST_IMPL(bl, bool const *);
-  TEST_IMPL(v, std::vector<short> const *);
-  TEST_IMPL(fcr, float const *);
-
-# undef TEST_IMPL
-# undef TEST_PREAMBLE_IMPL
 }
 
 FATAL_TEST(data_member_getter, getter) {
@@ -2227,296 +2097,258 @@ FATAL_TEST(chained_data_member_getter, type) {
 
 # undef TEST_IMPL
 
-# define TEST_PREAMBLE_IMPL(Outer, Inner, ...) \
+# define TEST_IMPL(Owner, Outer, Inner, ...) \
+  do { \
     using data = data_member_getter_test::chained_data; \
     using getter = chained_data_member_getter< \
       data_member_getter_test::getter::Outer, \
       data_member_getter_test::getter::Inner \
-    >;
-
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data>>(); \
+    >; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<Owner>>(); \
   } while (false)
 
-  TEST_IMPL(d, i, int);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &&);
-  TEST_IMPL(d, dc, double const);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short>);
-  TEST_IMPL(d, fcr, float const &&);
+  TEST_IMPL(data, d, i, int);
+  TEST_IMPL(data, d, scl, std::string const &);
+  TEST_IMPL(data, d, lr, long &&);
+  TEST_IMPL(data, d, dc, double const);
+  TEST_IMPL(data, d, bl, bool &);
+  TEST_IMPL(data, d, v, std::vector<short>);
+  TEST_IMPL(data, d, fcr, float const &&);
 
-  TEST_IMPL(l, i, int);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &&);
-  TEST_IMPL(l, dc, double const);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short>);
-  TEST_IMPL(l, fcr, float const &&);
+  TEST_IMPL(data, l, i, int);
+  TEST_IMPL(data, l, scl, std::string const &);
+  TEST_IMPL(data, l, lr, long &&);
+  TEST_IMPL(data, l, dc, double const);
+  TEST_IMPL(data, l, bl, bool &);
+  TEST_IMPL(data, l, v, std::vector<short>);
+  TEST_IMPL(data, l, fcr, float const &&);
 
-  TEST_IMPL(r, i, int);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &&);
-  TEST_IMPL(r, dc, double const);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short>);
-  TEST_IMPL(r, fcr, float const &&);
+  TEST_IMPL(data, r, i, int);
+  TEST_IMPL(data, r, scl, std::string const &);
+  TEST_IMPL(data, r, lr, long &&);
+  TEST_IMPL(data, r, dc, double const);
+  TEST_IMPL(data, r, bl, bool &);
+  TEST_IMPL(data, r, v, std::vector<short>);
+  TEST_IMPL(data, r, fcr, float const &&);
 
-  TEST_IMPL(cl, i, int);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long &&);
-  TEST_IMPL(cl, dc, double const);
-  TEST_IMPL(cl, bl, bool &);
-  TEST_IMPL(cl, v, std::vector<short>);
-  TEST_IMPL(cl, fcr, float const &&);
+  TEST_IMPL(data, cl, i, int);
+  TEST_IMPL(data, cl, scl, std::string const &);
+  TEST_IMPL(data, cl, lr, long &&);
+  TEST_IMPL(data, cl, dc, double const);
+  TEST_IMPL(data, cl, bl, bool &);
+  TEST_IMPL(data, cl, v, std::vector<short>);
+  TEST_IMPL(data, cl, fcr, float const &&);
 
-  TEST_IMPL(cr, i, int);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long &&);
-  TEST_IMPL(cr, dc, double const);
-  TEST_IMPL(cr, bl, bool &);
-  TEST_IMPL(cr, v, std::vector<short>);
-  TEST_IMPL(cr, fcr, float const &&);
+  TEST_IMPL(data, cr, i, int);
+  TEST_IMPL(data, cr, scl, std::string const &);
+  TEST_IMPL(data, cr, lr, long &&);
+  TEST_IMPL(data, cr, dc, double const);
+  TEST_IMPL(data, cr, bl, bool &);
+  TEST_IMPL(data, cr, v, std::vector<short>);
+  TEST_IMPL(data, cr, fcr, float const &&);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &>>(); \
-  } while (false)
+  TEST_IMPL(data &, d, i, int);
+  TEST_IMPL(data &, d, scl, std::string const &);
+  TEST_IMPL(data &, d, lr, long &&);
+  TEST_IMPL(data &, d, dc, double const);
+  TEST_IMPL(data &, d, bl, bool &);
+  TEST_IMPL(data &, d, v, std::vector<short>);
+  TEST_IMPL(data &, d, fcr, float const &&);
 
-  TEST_IMPL(d, i, int);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &&);
-  TEST_IMPL(d, dc, double const);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short>);
-  TEST_IMPL(d, fcr, float const &&);
+  TEST_IMPL(data &, l, i, int);
+  TEST_IMPL(data &, l, scl, std::string const &);
+  TEST_IMPL(data &, l, lr, long &&);
+  TEST_IMPL(data &, l, dc, double const);
+  TEST_IMPL(data &, l, bl, bool &);
+  TEST_IMPL(data &, l, v, std::vector<short>);
+  TEST_IMPL(data &, l, fcr, float const &&);
 
-  TEST_IMPL(l, i, int);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &&);
-  TEST_IMPL(l, dc, double const);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short>);
-  TEST_IMPL(l, fcr, float const &&);
+  TEST_IMPL(data &, r, i, int);
+  TEST_IMPL(data &, r, scl, std::string const &);
+  TEST_IMPL(data &, r, lr, long &&);
+  TEST_IMPL(data &, r, dc, double const);
+  TEST_IMPL(data &, r, bl, bool &);
+  TEST_IMPL(data &, r, v, std::vector<short>);
+  TEST_IMPL(data &, r, fcr, float const &&);
 
-  TEST_IMPL(r, i, int);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &&);
-  TEST_IMPL(r, dc, double const);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short>);
-  TEST_IMPL(r, fcr, float const &&);
+  TEST_IMPL(data &, cl, i, int);
+  TEST_IMPL(data &, cl, scl, std::string const &);
+  TEST_IMPL(data &, cl, lr, long &&);
+  TEST_IMPL(data &, cl, dc, double const);
+  TEST_IMPL(data &, cl, bl, bool &);
+  TEST_IMPL(data &, cl, v, std::vector<short>);
+  TEST_IMPL(data &, cl, fcr, float const &&);
 
-  TEST_IMPL(cl, i, int);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long &&);
-  TEST_IMPL(cl, dc, double const);
-  TEST_IMPL(cl, bl, bool &);
-  TEST_IMPL(cl, v, std::vector<short>);
-  TEST_IMPL(cl, fcr, float const &&);
+  TEST_IMPL(data &, cr, i, int);
+  TEST_IMPL(data &, cr, scl, std::string const &);
+  TEST_IMPL(data &, cr, lr, long &&);
+  TEST_IMPL(data &, cr, dc, double const);
+  TEST_IMPL(data &, cr, bl, bool &);
+  TEST_IMPL(data &, cr, v, std::vector<short>);
+  TEST_IMPL(data &, cr, fcr, float const &&);
 
-  TEST_IMPL(cr, i, int);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long &&);
-  TEST_IMPL(cr, dc, double const);
-  TEST_IMPL(cr, bl, bool &);
-  TEST_IMPL(cr, v, std::vector<short>);
-  TEST_IMPL(cr, fcr, float const &&);
+  TEST_IMPL(data &&, d, i, int);
+  TEST_IMPL(data &&, d, scl, std::string const &);
+  TEST_IMPL(data &&, d, lr, long &&);
+  TEST_IMPL(data &&, d, dc, double const);
+  TEST_IMPL(data &&, d, bl, bool &);
+  TEST_IMPL(data &&, d, v, std::vector<short>);
+  TEST_IMPL(data &&, d, fcr, float const &&);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data &&>>(); \
-  } while (false)
+  TEST_IMPL(data &&, l, i, int);
+  TEST_IMPL(data &&, l, scl, std::string const &);
+  TEST_IMPL(data &&, l, lr, long &&);
+  TEST_IMPL(data &&, l, dc, double const);
+  TEST_IMPL(data &&, l, bl, bool &);
+  TEST_IMPL(data &&, l, v, std::vector<short>);
+  TEST_IMPL(data &&, l, fcr, float const &&);
 
-  TEST_IMPL(d, i, int);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &&);
-  TEST_IMPL(d, dc, double const);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short>);
-  TEST_IMPL(d, fcr, float const &&);
+  TEST_IMPL(data &&, r, i, int);
+  TEST_IMPL(data &&, r, scl, std::string const &);
+  TEST_IMPL(data &&, r, lr, long &&);
+  TEST_IMPL(data &&, r, dc, double const);
+  TEST_IMPL(data &&, r, bl, bool &);
+  TEST_IMPL(data &&, r, v, std::vector<short>);
+  TEST_IMPL(data &&, r, fcr, float const &&);
 
-  TEST_IMPL(l, i, int);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &&);
-  TEST_IMPL(l, dc, double const);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short>);
-  TEST_IMPL(l, fcr, float const &&);
+  TEST_IMPL(data &&, cl, i, int);
+  TEST_IMPL(data &&, cl, scl, std::string const &);
+  TEST_IMPL(data &&, cl, lr, long &&);
+  TEST_IMPL(data &&, cl, dc, double const);
+  TEST_IMPL(data &&, cl, bl, bool &);
+  TEST_IMPL(data &&, cl, v, std::vector<short>);
+  TEST_IMPL(data &&, cl, fcr, float const &&);
 
-  TEST_IMPL(r, i, int);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &&);
-  TEST_IMPL(r, dc, double const);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short>);
-  TEST_IMPL(r, fcr, float const &&);
+  TEST_IMPL(data &&, cr, i, int);
+  TEST_IMPL(data &&, cr, scl, std::string const &);
+  TEST_IMPL(data &&, cr, lr, long &&);
+  TEST_IMPL(data &&, cr, dc, double const);
+  TEST_IMPL(data &&, cr, bl, bool &);
+  TEST_IMPL(data &&, cr, v, std::vector<short>);
+  TEST_IMPL(data &&, cr, fcr, float const &&);
 
-  TEST_IMPL(cl, i, int);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long &&);
-  TEST_IMPL(cl, dc, double const);
-  TEST_IMPL(cl, bl, bool &);
-  TEST_IMPL(cl, v, std::vector<short>);
-  TEST_IMPL(cl, fcr, float const &&);
+  TEST_IMPL(data const, d, i, int);
+  TEST_IMPL(data const, d, scl, std::string const &);
+  TEST_IMPL(data const, d, lr, long &&);
+  TEST_IMPL(data const, d, dc, double const);
+  TEST_IMPL(data const, d, bl, bool &);
+  TEST_IMPL(data const, d, v, std::vector<short>);
+  TEST_IMPL(data const, d, fcr, float const &&);
 
-  TEST_IMPL(cr, i, int);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long &&);
-  TEST_IMPL(cr, dc, double const);
-  TEST_IMPL(cr, bl, bool &);
-  TEST_IMPL(cr, v, std::vector<short>);
-  TEST_IMPL(cr, fcr, float const &&);
+  TEST_IMPL(data const, l, i, int);
+  TEST_IMPL(data const, l, scl, std::string const &);
+  TEST_IMPL(data const, l, lr, long &&);
+  TEST_IMPL(data const, l, dc, double const);
+  TEST_IMPL(data const, l, bl, bool &);
+  TEST_IMPL(data const, l, v, std::vector<short>);
+  TEST_IMPL(data const, l, fcr, float const &&);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const>>(); \
-  } while (false)
+  TEST_IMPL(data const, r, i, int);
+  TEST_IMPL(data const, r, scl, std::string const &);
+  TEST_IMPL(data const, r, lr, long &&);
+  TEST_IMPL(data const, r, dc, double const);
+  TEST_IMPL(data const, r, bl, bool &);
+  TEST_IMPL(data const, r, v, std::vector<short>);
+  TEST_IMPL(data const, r, fcr, float const &&);
 
-  TEST_IMPL(d, i, int);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &&);
-  TEST_IMPL(d, dc, double const);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short>);
-  TEST_IMPL(d, fcr, float const &&);
+  TEST_IMPL(data const, cl, i, int);
+  TEST_IMPL(data const, cl, scl, std::string const &);
+  TEST_IMPL(data const, cl, lr, long &&);
+  TEST_IMPL(data const, cl, dc, double const);
+  TEST_IMPL(data const, cl, bl, bool &);
+  TEST_IMPL(data const, cl, v, std::vector<short>);
+  TEST_IMPL(data const, cl, fcr, float const &&);
 
-  TEST_IMPL(l, i, int);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &&);
-  TEST_IMPL(l, dc, double const);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short>);
-  TEST_IMPL(l, fcr, float const &&);
+  TEST_IMPL(data const, cr, i, int);
+  TEST_IMPL(data const, cr, scl, std::string const &);
+  TEST_IMPL(data const, cr, lr, long &&);
+  TEST_IMPL(data const, cr, dc, double const);
+  TEST_IMPL(data const, cr, bl, bool &);
+  TEST_IMPL(data const, cr, v, std::vector<short>);
+  TEST_IMPL(data const, cr, fcr, float const &&);
 
-  TEST_IMPL(r, i, int);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &&);
-  TEST_IMPL(r, dc, double const);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short>);
-  TEST_IMPL(r, fcr, float const &&);
+  TEST_IMPL(data const &, d, i, int);
+  TEST_IMPL(data const &, d, scl, std::string const &);
+  TEST_IMPL(data const &, d, lr, long &&);
+  TEST_IMPL(data const &, d, dc, double const);
+  TEST_IMPL(data const &, d, bl, bool &);
+  TEST_IMPL(data const &, d, v, std::vector<short>);
+  TEST_IMPL(data const &, d, fcr, float const &&);
 
-  TEST_IMPL(cl, i, int);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long &&);
-  TEST_IMPL(cl, dc, double const);
-  TEST_IMPL(cl, bl, bool &);
-  TEST_IMPL(cl, v, std::vector<short>);
-  TEST_IMPL(cl, fcr, float const &&);
+  TEST_IMPL(data const &, l, i, int);
+  TEST_IMPL(data const &, l, scl, std::string const &);
+  TEST_IMPL(data const &, l, lr, long &&);
+  TEST_IMPL(data const &, l, dc, double const);
+  TEST_IMPL(data const &, l, bl, bool &);
+  TEST_IMPL(data const &, l, v, std::vector<short>);
+  TEST_IMPL(data const &, l, fcr, float const &&);
 
-  TEST_IMPL(cr, i, int);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long &&);
-  TEST_IMPL(cr, dc, double const);
-  TEST_IMPL(cr, bl, bool &);
-  TEST_IMPL(cr, v, std::vector<short>);
-  TEST_IMPL(cr, fcr, float const &&);
+  TEST_IMPL(data const &, r, i, int);
+  TEST_IMPL(data const &, r, scl, std::string const &);
+  TEST_IMPL(data const &, r, lr, long &&);
+  TEST_IMPL(data const &, r, dc, double const);
+  TEST_IMPL(data const &, r, bl, bool &);
+  TEST_IMPL(data const &, r, v, std::vector<short>);
+  TEST_IMPL(data const &, r, fcr, float const &&);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const &>>(); \
-  } while (false)
+  TEST_IMPL(data const &, cl, i, int);
+  TEST_IMPL(data const &, cl, scl, std::string const &);
+  TEST_IMPL(data const &, cl, lr, long &&);
+  TEST_IMPL(data const &, cl, dc, double const);
+  TEST_IMPL(data const &, cl, bl, bool &);
+  TEST_IMPL(data const &, cl, v, std::vector<short>);
+  TEST_IMPL(data const &, cl, fcr, float const &&);
 
-  TEST_IMPL(d, i, int);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &&);
-  TEST_IMPL(d, dc, double const);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short>);
-  TEST_IMPL(d, fcr, float const &&);
+  TEST_IMPL(data const &, cr, i, int);
+  TEST_IMPL(data const &, cr, scl, std::string const &);
+  TEST_IMPL(data const &, cr, lr, long &&);
+  TEST_IMPL(data const &, cr, dc, double const);
+  TEST_IMPL(data const &, cr, bl, bool &);
+  TEST_IMPL(data const &, cr, v, std::vector<short>);
+  TEST_IMPL(data const &, cr, fcr, float const &&);
 
-  TEST_IMPL(l, i, int);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &&);
-  TEST_IMPL(l, dc, double const);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short>);
-  TEST_IMPL(l, fcr, float const &&);
+  TEST_IMPL(data const &&, d, i, int);
+  TEST_IMPL(data const &&, d, scl, std::string const &);
+  TEST_IMPL(data const &&, d, lr, long &&);
+  TEST_IMPL(data const &&, d, dc, double const);
+  TEST_IMPL(data const &&, d, bl, bool &);
+  TEST_IMPL(data const &&, d, v, std::vector<short>);
+  TEST_IMPL(data const &&, d, fcr, float const &&);
 
-  TEST_IMPL(r, i, int);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &&);
-  TEST_IMPL(r, dc, double const);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short>);
-  TEST_IMPL(r, fcr, float const &&);
+  TEST_IMPL(data const &&, l, i, int);
+  TEST_IMPL(data const &&, l, scl, std::string const &);
+  TEST_IMPL(data const &&, l, lr, long &&);
+  TEST_IMPL(data const &&, l, dc, double const);
+  TEST_IMPL(data const &&, l, bl, bool &);
+  TEST_IMPL(data const &&, l, v, std::vector<short>);
+  TEST_IMPL(data const &&, l, fcr, float const &&);
 
-  TEST_IMPL(cl, i, int);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long &&);
-  TEST_IMPL(cl, dc, double const);
-  TEST_IMPL(cl, bl, bool &);
-  TEST_IMPL(cl, v, std::vector<short>);
-  TEST_IMPL(cl, fcr, float const &&);
+  TEST_IMPL(data const &&, r, i, int);
+  TEST_IMPL(data const &&, r, scl, std::string const &);
+  TEST_IMPL(data const &&, r, lr, long &&);
+  TEST_IMPL(data const &&, r, dc, double const);
+  TEST_IMPL(data const &&, r, bl, bool &);
+  TEST_IMPL(data const &&, r, v, std::vector<short>);
+  TEST_IMPL(data const &&, r, fcr, float const &&);
 
-  TEST_IMPL(cr, i, int);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long &&);
-  TEST_IMPL(cr, dc, double const);
-  TEST_IMPL(cr, bl, bool &);
-  TEST_IMPL(cr, v, std::vector<short>);
-  TEST_IMPL(cr, fcr, float const &&);
+  TEST_IMPL(data const &&, cl, i, int);
+  TEST_IMPL(data const &&, cl, scl, std::string const &);
+  TEST_IMPL(data const &&, cl, lr, long &&);
+  TEST_IMPL(data const &&, cl, dc, double const);
+  TEST_IMPL(data const &&, cl, bl, bool &);
+  TEST_IMPL(data const &&, cl, v, std::vector<short>);
+  TEST_IMPL(data const &&, cl, fcr, float const &&);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::type<data const &&>>(); \
-  } while (false)
-
-  TEST_IMPL(d, i, int);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &&);
-  TEST_IMPL(d, dc, double const);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short>);
-  TEST_IMPL(d, fcr, float const &&);
-
-  TEST_IMPL(l, i, int);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &&);
-  TEST_IMPL(l, dc, double const);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short>);
-  TEST_IMPL(l, fcr, float const &&);
-
-  TEST_IMPL(r, i, int);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &&);
-  TEST_IMPL(r, dc, double const);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short>);
-  TEST_IMPL(r, fcr, float const &&);
-
-  TEST_IMPL(cl, i, int);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long &&);
-  TEST_IMPL(cl, dc, double const);
-  TEST_IMPL(cl, bl, bool &);
-  TEST_IMPL(cl, v, std::vector<short>);
-  TEST_IMPL(cl, fcr, float const &&);
-
-  TEST_IMPL(cr, i, int);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long &&);
-  TEST_IMPL(cr, dc, double const);
-  TEST_IMPL(cr, bl, bool &);
-  TEST_IMPL(cr, v, std::vector<short>);
-  TEST_IMPL(cr, fcr, float const &&);
+  TEST_IMPL(data const &&, cr, i, int);
+  TEST_IMPL(data const &&, cr, scl, std::string const &);
+  TEST_IMPL(data const &&, cr, lr, long &&);
+  TEST_IMPL(data const &&, cr, dc, double const);
+  TEST_IMPL(data const &&, cr, bl, bool &);
+  TEST_IMPL(data const &&, cr, v, std::vector<short>);
+  TEST_IMPL(data const &&, cr, fcr, float const &&);
 
 # undef TEST_IMPL
-# undef TEST_PREAMBLE_IMPL
 }
 
 FATAL_TEST(chained_data_member_getter, reference) {
@@ -2536,296 +2368,258 @@ FATAL_TEST(chained_data_member_getter, reference) {
 
 # undef TEST_IMPL
 
-# define TEST_PREAMBLE_IMPL(Outer, Inner, ...) \
+# define TEST_IMPL(Owner, Outer, Inner, ...) \
+  do { \
     using data = data_member_getter_test::chained_data; \
     using getter = chained_data_member_getter< \
       data_member_getter_test::getter::Outer, \
       data_member_getter_test::getter::Inner \
-    >;
-
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data>>(); \
+    >; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<Owner>>(); \
   } while (false)
 
-  TEST_IMPL(d, i, int &&);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &&);
-  TEST_IMPL(d, dc, double const &&);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short> &&);
-  TEST_IMPL(d, fcr, float const &&);
+  TEST_IMPL(data, d, i, int &&);
+  TEST_IMPL(data, d, scl, std::string const &);
+  TEST_IMPL(data, d, lr, long &&);
+  TEST_IMPL(data, d, dc, double const &&);
+  TEST_IMPL(data, d, bl, bool &);
+  TEST_IMPL(data, d, v, std::vector<short> &&);
+  TEST_IMPL(data, d, fcr, float const &&);
 
-  TEST_IMPL(l, i, int &);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &);
-  TEST_IMPL(l, dc, double const &);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short> &);
-  TEST_IMPL(l, fcr, float const &);
+  TEST_IMPL(data, l, i, int &);
+  TEST_IMPL(data, l, scl, std::string const &);
+  TEST_IMPL(data, l, lr, long &);
+  TEST_IMPL(data, l, dc, double const &);
+  TEST_IMPL(data, l, bl, bool &);
+  TEST_IMPL(data, l, v, std::vector<short> &);
+  TEST_IMPL(data, l, fcr, float const &);
 
-  TEST_IMPL(r, i, int &&);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &&);
-  TEST_IMPL(r, dc, double const &&);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short> &&);
-  TEST_IMPL(r, fcr, float const &&);
+  TEST_IMPL(data, r, i, int &&);
+  TEST_IMPL(data, r, scl, std::string const &);
+  TEST_IMPL(data, r, lr, long &&);
+  TEST_IMPL(data, r, dc, double const &&);
+  TEST_IMPL(data, r, bl, bool &);
+  TEST_IMPL(data, r, v, std::vector<short> &&);
+  TEST_IMPL(data, r, fcr, float const &&);
 
-  TEST_IMPL(cl, i, int const &);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long const &);
-  TEST_IMPL(cl, dc, double const &);
-  TEST_IMPL(cl, bl, bool const &);
-  TEST_IMPL(cl, v, std::vector<short> const &);
-  TEST_IMPL(cl, fcr, float const &);
+  TEST_IMPL(data, cl, i, int const &);
+  TEST_IMPL(data, cl, scl, std::string const &);
+  TEST_IMPL(data, cl, lr, long const &);
+  TEST_IMPL(data, cl, dc, double const &);
+  TEST_IMPL(data, cl, bl, bool const &);
+  TEST_IMPL(data, cl, v, std::vector<short> const &);
+  TEST_IMPL(data, cl, fcr, float const &);
 
-  TEST_IMPL(cr, i, int const &&);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long const &&);
-  TEST_IMPL(cr, dc, double const &&);
-  TEST_IMPL(cr, bl, bool const &);
-  TEST_IMPL(cr, v, std::vector<short> const &&);
-  TEST_IMPL(cr, fcr, float const &&);
+  TEST_IMPL(data, cr, i, int const &&);
+  TEST_IMPL(data, cr, scl, std::string const &);
+  TEST_IMPL(data, cr, lr, long const &&);
+  TEST_IMPL(data, cr, dc, double const &&);
+  TEST_IMPL(data, cr, bl, bool const &);
+  TEST_IMPL(data, cr, v, std::vector<short> const &&);
+  TEST_IMPL(data, cr, fcr, float const &&);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &>>(); \
-  } while (false)
+  TEST_IMPL(data &, d, i, int &);
+  TEST_IMPL(data &, d, scl, std::string const &);
+  TEST_IMPL(data &, d, lr, long &);
+  TEST_IMPL(data &, d, dc, double const &);
+  TEST_IMPL(data &, d, bl, bool &);
+  TEST_IMPL(data &, d, v, std::vector<short> &);
+  TEST_IMPL(data &, d, fcr, float const &);
 
-  TEST_IMPL(d, i, int &);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &);
-  TEST_IMPL(d, dc, double const &);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short> &);
-  TEST_IMPL(d, fcr, float const &);
+  TEST_IMPL(data &, l, i, int &);
+  TEST_IMPL(data &, l, scl, std::string const &);
+  TEST_IMPL(data &, l, lr, long &);
+  TEST_IMPL(data &, l, dc, double const &);
+  TEST_IMPL(data &, l, bl, bool &);
+  TEST_IMPL(data &, l, v, std::vector<short> &);
+  TEST_IMPL(data &, l, fcr, float const &);
 
-  TEST_IMPL(l, i, int &);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &);
-  TEST_IMPL(l, dc, double const &);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short> &);
-  TEST_IMPL(l, fcr, float const &);
+  TEST_IMPL(data &, r, i, int &);
+  TEST_IMPL(data &, r, scl, std::string const &);
+  TEST_IMPL(data &, r, lr, long &);
+  TEST_IMPL(data &, r, dc, double const &);
+  TEST_IMPL(data &, r, bl, bool &);
+  TEST_IMPL(data &, r, v, std::vector<short> &);
+  TEST_IMPL(data &, r, fcr, float const &);
 
-  TEST_IMPL(r, i, int &);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &);
-  TEST_IMPL(r, dc, double const &);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short> &);
-  TEST_IMPL(r, fcr, float const &);
+  TEST_IMPL(data &, cl, i, int const &);
+  TEST_IMPL(data &, cl, scl, std::string const &);
+  TEST_IMPL(data &, cl, lr, long const &);
+  TEST_IMPL(data &, cl, dc, double const &);
+  TEST_IMPL(data &, cl, bl, bool const &);
+  TEST_IMPL(data &, cl, v, std::vector<short> const &);
+  TEST_IMPL(data &, cl, fcr, float const &);
 
-  TEST_IMPL(cl, i, int const &);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long const &);
-  TEST_IMPL(cl, dc, double const &);
-  TEST_IMPL(cl, bl, bool const &);
-  TEST_IMPL(cl, v, std::vector<short> const &);
-  TEST_IMPL(cl, fcr, float const &);
+  TEST_IMPL(data &, cr, i, int const &);
+  TEST_IMPL(data &, cr, scl, std::string const &);
+  TEST_IMPL(data &, cr, lr, long const &);
+  TEST_IMPL(data &, cr, dc, double const &);
+  TEST_IMPL(data &, cr, bl, bool const &);
+  TEST_IMPL(data &, cr, v, std::vector<short> const &);
+  TEST_IMPL(data &, cr, fcr, float const &);
 
-  TEST_IMPL(cr, i, int const &);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long const &);
-  TEST_IMPL(cr, dc, double const &);
-  TEST_IMPL(cr, bl, bool const &);
-  TEST_IMPL(cr, v, std::vector<short> const &);
-  TEST_IMPL(cr, fcr, float const &);
+  TEST_IMPL(data &&, d, i, int &&);
+  TEST_IMPL(data &&, d, scl, std::string const &);
+  TEST_IMPL(data &&, d, lr, long &&);
+  TEST_IMPL(data &&, d, dc, double const &&);
+  TEST_IMPL(data &&, d, bl, bool &);
+  TEST_IMPL(data &&, d, v, std::vector<short> &&);
+  TEST_IMPL(data &&, d, fcr, float const &&);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data &&>>(); \
-  } while (false)
+  TEST_IMPL(data &&, l, i, int &);
+  TEST_IMPL(data &&, l, scl, std::string const &);
+  TEST_IMPL(data &&, l, lr, long &);
+  TEST_IMPL(data &&, l, dc, double const &);
+  TEST_IMPL(data &&, l, bl, bool &);
+  TEST_IMPL(data &&, l, v, std::vector<short> &);
+  TEST_IMPL(data &&, l, fcr, float const &);
 
-  TEST_IMPL(d, i, int &&);
-  TEST_IMPL(d, scl, std::string const &);
-  TEST_IMPL(d, lr, long &&);
-  TEST_IMPL(d, dc, double const &&);
-  TEST_IMPL(d, bl, bool &);
-  TEST_IMPL(d, v, std::vector<short> &&);
-  TEST_IMPL(d, fcr, float const &&);
+  TEST_IMPL(data &&, r, i, int &&);
+  TEST_IMPL(data &&, r, scl, std::string const &);
+  TEST_IMPL(data &&, r, lr, long &&);
+  TEST_IMPL(data &&, r, dc, double const &&);
+  TEST_IMPL(data &&, r, bl, bool &);
+  TEST_IMPL(data &&, r, v, std::vector<short> &&);
+  TEST_IMPL(data &&, r, fcr, float const &&);
 
-  TEST_IMPL(l, i, int &);
-  TEST_IMPL(l, scl, std::string const &);
-  TEST_IMPL(l, lr, long &);
-  TEST_IMPL(l, dc, double const &);
-  TEST_IMPL(l, bl, bool &);
-  TEST_IMPL(l, v, std::vector<short> &);
-  TEST_IMPL(l, fcr, float const &);
+  TEST_IMPL(data &&, cl, i, int const &);
+  TEST_IMPL(data &&, cl, scl, std::string const &);
+  TEST_IMPL(data &&, cl, lr, long const &);
+  TEST_IMPL(data &&, cl, dc, double const &);
+  TEST_IMPL(data &&, cl, bl, bool const &);
+  TEST_IMPL(data &&, cl, v, std::vector<short> const &);
+  TEST_IMPL(data &&, cl, fcr, float const &);
 
-  TEST_IMPL(r, i, int &&);
-  TEST_IMPL(r, scl, std::string const &);
-  TEST_IMPL(r, lr, long &&);
-  TEST_IMPL(r, dc, double const &&);
-  TEST_IMPL(r, bl, bool &);
-  TEST_IMPL(r, v, std::vector<short> &&);
-  TEST_IMPL(r, fcr, float const &&);
+  TEST_IMPL(data &&, cr, i, int const &&);
+  TEST_IMPL(data &&, cr, scl, std::string const &);
+  TEST_IMPL(data &&, cr, lr, long const &&);
+  TEST_IMPL(data &&, cr, dc, double const &&);
+  TEST_IMPL(data &&, cr, bl, bool const &);
+  TEST_IMPL(data &&, cr, v, std::vector<short> const &&);
+  TEST_IMPL(data &&, cr, fcr, float const &&);
 
-  TEST_IMPL(cl, i, int const &);
-  TEST_IMPL(cl, scl, std::string const &);
-  TEST_IMPL(cl, lr, long const &);
-  TEST_IMPL(cl, dc, double const &);
-  TEST_IMPL(cl, bl, bool const &);
-  TEST_IMPL(cl, v, std::vector<short> const &);
-  TEST_IMPL(cl, fcr, float const &);
+  TEST_IMPL(data const, d, i, int const  &&);
+  TEST_IMPL(data const, d, scl, std::string const  &);
+  TEST_IMPL(data const, d, lr, long const  &&);
+  TEST_IMPL(data const, d, dc, double const  &&);
+  TEST_IMPL(data const, d, bl, bool const  &);
+  TEST_IMPL(data const, d, v, std::vector<short> const  &&);
+  TEST_IMPL(data const, d, fcr, float const  &&);
 
-  TEST_IMPL(cr, i, int const &&);
-  TEST_IMPL(cr, scl, std::string const &);
-  TEST_IMPL(cr, lr, long const &&);
-  TEST_IMPL(cr, dc, double const &&);
-  TEST_IMPL(cr, bl, bool const &);
-  TEST_IMPL(cr, v, std::vector<short> const &&);
-  TEST_IMPL(cr, fcr, float const &&);
+  TEST_IMPL(data const, l, i, int const  &);
+  TEST_IMPL(data const, l, scl, std::string const  &);
+  TEST_IMPL(data const, l, lr, long const  &);
+  TEST_IMPL(data const, l, dc, double const  &);
+  TEST_IMPL(data const, l, bl, bool const  &);
+  TEST_IMPL(data const, l, v, std::vector<short> const  &);
+  TEST_IMPL(data const, l, fcr, float const  &);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const>>(); \
-  } while (false)
+  TEST_IMPL(data const, r, i, int const  &&);
+  TEST_IMPL(data const, r, scl, std::string const  &);
+  TEST_IMPL(data const, r, lr, long const  &&);
+  TEST_IMPL(data const, r, dc, double const  &&);
+  TEST_IMPL(data const, r, bl, bool const  &);
+  TEST_IMPL(data const, r, v, std::vector<short> const  &&);
+  TEST_IMPL(data const, r, fcr, float const  &&);
 
-  TEST_IMPL(d, i, int const  &&);
-  TEST_IMPL(d, scl, std::string const  &);
-  TEST_IMPL(d, lr, long const  &&);
-  TEST_IMPL(d, dc, double const  &&);
-  TEST_IMPL(d, bl, bool const  &);
-  TEST_IMPL(d, v, std::vector<short> const  &&);
-  TEST_IMPL(d, fcr, float const  &&);
+  TEST_IMPL(data const, cl, i, int const  &);
+  TEST_IMPL(data const, cl, scl, std::string const  &);
+  TEST_IMPL(data const, cl, lr, long const  &);
+  TEST_IMPL(data const, cl, dc, double const  &);
+  TEST_IMPL(data const, cl, bl, bool const  &);
+  TEST_IMPL(data const, cl, v, std::vector<short> const  &);
+  TEST_IMPL(data const, cl, fcr, float const  &);
 
-  TEST_IMPL(l, i, int const  &);
-  TEST_IMPL(l, scl, std::string const  &);
-  TEST_IMPL(l, lr, long const  &);
-  TEST_IMPL(l, dc, double const  &);
-  TEST_IMPL(l, bl, bool const  &);
-  TEST_IMPL(l, v, std::vector<short> const  &);
-  TEST_IMPL(l, fcr, float const  &);
+  TEST_IMPL(data const, cr, i, int const  &&);
+  TEST_IMPL(data const, cr, scl, std::string const  &);
+  TEST_IMPL(data const, cr, lr, long const  &&);
+  TEST_IMPL(data const, cr, dc, double const  &&);
+  TEST_IMPL(data const, cr, bl, bool const  &);
+  TEST_IMPL(data const, cr, v, std::vector<short> const  &&);
+  TEST_IMPL(data const, cr, fcr, float const  &&);
 
-  TEST_IMPL(r, i, int const  &&);
-  TEST_IMPL(r, scl, std::string const  &);
-  TEST_IMPL(r, lr, long const  &&);
-  TEST_IMPL(r, dc, double const  &&);
-  TEST_IMPL(r, bl, bool const  &);
-  TEST_IMPL(r, v, std::vector<short> const  &&);
-  TEST_IMPL(r, fcr, float const  &&);
+  TEST_IMPL(data const &, d, i, int const  &);
+  TEST_IMPL(data const &, d, scl, std::string const  &);
+  TEST_IMPL(data const &, d, lr, long const  &);
+  TEST_IMPL(data const &, d, dc, double const  &);
+  TEST_IMPL(data const &, d, bl, bool const  &);
+  TEST_IMPL(data const &, d, v, std::vector<short> const  &);
+  TEST_IMPL(data const &, d, fcr, float const  &);
 
-  TEST_IMPL(cl, i, int const  &);
-  TEST_IMPL(cl, scl, std::string const  &);
-  TEST_IMPL(cl, lr, long const  &);
-  TEST_IMPL(cl, dc, double const  &);
-  TEST_IMPL(cl, bl, bool const  &);
-  TEST_IMPL(cl, v, std::vector<short> const  &);
-  TEST_IMPL(cl, fcr, float const  &);
+  TEST_IMPL(data const &, l, i, int const  &);
+  TEST_IMPL(data const &, l, scl, std::string const  &);
+  TEST_IMPL(data const &, l, lr, long const  &);
+  TEST_IMPL(data const &, l, dc, double const  &);
+  TEST_IMPL(data const &, l, bl, bool const  &);
+  TEST_IMPL(data const &, l, v, std::vector<short> const  &);
+  TEST_IMPL(data const &, l, fcr, float const  &);
 
-  TEST_IMPL(cr, i, int const  &&);
-  TEST_IMPL(cr, scl, std::string const  &);
-  TEST_IMPL(cr, lr, long const  &&);
-  TEST_IMPL(cr, dc, double const  &&);
-  TEST_IMPL(cr, bl, bool const  &);
-  TEST_IMPL(cr, v, std::vector<short> const  &&);
-  TEST_IMPL(cr, fcr, float const  &&);
+  TEST_IMPL(data const &, r, i, int const  &);
+  TEST_IMPL(data const &, r, scl, std::string const  &);
+  TEST_IMPL(data const &, r, lr, long const  &);
+  TEST_IMPL(data const &, r, dc, double const  &);
+  TEST_IMPL(data const &, r, bl, bool const  &);
+  TEST_IMPL(data const &, r, v, std::vector<short> const  &);
+  TEST_IMPL(data const &, r, fcr, float const  &);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const &>>(); \
-  } while (false)
+  TEST_IMPL(data const &, cl, i, int const  &);
+  TEST_IMPL(data const &, cl, scl, std::string const  &);
+  TEST_IMPL(data const &, cl, lr, long const  &);
+  TEST_IMPL(data const &, cl, dc, double const  &);
+  TEST_IMPL(data const &, cl, bl, bool const  &);
+  TEST_IMPL(data const &, cl, v, std::vector<short> const  &);
+  TEST_IMPL(data const &, cl, fcr, float const  &);
 
-  TEST_IMPL(d, i, int const  &);
-  TEST_IMPL(d, scl, std::string const  &);
-  TEST_IMPL(d, lr, long const  &);
-  TEST_IMPL(d, dc, double const  &);
-  TEST_IMPL(d, bl, bool const  &);
-  TEST_IMPL(d, v, std::vector<short> const  &);
-  TEST_IMPL(d, fcr, float const  &);
+  TEST_IMPL(data const &, cr, i, int const  &);
+  TEST_IMPL(data const &, cr, scl, std::string const  &);
+  TEST_IMPL(data const &, cr, lr, long const  &);
+  TEST_IMPL(data const &, cr, dc, double const  &);
+  TEST_IMPL(data const &, cr, bl, bool const  &);
+  TEST_IMPL(data const &, cr, v, std::vector<short> const  &);
+  TEST_IMPL(data const &, cr, fcr, float const  &);
 
-  TEST_IMPL(l, i, int const  &);
-  TEST_IMPL(l, scl, std::string const  &);
-  TEST_IMPL(l, lr, long const  &);
-  TEST_IMPL(l, dc, double const  &);
-  TEST_IMPL(l, bl, bool const  &);
-  TEST_IMPL(l, v, std::vector<short> const  &);
-  TEST_IMPL(l, fcr, float const  &);
+  TEST_IMPL(data const &&, d, i, int const  &&);
+  TEST_IMPL(data const &&, d, scl, std::string const  &);
+  TEST_IMPL(data const &&, d, lr, long const  &&);
+  TEST_IMPL(data const &&, d, dc, double const  &&);
+  TEST_IMPL(data const &&, d, bl, bool const  &);
+  TEST_IMPL(data const &&, d, v, std::vector<short> const  &&);
+  TEST_IMPL(data const &&, d, fcr, float const  &&);
 
-  TEST_IMPL(r, i, int const  &);
-  TEST_IMPL(r, scl, std::string const  &);
-  TEST_IMPL(r, lr, long const  &);
-  TEST_IMPL(r, dc, double const  &);
-  TEST_IMPL(r, bl, bool const  &);
-  TEST_IMPL(r, v, std::vector<short> const  &);
-  TEST_IMPL(r, fcr, float const  &);
+  TEST_IMPL(data const &&, l, i, int const  &);
+  TEST_IMPL(data const &&, l, scl, std::string const  &);
+  TEST_IMPL(data const &&, l, lr, long const  &);
+  TEST_IMPL(data const &&, l, dc, double const  &);
+  TEST_IMPL(data const &&, l, bl, bool const  &);
+  TEST_IMPL(data const &&, l, v, std::vector<short> const  &);
+  TEST_IMPL(data const &&, l, fcr, float const  &);
 
-  TEST_IMPL(cl, i, int const  &);
-  TEST_IMPL(cl, scl, std::string const  &);
-  TEST_IMPL(cl, lr, long const  &);
-  TEST_IMPL(cl, dc, double const  &);
-  TEST_IMPL(cl, bl, bool const  &);
-  TEST_IMPL(cl, v, std::vector<short> const  &);
-  TEST_IMPL(cl, fcr, float const  &);
+  TEST_IMPL(data const &&, r, i, int const  &&);
+  TEST_IMPL(data const &&, r, scl, std::string const  &);
+  TEST_IMPL(data const &&, r, lr, long const  &&);
+  TEST_IMPL(data const &&, r, dc, double const  &&);
+  TEST_IMPL(data const &&, r, bl, bool const  &);
+  TEST_IMPL(data const &&, r, v, std::vector<short> const  &&);
+  TEST_IMPL(data const &&, r, fcr, float const  &&);
 
-  TEST_IMPL(cr, i, int const  &);
-  TEST_IMPL(cr, scl, std::string const  &);
-  TEST_IMPL(cr, lr, long const  &);
-  TEST_IMPL(cr, dc, double const  &);
-  TEST_IMPL(cr, bl, bool const  &);
-  TEST_IMPL(cr, v, std::vector<short> const  &);
-  TEST_IMPL(cr, fcr, float const  &);
+  TEST_IMPL(data const &&, cl, i, int const  &);
+  TEST_IMPL(data const &&, cl, scl, std::string const  &);
+  TEST_IMPL(data const &&, cl, lr, long const  &);
+  TEST_IMPL(data const &&, cl, dc, double const  &);
+  TEST_IMPL(data const &&, cl, bl, bool const  &);
+  TEST_IMPL(data const &&, cl, v, std::vector<short> const  &);
+  TEST_IMPL(data const &&, cl, fcr, float const  &);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::reference<data const &&>>(); \
-  } while (false)
-
-  TEST_IMPL(d, i, int const  &&);
-  TEST_IMPL(d, scl, std::string const  &);
-  TEST_IMPL(d, lr, long const  &&);
-  TEST_IMPL(d, dc, double const  &&);
-  TEST_IMPL(d, bl, bool const  &);
-  TEST_IMPL(d, v, std::vector<short> const  &&);
-  TEST_IMPL(d, fcr, float const  &&);
-
-  TEST_IMPL(l, i, int const  &);
-  TEST_IMPL(l, scl, std::string const  &);
-  TEST_IMPL(l, lr, long const  &);
-  TEST_IMPL(l, dc, double const  &);
-  TEST_IMPL(l, bl, bool const  &);
-  TEST_IMPL(l, v, std::vector<short> const  &);
-  TEST_IMPL(l, fcr, float const  &);
-
-  TEST_IMPL(r, i, int const  &&);
-  TEST_IMPL(r, scl, std::string const  &);
-  TEST_IMPL(r, lr, long const  &&);
-  TEST_IMPL(r, dc, double const  &&);
-  TEST_IMPL(r, bl, bool const  &);
-  TEST_IMPL(r, v, std::vector<short> const  &&);
-  TEST_IMPL(r, fcr, float const  &&);
-
-  TEST_IMPL(cl, i, int const  &);
-  TEST_IMPL(cl, scl, std::string const  &);
-  TEST_IMPL(cl, lr, long const  &);
-  TEST_IMPL(cl, dc, double const  &);
-  TEST_IMPL(cl, bl, bool const  &);
-  TEST_IMPL(cl, v, std::vector<short> const  &);
-  TEST_IMPL(cl, fcr, float const  &);
-
-  TEST_IMPL(cr, i, int const  &&);
-  TEST_IMPL(cr, scl, std::string const  &);
-  TEST_IMPL(cr, lr, long const  &&);
-  TEST_IMPL(cr, dc, double const  &&);
-  TEST_IMPL(cr, bl, bool const  &);
-  TEST_IMPL(cr, v, std::vector<short> const  &&);
-  TEST_IMPL(cr, fcr, float const  &&);
+  TEST_IMPL(data const &&, cr, i, int const  &&);
+  TEST_IMPL(data const &&, cr, scl, std::string const  &);
+  TEST_IMPL(data const &&, cr, lr, long const  &&);
+  TEST_IMPL(data const &&, cr, dc, double const  &&);
+  TEST_IMPL(data const &&, cr, bl, bool const  &);
+  TEST_IMPL(data const &&, cr, v, std::vector<short> const  &&);
+  TEST_IMPL(data const &&, cr, fcr, float const  &&);
 
 # undef TEST_IMPL
-# undef TEST_PREAMBLE_IMPL
 }
 
 FATAL_TEST(chained_data_member_getter, pointer) {
@@ -2845,296 +2639,258 @@ FATAL_TEST(chained_data_member_getter, pointer) {
 
 # undef TEST_IMPL
 
-# define TEST_PREAMBLE_IMPL(Outer, Inner, ...) \
+# define TEST_IMPL(Owner, Outer, Inner, ...) \
+  do { \
     using data = data_member_getter_test::chained_data; \
     using getter = chained_data_member_getter< \
       data_member_getter_test::getter::Outer, \
       data_member_getter_test::getter::Inner \
-    >;
-
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data>>(); \
+    >; \
+    \
+    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<Owner>>(); \
   } while (false)
 
-  TEST_IMPL(d, i, int *);
-  TEST_IMPL(d, scl, std::string const *);
-  TEST_IMPL(d, lr, long *);
-  TEST_IMPL(d, dc, double const *);
-  TEST_IMPL(d, bl, bool *);
-  TEST_IMPL(d, v, std::vector<short> *);
-  TEST_IMPL(d, fcr, float const *);
+  TEST_IMPL(data, d, i, int *);
+  TEST_IMPL(data, d, scl, std::string const *);
+  TEST_IMPL(data, d, lr, long *);
+  TEST_IMPL(data, d, dc, double const *);
+  TEST_IMPL(data, d, bl, bool *);
+  TEST_IMPL(data, d, v, std::vector<short> *);
+  TEST_IMPL(data, d, fcr, float const *);
 
-  TEST_IMPL(l, i, int *);
-  TEST_IMPL(l, scl, std::string const *);
-  TEST_IMPL(l, lr, long *);
-  TEST_IMPL(l, dc, double const *);
-  TEST_IMPL(l, bl, bool *);
-  TEST_IMPL(l, v, std::vector<short> *);
-  TEST_IMPL(l, fcr, float const *);
+  TEST_IMPL(data, l, i, int *);
+  TEST_IMPL(data, l, scl, std::string const *);
+  TEST_IMPL(data, l, lr, long *);
+  TEST_IMPL(data, l, dc, double const *);
+  TEST_IMPL(data, l, bl, bool *);
+  TEST_IMPL(data, l, v, std::vector<short> *);
+  TEST_IMPL(data, l, fcr, float const *);
 
-  TEST_IMPL(r, i, int *);
-  TEST_IMPL(r, scl, std::string const *);
-  TEST_IMPL(r, lr, long *);
-  TEST_IMPL(r, dc, double const *);
-  TEST_IMPL(r, bl, bool *);
-  TEST_IMPL(r, v, std::vector<short> *);
-  TEST_IMPL(r, fcr, float const *);
+  TEST_IMPL(data, r, i, int *);
+  TEST_IMPL(data, r, scl, std::string const *);
+  TEST_IMPL(data, r, lr, long *);
+  TEST_IMPL(data, r, dc, double const *);
+  TEST_IMPL(data, r, bl, bool *);
+  TEST_IMPL(data, r, v, std::vector<short> *);
+  TEST_IMPL(data, r, fcr, float const *);
 
-  TEST_IMPL(cl, i, int const *);
-  TEST_IMPL(cl, scl, std::string const *);
-  TEST_IMPL(cl, lr, long const *);
-  TEST_IMPL(cl, dc, double const *);
-  TEST_IMPL(cl, bl, bool const *);
-  TEST_IMPL(cl, v, std::vector<short> const *);
-  TEST_IMPL(cl, fcr, float const *);
+  TEST_IMPL(data, cl, i, int const *);
+  TEST_IMPL(data, cl, scl, std::string const *);
+  TEST_IMPL(data, cl, lr, long const *);
+  TEST_IMPL(data, cl, dc, double const *);
+  TEST_IMPL(data, cl, bl, bool const *);
+  TEST_IMPL(data, cl, v, std::vector<short> const *);
+  TEST_IMPL(data, cl, fcr, float const *);
 
-  TEST_IMPL(cr, i, int const *);
-  TEST_IMPL(cr, scl, std::string const *);
-  TEST_IMPL(cr, lr, long const *);
-  TEST_IMPL(cr, dc, double const *);
-  TEST_IMPL(cr, bl, bool const *);
-  TEST_IMPL(cr, v, std::vector<short> const *);
-  TEST_IMPL(cr, fcr, float const *);
+  TEST_IMPL(data, cr, i, int const *);
+  TEST_IMPL(data, cr, scl, std::string const *);
+  TEST_IMPL(data, cr, lr, long const *);
+  TEST_IMPL(data, cr, dc, double const *);
+  TEST_IMPL(data, cr, bl, bool const *);
+  TEST_IMPL(data, cr, v, std::vector<short> const *);
+  TEST_IMPL(data, cr, fcr, float const *);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &>>(); \
-  } while (false)
+  TEST_IMPL(data &, d, i, int *);
+  TEST_IMPL(data &, d, scl, std::string const *);
+  TEST_IMPL(data &, d, lr, long *);
+  TEST_IMPL(data &, d, dc, double const *);
+  TEST_IMPL(data &, d, bl, bool *);
+  TEST_IMPL(data &, d, v, std::vector<short> *);
+  TEST_IMPL(data &, d, fcr, float const *);
 
-  TEST_IMPL(d, i, int *);
-  TEST_IMPL(d, scl, std::string const *);
-  TEST_IMPL(d, lr, long *);
-  TEST_IMPL(d, dc, double const *);
-  TEST_IMPL(d, bl, bool *);
-  TEST_IMPL(d, v, std::vector<short> *);
-  TEST_IMPL(d, fcr, float const *);
+  TEST_IMPL(data &, l, i, int *);
+  TEST_IMPL(data &, l, scl, std::string const *);
+  TEST_IMPL(data &, l, lr, long *);
+  TEST_IMPL(data &, l, dc, double const *);
+  TEST_IMPL(data &, l, bl, bool *);
+  TEST_IMPL(data &, l, v, std::vector<short> *);
+  TEST_IMPL(data &, l, fcr, float const *);
 
-  TEST_IMPL(l, i, int *);
-  TEST_IMPL(l, scl, std::string const *);
-  TEST_IMPL(l, lr, long *);
-  TEST_IMPL(l, dc, double const *);
-  TEST_IMPL(l, bl, bool *);
-  TEST_IMPL(l, v, std::vector<short> *);
-  TEST_IMPL(l, fcr, float const *);
+  TEST_IMPL(data &, r, i, int *);
+  TEST_IMPL(data &, r, scl, std::string const *);
+  TEST_IMPL(data &, r, lr, long *);
+  TEST_IMPL(data &, r, dc, double const *);
+  TEST_IMPL(data &, r, bl, bool *);
+  TEST_IMPL(data &, r, v, std::vector<short> *);
+  TEST_IMPL(data &, r, fcr, float const *);
 
-  TEST_IMPL(r, i, int *);
-  TEST_IMPL(r, scl, std::string const *);
-  TEST_IMPL(r, lr, long *);
-  TEST_IMPL(r, dc, double const *);
-  TEST_IMPL(r, bl, bool *);
-  TEST_IMPL(r, v, std::vector<short> *);
-  TEST_IMPL(r, fcr, float const *);
+  TEST_IMPL(data &, cl, i, int const *);
+  TEST_IMPL(data &, cl, scl, std::string const *);
+  TEST_IMPL(data &, cl, lr, long const *);
+  TEST_IMPL(data &, cl, dc, double const *);
+  TEST_IMPL(data &, cl, bl, bool const *);
+  TEST_IMPL(data &, cl, v, std::vector<short> const *);
+  TEST_IMPL(data &, cl, fcr, float const *);
 
-  TEST_IMPL(cl, i, int const *);
-  TEST_IMPL(cl, scl, std::string const *);
-  TEST_IMPL(cl, lr, long const *);
-  TEST_IMPL(cl, dc, double const *);
-  TEST_IMPL(cl, bl, bool const *);
-  TEST_IMPL(cl, v, std::vector<short> const *);
-  TEST_IMPL(cl, fcr, float const *);
+  TEST_IMPL(data &, cr, i, int const *);
+  TEST_IMPL(data &, cr, scl, std::string const *);
+  TEST_IMPL(data &, cr, lr, long const *);
+  TEST_IMPL(data &, cr, dc, double const *);
+  TEST_IMPL(data &, cr, bl, bool const *);
+  TEST_IMPL(data &, cr, v, std::vector<short> const *);
+  TEST_IMPL(data &, cr, fcr, float const *);
 
-  TEST_IMPL(cr, i, int const *);
-  TEST_IMPL(cr, scl, std::string const *);
-  TEST_IMPL(cr, lr, long const *);
-  TEST_IMPL(cr, dc, double const *);
-  TEST_IMPL(cr, bl, bool const *);
-  TEST_IMPL(cr, v, std::vector<short> const *);
-  TEST_IMPL(cr, fcr, float const *);
+  TEST_IMPL(data &&, d, i, int *);
+  TEST_IMPL(data &&, d, scl, std::string const *);
+  TEST_IMPL(data &&, d, lr, long *);
+  TEST_IMPL(data &&, d, dc, double const *);
+  TEST_IMPL(data &&, d, bl, bool *);
+  TEST_IMPL(data &&, d, v, std::vector<short> *);
+  TEST_IMPL(data &&, d, fcr, float const *);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data &&>>(); \
-  } while (false)
+  TEST_IMPL(data &&, l, i, int *);
+  TEST_IMPL(data &&, l, scl, std::string const *);
+  TEST_IMPL(data &&, l, lr, long *);
+  TEST_IMPL(data &&, l, dc, double const *);
+  TEST_IMPL(data &&, l, bl, bool *);
+  TEST_IMPL(data &&, l, v, std::vector<short> *);
+  TEST_IMPL(data &&, l, fcr, float const *);
 
-  TEST_IMPL(d, i, int *);
-  TEST_IMPL(d, scl, std::string const *);
-  TEST_IMPL(d, lr, long *);
-  TEST_IMPL(d, dc, double const *);
-  TEST_IMPL(d, bl, bool *);
-  TEST_IMPL(d, v, std::vector<short> *);
-  TEST_IMPL(d, fcr, float const *);
+  TEST_IMPL(data &&, r, i, int *);
+  TEST_IMPL(data &&, r, scl, std::string const *);
+  TEST_IMPL(data &&, r, lr, long *);
+  TEST_IMPL(data &&, r, dc, double const *);
+  TEST_IMPL(data &&, r, bl, bool *);
+  TEST_IMPL(data &&, r, v, std::vector<short> *);
+  TEST_IMPL(data &&, r, fcr, float const *);
 
-  TEST_IMPL(l, i, int *);
-  TEST_IMPL(l, scl, std::string const *);
-  TEST_IMPL(l, lr, long *);
-  TEST_IMPL(l, dc, double const *);
-  TEST_IMPL(l, bl, bool *);
-  TEST_IMPL(l, v, std::vector<short> *);
-  TEST_IMPL(l, fcr, float const *);
+  TEST_IMPL(data &&, cl, i, int const *);
+  TEST_IMPL(data &&, cl, scl, std::string const *);
+  TEST_IMPL(data &&, cl, lr, long const *);
+  TEST_IMPL(data &&, cl, dc, double const *);
+  TEST_IMPL(data &&, cl, bl, bool const *);
+  TEST_IMPL(data &&, cl, v, std::vector<short> const *);
+  TEST_IMPL(data &&, cl, fcr, float const *);
 
-  TEST_IMPL(r, i, int *);
-  TEST_IMPL(r, scl, std::string const *);
-  TEST_IMPL(r, lr, long *);
-  TEST_IMPL(r, dc, double const *);
-  TEST_IMPL(r, bl, bool *);
-  TEST_IMPL(r, v, std::vector<short> *);
-  TEST_IMPL(r, fcr, float const *);
+  TEST_IMPL(data &&, cr, i, int const *);
+  TEST_IMPL(data &&, cr, scl, std::string const *);
+  TEST_IMPL(data &&, cr, lr, long const *);
+  TEST_IMPL(data &&, cr, dc, double const *);
+  TEST_IMPL(data &&, cr, bl, bool const *);
+  TEST_IMPL(data &&, cr, v, std::vector<short> const *);
+  TEST_IMPL(data &&, cr, fcr, float const *);
 
-  TEST_IMPL(cl, i, int const *);
-  TEST_IMPL(cl, scl, std::string const *);
-  TEST_IMPL(cl, lr, long const *);
-  TEST_IMPL(cl, dc, double const *);
-  TEST_IMPL(cl, bl, bool const *);
-  TEST_IMPL(cl, v, std::vector<short> const *);
-  TEST_IMPL(cl, fcr, float const *);
+  TEST_IMPL(data const, d, i, int const  *);
+  TEST_IMPL(data const, d, scl, std::string const  *);
+  TEST_IMPL(data const, d, lr, long const  *);
+  TEST_IMPL(data const, d, dc, double const  *);
+  TEST_IMPL(data const, d, bl, bool const  *);
+  TEST_IMPL(data const, d, v, std::vector<short> const  *);
+  TEST_IMPL(data const, d, fcr, float const  *);
 
-  TEST_IMPL(cr, i, int const *);
-  TEST_IMPL(cr, scl, std::string const *);
-  TEST_IMPL(cr, lr, long const *);
-  TEST_IMPL(cr, dc, double const *);
-  TEST_IMPL(cr, bl, bool const *);
-  TEST_IMPL(cr, v, std::vector<short> const *);
-  TEST_IMPL(cr, fcr, float const *);
+  TEST_IMPL(data const, l, i, int const  *);
+  TEST_IMPL(data const, l, scl, std::string const  *);
+  TEST_IMPL(data const, l, lr, long const  *);
+  TEST_IMPL(data const, l, dc, double const  *);
+  TEST_IMPL(data const, l, bl, bool const  *);
+  TEST_IMPL(data const, l, v, std::vector<short> const  *);
+  TEST_IMPL(data const, l, fcr, float const  *);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const>>(); \
-  } while (false)
+  TEST_IMPL(data const, r, i, int const  *);
+  TEST_IMPL(data const, r, scl, std::string const  *);
+  TEST_IMPL(data const, r, lr, long const  *);
+  TEST_IMPL(data const, r, dc, double const  *);
+  TEST_IMPL(data const, r, bl, bool const  *);
+  TEST_IMPL(data const, r, v, std::vector<short> const  *);
+  TEST_IMPL(data const, r, fcr, float const  *);
 
-  TEST_IMPL(d, i, int const  *);
-  TEST_IMPL(d, scl, std::string const  *);
-  TEST_IMPL(d, lr, long const  *);
-  TEST_IMPL(d, dc, double const  *);
-  TEST_IMPL(d, bl, bool const  *);
-  TEST_IMPL(d, v, std::vector<short> const  *);
-  TEST_IMPL(d, fcr, float const  *);
+  TEST_IMPL(data const, cl, i, int const  *);
+  TEST_IMPL(data const, cl, scl, std::string const  *);
+  TEST_IMPL(data const, cl, lr, long const  *);
+  TEST_IMPL(data const, cl, dc, double const  *);
+  TEST_IMPL(data const, cl, bl, bool const  *);
+  TEST_IMPL(data const, cl, v, std::vector<short> const  *);
+  TEST_IMPL(data const, cl, fcr, float const  *);
 
-  TEST_IMPL(l, i, int const  *);
-  TEST_IMPL(l, scl, std::string const  *);
-  TEST_IMPL(l, lr, long const  *);
-  TEST_IMPL(l, dc, double const  *);
-  TEST_IMPL(l, bl, bool const  *);
-  TEST_IMPL(l, v, std::vector<short> const  *);
-  TEST_IMPL(l, fcr, float const  *);
+  TEST_IMPL(data const, cr, i, int const  *);
+  TEST_IMPL(data const, cr, scl, std::string const  *);
+  TEST_IMPL(data const, cr, lr, long const  *);
+  TEST_IMPL(data const, cr, dc, double const  *);
+  TEST_IMPL(data const, cr, bl, bool const  *);
+  TEST_IMPL(data const, cr, v, std::vector<short> const  *);
+  TEST_IMPL(data const, cr, fcr, float const  *);
 
-  TEST_IMPL(r, i, int const  *);
-  TEST_IMPL(r, scl, std::string const  *);
-  TEST_IMPL(r, lr, long const  *);
-  TEST_IMPL(r, dc, double const  *);
-  TEST_IMPL(r, bl, bool const  *);
-  TEST_IMPL(r, v, std::vector<short> const  *);
-  TEST_IMPL(r, fcr, float const  *);
+  TEST_IMPL(data const &, d, i, int const  *);
+  TEST_IMPL(data const &, d, scl, std::string const  *);
+  TEST_IMPL(data const &, d, lr, long const  *);
+  TEST_IMPL(data const &, d, dc, double const  *);
+  TEST_IMPL(data const &, d, bl, bool const  *);
+  TEST_IMPL(data const &, d, v, std::vector<short> const  *);
+  TEST_IMPL(data const &, d, fcr, float const  *);
 
-  TEST_IMPL(cl, i, int const  *);
-  TEST_IMPL(cl, scl, std::string const  *);
-  TEST_IMPL(cl, lr, long const  *);
-  TEST_IMPL(cl, dc, double const  *);
-  TEST_IMPL(cl, bl, bool const  *);
-  TEST_IMPL(cl, v, std::vector<short> const  *);
-  TEST_IMPL(cl, fcr, float const  *);
+  TEST_IMPL(data const &, l, i, int const  *);
+  TEST_IMPL(data const &, l, scl, std::string const  *);
+  TEST_IMPL(data const &, l, lr, long const  *);
+  TEST_IMPL(data const &, l, dc, double const  *);
+  TEST_IMPL(data const &, l, bl, bool const  *);
+  TEST_IMPL(data const &, l, v, std::vector<short> const  *);
+  TEST_IMPL(data const &, l, fcr, float const  *);
 
-  TEST_IMPL(cr, i, int const  *);
-  TEST_IMPL(cr, scl, std::string const  *);
-  TEST_IMPL(cr, lr, long const  *);
-  TEST_IMPL(cr, dc, double const  *);
-  TEST_IMPL(cr, bl, bool const  *);
-  TEST_IMPL(cr, v, std::vector<short> const  *);
-  TEST_IMPL(cr, fcr, float const  *);
+  TEST_IMPL(data const &, r, i, int const  *);
+  TEST_IMPL(data const &, r, scl, std::string const  *);
+  TEST_IMPL(data const &, r, lr, long const  *);
+  TEST_IMPL(data const &, r, dc, double const  *);
+  TEST_IMPL(data const &, r, bl, bool const  *);
+  TEST_IMPL(data const &, r, v, std::vector<short> const  *);
+  TEST_IMPL(data const &, r, fcr, float const  *);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const &>>(); \
-  } while (false)
+  TEST_IMPL(data const &, cl, i, int const  *);
+  TEST_IMPL(data const &, cl, scl, std::string const  *);
+  TEST_IMPL(data const &, cl, lr, long const  *);
+  TEST_IMPL(data const &, cl, dc, double const  *);
+  TEST_IMPL(data const &, cl, bl, bool const  *);
+  TEST_IMPL(data const &, cl, v, std::vector<short> const  *);
+  TEST_IMPL(data const &, cl, fcr, float const  *);
 
-  TEST_IMPL(d, i, int const  *);
-  TEST_IMPL(d, scl, std::string const  *);
-  TEST_IMPL(d, lr, long const  *);
-  TEST_IMPL(d, dc, double const  *);
-  TEST_IMPL(d, bl, bool const  *);
-  TEST_IMPL(d, v, std::vector<short> const  *);
-  TEST_IMPL(d, fcr, float const  *);
+  TEST_IMPL(data const &, cr, i, int const  *);
+  TEST_IMPL(data const &, cr, scl, std::string const  *);
+  TEST_IMPL(data const &, cr, lr, long const  *);
+  TEST_IMPL(data const &, cr, dc, double const  *);
+  TEST_IMPL(data const &, cr, bl, bool const  *);
+  TEST_IMPL(data const &, cr, v, std::vector<short> const  *);
+  TEST_IMPL(data const &, cr, fcr, float const  *);
 
-  TEST_IMPL(l, i, int const  *);
-  TEST_IMPL(l, scl, std::string const  *);
-  TEST_IMPL(l, lr, long const  *);
-  TEST_IMPL(l, dc, double const  *);
-  TEST_IMPL(l, bl, bool const  *);
-  TEST_IMPL(l, v, std::vector<short> const  *);
-  TEST_IMPL(l, fcr, float const  *);
+  TEST_IMPL(data const &&, d, i, int const  *);
+  TEST_IMPL(data const &&, d, scl, std::string const  *);
+  TEST_IMPL(data const &&, d, lr, long const  *);
+  TEST_IMPL(data const &&, d, dc, double const  *);
+  TEST_IMPL(data const &&, d, bl, bool const  *);
+  TEST_IMPL(data const &&, d, v, std::vector<short> const  *);
+  TEST_IMPL(data const &&, d, fcr, float const  *);
 
-  TEST_IMPL(r, i, int const  *);
-  TEST_IMPL(r, scl, std::string const  *);
-  TEST_IMPL(r, lr, long const  *);
-  TEST_IMPL(r, dc, double const  *);
-  TEST_IMPL(r, bl, bool const  *);
-  TEST_IMPL(r, v, std::vector<short> const  *);
-  TEST_IMPL(r, fcr, float const  *);
+  TEST_IMPL(data const &&, l, i, int const  *);
+  TEST_IMPL(data const &&, l, scl, std::string const  *);
+  TEST_IMPL(data const &&, l, lr, long const  *);
+  TEST_IMPL(data const &&, l, dc, double const  *);
+  TEST_IMPL(data const &&, l, bl, bool const  *);
+  TEST_IMPL(data const &&, l, v, std::vector<short> const  *);
+  TEST_IMPL(data const &&, l, fcr, float const  *);
 
-  TEST_IMPL(cl, i, int const  *);
-  TEST_IMPL(cl, scl, std::string const  *);
-  TEST_IMPL(cl, lr, long const  *);
-  TEST_IMPL(cl, dc, double const  *);
-  TEST_IMPL(cl, bl, bool const  *);
-  TEST_IMPL(cl, v, std::vector<short> const  *);
-  TEST_IMPL(cl, fcr, float const  *);
+  TEST_IMPL(data const &&, r, i, int const  *);
+  TEST_IMPL(data const &&, r, scl, std::string const  *);
+  TEST_IMPL(data const &&, r, lr, long const  *);
+  TEST_IMPL(data const &&, r, dc, double const  *);
+  TEST_IMPL(data const &&, r, bl, bool const  *);
+  TEST_IMPL(data const &&, r, v, std::vector<short> const  *);
+  TEST_IMPL(data const &&, r, fcr, float const  *);
 
-  TEST_IMPL(cr, i, int const  *);
-  TEST_IMPL(cr, scl, std::string const  *);
-  TEST_IMPL(cr, lr, long const  *);
-  TEST_IMPL(cr, dc, double const  *);
-  TEST_IMPL(cr, bl, bool const  *);
-  TEST_IMPL(cr, v, std::vector<short> const  *);
-  TEST_IMPL(cr, fcr, float const  *);
+  TEST_IMPL(data const &&, cl, i, int const  *);
+  TEST_IMPL(data const &&, cl, scl, std::string const  *);
+  TEST_IMPL(data const &&, cl, lr, long const  *);
+  TEST_IMPL(data const &&, cl, dc, double const  *);
+  TEST_IMPL(data const &&, cl, bl, bool const  *);
+  TEST_IMPL(data const &&, cl, v, std::vector<short> const  *);
+  TEST_IMPL(data const &&, cl, fcr, float const  *);
 
-# undef TEST_IMPL
-# define TEST_IMPL(Outer, Inner, ...) \
-  do { \
-    TEST_PREAMBLE_IMPL(Outer, Inner, __VA_ARGS__); \
-    FATAL_EXPECT_SAME<__VA_ARGS__, getter::pointer<data const &&>>(); \
-  } while (false)
-
-  TEST_IMPL(d, i, int const  *);
-  TEST_IMPL(d, scl, std::string const  *);
-  TEST_IMPL(d, lr, long const  *);
-  TEST_IMPL(d, dc, double const  *);
-  TEST_IMPL(d, bl, bool const  *);
-  TEST_IMPL(d, v, std::vector<short> const  *);
-  TEST_IMPL(d, fcr, float const  *);
-
-  TEST_IMPL(l, i, int const  *);
-  TEST_IMPL(l, scl, std::string const  *);
-  TEST_IMPL(l, lr, long const  *);
-  TEST_IMPL(l, dc, double const  *);
-  TEST_IMPL(l, bl, bool const  *);
-  TEST_IMPL(l, v, std::vector<short> const  *);
-  TEST_IMPL(l, fcr, float const  *);
-
-  TEST_IMPL(r, i, int const  *);
-  TEST_IMPL(r, scl, std::string const  *);
-  TEST_IMPL(r, lr, long const  *);
-  TEST_IMPL(r, dc, double const  *);
-  TEST_IMPL(r, bl, bool const  *);
-  TEST_IMPL(r, v, std::vector<short> const  *);
-  TEST_IMPL(r, fcr, float const  *);
-
-  TEST_IMPL(cl, i, int const  *);
-  TEST_IMPL(cl, scl, std::string const  *);
-  TEST_IMPL(cl, lr, long const  *);
-  TEST_IMPL(cl, dc, double const  *);
-  TEST_IMPL(cl, bl, bool const  *);
-  TEST_IMPL(cl, v, std::vector<short> const  *);
-  TEST_IMPL(cl, fcr, float const  *);
-
-  TEST_IMPL(cr, i, int const  *);
-  TEST_IMPL(cr, scl, std::string const  *);
-  TEST_IMPL(cr, lr, long const  *);
-  TEST_IMPL(cr, dc, double const  *);
-  TEST_IMPL(cr, bl, bool const  *);
-  TEST_IMPL(cr, v, std::vector<short> const  *);
-  TEST_IMPL(cr, fcr, float const  *);
+  TEST_IMPL(data const &&, cr, i, int const  *);
+  TEST_IMPL(data const &&, cr, scl, std::string const  *);
+  TEST_IMPL(data const &&, cr, lr, long const  *);
+  TEST_IMPL(data const &&, cr, dc, double const  *);
+  TEST_IMPL(data const &&, cr, bl, bool const  *);
+  TEST_IMPL(data const &&, cr, v, std::vector<short> const  *);
+  TEST_IMPL(data const &&, cr, fcr, float const  *);
 
 # undef TEST_IMPL
-# undef TEST_PREAMBLE_IMPL
 }
 
 FATAL_TEST(chained_data_member_getter, getter) {
