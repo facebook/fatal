@@ -264,26 +264,6 @@ public:
    */
   using values = typename name_to_value::mapped;
 
-  /**
-   * A `type_prefix_tree` containing the names of the enumeration fields.
-   *
-   * Example:
-   *
-   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
-   *
-   *  // yields `build_type_prefix_tree::from<
-   *  //   enum_traits<my_enum>::str::field0,
-   *  //   enum_traits<my_enum>::str::field1,
-   *  //   enum_traits<my_enum>::str::field2
-   *  // >`
-   *  using result = enum_traits<my_enum>::prefix_tree;
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  using prefix_tree = typename names::template apply<
-    fatal::build_type_prefix_tree<>::from
-  >;
-
   struct array {
     /**
      * A statically allocated array containing the names of the enumeration
@@ -408,6 +388,10 @@ public:
    */
   template <typename TBegin, typename TEnd>
   static type parse(TBegin &&begin, TEnd &&end) {
+    using prefix_tree = typename names::template apply<
+      fatal::build_type_prefix_tree<>::from
+    >;
+
     type out;
 
     if (!prefix_tree::template match<>::exact(
@@ -464,6 +448,10 @@ public:
    */
   template <typename TBegin, typename TEnd>
   static bool try_parse(type &out, TBegin &&begin, TEnd &&end) {
+    using prefix_tree = typename names::template apply<
+      fatal::build_type_prefix_tree<>::from
+    >;
+
     return prefix_tree::template match<>::exact(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     );
