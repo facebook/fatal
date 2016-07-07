@@ -1117,9 +1117,19 @@ struct has_member_type {
 
 namespace detail {
 
+template <typename> struct tag {};
+
 template <typename Impl>
 class data_member_getter {
   using impl = Impl;
+
+  struct has_impl {
+    template <typename T, typename U = typename impl::template type<T>>
+    static std::true_type sfinae(tag<T>);
+
+    template <typename...>
+    static std::false_type sfinae(...);
+  };
 
 public:
   template <typename Owner>
@@ -1129,6 +1139,9 @@ public:
   using reference = typename impl::template reference<Owner>::ref_impl;
 
   using name = typename impl::name;
+
+  template <typename Owner>
+  using has = decltype(has_impl::sfinae(tag<Owner>()));
 
   template <typename Owner>
   static reference<Owner> ref(Owner &&owner) {
@@ -1289,6 +1302,8 @@ public:
   using reference = typename tail::template reference<
     typename OuterGetter::template reference<Owner>
   >;
+
+  // TODO: IMPLEMENT `has`
 
   template <typename Owner>
   static reference<Owner> ref(Owner &&owner) {

@@ -1417,6 +1417,9 @@ struct getter {
   TEST_IMPL(r);
   TEST_IMPL(scl);
   TEST_IMPL(v);
+  TEST_IMPL(non_existent1);
+  TEST_IMPL(non_existent2);
+  TEST_IMPL(non_existent3);
 
 # undef TEST_IMPL
 };
@@ -1564,6 +1567,88 @@ FATAL_TEST(data_member_getter, type) {
 
 # undef TEST_IMPL
 # undef TEST_PREAMBLE_IMPL
+}
+
+FATAL_TEST(data_member_getter, has) {
+# define TEST_IMPL(Owner, Field, Expected) \
+  do { \
+    using getter = data_member_getter_test::getter::Field; \
+    using data = data_member_getter_test::data; \
+    FATAL_EXPECT_EQ(Expected, getter::has<Owner>::value); \
+  } while (false)
+  // TODO: for when chained_data_member_getter::has is implemented
+  // using chained_getter = chained_data_member_getter< \
+  //   data_member_getter_test::getter::Field \
+  // >; \
+  // FATAL_EXPECT_EQ(Expected, chained_getter::has<Owner>::value);
+
+  TEST_IMPL(data, i, true);
+  TEST_IMPL(data, scl, true);
+  TEST_IMPL(data, lr, true);
+  TEST_IMPL(data, dc, true);
+  TEST_IMPL(data, bl, true);
+  TEST_IMPL(data, v, true);
+  TEST_IMPL(data, fcr, true);
+  TEST_IMPL(data, non_existent2, false);
+  TEST_IMPL(data, non_existent2, false);
+  TEST_IMPL(data, non_existent3, false);
+
+  TEST_IMPL(data &, i, true);
+  TEST_IMPL(data &, scl, true);
+  TEST_IMPL(data &, lr, true);
+  TEST_IMPL(data &, dc, true);
+  TEST_IMPL(data &, bl, true);
+  TEST_IMPL(data &, v, true);
+  TEST_IMPL(data &, fcr, true);
+  TEST_IMPL(data &, non_existent1, false);
+  TEST_IMPL(data &, non_existent2, false);
+  TEST_IMPL(data &, non_existent3, false);
+
+  TEST_IMPL(data &&, i, true);
+  TEST_IMPL(data &&, scl, true);
+  TEST_IMPL(data &&, lr, true);
+  TEST_IMPL(data &&, dc, true);
+  TEST_IMPL(data &&, bl, true);
+  TEST_IMPL(data &&, v, true);
+  TEST_IMPL(data &&, fcr, true);
+  TEST_IMPL(data &&, non_existent1, false);
+  TEST_IMPL(data &&, non_existent2, false);
+  TEST_IMPL(data &&, non_existent3, false);
+
+  TEST_IMPL(data const, i, true);
+  TEST_IMPL(data const, scl, true);
+  TEST_IMPL(data const, lr, true);
+  TEST_IMPL(data const, dc, true);
+  TEST_IMPL(data const, bl, true);
+  TEST_IMPL(data const, v, true);
+  TEST_IMPL(data const, fcr, true);
+  TEST_IMPL(data const, non_existent1, false);
+  TEST_IMPL(data const, non_existent2, false);
+  TEST_IMPL(data const, non_existent3, false);
+
+  TEST_IMPL(data const &, i, true);
+  TEST_IMPL(data const &, scl, true);
+  TEST_IMPL(data const &, lr, true);
+  TEST_IMPL(data const &, dc, true);
+  TEST_IMPL(data const &, bl, true);
+  TEST_IMPL(data const &, v, true);
+  TEST_IMPL(data const &, fcr, true);
+  TEST_IMPL(data const &, non_existent1, false);
+  TEST_IMPL(data const &, non_existent2, false);
+  TEST_IMPL(data const &, non_existent3, false);
+
+  TEST_IMPL(data const &&, i, true);
+  TEST_IMPL(data const &&, scl, true);
+  TEST_IMPL(data const &&, lr, true);
+  TEST_IMPL(data const &&, dc, true);
+  TEST_IMPL(data const &&, bl, true);
+  TEST_IMPL(data const &&, v, true);
+  TEST_IMPL(data const &&, fcr, true);
+  TEST_IMPL(data const &&, non_existent1, false);
+  TEST_IMPL(data const &&, non_existent2, false);
+  TEST_IMPL(data const &&, non_existent3, false);
+
+# undef TEST_IMPL
 }
 
 FATAL_TEST(data_member_getter, reference) {
