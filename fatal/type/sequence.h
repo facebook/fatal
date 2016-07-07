@@ -26,6 +26,7 @@ namespace fatal {
 namespace detail {
 namespace constant_sequence_impl {
 
+template <typename, typename...> struct concat;
 template <typename, typename> struct reverse;
 template <typename T, typename, T, T, T> struct polynomial;
 
@@ -99,7 +100,8 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using list = type_list<constant<Values>...>;
+  template <template <typename...> class List = type_list>
+  using list = List<constant<Values>...>;
 
   /**
    * Tells how many values this sequence has.
@@ -135,7 +137,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type Needle>
-  using index_of = typename list::template index_of<constant<Needle>>;
+  using index_of = typename list<>::template index_of<constant<Needle>>;
 
   /**
    * Gets the index of the given element in this sequence
@@ -156,7 +158,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type Needle>
-  using checked_index_of = typename list::template checked_index_of<
+  using checked_index_of = typename list<>::template checked_index_of<
     constant<Needle>
   >;
 
@@ -177,7 +179,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type Needle>
-  using contains = typename list::template contains<constant<Needle>>;
+  using contains = typename list<>::template contains<constant<Needle>>;
 
   /**
    * Adds values to the end of this sequence.
@@ -228,10 +230,9 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... Args>
-  using concat = typename type_list<Args...>
-    ::template transform<get_member_type::list>
-    ::template apply<list::template concat>
-    ::template apply_typed_values<type, fatal::constant_sequence>;
+  using concat = typename detail::constant_sequence_impl::concat<
+    constant_sequence, Args...
+  >::type;
 
   /**
    * Gets a sequence with all the elements positioned in the
@@ -254,7 +255,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <std::size_t Offset>
-  using tail = typename list::template tail<Offset>
+  using tail = typename list<>::template tail<Offset>
     ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
@@ -290,9 +291,9 @@ public:
    */
   template <std::size_t Index = (size / 2)>
   using split = type_pair<
-    typename list::template split<Index>::first
+    typename list<>::template split<Index>::first
       ::template apply_typed_values<type, fatal::constant_sequence>,
-    typename list::template split<Index>::second
+    typename list<>::template split<Index>::second
       ::template apply_typed_values<type, fatal::constant_sequence>
   >;
 
@@ -316,7 +317,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <std::size_t Begin, std::size_t End>
-  using slice = typename list::template slice<Begin, End>
+  using slice = typename list<>::template slice<Begin, End>
     ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
@@ -338,7 +339,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <std::size_t N>
-  using left = typename list::template left<N>
+  using left = typename list<>::template left<N>
     ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
@@ -360,7 +361,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <std::size_t N>
-  using right = typename list::template right<N>
+  using right = typename list<>::template right<N>
     ::template apply_typed_values<type, fatal::constant_sequence>;
 
   /**
@@ -423,7 +424,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Separator>
-  using interleave = typename list::template interleave<
+  using interleave = typename list<>::template interleave<
     std::integral_constant<type, Separator>...
   >::template apply_typed_values<type, fatal::constant_sequence>;
 
@@ -839,12 +840,21 @@ namespace constant_sequence_impl {
 
 enum class build_strategy { done, repeat, recurse };
 
-constexpr build_strategy strategy(std::size_t cur, std::size_t end) {
-  return cur >= end
+constexpr build_strategy strategy(std::size_t current, std::size_t end) {
+  return current >= end
     ? build_strategy::done
-    : cur * 2 <= end
+    : current * 2 <= end
       ? build_strategy::repeat
       : build_strategy::recurse;
+}
+
+template<typename T, T Offset, typename> struct build_coerce;
+
+template<typename T>
+constexpr std::size_t distance(T begin, T end) {
+  return begin <= end
+    ? static_cast<std::size_t>(end - begin)
+    : throw "The start of the constant_range must not be greater than the end";
 }
 
 template<
@@ -853,19 +863,6 @@ template<
   build_strategy Status = strategy(State::size, End)
 >
 struct build;
-
-template<typename, typename>
-struct concat;
-
-template<typename T, T Offset, typename>
-struct coerce;
-
-template<typename T>
-constexpr std::size_t distance(T begin, T end) {
-  return begin <= end
-    ? static_cast<std::size_t>(end - begin)
-    : throw "The start of the constant_range must not be greater than the end";
-}
 
 #if ((defined(__clang__) && __clang_major__ >= 3 && __clang_minor__ >= 8) || \
      (defined(_MSC_VER) && _MSC_FULL_VER >= 190023918))
@@ -939,7 +936,7 @@ using indexes_sequence = typename detail::constant_sequence_impl::build<
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, T Begin, T End, bool OpenEnd = true>
-using constant_range = typename detail::constant_sequence_impl::coerce<
+using constant_range = typename detail::constant_sequence_impl::build_coerce<
   T,
   Begin,
   indexes_sequence<
@@ -954,8 +951,10 @@ using constant_range = typename detail::constant_sequence_impl::coerce<
 namespace detail {
 namespace constant_sequence_impl {
 
+template<typename, typename> struct build_concat;
+
 template<std::size_t... UValues, std::size_t... VValues>
-struct concat<size_sequence<UValues...>, size_sequence<VValues...>> {
+struct build_concat<size_sequence<UValues...>, size_sequence<VValues...>> {
   using type = size_sequence<UValues..., (VValues + sizeof...(UValues))...>;
 };
 
@@ -970,18 +969,42 @@ struct build<0u, size_sequence<0>, build_strategy::done> {
 };
 
 template<std::size_t End, std::size_t... Values>
-struct build<End, size_sequence<Values...>, build_strategy::repeat>
-  : build<End, size_sequence<Values..., (Values + sizeof...(Values))...>>
+struct build<End, size_sequence<Values...>, build_strategy::repeat>:
+  build<End, size_sequence<Values..., (Values + sizeof...(Values))...>>
 {};
 
 template<std::size_t End, typename State>
-struct build<End, State, build_strategy::recurse>
-  : concat<State, typename build<End - State::size>::type>
+struct build<End, State, build_strategy::recurse>:
+  build_concat<State, typename build<End - State::size>::type>
 {};
 
 template<typename T, T Offset, std::size_t... Values>
-struct coerce<T, Offset, size_sequence<Values...>> {
-  using type = constant_sequence<T, static_cast<T>(static_cast<T>(Values) + Offset)...>;
+struct build_coerce<T, Offset, size_sequence<Values...>> {
+  using type = constant_sequence<T, static_cast<T>(
+    static_cast<T>(Values) + Offset)...
+  >;
+};
+
+////////////
+// concat //
+////////////
+
+template <typename T>
+struct concat<T> {
+  using type = T;
+};
+
+template <typename T, T... LHS, T... RHS>
+struct concat<constant_sequence<T, LHS...>, constant_sequence<T, RHS...>> {
+  using type = constant_sequence<T, LHS..., RHS...>;
+};
+
+template <typename T, typename U, typename... Tail>
+struct concat<T, U, Tail...> {
+  using type = typename concat<
+    typename concat<T, U>::type,
+    Tail...
+  >::type;
 };
 
 //////////////

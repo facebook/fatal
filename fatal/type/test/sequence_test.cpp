@@ -177,7 +177,7 @@ template <typename T, T... Values>
 void check_list() {
   FATAL_EXPECT_SAME<
     type_list<std::integral_constant<T, Values>...>,
-    typename constant_sequence<T, Values...>::list
+    typename constant_sequence<T, Values...>::template list<>
   >();
 }
 
@@ -1169,7 +1169,7 @@ FATAL_TEST(to_constant_sequence, sanity_check) {
 template <typename T, T... Values>
 void check_constant_range() {
   using closed_sequence = constant_sequence<T, Values...>;
-  using closed_list = typename closed_sequence::list;
+  using closed_list = typename closed_sequence::template list<>;
   using open_list = typename closed_list::template slice<
     0, closed_list::size - 1
   >;
