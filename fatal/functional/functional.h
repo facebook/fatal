@@ -10,9 +10,10 @@
 #ifndef FATAL_INCLUDE_fatal_functional_functional_h
 #define FATAL_INCLUDE_fatal_functional_functional_h
 
+#include <fatal/functional/identity.h>
+#include <fatal/functional/no_op.h>
 #include <fatal/type/fast_pass.h>
 #include <fatal/type/scalar.h>
-#include <fatal/functional/no_op.h>
 
 #include <limits>
 #include <memory>
@@ -22,35 +23,6 @@
 
 namespace fatal {
 namespace fn {
-
-/**
- * An identity operation that receives any parameter and returns it, unaltered.
- *
- * Example:
- *
- *  identity i;
- *
- *  // yields an `int &&` containing `10`
- *  auto result1 = i(10);
- *
- *  // yields a `char const [6] &` pointing to "hello"
- *  auto result2 = i("hello");
- *
- *  // yields a `std::string &&` containing "world"
- *  auto result3 = i(std::string("world"));
- *
- *  std::string s("test");
- *  // yields a `std::string &` containing "test"
- *  auto result4 = i(s);
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-struct identity {
-  template <typename T>
-  constexpr T &&operator ()(T &&value) const noexcept {
-    return std::forward<T>(value);
-  }
-};
 
 /**
  * Takes any number of arguments and returns a default constructed instance of
