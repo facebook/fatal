@@ -505,6 +505,25 @@ public:
 };
 
 /**
+ * A convenient shortcut to `enum_traits::is_valid()`.
+ *
+ * Tells if the given value is a valid value for this enum.
+ *
+ * Example:
+ *
+ *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+ *
+ *  // yields `"field0"`
+ *  auto result = enum_to_string(my_enum::field0);
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename Enum>
+constexpr bool is_valid_enum(Enum e) {
+  return enum_traits<typename std::decay<Enum>::type>::is_valid(e);
+}
+
+/**
  * A convenient shortcut to `enum_traits::to_string()`.
  *
  * Returns a non-owning pointer to the statically allocated string
@@ -523,7 +542,7 @@ public:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename Enum>
-char const *enum_to_string(Enum e, char const *fallback = nullptr) {
+constexpr char const *enum_to_string(Enum e, char const *fallback = nullptr) {
   return enum_traits<typename std::decay<Enum>::type>::to_string(e, fallback);
 }
 

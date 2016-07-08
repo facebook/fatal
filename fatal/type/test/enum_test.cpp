@@ -15,6 +15,8 @@
 
 namespace fatal {
 
+//FATAL_RICH_ENUM_CLASS(empty_enum);
+
 FATAL_RICH_ENUM(
   test_enum,
   state0,
@@ -79,6 +81,12 @@ FATAL_TEST(enums, declare_enum) {
 
 FATAL_TEST(enums, is_valid) {
   {
+    //using traits = enum_traits<empty_enum>;
+
+    //FATAL_EXPECT_FALSE(traits::is_valid(static_cast<empty_enum>(-1)));
+  }
+
+  {
     using traits = enum_traits<test_enum>;
 
     FATAL_EXPECT_FALSE(traits::is_valid(static_cast<test_enum>(-1)));
@@ -96,6 +104,21 @@ FATAL_TEST(enums, is_valid) {
     FATAL_EXPECT_TRUE(traits::is_valid(custom_enum::field1));
     FATAL_EXPECT_TRUE(traits::is_valid(custom_enum::field2));
   }
+}
+
+FATAL_TEST(enums, is_valid_enum) {
+  //FATAL_EXPECT_FALSE(is_valid_enum(static_cast<empty_enum>(-1)));
+
+  FATAL_EXPECT_FALSE(is_valid_enum(static_cast<test_enum>(-1)));
+  FATAL_EXPECT_TRUE(is_valid_enum(test_enum::state0));
+  FATAL_EXPECT_TRUE(is_valid_enum(test_enum::state1));
+  FATAL_EXPECT_TRUE(is_valid_enum(test_enum::state2));
+  FATAL_EXPECT_TRUE(is_valid_enum(test_enum::state3));
+
+  FATAL_EXPECT_FALSE(is_valid_enum(static_cast<custom_enum>(-1)));
+  FATAL_EXPECT_TRUE(is_valid_enum(custom_enum::field0));
+  FATAL_EXPECT_TRUE(is_valid_enum(custom_enum::field1));
+  FATAL_EXPECT_TRUE(is_valid_enum(custom_enum::field2));
 }
 
 FATAL_TEST(enums, to_string) {
