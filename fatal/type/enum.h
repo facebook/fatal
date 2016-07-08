@@ -300,7 +300,7 @@ public:
      *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
      *
      *  using traits = enum_traits<my_enum>;
-     *  using array = traits::array::names;
+     *  using array = traits::array::values;
      *
      *  // prints "0 1 2 "
      *  for (auto i: array::get) {
