@@ -77,6 +77,27 @@ FATAL_TEST(enums, declare_enum) {
   FATAL_EXPECT_EQ(custom_enum::field2, static_cast<custom_enum>(38));
 }
 
+FATAL_TEST(enums, is_valid) {
+  {
+    using traits = enum_traits<test_enum>;
+
+    FATAL_EXPECT_FALSE(traits::is_valid(static_cast<test_enum>(-1)));
+    FATAL_EXPECT_TRUE(traits::is_valid(test_enum::state0));
+    FATAL_EXPECT_TRUE(traits::is_valid(test_enum::state1));
+    FATAL_EXPECT_TRUE(traits::is_valid(test_enum::state2));
+    FATAL_EXPECT_TRUE(traits::is_valid(test_enum::state3));
+  }
+
+  {
+    using traits = enum_traits<custom_enum>;
+
+    FATAL_EXPECT_FALSE(traits::is_valid(static_cast<custom_enum>(-1)));
+    FATAL_EXPECT_TRUE(traits::is_valid(custom_enum::field0));
+    FATAL_EXPECT_TRUE(traits::is_valid(custom_enum::field1));
+    FATAL_EXPECT_TRUE(traits::is_valid(custom_enum::field2));
+  }
+}
+
 FATAL_TEST(enums, to_string) {
   {
     using traits = enum_traits<test_enum>;

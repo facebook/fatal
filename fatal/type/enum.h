@@ -10,8 +10,9 @@
 #ifndef FATAL_INCLUDE_fatal_type_enum_h
 #define FATAL_INCLUDE_fatal_type_enum_h
 
-#include <fatal/preprocessor.h>
 #include <fatal/container/static_array.h>
+#include <fatal/functional/no_op.h>
+#include <fatal/preprocessor.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/prefix_tree.h>
 #include <fatal/type/registry.h>
@@ -342,6 +343,29 @@ private:
 
 public:
   /**
+   * Tells if the given value is a valid value for this enum.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *
+   *  my_enum out;
+   *
+   *  // returns `true` and sets `out` to `my_enum::field0`
+   *  bool result1 = enum_traits<my_enum>::is_valid(my_enum::field0);
+   *
+   *  // returns `false` and leaves `out` untouched
+   *  bool result2 = enum_traits<my_enum>::is_valid(static_cast<my_enum>(99999));
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  static constexpr bool is_valid(type e) {
+    return values::template sort<>::template binary_search<>::exact(
+      e, fn::no_op()
+    );
+  }
+
+  /**
    * Returns a non-owning pointer to the statically allocated string
    * representation of the enumeration value given, or `fallback` when
    * the given value is not supported.
@@ -447,7 +471,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename TBegin, typename TEnd>
-  static bool try_parse(type &out, TBegin &&begin, TEnd &&end) {
+  static constexpr bool try_parse(type &out, TBegin &&begin, TEnd &&end) {
     using prefix_tree = typename names::template apply<
       fatal::build_type_prefix_tree<>::from
     >;
@@ -475,7 +499,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename TString>
-  static bool try_parse(type &out, TString const &s) {
+  static constexpr bool try_parse(type &out, TString const &s) {
     return try_parse(out, std::begin(s), std::end(s));
   }
 };
