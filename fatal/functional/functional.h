@@ -12,6 +12,7 @@
 
 #include <fatal/type/fast_pass.h>
 #include <fatal/type/scalar.h>
+#include <fatal/functional/no_op.h>
 
 #include <limits>
 #include <memory>
@@ -21,16 +22,6 @@
 
 namespace fatal {
 namespace fn {
-
-/**
- * A callable that accepts any parameters and does nothing.
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-struct no_op {
-  template <typename... UArgs>
-  void operator ()(UArgs &&...) const noexcept {}
-};
 
 /**
  * An identity operation that receives any parameter and returns it, unaltered.
