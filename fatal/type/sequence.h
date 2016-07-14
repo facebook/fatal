@@ -864,10 +864,12 @@ template<
 >
 struct build;
 
+/* Disabled due to https://llvm.org/bugs/show_bug.cgi?id=28519
 #if ((defined(__clang__) && __clang_major__ >= 3 && __clang_minor__ >= 8) || \
      (defined(_MSC_VER) && _MSC_FULL_VER >= 190023918))
 # define FATAL_IMPL_HAS_MAKE_INTEGER_SEQ 1
 #endif
+*/
 
 #if FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
 template <class T, T N>
