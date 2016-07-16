@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -14,7 +14,7 @@
 #include <fatal/type/fast_pass.h> // TODO: REMOVE AND FIX DEPENDENCIES
 #include <fatal/type/scalar.h>
 #include <fatal/type/sequence.h>
-#include <fatal/type/transform.h>
+#include <fatal/type/deprecated/transform.h>
 
 #include <type_traits>
 #include <utility>
