@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -15,21 +15,13 @@
 namespace fatal {
 
 // TODO: DOCUMENT AND TEST
-template <template <typename...> class Comparer>
-class custom_string_lookup {
-  using impl = build_type_prefix_tree<Comparer>;
-
-public:
-  // TODO: DOCUMENT AND TEST
-  template <typename... Strings>
-  using apply = typename impl::template apply<Strings...>;
-};
+template <template <typename...> class Comparer, typename... Strings>
+using custom_string_lookup = typename build_type_prefix_tree<Comparer>
+  ::template apply<Strings...>;
 
 // TODO: DOCUMENT
-template <typename... Args>
-using string_lookup = fatal::build_type_prefix_tree<>::from<
-  Args...
->;
+template <typename... Strings>
+using string_lookup = custom_string_lookup<Strings...>;
 
 } // namespace fatal {
 
