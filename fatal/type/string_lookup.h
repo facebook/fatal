@@ -17,11 +17,12 @@ namespace fatal {
 // TODO: DOCUMENT AND TEST
 template <template <typename...> class Comparer, typename... Strings>
 using custom_string_lookup = typename build_type_prefix_tree<Comparer>
-  ::template apply<Strings...>;
+  ::template from<Strings...>;
 
 // TODO: DOCUMENT
 template <typename... Strings>
-using string_lookup = custom_string_lookup<Strings...>;
+using string_lookup = typename build_type_prefix_tree<>
+  ::template from<Strings...>;
 
 } // namespace fatal {
 
