@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -16,7 +16,7 @@
 #include <fatal/time/time.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/traits.h>
-#include <fatal/type/transform.h>
+#include <fatal/type/deprecated/transform.h>
 
 #include <chrono>
 #include <exception>
