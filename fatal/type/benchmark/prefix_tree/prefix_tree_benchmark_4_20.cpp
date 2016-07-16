@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/type/benchmark/prefix_tree.h>
+#include <fatal/type/benchmark/prefix_tree/prefix_tree.h>
 
 #include <fatal/benchmark/driver.h>
 
