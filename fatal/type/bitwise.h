@@ -1,0 +1,170 @@
+/*
+ *  Copyright (c) 2016, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+#ifndef FATAL_INCLUDE_fatal_type_bitwise_h
+#define FATAL_INCLUDE_fatal_type_bitwise_h
+
+#include <fatal/type/impl/bitwise.h>
+
+namespace fatal {
+
+/**
+ * Yields an std::integral_constant whose value is the bitwise AND of the value
+ * of each argument.
+ *
+ * Example:
+ *
+ *  template <int... Args>
+ *  using all = bitwise_and<
+ *    std::integral_constant<int, Args>...
+ *  >;
+ *
+ *  // yields `0`
+ *  all<1, 2, 4>::value
+ *
+ *  // yields `3`
+ *  all<7, 11>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename... Args>
+using bitwise_and = typename impl_bitwise::b_and<Args...>::type;
+
+/**
+ * Yields an std::integral_constant whose value is the bitwise OR of the value
+ * of each argument.
+ *
+ * Example:
+ *
+ *  template <int... Args>
+ *  using any = bitwise_or<
+ *    std::integral_constant<int, Args>...
+ *  >;
+ *
+ *  // yields `7`
+ *  any<1, 2, 4>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename... Args>
+using bitwise_or = typename impl_bitwise::b_or<Args...>::type;
+
+/**
+ * Yields an std::integral_constant whose value is the bitwise XOR of the value
+ * of each argument.
+ *
+ * Example:
+ *
+ *  template <int... Args>
+ *  using diff = bitwise_xor<
+ *    std::integral_constant<int, Args>...
+ *  >;
+ *
+ *  // yields `3`
+ *  diff<1, 2>::value
+ *
+ *  // yields `12`
+ *  diff<7, 11>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename... Args>
+using bitwise_xor = typename impl_bitwise::b_xor<Args...>::type;
+
+/**
+ * Yields an std::integral_constant whose value is the bitwise complement of T's
+ * value.
+ *
+ * Example:
+ *
+ *  // yields `0xf0`
+ *  complement<std::integral_constant<std::uint8_t, 0xf>>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+// TODO: REVIEW THIS IMPLEMENTATION
+/*
+using complement = std::integral_constant<
+  typename std::conditional<
+    std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
+    typename std::decay<decltype(T::value)>::type,
+    typename std::decay<decltype(~T::value)>::type
+  >::type,
+  static_cast<
+    typename std::conditional<
+      std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
+      typename std::decay<decltype(T::value)>::type,
+      typename std::decay<decltype(~T::value)>::type
+    >::type
+  >(~T::value)
+>;
+*/
+using complement = std::integral_constant<decltype(~T::value), ~T::value>;
+
+/**
+ * Yields an std::integral_constant whose value is the bitwise AND of the value
+ * of each argument.
+ *
+ * Example:
+ *
+ *  template <std::uint8_t... Args>
+ *  using all = bitwise_nand<
+ *    std::integral_constant<std::uint8_t, Args>...
+ *  >;
+ *
+ *  // yields `0b11111100`
+ *  all<7, 11>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename... Args>
+using bitwise_nand = complement<bitwise_and<Args...>>;
+
+/**
+ * Yields an std::integral_constant whose value is the bitwise OR of the value
+ * of each argument.
+ *
+ * Example:
+ *
+ *  template <std::uint8_t... Args>
+ *  using any = bitwise_nor<
+ *    std::integral_constant<std::uint8_t, Args>...
+ *  >;
+ *
+ *  // yields `0b11111000`
+ *  any<1, 2, 4>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename... Args>
+using bitwise_nor = complement<bitwise_or<Args...>>;
+
+/**
+ * Yields an std::integral_constant whose value is the bitwise XOR of the value
+ * of each argument.
+ *
+ * Example:
+ *
+ *  template <std::uint8_t... Args>
+ *  using diff = bitwise_xnor<
+ *    std::integral_constant<std::uint8_t, Args>...
+ *  >;
+ *
+ *  // yields `0b11110011`
+ *  diff<7, 11>::value
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename... Args>
+using bitwise_xnor = complement<bitwise_xor<Args...>>;
+
+} // namespace fatal {
+
+#endif // FATAL_INCLUDE_fatal_type_bitwise_h
