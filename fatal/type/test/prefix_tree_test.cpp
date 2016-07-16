@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/type/prefix_tree.h>
+#include <fatal/type/deprecated/type_prefix_tree.h>
 #include <fatal/type/sequence.h>
 
 #include <fatal/test/driver.h>
@@ -454,7 +454,7 @@ FATAL_TEST(type_prefix_tree, match_exact_h_hut) {
 ////////////////////
 // match_prefixes //
 ////////////////////
-
+/*
 FATAL_TEST(type_prefix_tree, match_prefixes_h_empty) {
   check_match<>::prefixes<hs_tree>("");
 }
@@ -522,5 +522,5 @@ FATAL_TEST(type_prefix_tree, match_prefixes_abc_abcxyz) {
 FATAL_TEST(type_prefix_tree, match_prefixes_abc_abcxYZ) {
   check_match<>::prefixes<abc_tree, a, ab, abc, abcx>("abcxYZ");
 }
-
+*/
 } // namespace fatal {

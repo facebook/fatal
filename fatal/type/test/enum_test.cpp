@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -15,6 +15,7 @@
 
 namespace fatal {
 
+// TODO: FIX SUPPORT FOR EMPTY ENUMS
 //FATAL_RICH_ENUM_CLASS(empty_enum);
 
 FATAL_RICH_ENUM(
@@ -26,7 +27,7 @@ FATAL_RICH_ENUM(
 );
 FATAL_STR(test_enum_name, "test_enum");
 
-enum class custom_enum { field0, field1 = 37, field2 };
+enum class custom_enum { field0, field1 = 37, field2 = 22 };
 FATAL_STR(custom_enum_name, "custom_enum");
 
 struct custom_enum_traits {
@@ -76,7 +77,29 @@ FATAL_TEST(enums, declare_enum) {
 
   FATAL_EXPECT_EQ(custom_enum::field0, static_cast<custom_enum>(0));
   FATAL_EXPECT_EQ(custom_enum::field1, static_cast<custom_enum>(37));
-  FATAL_EXPECT_EQ(custom_enum::field2, static_cast<custom_enum>(38));
+  FATAL_EXPECT_EQ(custom_enum::field2, static_cast<custom_enum>(22));
+}
+
+FATAL_TEST(enums, array::names) {
+}
+
+FATAL_TEST(enums, array::values) {
+}
+
+FATAL_TEST(enums, array::sorted_values) {
+  {
+    using actual = enum_traits<test_enum>::array::names;
+    std::array<char const *, 4> expected{{
+      "state0", "state1", "state2", "state3"
+    }};
+    FATAL_EXPECT_TRUE(std::equal(expected.begin(), actual::get));
+  }
+
+  {
+    using actual = enum_traits<custom_enum>::array::names;
+    std::array<char const *, 3> expected{{"field0", "field1", "field2"}};
+    FATAL_EXPECT_EQ(expected, actual::get);
+  }
 }
 
 FATAL_TEST(enums, is_valid) {
