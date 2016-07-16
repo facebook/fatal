@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -13,8 +13,8 @@
 #include <fatal/container/uninitialized.h>
 #include <fatal/math/hash.h>
 #include <fatal/string/string_view.h>
-#include <fatal/type/map.h>
-#include <fatal/type/tag.h>
+#include <fatal/type/deprecated/type_map.h>
+#include <fatal/type/deprecated/type_tag.h>
 #include <fatal/type/traits.h>
 
 #include <algorithm>
