@@ -10,6 +10,38 @@
 #ifndef FATAL_INCLUDE_fatal_type_sequence_h
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
+#include <fatal/type/sequence_fwd.h>
+
+#include <cstdint>
+
+#include <fatal/type/impl/sequence.h>
+
+namespace fatal {
+
+template <typename T, T... Values>
+struct sequence {
+  using value_type = T;
+};
+
+template <typename T, std::size_t Size>
+using make_sequence = typename impl_seq::make<T, Size>::type;
+
+template <typename T, T Begin, T End>
+using make_interval = typename impl_seq::offset<
+  T, Begin, make_sequence<T, End - Begin>
+>::type;
+
+template <std::size_t... Values>
+using index_sequence = sequence<std::size_t, Values...>;
+
+template <std::size_t Size>
+using make_index_sequence = make_sequence<std::size_t, Size>;
+
+template <std::size_t Begin, std::size_t End>
+using make_index_interval = make_interval<std::size_t, Begin, End>;
+
+} // namespace fatal {
+
 #include <fatal/type/deprecated/constant_sequence.h>
 
 #endif // FATAL_INCLUDE_fatal_type_sequence_h
