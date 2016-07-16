@@ -92,7 +92,10 @@ FATAL_TEST(enums, array::sorted_values) {
     std::array<char const *, 4> expected{{
       "state0", "state1", "state2", "state3"
     }};
-    FATAL_EXPECT_TRUE(std::equal(expected.begin(), actual::get));
+    FATAL_ASSERT_EQ(expected.size(), actual::get.size());
+    FATAL_EXPECT_TRUE(
+      std::equal(expected.begin(), expected.end(), actual::get.begin())
+    );
   }
 
   {
