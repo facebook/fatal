@@ -10,6 +10,26 @@
 #ifndef FATAL_INCLUDE_fatal_type_tag_h
 #define FATAL_INCLUDE_fatal_type_tag_h
 
+#include <type_traits>
+
+namespace fatal {
+
+template <typename T>
+struct tag {
+  using type = T;
+};
+
+template <typename T, std::size_t Index>
+struct indexed:
+  std::integral_constant<std::size_t, Index>
+{
+  using type = T;
+};
+
+struct not_found {};
+
+} // namespace fatal {
+
 #include <fatal/type/deprecated/type_tag.h>
 
 #endif // FATAL_INCLUDE_fatal_type_tag_h
