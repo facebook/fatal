@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_benchmark_benchmark_h
 #define FATAL_INCLUDE_fatal_benchmark_benchmark_h
 
+#include <fatal/benchmark/prevent_optimization.h>
 #include <fatal/container/optional.h>
 #include <fatal/preprocessor.h>
 #include <fatal/time/time.h>
@@ -411,21 +412,6 @@ results run(TOut &out) {
 }
 
 } // namespace benchmark {
-
-namespace detail {
-
-std::uintptr_t prevent_optimization = 0;
-
-} // namespace detail {
-
-// TODO: MOVE IT SOMEWHERE ELSE??
-template <typename T>
-inline void prevent_optimization(T &&what) {
-  detail::prevent_optimization |= reinterpret_cast<
-    decltype(detail::prevent_optimization)
-  >(std::addressof(what));
-}
-
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_benchmark_benchmark_h
