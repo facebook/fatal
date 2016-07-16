@@ -10,6 +10,15 @@
 #ifndef FATAL_INCLUDE_fatal_type_map_h
 #define FATAL_INCLUDE_fatal_type_map_h
 
+#include <fatal/type/list.h>
+
+namespace fatal {
+
+template <typename... Pairs>
+using map = list<Pairs...>;
+
+} // namespace fatal {
+
 #include <fatal/type/deprecated/type_map.h>
 
 #endif // FATAL_INCLUDE_fatal_type_map_h
