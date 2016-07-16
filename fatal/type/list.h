@@ -10,6 +10,12 @@
 #ifndef FATAL_INCLUDE_fatal_type_list_h
 #define FATAL_INCLUDE_fatal_type_list_h
 
+namespace fatal {
+
+template <typename...> struct list {};
+
+} // namespace fatal {
+
 #include <fatal/type/deprecated/type_list.h>
 
 #endif // FATAL_INCLUDE_fatal_type_list_h
