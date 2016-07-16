@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -14,9 +14,9 @@
 #include <fatal/functional/no_op.h>
 #include <fatal/preprocessor.h>
 #include <fatal/type/call_traits.h>
-#include <fatal/type/prefix_tree.h>
 #include <fatal/type/registry.h>
 #include <fatal/type/sequence.h>
+#include <fatal/type/string_lookup.h>
 #include <fatal/type/traits.h>
 
 #include <iterator>
@@ -312,6 +312,29 @@ public:
     using values = typename enum_traits::values::template apply<
       static_array<type>::template value
     >;
+
+    /**
+     * A statically allocated array containing the values of the enumeration
+     * fields, in a sorted order.
+     *
+     * See `container/static_array` for more info.
+     *
+     * Example:
+     *
+     *  FATAL_RICH_ENUM_CLASS(my_enum, (field2, 2), (field0, 0), (field1, 1));
+     *
+     *  using traits = enum_traits<my_enum>;
+     *  using array = traits::array::sorted_values;
+     *
+     *  // prints "0 1 2 "
+     *  for (auto i: array::get) {
+     *    std::cout << static_cast<traits::int_type>(i) << ' ';
+     *  }
+     *
+     * @author: Marcelo Juchem <marcelo@fb.com>
+     */
+    using sorted_values = typename enum_traits::values::template sort<>
+      ::template apply<static_array<type>::template value>;
   };
 
 private:
@@ -412,13 +435,11 @@ public:
    */
   template <typename TBegin, typename TEnd>
   static type parse(TBegin &&begin, TEnd &&end) {
-    using prefix_tree = typename names::template apply<
-      fatal::build_type_prefix_tree<>::from
-    >;
+    using lookup = typename names::template apply<string_lookup>;
 
     type out;
 
-    if (!prefix_tree::template match<>::exact(
+    if (!lookup::template match<>::exact(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     )) {
       throw std::invalid_argument("unrecognized enum value");
@@ -472,11 +493,9 @@ public:
    */
   template <typename TBegin, typename TEnd>
   static constexpr bool try_parse(type &out, TBegin &&begin, TEnd &&end) {
-    using prefix_tree = typename names::template apply<
-      fatal::build_type_prefix_tree<>::from
-    >;
+    using lookup = typename names::template apply<string_lookup>;
 
-    return prefix_tree::template match<>::exact(
+    return lookup::template match<>::exact(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     );
   }
