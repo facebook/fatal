@@ -16,11 +16,11 @@
 
 namespace fatal {
 
-template <typename T, typename Key, template <typename> class Filter>
-using get = typename impl_get::get<T, Filter>::template type<Key>;
+template <typename T, typename Key, template <typename> class KeyFilter = first>
+using get = typename impl_get::get<T, KeyFilter>::template type<Key>;
 
 template <typename T, typename Key>
-using map_get = second<get<T, Key, first>>;
+using map_get = second<get<T, Key>>;
 
 } // namespace fatal {
 
