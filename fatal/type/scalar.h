@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -132,6 +132,7 @@ typename detail::scalar_impl::to_integral_impl<T>::type to_integral(
 template <typename T>
 T bitwise_merge(T const value) { return value; }
 
+// TODO: Implement in logarithmic time
 template <typename T, typename... Args>
 T bitwise_merge(T const lhs, T const rhs, Args... args) {
   return bitwise_merge(
