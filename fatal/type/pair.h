@@ -10,6 +10,14 @@
 #ifndef FATAL_INCLUDE_fatal_type_pair_h
 #define FATAL_INCLUDE_fatal_type_pair_h
 
+#include <type_traits>
+
+namespace fatal {
+
+template <typename, typename> struct pair {};
+
+} // namespace fatal {
+
 #include <fatal/type/deprecated/type_pair.h>
 
 #endif // FATAL_INCLUDE_fatal_type_pair_h
