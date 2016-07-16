@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -11,9 +11,9 @@
 #define FATAL_INCLUDE_fatal_container_tuple_h
 
 #include <fatal/container/tuple_tags.h>
-#include <fatal/type/list.h>
+#include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/pair.h>
-#include <fatal/type/tag.h>
+#include <fatal/type/deprecated/type_tag.h>
 #include <fatal/type/traits.h>
 
 #include <tuple>

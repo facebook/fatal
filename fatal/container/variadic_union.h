@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -11,8 +11,8 @@
 #define FATAL_INCLUDE_fatal_container_variadic_union_h
 
 #include <fatal/math/numerics.h>
-#include <fatal/type/list.h>
-#include <fatal/type/transform.h>
+#include <fatal/type/deprecated/type_list.h>
+#include <fatal/type/deprecated/transform.h>
 
 #include <memory>
 #include <type_traits>

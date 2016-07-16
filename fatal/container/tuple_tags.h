@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,8 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_container_tuple_tags_h
 #define FATAL_INCLUDE_fatal_container_tuple_tags_h
 
-#include <fatal/type/list.h>
-#include <fatal/type/map.h>
+#include <fatal/type/deprecated/type_list.h>
+#include <fatal/type/deprecated/type_map.h>
 #include <fatal/type/reflect_template.h>
 
 #include <tuple>
