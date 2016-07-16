@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,7 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_math_numerics_h
 #define FATAL_INCLUDE_fatal_math_numerics_h
 
-#include <fatal/type/list.h>
+#include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/traits.h>
 
 #include <type_traits>
