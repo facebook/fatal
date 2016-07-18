@@ -184,6 +184,7 @@ struct pick<Sequence<T, Values...>, Indexes...> {
 
 #else // FATAL_AT_USE_VOID_POINTER_TRICK
 
+// TODO: RE-CHECK AND REMOVE DEFINES
 template <std::size_t Index, typename = make_index_sequence<Index>>
 struct index;
 
@@ -267,11 +268,151 @@ struct pick<Sequence<T, Values...>, Indexes...> {
 
 #endif // FATAL_AT_USE_VOID_POINTER_TRICK
 
-template <typename...> struct slice;
+template <std::size_t...> struct tindex;
 
-template <typename T, std::size_t... Indexes>
-struct slice<T, index_sequence<Indexes...>> {
-  using type = typename pick<T, Indexes...>::type;
+template <std::size_t Size, std::size_t Left, std::size_t... Indexes>
+struct tindex<Size, Left, Indexes...> {
+  template <template <typename...> class List, typename T, typename... Tail>
+  static List<T, Tail...> list(
+    decltype(reinterpret_cast<void *>(Indexes))...,
+    tag<T> *,
+    tag<Tail> *...
+  );
+};
+
+template <std::size_t Size, std::size_t... Indexes>
+struct tindex<Size, Size, Indexes...> {
+  template <template <typename...> class List>
+  static List<> list(...);
+};
+
+template <std::size_t...> struct tvindex;
+
+template <std::size_t Size, std::size_t Left, std::size_t... Indexes>
+struct tvindex<Size, Left, Indexes...> {
+  template <
+    template <typename V, V...> class Sequence,
+    typename T,
+    T Value,
+    T... Values
+  >
+  static Sequence<T, Value, Values...> seq(
+    decltype(reinterpret_cast<void *>(Indexes))...,
+    std::integral_constant<T, Value> *,
+    std::integral_constant<T, Values> *...
+  );
+};
+
+template <std::size_t Size, std::size_t... Indexes>
+struct tvindex<Size, Size, Indexes...> {
+  template <template <typename V, V...> class Sequence, typename T>
+  static Sequence<T> seq(...);
+};
+
+template <typename...> struct tail;
+
+template <
+  template <typename...> class List,
+  typename... Args,
+  std::size_t... Indexes
+>
+struct tail<List<Args...>, index_sequence<Indexes...>> {
+  using type = decltype(
+    tindex<sizeof...(Args), sizeof...(Indexes), Indexes...>
+      ::template list<List>(static_cast<tag<Args> *>(nullptr)...)
+  );
+};
+
+template <
+  template <typename V, V...> class Sequence,
+  typename T,
+  T... Values,
+  std::size_t... Indexes
+>
+struct tail<Sequence<T, Values...>, index_sequence<Indexes...>> {
+  using type = decltype(
+    tvindex<sizeof...(Values), sizeof...(Indexes), Indexes...>
+      ::template seq<Sequence, T>(
+        static_cast<std::integral_constant<T, Values> *>(nullptr)...
+      )
+  );
+};
+
+template <
+  typename,
+  std::size_t,
+  std::size_t Offset,
+  typename = make_index_sequence<Offset>
+>
+struct head;
+
+template <
+  template <typename...> class List,
+  typename... Args,
+  std::size_t Size,
+  std::size_t Offset,
+  std::size_t... Indexes
+>
+struct head<List<Args...>, Size, Offset, index_sequence<Indexes...>> {
+  using type = typename pick<List<Args...>, Indexes...>::type;
+};
+
+template <template <typename...> class List, typename... Args, std::size_t Size>
+struct head<List<Args...>, Size, 0, index_sequence<>> {
+  using type = List<>;
+};
+
+template <template <typename...> class List, typename... Args>
+struct head<List<Args...>, 0, 0, index_sequence<>> {
+  using type = List<>;
+};
+
+template <
+  template <typename...> class List,
+  typename... Args,
+  std::size_t Size,
+  std::size_t... Indexes
+>
+struct head<List<Args...>, Size, Size, index_sequence<Indexes...>> {
+  using type = List<Args...>;
+};
+
+template <
+  template <typename V, V...> class Sequence,
+  typename T,
+  T... Values,
+  std::size_t Size,
+  std::size_t Offset,
+  std::size_t... Indexes
+>
+struct head<Sequence<T, Values...>, Size, Offset, index_sequence<Indexes...>> {
+  using type = typename pick<Sequence<T, Values...>, Indexes...>::type;
+};
+
+template <
+  template <typename V, V...> class Sequence,
+  typename T,
+  T... Values,
+  std::size_t Size
+>
+struct head<Sequence<T, Values...>, Size, 0, index_sequence<>> {
+  using type = Sequence<T>;
+};
+
+template <template <typename V, V...> class Sequence, typename T, T... Values>
+struct head<Sequence<T, Values...>, 0, 0, index_sequence<>> {
+  using type = Sequence<T>;
+};
+
+template <
+  template <typename V, V...> class Sequence,
+  typename T,
+  T... Values,
+  std::size_t Size,
+  std::size_t... Indexes
+>
+struct head<Sequence<T, Values...>, Size, Size, index_sequence<Indexes...>> {
+  using type = Sequence<T, Values...>;
 };
 
 } // namespace impl_at {

@@ -33,8 +33,14 @@ using third = at<T, 2>;
 template <typename T, std::size_t... Indexes>
 using pick = typename impl_at::pick<T, Indexes...>::type;
 
-template <typename T, std::size_t Begin, std::size_t End = size<T>::value>
-using slice = typename impl_at::slice<T, make_index_interval<Begin, End>>::type;
+template <typename T, std::size_t Offset>
+using tail = typename impl_at::tail<T, make_index_sequence<Offset>>::type;
+
+template <typename T, std::size_t Offset>
+using head = typename impl_at::head<T, size<T>::value, Offset>::type;
+
+template <typename T, std::size_t Begin, std::size_t End>
+using slice = head<tail<T, Begin>, End - Begin>;
 
 } // namespace fatal {
 
