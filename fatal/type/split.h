@@ -15,9 +15,8 @@
 
 namespace fatal {
 
-// TODO: OPTIMIZE
 template <typename T, std::size_t Offset>
-using split = pair<slice<T, 0, Offset>, slice<T, Offset>>;
+using split = pair<head<T, Offset>, tail<T, Offset>>;
 
 } // namespace fatal {
 
