@@ -43,6 +43,65 @@ struct at<Pair<First, Second>, 1> {
   using type = Second;
 };
 
+template <template <typename...> class List, typename T, typename... Args>
+struct at<List<T, Args...>, 0> {
+  using type = T;
+};
+
+template <
+  template <typename...> class List,
+  typename First,
+  typename Second,
+  typename... Args
+>
+struct at<List<First, Second, Args...>, 1> {
+  using type = Second;
+};
+
+template <
+  template <typename...> class List,
+  typename First,
+  typename Second,
+  typename Third,
+  typename... Args
+>
+struct at<List<First, Second, Third, Args...>, 2> {
+  using type = Third;
+};
+
+template <
+  typename T,
+  template <typename, T...> class Sequence,
+  T Value,
+  T... Values
+>
+struct at<Sequence<T, Value, Values...>, 0> {
+  using type = std::integral_constant<T, Value>;
+};
+
+template <
+  typename T,
+  template <typename, T...> class Sequence,
+  T First,
+  T Second,
+  T... Values
+>
+struct at<Sequence<T, First, Second, Values...>, 1> {
+  using type = std::integral_constant<T, Second>;
+};
+
+template <
+  typename T,
+  template <typename, T...> class Sequence,
+  T First,
+  T Second,
+  T Third,
+  T... Values
+>
+struct at<Sequence<T, First, Second, Third, Values...>, 2> {
+  using type = std::integral_constant<T, Third>;
+};
+
 template <typename, std::size_t...> struct pick;
 
 #ifndef FATAL_AT_USE_VOID_POINTER_TRICK
