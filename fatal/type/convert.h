@@ -17,7 +17,7 @@
 namespace fatal {
 
 template <template <typename V, V...> class Sequence, typename... Args>
-using sequence_from = typename impl_conv::to_seq<Sequence, Args...>;
+using sequence_from = typename impl_conv::to_seq<Sequence, Args...>::type;
 
 template <template <typename...> class List, typename T, T... Values>
 using list_from = List<std::integral_constant<T, Values>...>;
