@@ -10,7 +10,6 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_type_pair_h
 #define FATAL_INCLUDE_fatal_type_deprecated_type_pair_h
 
-#include <fatal/type/apply.h>
 #include <fatal/type/deprecated/type_tag.h>
 #include <fatal/type/deprecated/transform.h>
 

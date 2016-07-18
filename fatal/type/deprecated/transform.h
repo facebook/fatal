@@ -10,7 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_transform_h
 #define FATAL_INCLUDE_fatal_type_deprecated_transform_h
 
-#include <fatal/type/apply.h>
+#include <fatal/type/deprecated/apply.h>
 #include <fatal/type/deprecated/type_tag.h>
 #include <fatal/type/identity.h>
 #include <fatal/type/is_complete.h>

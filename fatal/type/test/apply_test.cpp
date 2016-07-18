@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/type/apply.h>
+#include <fatal/type/deprecated/apply.h>
 
 #include <fatal/test/driver.h>
 

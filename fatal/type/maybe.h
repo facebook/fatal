@@ -10,7 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_maybe_h
 #define FATAL_INCLUDE_fatal_type_maybe_h
 
-#include <fatal/type/apply.h>
+#include <fatal/type/deprecated/apply.h>
 
 namespace fatal {
 
