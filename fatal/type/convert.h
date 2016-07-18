@@ -17,10 +17,10 @@
 namespace fatal {
 
 template <template <typename V, V...> class Sequence, typename... Args>
-using sequence_from = typename impl_conv::to_seq<Sequence, Args...>::type;
+using sequence_from = typename impl_conv::seq<Sequence, Args...>::type;
 
-template <template <typename...> class List, typename T, T... Values>
-using list_from = List<std::integral_constant<T, Values>...>;
+template <template <typename...> class List, typename T>
+using list_from = typename impl_conv::list<List, T>::type;
 
 } // namespace fatal {
 

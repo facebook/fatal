@@ -13,7 +13,7 @@
 namespace fatal {
 namespace impl_conv {
 
-template <template <typename V, V...> class, typename...> struct to_seq;
+template <template <typename V, V...> class, typename...> struct seq;
 
 template <
   template <typename V, V...> class Sequence,
@@ -21,7 +21,7 @@ template <
   typename... Values,
   typename T
 >
-struct to_seq<Sequence, List<Values...>, T> {
+struct seq<Sequence, List<Values...>, T> {
   using type = Sequence<T, Values::value...>;
 };
 
@@ -31,8 +31,20 @@ template <
   typename Head,
   typename... Tail
 >
-struct to_seq<Sequence, List<Head, Tail...>> {
+struct seq<Sequence, List<Head, Tail...>> {
   using type = Sequence<decltype(Head::value), Head::value, Tail::value...>;
+};
+
+template <template <typename...> class, typename> struct list;
+
+template <
+  template <typename...> class List,
+  template <typename V, V...> class Sequence,
+  typename T,
+  T... Values
+>
+struct list<List, Sequence<T, Values...>> {
+  using type = List<std::integral_constant<T, Values>...>;
 };
 
 } // namespace impl_conv {
