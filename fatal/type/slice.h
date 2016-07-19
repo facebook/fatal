@@ -37,10 +37,17 @@ template <typename T, std::size_t Offset>
 using tail = typename impl_at::tail<T, make_index_sequence<Offset>>::type;
 
 template <typename T, std::size_t Offset>
-using head = typename impl_at::head<T, size<T>::value, Offset>::type;
+using head = typename impl_at::head<T, Offset>
+  ::template type<>;
 
 template <typename T, std::size_t Begin, std::size_t End>
 using slice = head<tail<T, Begin>, End - Begin>;
+
+template <typename Container>
+using index = typename impl_at::idx<
+  Container,
+  make_index_sequence<size<Container>::value>
+>;
 
 } // namespace fatal {
 
