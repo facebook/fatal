@@ -45,6 +45,26 @@ struct offset<T, Offset, sequence<T, Values...>> {
   using type = sequence<T, (Offset + Values)...>;
 };
 
+template <typename T, std::size_t Size>
+constexpr std::size_t size(T const (&)[Size]) {
+  static_assert(
+    Size > 0,
+    "expecting a string containing at least the null terminator"
+  );
+  return Size - 1;
+}
+
+#define FATAL_IMPL_BUILD_STRING(Id, Helper, Indexes, ...) \
+  template <::std::size_t... Indexes> \
+  static ::fatal::sequence< \
+    typename ::std::decay<decltype(*(__VA_ARGS__))>::type, \
+    (__VA_ARGS__)[Indexes]... \
+  > Helper(::fatal::index_sequence<Indexes...>); \
+  \
+  using Id = decltype(Helper( \
+    ::fatal::make_index_sequence<::fatal::impl_seq::size(__VA_ARGS__)>() \
+  ))
+
 } // namespace impl_seq {
 } // namespace fatal {
 

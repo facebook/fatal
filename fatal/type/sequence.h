@@ -40,6 +40,14 @@ using make_index_sequence = make_sequence<std::size_t, Size>;
 template <std::size_t Begin, std::size_t End>
 using make_index_interval = make_interval<std::size_t, Begin, End>;
 
+#define FATAL_S(Id, String) \
+  FATAL_IMPL_BUILD_STRING( \
+    Id, \
+    FATAL_UID(FATAL_CAT(fatal_str_, Id)), \
+    FATAL_UID(Indexes), \
+    String \
+  )
+
 } // namespace fatal {
 
 #include <fatal/type/deprecated/constant_sequence.h>
