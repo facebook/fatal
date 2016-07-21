@@ -17,6 +17,28 @@ namespace fatal {
 template <typename T>
 using apply_to = impl_apply::to<T>;
 
+template <template <typename...> class T>
+struct applier {
+  template <typename... Args>
+  using apply = typename impl_apply::applier<T, Args...>::type;
+};
+
+template <typename T, typename... Bound>
+struct curry {
+  template <typename... Args>
+  using apply = typename impl_apply::applier<
+    T::template apply, Bound..., Args...
+  >::type;
+};
+
+template <typename T, typename... Bound>
+struct curry_back {
+  template <typename... Args>
+  using apply = typename impl_apply::applier<
+    T::template apply, Args..., Bound...
+  >::type;
+};
+
 } // namespace fatal {
 
 #include <fatal/type/deprecated/apply.h>
