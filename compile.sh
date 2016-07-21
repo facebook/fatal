@@ -37,7 +37,7 @@ out_binary="$out_dir/`basename "$file_name" .cpp`"
 lclear
 
 if [ -z "$CC_OPT" ]; then
-  CC_OPT="-O2"
+  CC_OPT="-O0"
 fi
 
 CC_ARGS="-o $out_binary $CC_ARGS $CC_OPT -g -pthread -ftemplate-depth-1024"
