@@ -10,30 +10,31 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_replace_h
 #define FATAL_INCLUDE_fatal_type_impl_replace_h
 
+#include <fatal/type/cat.h>
+#include <fatal/type/slice.h>
+
 namespace fatal {
 namespace impl_replace {
 
-template <typename...> struct in;
+template <typename> struct in;
 
-template <
-  template <typename...> class List,
-  typename... Prefix,
-  typename... Suffix
->
-struct in<List<Prefix...>, List<Suffix...>> {
-  template <typename... Args>
-  using with = List<Prefix..., Args..., Suffix...>;
+template <template <typename...> class List, typename... Args>
+struct in<List<Args...>> {
+  template <std::size_t Index, typename... With>
+  using at = lcat<
+    head<List<Args...>, Index>,
+    tail<List<Args...>, Index + 1>,
+    With...
+  >;
 };
 
-template <
-  template <typename V, V...> class Sequence,
-  typename T,
-  T... Prefix,
-  T... Suffix
->
-struct in<Sequence<T, Prefix...>, Sequence<T, Suffix...>> {
-  template<T... Values>
-  using with = Sequence<T, Prefix..., Values..., Suffix...>;
+template <template <typename V, V...> class Sequence, typename T, T... Values>
+struct in<Sequence<T, Values...>> {
+  template <std::size_t Index, T... With>
+  using at = typename vcat<
+    head<Sequence<T, Values...>, Index>,
+    tail<Sequence<T, Values...>, Index + 1>
+  >::template apply<With...>;
 };
 
 } // namespace impl_replace {
