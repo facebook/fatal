@@ -221,13 +221,6 @@ struct compose<> {
   using apply = T;
 };
 
-// TODO: DOCUMENT AND TEST
-template <typename... Args>
-struct applier {
-  template <typename U>
-  using apply = typename U::template apply<Args...>;
-};
-
 ////////////////
 // arithmetic //
 ////////////////
