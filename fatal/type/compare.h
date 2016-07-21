@@ -73,18 +73,18 @@ using not_equal = std::integral_constant<bool, LHS::value != RHS::value>;
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `true`
- *  comparison_transform::less_than<A, B>::value
+ *  comparison_transform::less<A, B>::value
  *
  *  // yields `false`
- *  comparison_transform::less_than<B, A>::value
+ *  comparison_transform::less<B, A>::value
  *
  *  // yields `false`
- *  comparison_transform::less_than<A, A>::value
+ *  comparison_transform::less<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename LHS, typename RHS>
-using less_than = std::integral_constant<bool, (LHS::value < RHS::value)>;
+using less = std::integral_constant<bool, (LHS::value < RHS::value)>;
 
 /**
  * Helper class similar to std::integral_constant for comparing two types
@@ -97,18 +97,18 @@ using less_than = std::integral_constant<bool, (LHS::value < RHS::value)>;
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `true`
- *  comparison_transform::less_than_equal<A, B>::value
+ *  comparison_transform::less_equal<A, B>::value
  *
  *  // yields `false`
- *  comparison_transform::less_than_equal<B, A>::value
+ *  comparison_transform::less_equal<B, A>::value
  *
  *  // yields `true`
- *  comparison_transform::less_than_equal<A, A>::value
+ *  comparison_transform::less_equal<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename LHS, typename RHS>
-using less_than_equal = std::integral_constant<
+using less_equal = std::integral_constant<
   bool,
   (LHS::value <= RHS::value)
 >;
@@ -124,18 +124,18 @@ using less_than_equal = std::integral_constant<
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `false`
- *  comparison_transform::greater_than<A, B>::value
+ *  comparison_transform::greater<A, B>::value
  *
  *  // yields `true`
- *  comparison_transform::greater_than<B, A>::value
+ *  comparison_transform::greater<B, A>::value
  *
  *  // yields `false`
- *  comparison_transform::greater_than<A, A>::value
+ *  comparison_transform::greater<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename LHS, typename RHS>
-using greater_than = std::integral_constant<bool, (LHS::value > RHS::value)>;
+using greater = std::integral_constant<bool, (LHS::value > RHS::value)>;
 
 /**
  * Helper class similar to std::integral_constant for comparing two types
@@ -148,18 +148,18 @@ using greater_than = std::integral_constant<bool, (LHS::value > RHS::value)>;
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `false`
- *  comparison_transform::greater_than_equal<A, B>::value
+ *  comparison_transform::greater_equal<A, B>::value
  *
  *  // yields `true`
- *  comparison_transform::greater_than_equal<B, A>::value
+ *  comparison_transform::greater_equal<B, A>::value
  *
  *  // yields `true`
- *  comparison_transform::greater_than_equal<A, A>::value
+ *  comparison_transform::greater_equal<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename LHS, typename RHS>
-using greater_than_equal = std::integral_constant<
+using greater_equal = std::integral_constant<
   bool,
   (LHS::value >= RHS::value)
 >;
