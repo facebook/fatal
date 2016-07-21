@@ -18,6 +18,12 @@ namespace fatal {
 template <typename LHS, typename RHS>
 using cat = typename impl_cat::cat<LHS, RHS>::type;
 
+template <typename LHS, typename RHS>
+using vcat = impl_cat::vcat<LHS, RHS>;
+
+template <typename LHS, typename RHS, typename... Args>
+using lcat = typename impl_cat::lcat<LHS, RHS, Args...>::type;
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_cat_h

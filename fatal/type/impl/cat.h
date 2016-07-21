@@ -32,6 +32,41 @@ struct cat<L<T, LHS...>, R<T, RHS...>> {
   using type = L<T, LHS..., RHS...>;
 };
 
+template <typename...> struct vcat;
+
+template <
+  template <typename...> class Variadic,
+  typename... LHS,
+  typename... RHS
+>
+struct vcat<Variadic<LHS...>, Variadic<RHS...>> {
+  template <typename... Args>
+  using apply = Variadic<LHS..., Args..., RHS...>;
+};
+
+template <
+  template <typename V, V...> class Variadic,
+  typename T,
+  T... LHS,
+  T... RHS
+>
+struct vcat<Variadic<T, LHS...>, Variadic<T, RHS...>> {
+  template <T... Values>
+  using apply = Variadic<T, LHS..., Values..., RHS...>;
+};
+
+template <typename...> struct lcat;
+
+template <
+  template <typename...> class Variadic,
+  typename... LHS,
+  typename... RHS,
+  typename... Args
+>
+struct lcat<Variadic<LHS...>, Variadic<RHS...>, Args...> {
+  using type = Variadic<LHS..., Args..., RHS...>;
+};
+
 } // namespace impl_cat {
 } // namespace fatal {
 
