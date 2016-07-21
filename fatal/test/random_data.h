@@ -21,13 +21,22 @@
 #include <cstring>
 
 namespace fatal {
+namespace impl_rng {
+
+static std::size_t random_seed() {
+  static std::size_t const seed = [] { std::random_device r; return r(); }();
+  return seed;
+}
+
+} // namespace impl_rng {
 
 struct random_data {
   using rng_type = std::mt19937;
   using result_type = typename rng_type::result_type;
 
-  random_data(): rng_([] { std::random_device r; return r(); }()) {}
+  random_data(): rng_(impl_rng::random_seed()) {}
 
+  result_type next() { return rng_(); }
   result_type operator ()() { return rng_(); }
 
   bool coin_flip() {
