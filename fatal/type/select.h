@@ -16,18 +16,10 @@
 
 namespace fatal {
 
-template <
-  typename LHS,
-  typename RHS,
-  template <typename...> class Less = less_than
->
+template <typename LHS, typename RHS, template <typename...> class Less = less>
 using min = typename impl_select::min<!Less<LHS, RHS>::value, RHS, LHS>::type;
 
-template <
-  typename LHS,
-  typename RHS,
-  template <typename...> class Less = less_than
->
+template <typename LHS, typename RHS, template <typename...> class Less = less>
 using max = typename impl_select::min<Less<LHS, RHS>::value, RHS, LHS>::type;
 
 } // namespace fatal {
