@@ -7,7 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
+#include <fatal/type/cat.h>
+#include <fatal/type/pair.h>
 #include <fatal/type/slice.h>
+
+// TODO: REMOVE THESE HEADERS WHEN A PROPER SORT FOR SEQUENCES IS IN
+#include <fatal/type/convert.h>
+#include <fatal/type/list.h>
+
+#include <type_traits>
 
 #ifndef FATAL_INCLUDE_fatal_type_impl_sort_h
 #define FATAL_INCLUDE_fatal_type_impl_sort_h
@@ -15,7 +23,71 @@
 namespace fatal {
 namespace impl_sort {
 
-template <typename...> struct merge;
+template <typename...> struct prt;
+template <bool, typename...> struct psel;
+
+template <
+  template <typename...> class List,
+  typename... Left,
+  typename... Right,
+  typename Predicate,
+  typename T,
+  typename... Args
+>
+struct prt<List<Left...>, List<Right...>, Predicate, T, Args...>:
+  psel<
+    Predicate::template apply<T>::value,
+    List<Left...>, List<Right...>,
+    Predicate, T, Args...
+  >
+{};
+
+template <
+  template <typename...> class List,
+  typename... Left,
+  typename... Right,
+  typename Predicate
+>
+struct prt<List<Left...>, List<Right...>, Predicate> {
+  using type = pair<List<Left...>, List<Right...>>;
+};
+
+template <
+  template <typename...> class List,
+  typename... Left,
+  typename... Right,
+  typename Predicate,
+  typename T,
+  typename... Args
+>
+struct psel<false, List<Left...>, List<Right...>, Predicate, T, Args...>:
+  prt<List<Left..., T>, List<Right...>, Predicate, Args...>
+{};
+
+template <
+  template <typename...> class List,
+  typename... Left,
+  typename... Right,
+  typename Predicate,
+  typename T,
+  typename... Args
+>
+struct psel<true, List<Left...>, List<Right...>, Predicate, T, Args...>:
+  prt<List<Left...>, List<Right..., T>, Predicate, Args...>
+{};
+
+template <typename...> struct part;
+
+template <
+  typename Predicate,
+  template <typename...> class List,
+  typename... Args
+>
+struct part<List<Args...>, Predicate>:
+  prt<List<>, List<>, Predicate, Args...>
+{};
+
+template <typename...> struct mrg;
 
 template <
   template <typename...> class List,
@@ -23,26 +95,26 @@ template <
   typename R, typename... RHS,
   typename... Args
 >
-struct merge<List<L, LHS...>, List<R, RHS...>, List<Args...>> {
+struct mrg<List<L, LHS...>, List<R, RHS...>, List<Args...>> {
   using type = typename std::conditional<
     (R::value < L::value),
-    typename merge<List<L, LHS...>, List<RHS...>, List<Args..., R>>::type,
-    typename merge<List<LHS...>, List<R, RHS...>, List<Args..., L>>::type
+    typename mrg<List<L, LHS...>, List<RHS...>, List<Args..., R>>::type,
+    typename mrg<List<LHS...>, List<R, RHS...>, List<Args..., L>>::type
   >::type;
 };
 
 template <template <typename...> class List, typename... LHS, typename... Args>
-struct merge<List<LHS...>, List<>, List<Args...>> {
+struct mrg<List<LHS...>, List<>, List<Args...>> {
   using type = List<Args..., LHS...>;
 };
 
 template <template <typename...> class List, typename... RHS, typename... Args>
-struct merge<List<>, List<RHS...>, List<Args...>> {
+struct mrg<List<>, List<RHS...>, List<Args...>> {
   using type = List<Args..., RHS...>;
 };
 
 template <template <typename...> class List, typename... Args>
-struct merge<List<>, List<>, List<Args...>> {
+struct mrg<List<>, List<>, List<Args...>> {
   using type = List<Args...>;
 };
 
@@ -53,19 +125,19 @@ template <
   T R, T... RHS,
   T... Values
 >
-struct merge<
+struct mrg<
   Sequence<T, L, LHS...>,
   Sequence<T, R, RHS...>,
   Sequence<T, Values...>
 > {
   using type = typename std::conditional<
     (R < L),
-    typename merge<
+    typename mrg<
       Sequence<T, L, LHS...>,
       Sequence<T, RHS...>,
       Sequence<T, Values..., R>
     >::type,
-    typename merge<
+    typename mrg<
       Sequence<T, LHS...>,
       Sequence<T, R, RHS...>,
       Sequence<T, Values..., L>
@@ -79,7 +151,7 @@ template <
   T... LHS,
   T... Values
 >
-struct merge<Sequence<T, LHS...>, Sequence<T>, Sequence<T, Values...>> {
+struct mrg<Sequence<T, LHS...>, Sequence<T>, Sequence<T, Values...>> {
   using type = Sequence<T, Values..., LHS...>;
 };
 
@@ -89,21 +161,21 @@ template <
   T... RHS,
   T... Values
 >
-struct merge<Sequence<T>, Sequence<T, RHS...>, Sequence<T, Values...>> {
+struct mrg<Sequence<T>, Sequence<T, RHS...>, Sequence<T, Values...>> {
   using type = Sequence<T, Values..., RHS...>;
 };
 
 template <template <typename V, V...> class Sequence, typename T, T... Values>
-struct merge<Sequence<T>, Sequence<T>, Sequence<T, Values...>> {
+struct mrg<Sequence<T>, Sequence<T>, Sequence<T, Values...>> {
   using type = Sequence<T, Values...>;
 };
 
 
-template <typename...> struct mentry;
+template <typename...> struct merge;
 
 template <template <typename...> class List, typename... LHS, typename... RHS>
-struct mentry<List<LHS...>, List<RHS...>> {
-  using type = typename merge<List<LHS...>, List<RHS...>, List<>>::type;
+struct merge<List<LHS...>, List<RHS...>> {
+  using type = typename mrg<List<LHS...>, List<RHS...>, List<>>::type;
 };
 
 template <
@@ -112,52 +184,115 @@ template <
   T... LHS,
   T... RHS
 >
-struct mentry<Sequence<T, LHS...>, Sequence<T, RHS...>> {
-  using type = typename merge<
+struct merge<Sequence<T, LHS...>, Sequence<T, RHS...>> {
+  using type = typename mrg<
     Sequence<T, LHS...>,
     Sequence<T, RHS...>,
     Sequence<T>
   >::type;
 };
 
-template <typename...> struct msort;
+template <typename...> struct ms;
 
 template <template <typename...> class List>
-struct msort<List<>> {
+struct ms<List<>> {
   using type = List<>;
 };
 
 template <template <typename...> class List, typename T>
-struct msort<List<T>> {
+struct ms<List<T>> {
   using type = List<T>;
 };
 
 template <template <typename...> class List, typename... Args>
-struct msort<List<Args...>> {
-  using type = typename merge<
-    typename msort<head<List<Args...>, sizeof...(Args) / 2>>::type,
-    typename msort<tail<List<Args...>, sizeof...(Args) / 2>>::type,
+struct ms<List<Args...>> {
+  using type = typename mrg<
+    typename ms<head<List<Args...>, sizeof...(Args) / 2>>::type,
+    typename ms<tail<List<Args...>, sizeof...(Args) / 2>>::type,
     List<>
   >::type;
 };
 
 template <template <typename V, V...> class Sequence, typename T>
-struct msort<Sequence<T>> {
+struct ms<Sequence<T>> {
   using type = Sequence<T>;
 };
 
 template <template <typename V, V...> class Sequence, typename T, T Value>
-struct msort<Sequence<T, Value>> {
+struct ms<Sequence<T, Value>> {
   using type = Sequence<T, Value>;
 };
 
 template <template <typename V, V...> class Sequence, typename T, T... Values>
-struct msort<Sequence<T, Values...>> {
-  using type = typename merge<
-    typename msort<head<Sequence<T, Values...>, sizeof...(Values) / 2>>::type,
-    typename msort<tail<Sequence<T, Values...>, sizeof...(Values) / 2>>::type,
+struct ms<Sequence<T, Values...>> {
+  using type = typename mrg<
+    typename ms<head<Sequence<T, Values...>, sizeof...(Values) / 2>>::type,
+    typename ms<tail<Sequence<T, Values...>, sizeof...(Values) / 2>>::type,
     Sequence<T>
   >::type;
+};
+
+template <typename...> struct qs;
+
+template <template <typename...> class List, typename Predicate>
+struct qs<List<>, Predicate> {
+  using type = List<>;
+};
+
+template <template <typename...> class List, typename T, typename Predicate>
+struct qs<List<T>, Predicate> {
+  using type = List<T>;
+};
+
+template <
+  template <typename...> class List,
+  typename LHS,
+  typename RHS,
+  typename Predicate
+>
+struct qs<List<LHS, RHS>, Predicate>:
+  std::conditional<
+    Predicate::template apply<RHS, LHS>::value,
+    List<RHS, LHS>,
+    List<LHS, RHS>
+  >
+{};
+
+// TODO: MAKE IT FOUR WAY QUICK SORT??
+template <
+  template <typename...> class List,
+  typename T,
+  typename... Args,
+  typename Predicate
+>
+// TODO: USE A BETTER PIVOT
+struct qs<List<T, Args...>, Predicate> {
+  using type = lcat<
+    typename qs<
+      first<typename part<List<Args...>, curry<Predicate, T>>::type>,
+      Predicate
+    >::type,
+    typename qs<
+      second<typename part<List<Args...>, curry<Predicate, T>>::type>,
+      Predicate
+    >::type,
+    T
+  >;
+};
+
+// TODO: PROVIDE A FIRST CLASS IMPLEMENTATION FOR SEQUENCES
+template <
+  template <typename V, V...> class Sequence,
+  typename T,
+  T... Values,
+  typename Predicate
+>
+struct qs<Sequence<T, Values...>, Predicate> {
+  using type = sequence_from<
+    Sequence,
+    typename qs<list<std::integral_constant<T, Values>...>, Predicate>::type,
+    T
+  >;
 };
 
 } // namespace impl_sort {
