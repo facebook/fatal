@@ -18,7 +18,7 @@ namespace fatal {
 namespace impl_find {
 
 template <typename Default, typename Key, typename Value>
-static Value sfinae(tag<Key> *, pair<Key, Value>);
+static Value sfinae(pair<Key, Value>);
 
 template <typename Default, typename...>
 static Default sfinae(...);
@@ -29,8 +29,7 @@ template <template <typename...> class List, typename... Args>
 struct find<List<Args...>> {
   template <typename Key, template <typename> class KeyFilter, typename Default>
   using type = decltype(
-    sfinae<Default>(
-      static_cast<tag<Key> *>(nullptr),
+    sfinae<Default, Key>(
       inherit<pair<KeyFilter<Args>, Args>...>()
     )
   );
@@ -47,8 +46,7 @@ struct map_find<List<Args...>> {
     typename Default
   >
   using type = decltype(
-    sfinae<Default>(
-      static_cast<tag<Key> *>(nullptr),
+    sfinae<Default, Key>(
       inherit<pair<KeyFilter<Args>, ValueTransform<Args>>...>()
     )
   );
