@@ -49,6 +49,39 @@ using index = typename impl_at::idx<
   make_index_sequence<size<Container>::value>
 >;
 
+namespace bound {
+
+template <std::size_t Index>
+struct at {
+  template <typename T>
+  using apply = fatal::at<T, Index>;
+};
+
+template <std::size_t... Indexes>
+struct pick {
+  template <typename T>
+  using apply = fatal::pick<T, Indexes...>;
+};
+
+template <std::size_t Offset>
+struct tail {
+  template <typename T>
+  using apply = fatal::tail<T, Offset>;
+};
+
+template <std::size_t Offset>
+struct head {
+  template <typename T>
+  using apply = fatal::head<T, Offset>;
+};
+
+template <std::size_t Begin, std::size_t End>
+struct slice {
+  template <typename T>
+  using apply = fatal::slice<T, Begin, End>;
+};
+
+} // namespace bound {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_slice_h
