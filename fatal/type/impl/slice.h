@@ -12,7 +12,6 @@
 
 #include <fatal/type/inherit.h>
 #include <fatal/type/sequence.h>
-#include <fatal/type/tag.h>
 
 #include <type_traits>
 
@@ -102,6 +101,14 @@ template <
 struct at<Sequence<T, First, Second, Third, Values...>, 2> {
   using type = std::integral_constant<T, Third>;
 };
+
+template <bool, typename, std::size_t, typename Default>
+struct tat {
+  using type = Default;
+};
+
+template <typename T, std::size_t Index, typename Default>
+struct tat<true, T, Index, Default>: at<T, Index> {};
 
 template <typename, std::size_t...> struct pick;
 

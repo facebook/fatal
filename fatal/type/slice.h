@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_slice_h
 
 #include <fatal/type/size.h>
+#include <fatal/type/tag.h>
 
 #include <cstdint>
 
@@ -20,6 +21,14 @@ namespace fatal {
 
 template <typename T, std::size_t Index>
 using at = typename impl_at::at<T, Index>::type;
+
+template <typename T, std::size_t Index, typename Default = not_found>
+using try_at = typename impl_at::tat<
+  (Index < size<T>::value),
+  T,
+  Index,
+  Default
+>::type;
 
 template <typename T>
 using first = at<T, 0>;
@@ -55,6 +64,12 @@ template <std::size_t Index>
 struct at {
   template <typename T>
   using apply = fatal::at<T, Index>;
+};
+
+template <std::size_t Index, typename Default = not_found>
+struct try_at {
+  template <typename T>
+  using apply = fatal::try_at<T, Index, Default>;
 };
 
 template <std::size_t... Indexes>
