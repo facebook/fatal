@@ -12,6 +12,8 @@
 
 #include <type_traits>
 
+#include <fatal/type/impl/compare.h>
+
 namespace fatal {
 
 /**
@@ -163,6 +165,14 @@ using greater_equal = std::integral_constant<
   bool,
   (LHS::value >= RHS::value)
 >;
+
+// TODO: DOCUMENT REQUIREMENTS OF PREDICATE
+//         http://en.cppreference.com/w/cpp/concept/Compare
+template <typename Less>
+struct deep_compare {
+  template <typename LHS, typename RHS>
+  using apply = impl_comp::dc<Less, LHS, RHS>;
+};
 
 } // namespace fatal {
 
