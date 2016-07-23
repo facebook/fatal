@@ -288,7 +288,7 @@ template <
   typename Predicate
 >
 struct qs<Sequence<T, Values...>, Predicate> {
-  using type = sequence_from<
+  using type = as_sequence<
     Sequence,
     typename qs<list<std::integral_constant<T, Values>...>, Predicate>::type,
     T

@@ -16,12 +16,33 @@
 
 namespace fatal {
 
-template <template <typename V, V...> class Sequence, typename... Args>
-using sequence_from = typename impl_conv::seq<Sequence, Args...>::type;
+template <
+  template <typename V, V...> class Sequence,
+  typename From,
+  typename... T
+>
+using as_sequence = typename impl_conv::seq<Sequence, From, T...>::type;
 
 template <template <typename...> class List, typename T>
-using list_from = typename impl_conv::list<List, T>::type;
+using as_list = typename impl_conv::lst<List, T>::type;
 
+namespace bound {
+
+// TODO: SIMPLIFY?
+template <template <typename V, V...> class Sequence, typename... T>
+struct as_sequence {
+  template <typename From>
+  using apply = fatal::as_sequence<Sequence, From, T...>;
+};
+
+// TODO: SIMPLIFY?
+template <template <typename...> class List>
+struct as_list {
+  template <typename T>
+  using apply = fatal::as_list<List, T>;
+};
+
+} // namespace bound {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_convert_h

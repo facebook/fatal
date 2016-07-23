@@ -35,7 +35,7 @@ struct seq<Sequence, List<Head, Tail...>> {
   using type = Sequence<decltype(Head::value), Head::value, Tail::value...>;
 };
 
-template <template <typename...> class, typename> struct list;
+template <template <typename...> class, typename> struct lst;
 
 template <
   template <typename...> class List,
@@ -43,7 +43,7 @@ template <
   typename T,
   T... Values
 >
-struct list<List, Sequence<T, Values...>> {
+struct lst<List, Sequence<T, Values...>> {
   using type = List<std::integral_constant<T, Values>...>;
 };
 
