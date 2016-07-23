@@ -14,7 +14,7 @@
 #include <fatal/type/slice.h>
 
 namespace fatal {
-namespace impl_replace {
+namespace impl_rp {
 
 template <typename> struct in;
 
@@ -30,14 +30,23 @@ struct in<List<Args...>> {
 
 template <template <typename V, V...> class Sequence, typename T, T... Values>
 struct in<Sequence<T, Values...>> {
+#if defined(__GNUC__) && !defined(__clang__)
+  using seq = Sequence<T, Values...>;
+  template <std::size_t Index, T... With>
+  using at = typename vcat<
+    head<seq, Index>,
+    tail<seq, Index + 1>
+  >::template apply<With...>;
+#else // not GCC
   template <std::size_t Index, T... With>
   using at = typename vcat<
     head<Sequence<T, Values...>, Index>,
     tail<Sequence<T, Values...>, Index + 1>
   >::template apply<With...>;
+#endif // not GCC
 };
 
-} // namespace impl_replace {
+} // namespace impl_rp {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_replace_h

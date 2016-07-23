@@ -15,7 +15,7 @@
 namespace fatal {
 
 template <typename T>
-using replace = impl_replace::in<T>;
+using replace = impl_rp::in<T>;
 
 } // namespace fatal {
 
