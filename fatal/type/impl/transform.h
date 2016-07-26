@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_impl_transform_h
 
 #include <fatal/type/pair.h>
+#include <fatal/type/slice.h>
 
 namespace fatal {
 namespace impl_transform {
