@@ -14,8 +14,25 @@
 
 namespace fatal {
 
-template <typename Filter, typename Predicate, typename T>
-using group_by = typename impl_gby::group_by<Filter, Predicate, T>::type;
+template <
+  typename T,
+  template <typename> class Key,
+  template <typename, typename> class Predicate
+>
+using group_by = typename impl_gby::group_by<Key, Predicate, T>::type;
+
+template <
+  typename T,
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping
+>
+using filtered_group_by = typename impl_gby::filtered<
+  Key,
+  RejectPredicate,
+  RejectedGrouping,
+  T
+>::type;
 
 } // namespace fatal {
 
