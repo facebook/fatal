@@ -10,11 +10,12 @@
 #ifndef FATAL_INCLUDE_fatal_type_pair_h
 #define FATAL_INCLUDE_fatal_type_pair_h
 
-#include <type_traits>
+#include <fatal/type/list.h>
 
 namespace fatal {
 
-template <typename, typename> struct pair {};
+template <typename First, typename Second>
+using pair = list<First, Second>;
 
 } // namespace fatal {
 
