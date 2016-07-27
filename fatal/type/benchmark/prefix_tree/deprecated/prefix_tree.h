@@ -62,13 +62,10 @@ struct visitor {
 
 template <typename... TStrings>
 struct benchmark_impl {
-  using list = type_list<TStrings...>;
-
   static std::array<std::string, sizeof...(TStrings)> const str;
 
-  using prefix_tree = typename list::template apply<
-    build_type_prefix_tree<>::template from
-  >;
+  using trie = typename build_type_prefix_tree<>
+    ::template from<TStrings...>;
 
   template <typename TController>
   static void prefix_tree_benchmark(TController &benchmark) {
@@ -77,7 +74,7 @@ struct benchmark_impl {
     FATAL_BENCHMARK_SUSPEND {}
 
     for (auto const &s: str) {
-      prefix_tree::template match<>::exact(
+      trie::template match<>::exact(
         s.begin(), s.end(), visitor{}, s, count
       );
     }
@@ -100,7 +97,7 @@ struct benchmark_impl {
 
   template <typename TController>
   static void sorted_std_array_benchmark(TController &benchmark) {
-    std::array<std::string, list::size> c = str;
+    std::array<std::string, sizeof...(TStrings)> c = str;
     unsigned count = 0;
 
     FATAL_BENCHMARK_SUSPEND {
