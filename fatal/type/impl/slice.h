@@ -18,10 +18,10 @@
 namespace fatal {
 namespace impl_at {
 
-template <typename, std::size_t> struct at;
+template <std::size_t, typename> struct at;
 
 template <template <typename> class Single, typename T>
-struct at<Single<T>, 0> {
+struct at<0, Single<T>> {
   using type = T;
 };
 
@@ -30,7 +30,7 @@ template <
   typename First,
   typename Second
 >
-struct at<Pair<First, Second>, 0> {
+struct at<0, Pair<First, Second>> {
   using type = First;
 };
 
@@ -39,12 +39,12 @@ template <
   typename First,
   typename Second
 >
-struct at<Pair<First, Second>, 1> {
+struct at<1, Pair<First, Second>> {
   using type = Second;
 };
 
 template <template <typename...> class List, typename T, typename... Args>
-struct at<List<T, Args...>, 0> {
+struct at<0, List<T, Args...>> {
   using type = T;
 };
 
@@ -54,7 +54,7 @@ template <
   typename Second,
   typename... Args
 >
-struct at<List<First, Second, Args...>, 1> {
+struct at<1, List<First, Second, Args...>> {
   using type = Second;
 };
 
@@ -65,7 +65,7 @@ template <
   typename Third,
   typename... Args
 >
-struct at<List<First, Second, Third, Args...>, 2> {
+struct at<2, List<First, Second, Third, Args...>> {
   using type = Third;
 };
 
@@ -75,7 +75,7 @@ template <
   T Value,
   T... Values
 >
-struct at<Sequence<T, Value, Values...>, 0> {
+struct at<0, Sequence<T, Value, Values...>> {
   using type = std::integral_constant<T, Value>;
 };
 
@@ -86,7 +86,7 @@ template <
   T Second,
   T... Values
 >
-struct at<Sequence<T, First, Second, Values...>, 1> {
+struct at<1, Sequence<T, First, Second, Values...>> {
   using type = std::integral_constant<T, Second>;
 };
 
@@ -98,17 +98,17 @@ template <
   T Third,
   T... Values
 >
-struct at<Sequence<T, First, Second, Third, Values...>, 2> {
+struct at<2, Sequence<T, First, Second, Third, Values...>> {
   using type = std::integral_constant<T, Third>;
 };
 
-template <bool, typename, std::size_t, typename Default>
+template <bool, std::size_t, typename, typename Default>
 struct tat {
   using type = Default;
 };
 
-template <typename T, std::size_t Index, typename Default>
-struct tat<true, T, Index, Default>: at<T, Index> {};
+template <std::size_t Index, typename T, typename Default>
+struct tat<true, Index, T, Default>: at<Index, T> {};
 
 template <typename, std::size_t...> struct pick;
 
@@ -132,11 +132,11 @@ template <std::size_t Index, typename T>
 static T find(indexed<T, Index>);
 
 template <
+  std::size_t Index,
   template <typename...> class List,
-  typename... Args,
-  std::size_t Index
+  typename... Args
 >
-struct at<List<Args...>, Index> {
+struct at<Index, List<Args...>> {
   using type = decltype(
     find<Index>(
       tindex<make_index_sequence<sizeof...(Args)>, Args...>()
@@ -145,12 +145,12 @@ struct at<List<Args...>, Index> {
 };
 
 template <
+  std::size_t Index,
   typename T,
   template <typename, T...> class Sequence,
-  T... Values,
-  std::size_t Index
+  T... Values
 >
-struct at<Sequence<T, Values...>, Index> {
+struct at<Index, Sequence<T, Values...>> {
   using type = decltype(
     find<Index>(
       vindex<make_index_sequence<sizeof...(Values)>, T, Values...>()
@@ -214,11 +214,11 @@ struct vindex<index_sequence<Indexes...>> {
 };
 
 template <
+  std::size_t Index,
   template <typename...> class List,
-  typename... Args,
-  std::size_t Index
+  typename... Args
 >
-struct at<List<Args...>, Index> {
+struct at<Index, List<Args...>> {
   using type = decltype(
     tindex<make_index_sequence<Index>>::find(
       static_cast<tag<Args> *>(nullptr)...
@@ -227,12 +227,12 @@ struct at<List<Args...>, Index> {
 };
 
 template <
+  std::size_t Index,
   typename T,
   template <typename, T...> class Sequence,
-  T... Values,
-  std::size_t Index
+  T... Values
 >
-struct at<Sequence<T, Values...>, Index> {
+struct at<Index, Sequence<T, Values...>> {
   using type = decltype(
     vindex<make_index_sequence<Index>>::find(
       static_cast<std::integral_constant<T, Values> *>(nullptr)...
@@ -1586,14 +1586,14 @@ struct vhead<
   >;
 };
 
-template <typename, std::size_t> struct head;
+template <std::size_t, typename> struct head;
 
 template <
   template <typename...> class List,
   typename... Args,
   std::size_t Offset
 >
-struct head<List<Args...>, Offset>:
+struct head<Offset, List<Args...>>:
   thead<(Offset > 32), Offset, List, Args...>
 {
   static_assert(Offset <= sizeof...(Args), "index out of bounds");
@@ -1605,7 +1605,7 @@ template <
   T... Values,
   std::size_t Offset
 >
-struct head<Sequence<T, Values...>, Offset>:
+struct head<Offset, Sequence<T, Values...>>:
   vhead<(Offset > 32), Offset, Sequence, T, Values...>
 {
   static_assert(Offset <= sizeof...(Values), "index out of bounds");
@@ -1649,7 +1649,5 @@ struct idx<Sequence<T, Values...>, index_sequence<Indexes...>> {
 
 } // namespace impl_at {
 } // namespace fatal {
-
-#undef FATAL_AT_USE_VOID_POINTER_TRICK
 
 #endif // FATAL_INCLUDE_fatal_type_impl_slice_h

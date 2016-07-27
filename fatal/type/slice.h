@@ -20,13 +20,13 @@
 namespace fatal {
 
 template <typename T, std::size_t Index>
-using at = typename impl_at::at<T, Index>::type;
+using at = typename impl_at::at<Index, T>::type;
 
 template <typename T, std::size_t Index, typename Default = not_found>
 using try_at = typename impl_at::tat<
   (Index < size<T>::value),
-  T,
   Index,
+  T,
   Default
 >::type;
 
@@ -46,7 +46,7 @@ template <typename T, std::size_t Offset>
 using tail = typename impl_at::tail<T, make_index_sequence<Offset>>::type;
 
 template <typename T, std::size_t Offset>
-using head = typename impl_at::head<T, Offset>
+using head = typename impl_at::head<Offset, T>
   ::template type<>;
 
 template <typename T, std::size_t Begin, std::size_t End>
