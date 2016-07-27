@@ -40,7 +40,7 @@ if [ -z "$CC_OPT" ]; then
   CC_OPT="-O0"
 fi
 
-CC_ARGS="-o $out_binary $CC_ARGS $CC_OPT -g -pthread -ftemplate-depth-1024"
+CC_ARGS="-o $out_binary $CC_ARGS $CC_OPT -g -pthread -ftemplate-depth-1024 -ftemplate-backtrace-limit=0"
 if [ "${USE_CC:0:5}" = "clang" ]; then
   CC_ARGS="$CC_ARGS -ferror-limit=3"
 fi
