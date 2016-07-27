@@ -14,12 +14,8 @@
 
 namespace fatal {
 
-template <
-  typename T,
-  template <typename> class Key,
-  template <typename, typename> class Predicate
->
-using group_by = typename impl_gby::group_by<Key, Predicate, T>::type;
+template <typename T, template <typename> class Key>
+using group_by = typename impl_gby::group<Key, T>::type;
 
 template <
   typename T,

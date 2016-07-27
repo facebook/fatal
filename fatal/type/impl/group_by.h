@@ -15,162 +15,112 @@
 namespace fatal {
 namespace impl_gby {
 
-// TODO: SIMPLIFY GROUP BY
-template <
-  template <typename> class,
-  template <typename, typename> class,
-  typename...
->
-struct gby;
+template <template <typename> class, typename...> struct gby;
+template <template <typename> class, typename...> struct gbys;
 
 template <
   template <typename> class Key,
-  template <typename, typename> class Predicate,
   template <typename...> class Variadics,
+  typename GroupKey,
+  typename... Group,
   typename... Result,
-  typename Label,
-  typename... Group
+  typename NextKey,
+  typename T,
+  typename... Args
 >
-struct gby<
+struct gbys<
   Key,
-  Predicate,
+  GroupKey, Variadics<Group...>,
   Variadics<Result...>,
-  pair<Label, Variadics<Group...>>
-> {
-  using type = Variadics<Result..., pair<Label, Variadics<Group...>>>;
+  NextKey, T,
+  Args...
+>:
+  gby<
+    Key,
+    Variadics<T>,
+    Variadics<Result..., pair<GroupKey, Variadics<Group...>>>,
+    Args...
+  >
+{};
+
+template <
+  template <typename> class Key,
+  template <typename...> class Variadics,
+  typename GroupKey,
+  typename... Group,
+  typename... Result,
+  typename T,
+  typename... Args
+>
+struct gbys<
+  Key,
+  GroupKey, Variadics<Group...>,
+  Variadics<Result...>,
+  GroupKey, T,
+  Args...
+>:
+  gby<Key, Variadics<Group..., T>, Variadics<Result...>, Args...>
+{};
+
+template <
+  template <typename> class Key,
+  template <typename...> class Variadics,
+  typename... Result
+>
+struct gby<Key, Variadics<>, Variadics<Result...>> {
+  using type = Variadics<Result...>;
 };
 
 template <
-  bool,
-  template <typename> class,
-  template <typename, typename> class,
-  typename...
+  template <typename> class Key,
+  template <typename...> class Variadics,
+  typename G,
+  typename... Group,
+  typename... Result
 >
-struct gbys;
+struct gby<Key, Variadics<G, Group...>, Variadics<Result...>> {
+  using type = Variadics<Result..., pair<Key<G>, Variadics<G, Group...>>>;
+};
 
 template <
   template <typename> class Key,
-  template <typename, typename> class Predicate,
   template <typename...> class Variadics,
   typename... Result,
-  typename Label,
-  typename... Group,
   typename T,
   typename... Args
 >
-struct gbys<
-  true,
-  Key,
-  Predicate,
-  Variadics<Result...>,
-  pair<Label, Variadics<Group...>>,
-  T, Args...
->:
-  gby<
-    Key,
-    Predicate,
-    Variadics<Result...>,
-    pair<Label, Variadics<Group..., T>>,
-    Args...
-  >
+struct gby<Key, Variadics<>, Variadics<Result...>, T, Args...>:
+  gby<Key, Variadics<T>, Variadics<Result...>, Args...>
 {};
 
 template <
   template <typename> class Key,
-  template <typename, typename> class Predicate,
   template <typename...> class Variadics,
-  typename... Result,
-  typename Label,
+  typename G,
   typename... Group,
+  typename... Result,
   typename T,
   typename... Args
 >
-struct gbys<
-  false,
-  Key,
-  Predicate,
-  Variadics<Result...>,
-  pair<Label, Variadics<Group...>>,
-  T, Args...
->:
-  gby<
-    Key,
-    Predicate,
-    Variadics<Result..., pair<Label, Variadics<Group...>>>,
-    pair<Key<T>, Variadics<T>>,
-    Args...
-  >
-{};
-
-template <
-  template <typename> class Key,
-  template <typename, typename> class Predicate,
-  template <typename...> class Variadics,
-  typename... Result,
-  typename Label,
-  typename... Group,
-  typename T,
-  typename... Args
->
-struct gby<
-  Key,
-  Predicate,
-  Variadics<Result...>,
-  pair<Label, Variadics<Group...>>,
-  T, Args...
->:
+struct gby<Key, Variadics<G, Group...>, Variadics<Result...>, T, Args...>:
   gbys<
-    Predicate<Label, Key<T>>::value,
     Key,
-    Predicate,
+    Key<G>, Variadics<G, Group...>,
     Variadics<Result...>,
-    pair<Label, Variadics<Group...>>,
-    T, Args...
+    Key<T>, T,
+    Args...
   >
 {};
 
-template <
-  template <typename> class,
-  template <typename, typename> class,
-  typename...
->
-struct group_by;
+template <template <typename> class, typename...> struct group;
 
 template <
   template <typename> class Key,
-  template <typename, typename> class Predicate,
-  template <typename...> class Variadics
->
-struct group_by<Key, Predicate, Variadics<>> {
-  using type = Variadics<>;
-};
-
-template <
-  template <typename> class Key,
-  template <typename, typename> class Predicate,
   template <typename...> class Variadics,
-  typename T
->
-struct group_by<Key, Predicate, Variadics<T>> {
-  using type = Variadics<pair<Key<T>, Variadics<T>>
-  >;
-};
-
-template <
-  template <typename> class Key,
-  template <typename, typename> class Predicate,
-  template <typename...> class Variadics,
-  typename T,
   typename... Args
 >
-struct group_by<Key, Predicate, Variadics<T, Args...>>:
-  gby<
-    Key,
-    Predicate,
-    Variadics<>,
-    pair<Key<T>, Variadics<T>>,
-    Args...
-  >
+struct group<Key, Variadics<Args...>>:
+  gby<Key, Variadics<>, Variadics<>, Args...>
 {};
 
 template <template <typename> class, template <typename> class, typename...>
