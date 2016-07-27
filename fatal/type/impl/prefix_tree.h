@@ -10,8 +10,15 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_prefix_tree_h
 #define FATAL_INCLUDE_fatal_type_impl_prefix_tree_h
 
+#include <fatal/type/array.h>
 #include <fatal/type/group_by.h>
+#include <fatal/type/search.h>
 #include <fatal/type/transform.h>
+
+#include <algorithm>
+#include <iterator>
+
+#include <cassert>
 
 namespace fatal {
 namespace impl_trie {
@@ -68,6 +75,131 @@ template <std::size_t Depth>
 struct pfn {
   template <typename T>
   using apply = typename fn<T, Depth>::type;
+};
+
+// T must be sorted
+template <typename T>
+using build = typename impl_trie::rc<T, 0>::type;
+
+template <typename> struct frc;
+
+struct fv {
+  // TODO: CAN WE INLINE RECURSE HERE?
+  template <
+    typename Edges,
+    std::size_t Index,
+    typename Begin,
+    typename End,
+    typename Visitor,
+    typename... Args
+  >
+  void operator ()(
+    indexed<Edges, Index>,
+    bool &found,
+    Begin &&begin,
+    End &&end,
+    std::size_t const depth,
+    Visitor &&visitor,
+    Args &&...args
+  ) const {
+    frc<second<Edges>>::rec(
+      found,
+      std::forward<Begin>(begin),
+      std::forward<End>(end),
+      depth,
+      std::forward<Visitor>(visitor),
+      std::forward<Args>(args)...
+    );
+  }
+};
+
+template <typename Edges>
+struct frc {
+  template <
+    typename Begin,
+    typename End,
+    typename Visitor,
+    typename... Args
+  >
+  static void rec(
+    bool &found,
+    Begin &&begin,
+    End &&end,
+    std::size_t const depth,
+    Visitor &&visitor,
+    Args &&...args
+  ) {
+    if (begin != end) {
+      sorted_search<Edges, first/*COMPARER*/>(
+        *begin,
+        fv(),
+        found,
+        std::next(begin),
+        std::forward<End>(end),
+        depth + 1,
+        std::forward<Visitor>(visitor),
+        std::forward<Args>(args)...
+      );
+    }
+  }
+};
+
+template <template <typename...> class List, typename T>
+struct frc<List<impl_trie::trm<T>>> {
+  template <
+    typename Begin,
+    typename End,
+    typename Visitor,
+    typename... Args
+  >
+  static void rec(
+    bool &found,
+    Begin &&begin,
+    End &&end,
+    std::size_t const depth,
+    Visitor &&visitor,
+    Args &&...args
+  ) {
+    assert(depth <= size<T>::value);
+    if (std::distance(begin, end) == size<T>::value - depth
+      && std::equal(begin, end, std::next(as_array<T>::get.data(), depth))
+    ) {
+      visitor(tag<T>(), std::forward<Args>(args)...);
+      found = true;
+    }
+  }
+};
+
+template <template <typename...> class List, typename T, typename... Edges>
+struct frc<List<impl_trie::trm<T>, Edges...>> {
+  template <
+    typename Begin,
+    typename End,
+    typename Visitor,
+    typename... Args
+  >
+  static void rec(
+    bool &found,
+    Begin &&begin,
+    End &&end,
+    std::size_t const depth,
+    Visitor &&visitor,
+    Args &&...args
+  ) {
+    if (begin != end) {
+      frc<List<Edges...>>::rec(
+        found,
+        std::forward<Begin>(begin),
+        std::forward<End>(end),
+        depth,
+        std::forward<Visitor>(visitor),
+        std::forward<Args>(args)...
+      );
+    } else if (depth == size<T>::value) {
+      visitor(tag<T>(), std::forward<Args>(args)...);
+      found = true;
+    }
+  }
 };
 
 } // namespace impl_trie {

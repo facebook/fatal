@@ -11,16 +11,50 @@
 #define FATAL_INCLUDE_fatal_type_prefix_tree_h
 
 #include <fatal/type/list.h>
+#include <fatal/type/sort.h>
+
+#include <utility>
 
 #include <fatal/type/impl/prefix_tree.h>
 
 namespace fatal {
 
-template <typename T>
-using prefix_tree = T;
+template <typename T /* TODO: COMPARER AND SHIT */>
+struct prefix_tree {
+  template <
+    typename Begin,
+    typename End,
+    typename Visitor,
+    typename... Args
+  >
+  static bool find(
+    Begin &&begin,
+    End &&end,
+    Visitor &&visitor,
+    Args &&...args
+  ) {
+    bool found = false;
+    using tree = impl_trie::build<sort<T, deep_compare<applier<less>>>>;
+    impl_trie::frc<tree>::rec(
+      found,
+      std::forward<Begin>(begin),
+      std::forward<End>(end),
+      0,
+      std::forward<Visitor>(visitor),
+      std::forward<Args>(args)...
+    );
+    return found;
+  }
 
-template <typename T>
-using build_prefix_tree = typename impl_trie::rc<T, 0>::type;
+  template <typename Begin, typename End>
+  static bool find(Begin &&begin, End &&end) {
+    return find(
+      std::forward<Begin>(begin),
+      std::forward<End>(end),
+      fn::no_op()
+    );
+  }
+};
 
 } // namespace fatal {
 
