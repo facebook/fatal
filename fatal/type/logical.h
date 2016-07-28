@@ -62,9 +62,9 @@ using negate = std::integral_constant<bool, !T::value>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename... Args>
+template <typename... Values>
 using logical_and = std::is_same<
-  sequence<bool, Values...>,
+  sequence<bool, Values::value...>,
   sequence<bool, impl_logical::b_true<Values>()...>
 >;
 
@@ -88,9 +88,9 @@ using logical_and = std::is_same<
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename... Args>
+template <typename... Values>
 using logical_nor = std::is_same<
-  sequence<bool, Values...>,
+  sequence<bool, Values::value...>,
   sequence<bool, impl_logical::b_false<Values>()...>
 >;
 

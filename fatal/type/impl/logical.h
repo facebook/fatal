@@ -16,51 +16,48 @@
 
 namespace fatal {
 namespace impl_logical {
-/*
-template <int, bool> struct true_case;
 
-template <int Id>
-struct true_case<Id, true> {
-	using is_true = void;
-};
+template <bool> constexpr bool b_true() { return true; }
+template <bool> constexpr bool b_false() { return false; }
 
-template <int Id>
-struct true_case<Id, false> {};
+template <typename...> struct l_xor;
 
-template <typename T, typename = typename T::is_true>
-static std::true_type case_sfinae(T *);
-
-template <typename...>
-static std::false_type case_sfinae(...);
-
-template <typename T, template <typename> class Predicate>
-using is_true = decltype(
-  case_sfinae(static_cast<T *>(nullptr))
-);
-*/
-
-template <bool>
-constexpr b_true() { return true; }
-
-template <bool>
-constexpr b_false() { return false; }
-
-// TODO: do it in logarithmic time if possible
-template <typename LHS, typename RHS, typename... Args>
-struct l_xor<T, Args...> {
+template <typename V0, typename V1, typename... Args>
+struct l_xor<V0, V1, Args...> {
   using type = typename l_xor<
     std::integral_constant<
       bool,
-      static_cast<bool>(LHS::value) != static_cast<bool>(RHS::value)
+      static_cast<bool>(V0::value ^ V1::value)
     >,
     Args...
-  >;
+  >::type;
 };
 
-template <typename LHS>
+template <typename V0, typename V1, typename V2, typename... Args>
+struct l_xor<V0, V1, V2, Args...> {
+  using type = typename l_xor<
+    std::integral_constant<
+      bool,
+      static_cast<bool>(V0::value ^ V1::value ^ V2::value)
+    >,
+    Args...
+  >::type;
+};
+
+template <typename V0, typename V1, typename V2, typename V3, typename... Args>
+struct l_xor<V0, V1, V2, V3, Args...> {
+  using type = typename l_xor<
+    std::integral_constant<
+      bool,
+      static_cast<bool>(V0::value ^ V1::value ^ V2::value ^ V3::value)
+    >,
+    Args...
+  >::type;
+};
+
+template <typename T>
 struct l_xor<T> {
   using type = T;
-  :wa
 };
 
 } // namespace impl_logical {
