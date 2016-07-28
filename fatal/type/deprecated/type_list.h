@@ -10,10 +10,10 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_list_h
 #define FATAL_INCLUDE_fatal_type_deprecated_list_h
 
-#include <fatal/type/operation.h>
-#include <fatal/type/pair.h>
-#include <fatal/type/deprecated/type_tag.h>
 #include <fatal/type/deprecated/transform.h>
+#include <fatal/type/deprecated/type_pair.h>
+#include <fatal/type/deprecated/type_tag.h>
+#include <fatal/type/operation.h>
 
 #include <limits>
 #include <type_traits>

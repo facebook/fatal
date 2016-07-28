@@ -12,7 +12,7 @@
 
 #include <fatal/container/tuple_tags.h>
 #include <fatal/type/deprecated/type_list.h>
-#include <fatal/type/pair.h>
+#include <fatal/type/deprecated/type_pair.h>
 #include <fatal/type/deprecated/type_tag.h>
 #include <fatal/type/traits.h>
 
