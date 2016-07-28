@@ -16,6 +16,12 @@
 
 namespace fatal {
 
+template <typename T>
+using type_of = typename impl_conv::to<T>::type;
+
+template <typename T>
+using value_type_of = typename impl_conv::vto<T>::type;
+
 template <
   template <typename V, V...> class Sequence,
   typename From,
@@ -28,14 +34,12 @@ using as_list = typename impl_conv::lst<List, T>::type;
 
 namespace bound {
 
-// TODO: SIMPLIFY?
 template <template <typename V, V...> class Sequence, typename... T>
 struct as_sequence {
   template <typename From>
   using apply = fatal::as_sequence<Sequence, From, T...>;
 };
 
-// TODO: SIMPLIFY?
 template <template <typename...> class List>
 struct as_list {
   template <typename T>

@@ -13,38 +13,93 @@
 namespace fatal {
 namespace impl_conv {
 
+template <typename T>
+struct to {
+  using type = typename T::type;
+};
+
+template <typename T, T Value>
+struct to<std::integral_constant<T, Value>> {
+  using type = typename std::integral_constant<T, Value>::type;
+};
+
+template <template <typename V, V...> class Variadics, typename T, T... Values>
+struct to<Variadics<T, Values...>> {
+  using type = T;
+};
+
+template <typename T>
+struct vto {
+  using type = typename T::value_type;
+};
+
+template <template <typename V, V...> class Variadics, typename T, T... Values>
+struct vto<Variadics<T, Values...>> {
+  using type = T;
+};
+
 template <template <typename V, V...> class, typename...> struct seq;
 
 template <
   template <typename V, V...> class Sequence,
-  template <typename...> class List,
-  typename... Values,
+  template <typename...> class Variadics,
+  typename... Args,
   typename T
 >
-struct seq<Sequence, List<Values...>, T> {
-  using type = Sequence<T, Values::value...>;
+struct seq<Sequence, Variadics<Args...>, T> {
+  using type = Sequence<T, Args::value...>;
 };
 
 template <
   template <typename V, V...> class Sequence,
-  template <typename...> class List,
+  template <typename...> class Variadics,
   typename Head,
   typename... Tail
 >
-struct seq<Sequence, List<Head, Tail...>> {
-  using type = Sequence<decltype(Head::value), Head::value, Tail::value...>;
+struct seq<Sequence, Variadics<Head, Tail...>> {
+  using type = Sequence<typename std::decay<decltype(Head::value)>::type, Head::value, Tail::value...>;
+};
+
+template <
+  template <typename V, V...> class Sequence,
+  template <typename V, V...> class Variadics,
+  typename V,
+  V... Args,
+  typename T
+>
+struct seq<Sequence, Variadics<V, Args...>, T> {
+  using type = Sequence<T, static_cast<T>(Args)...>;
+};
+
+template <
+  template <typename V, V...> class Sequence,
+  template <typename V, V...> class Variadics,
+  typename T,
+  T... Args
+>
+struct seq<Sequence, Variadics<T, Args...>> {
+  using type = Sequence<T, Args...>;
 };
 
 template <template <typename...> class, typename> struct lst;
 
 template <
   template <typename...> class List,
-  template <typename V, V...> class Sequence,
+  template <typename V, V...> class Variadics,
   typename T,
-  T... Values
+  T... Args
 >
-struct lst<List, Sequence<T, Values...>> {
-  using type = List<std::integral_constant<T, Values>...>;
+struct lst<List, Variadics<T, Args...>> {
+  using type = List<std::integral_constant<T, Args>...>;
+};
+
+template <
+  template <typename...> class List,
+  template <typename...> class Variadics,
+  typename... Args
+>
+struct lst<List, Variadics<Args...>> {
+  using type = List<Args...>;
 };
 
 } // namespace impl_conv {
