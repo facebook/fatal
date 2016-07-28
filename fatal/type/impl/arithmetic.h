@@ -15,11 +15,13 @@
 namespace fatal {
 namespace impl_arithmetic {
 
+template <typename...> struct add;
+
 // TODO: do it in logarithmic time
 template <typename T, typename... Args>
 struct add<T, Args...> {
   using type = std::integral_constant<
-    decltype(T::value + add<Args...>::type::value),
+    typename std::decay<decltype(T::value + add<Args...>::type::value)>::type,
     (T::value + add<Args...>::type::value)
   >;
 };
@@ -28,6 +30,8 @@ template <typename T>
 struct add<T> {
   using type = T;
 };
+
+template <typename...> struct sub;
 
 template <typename LHS, typename RHS, typename... Args>
 struct sub<LHS, RHS, Args...> {
@@ -40,16 +44,18 @@ struct sub<LHS, RHS, Args...> {
 template <typename LHS, typename RHS>
 struct sub<LHS, RHS> {
   using type = std::integral_constant<
-    decltype(LHS::value - RHS::value),
+    typename std::decay<decltype(LHS::value - RHS::value)>::type,
     (LHS::value - RHS::value)
   >;
 };
+
+template <typename...> struct mul;
 
 // TODO: do it in logarithmic time
 template <typename T, typename... Args>
 struct mul<T, Args...> {
   using type = std::integral_constant<
-    decltype(T::value * mul<Args...>::type::value),
+    typename std::decay<decltype(T::value * mul<Args...>::type::value)>::type,
     (T::value * mul<Args...>::type::value)
   >;
 };
@@ -59,6 +65,8 @@ struct mul<T> {
   using type = T;
 };
 
+template <typename...> struct div;
+
 template <typename LHS, typename RHS, typename... Args>
 struct div<LHS, RHS, Args...> {
   using type = typename div<typename div<LHS, RHS>::type, Args...>::type;
@@ -67,10 +75,12 @@ struct div<LHS, RHS, Args...> {
 template <typename LHS, typename RHS>
 struct div<LHS, RHS> {
   using type = std::integral_constant<
-    decltype(LHS::value / RHS::value),
+    typename std::decay<decltype(LHS::value / RHS::value)>::type,
     (LHS::value / RHS::value)
   >;
 };
+
+template <typename...> struct mod;
 
 template <typename LHS, typename RHS, typename... Args>
 struct mod<LHS, RHS, Args...> {
@@ -80,7 +90,7 @@ struct mod<LHS, RHS, Args...> {
 template <typename LHS, typename RHS>
 struct mod<LHS, RHS> {
   using type = std::integral_constant<
-    decltype(LHS::value % RHS::value),
+    typename std::decay<decltype(LHS::value % RHS::value)>::type,
     (LHS::value % RHS::value)
   >;
 };
