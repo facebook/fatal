@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_convert_h
 #define FATAL_INCLUDE_fatal_type_convert_h
 
+#include <fatal/type/identity.h>
+
 #include <type_traits>
 
 #include <fatal/type/impl/convert.h>
@@ -31,6 +33,13 @@ using as_sequence = typename impl_conv::seq<Sequence, From, T...>::type;
 
 template <template <typename...> class List, typename T>
 using as_list = typename impl_conv::lst<List, T>::type;
+
+template <
+  typename T,
+  template <typename> class Key,
+  template <typename> class Value = identity
+>
+using as_map = typename impl_conv::mp<T, Key, Value>::type;
 
 namespace bound {
 
