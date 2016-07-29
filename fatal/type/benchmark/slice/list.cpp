@@ -17,7 +17,7 @@ int main() {
   using namespace fatal;
 
 # define INNER(Index) \
-  prevent_optimization(slice<lst, Index>())
+  prevent_optimization(slice<lst, 0, Index>())
 
 # define WRAP(Value) foo<Value>
 # define OUTER(...) \
