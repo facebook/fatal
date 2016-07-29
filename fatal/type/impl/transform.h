@@ -20,7 +20,7 @@ template <typename> struct transform;
 
 template <template <typename...> class T, typename... Args>
 struct transform<T<Args...>> {
-  template <template <typename> class Transform>
+  template <template <typename...> class Transform>
   using apply = T<Transform<Args>...>;
 };
 
@@ -29,8 +29,8 @@ template <typename> struct map_transform;
 template <template <typename...> class T, typename... Args>
 struct map_transform<T<Args...>> {
   template <
-    template <typename> class KeyTransform,
-    template <typename> class ValueTransform
+    template <typename...> class KeyTransform,
+    template <typename...> class ValueTransform
   >
   using apply = T<
     pair<

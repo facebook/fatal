@@ -16,7 +16,7 @@
 
 namespace fatal {
 
-template <typename T, template <typename> class Transform>
+template <typename T, template <typename...> class Transform>
 using transform = typename impl_transform::transform<T>
   ::template apply<Transform>;
 
