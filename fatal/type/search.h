@@ -80,6 +80,15 @@ constexpr bool sorted_search(Needle &&needle) {
   );
 }
 
+template <
+  typename T,
+  template <typename> class Comparer = value_comparer,
+  typename... Args
+>
+constexpr bool sorted_map_search(Args &&...args) {
+  return sorted_search<T, first, Comparer>(std::forward<Args>(args)...);
+}
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_search_h
