@@ -10,12 +10,28 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_search_h
 #define FATAL_INCLUDE_fatal_type_impl_search_h
 
+#include <fatal/type/inherit.h>
+#include <fatal/type/pair.h>
 #include <fatal/type/size.h>
-#include <fatal/type/slice.h>
 #include <fatal/type/tag.h>
 
 namespace fatal {
 namespace impl_srch {
+
+template <typename, template <typename> class> struct get;
+
+template <
+  template <typename...> class List,
+  typename... Args,
+  template <typename> class Filter
+>
+struct get<List<Args...>, Filter> {
+  template <typename Key, typename Value>
+  static Value find(pair<Key, Value>);
+
+  template <typename Key>
+  using type = decltype(find<Key>(inherit<pair<Filter<Args>, Args>...>()));
+};
 
 // TODO: OPTIMIZE COMPILE TIMES
 // TODO: HIGHER LOG BASE OPTIMIZATION (3 or 4 should be enough)
