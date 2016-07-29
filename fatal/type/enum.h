@@ -14,6 +14,7 @@
 #include <fatal/preprocessor.h>
 #include <fatal/type/apply.h>
 #include <fatal/type/call_traits.h>
+#include <fatal/type/map.h>
 #include <fatal/type/prefix_tree.h>
 #include <fatal/type/registry.h>
 #include <fatal/type/search.h>
@@ -247,7 +248,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using names = typename name_to_value::keys;
+  using names = map_keys<name_to_value>;
 
   /**
    * A `type_list` of `std::integral_constant` for each of the
@@ -266,7 +267,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using values = typename name_to_value::mapped;
+  using values = map_values<name_to_value>;
 
   struct array {
     /**
