@@ -169,9 +169,9 @@ using greater_equal = std::integral_constant<
 // TODO: DOCUMENT REQUIREMENTS OF PREDICATE
 //         http://en.cppreference.com/w/cpp/concept/Compare
 template <typename Less>
-struct deep_compare {
+struct sequence_compare {
   template <typename LHS, typename RHS>
-  using apply = impl_comp::dc<Less, LHS, RHS>;
+  using apply = impl_comp::sc<Less, LHS, RHS>;
 };
 
 } // namespace fatal {
