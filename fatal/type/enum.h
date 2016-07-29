@@ -11,12 +11,15 @@
 #define FATAL_INCLUDE_fatal_type_enum_h
 
 #include <fatal/container/static_array.h>
-#include <fatal/functional/no_op.h>
 #include <fatal/preprocessor.h>
+#include <fatal/type/apply.h>
 #include <fatal/type/call_traits.h>
+#include <fatal/type/prefix_tree.h>
 #include <fatal/type/registry.h>
+#include <fatal/type/search.h>
 #include <fatal/type/sequence.h>
-#include <fatal/type/string_lookup.h>
+#include <fatal/type/slice.h>
+#include <fatal/type/sort.h>
 #include <fatal/type/traits.h>
 
 #include <iterator>
@@ -91,7 +94,7 @@ class enum_traits {
   static_assert(std::is_enum<Enum>::value, "enumeration expected");
 
   using impl = registry_lookup<detail::enum_impl::metadata_tag, Enum>;
-  using traits = typename impl::template at<0>;
+  using traits = at<impl, 0>;
 
   static_assert(
     std::is_same<Enum, typename traits::type>::value,
@@ -155,7 +158,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using metadata = typename impl::template try_at<1, void>;
+  using metadata = try_at<impl, 1, void>;
 
   /**
    * The underlying integral type of the enumeration.
@@ -285,7 +288,8 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using names = typename enum_traits::names::template apply<
+    using names = list_apply<
+      enum_traits::names,
       static_array<char const *>::template z_data
     >;
 
@@ -309,7 +313,8 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using values = typename enum_traits::values::template apply<
+    using values = list_apply<
+      enum_traits::values,
       static_array<type>::template value
     >;
 
@@ -333,22 +338,24 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using sorted_values = typename enum_traits::values::template sort<>
-      ::template apply<static_array<type>::template value>;
+    using sorted_values = list_apply<
+      sort<enum_traits::values>,
+      static_array<type>::template value
+    >;
   };
 
 private:
   struct parser {
     template <typename TString>
-    void operator ()(type_tag<TString>, Enum &out) {
-      out = name_to_value::template get<TString>::value;
+    void operator ()(tag<TString>, Enum &out) {
+      out = map_get<name_to_value, TString>::value;
     }
   };
 
   struct to_string_visitor {
     template <typename Value, typename Name, std::size_t Index>
     void operator ()(
-      indexed_type_pair_tag<Value, Name, Index>, type, char const *&out
+      indexed<type_pair<Value, Name>, Index>, char const *&out
     ) const {
       out = Name::z_data();
     }
@@ -356,7 +363,7 @@ private:
 
   struct to_string_fallback {
     char const *operator ()(type e, char const *fallback) const {
-      value_to_name::template sort<>::template binary_search<>::exact(
+      sorted_map_search<map_sort<value_to_name>>(
         e, to_string_visitor(), fallback
       );
 
@@ -383,9 +390,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   static constexpr bool is_valid(type e) {
-    return values::template sort<>::template binary_search<>::exact(
-      e, fn::no_op()
-    );
+    return sorted_search<sort<values>>(e);
   }
 
   /**
@@ -435,11 +440,9 @@ public:
    */
   template <typename TBegin, typename TEnd>
   static type parse(TBegin &&begin, TEnd &&end) {
-    using lookup = typename names::template apply<string_lookup>;
-
     type out;
 
-    if (!lookup::template match<>::exact(
+    if (!prefix_tree<names>::find(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     )) {
       throw std::invalid_argument("unrecognized enum value");
@@ -493,9 +496,7 @@ public:
    */
   template <typename TBegin, typename TEnd>
   static constexpr bool try_parse(type &out, TBegin &&begin, TEnd &&end) {
-    using lookup = typename names::template apply<string_lookup>;
-
-    return lookup::template match<>::exact(
+    return prefix_tree<names>::find(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     );
   }
