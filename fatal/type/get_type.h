@@ -59,11 +59,11 @@ namespace get_type {
 
   FATAL_IMPL_GET_TYPE(char_type);
   FATAL_IMPL_GET_TYPE(return_type);
-  FATAL_IMPL_GET_TYPE_TYPE(int_type);
+  FATAL_IMPL_GET_TYPE(int_type);
 
 # define FATAL_IMPL_GET_TYPE_TYPE(Name) \
-  FATAL_IMPL_GET_TYPE(Name, Name); \
-  FATAL_IMPL_GET_TYPE(Name##_type, Name##_type)
+  FATAL_GET_TYPE(Name, Name); \
+  FATAL_GET_TYPE(Name##_type, Name##_type)
 
   FATAL_IMPL_GET_TYPE_TYPE(allocator);
   FATAL_IMPL_GET_TYPE_TYPE(args);
