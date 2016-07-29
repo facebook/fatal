@@ -30,15 +30,15 @@ template <
   template <typename...> class List,
   typename... Left,
   typename... Right,
-  typename Predicate,
+  typename Less,
   typename T,
   typename... Args
 >
-struct prt<List<Left...>, List<Right...>, Predicate, T, Args...>:
+struct prt<List<Left...>, List<Right...>, Less, T, Args...>:
   psel<
-    Predicate::template apply<T>::value,
+    Less::template apply<T>::value,
     List<Left...>, List<Right...>,
-    Predicate, T, Args...
+    Less, T, Args...
   >
 {};
 
@@ -46,9 +46,9 @@ template <
   template <typename...> class List,
   typename... Left,
   typename... Right,
-  typename Predicate
+  typename Less
 >
-struct prt<List<Left...>, List<Right...>, Predicate> {
+struct prt<List<Left...>, List<Right...>, Less> {
   using type = pair<List<Left...>, List<Right...>>;
 };
 
@@ -56,35 +56,35 @@ template <
   template <typename...> class List,
   typename... Left,
   typename... Right,
-  typename Predicate,
+  typename Less,
   typename T,
   typename... Args
 >
-struct psel<false, List<Left...>, List<Right...>, Predicate, T, Args...>:
-  prt<List<Left..., T>, List<Right...>, Predicate, Args...>
+struct psel<false, List<Left...>, List<Right...>, Less, T, Args...>:
+  prt<List<Left..., T>, List<Right...>, Less, Args...>
 {};
 
 template <
   template <typename...> class List,
   typename... Left,
   typename... Right,
-  typename Predicate,
+  typename Less,
   typename T,
   typename... Args
 >
-struct psel<true, List<Left...>, List<Right...>, Predicate, T, Args...>:
-  prt<List<Left...>, List<Right..., T>, Predicate, Args...>
+struct psel<true, List<Left...>, List<Right...>, Less, T, Args...>:
+  prt<List<Left...>, List<Right..., T>, Less, Args...>
 {};
 
 template <typename...> struct part;
 
 template <
-  typename Predicate,
+  typename Less,
   template <typename...> class List,
   typename... Args
 >
-struct part<List<Args...>, Predicate>:
-  prt<List<>, List<>, Predicate, Args...>
+struct part<List<Args...>, Less>:
+  prt<List<>, List<>, Less, Args...>
 {};
 
 template <typename...> struct mrg;
@@ -234,13 +234,13 @@ struct ms<Sequence<T, Values...>> {
 
 template <typename...> struct qs;
 
-template <template <typename...> class List, typename Predicate>
-struct qs<List<>, Predicate> {
+template <template <typename...> class List, typename Less>
+struct qs<List<>, Less> {
   using type = List<>;
 };
 
-template <template <typename...> class List, typename T, typename Predicate>
-struct qs<List<T>, Predicate> {
+template <template <typename...> class List, typename T, typename Less>
+struct qs<List<T>, Less> {
   using type = List<T>;
 };
 
@@ -248,11 +248,11 @@ template <
   template <typename...> class List,
   typename LHS,
   typename RHS,
-  typename Predicate
+  typename Less
 >
-struct qs<List<LHS, RHS>, Predicate>:
+struct qs<List<LHS, RHS>, Less>:
   std::conditional<
-    Predicate::template apply<RHS, LHS>::value,
+    Less::template apply<RHS, LHS>::value,
     List<RHS, LHS>,
     List<LHS, RHS>
   >
@@ -263,18 +263,18 @@ template <
   template <typename...> class List,
   typename T,
   typename... Args,
-  typename Predicate
+  typename Less
 >
 // TODO: USE A BETTER PIVOT
-struct qs<List<T, Args...>, Predicate> {
+struct qs<List<T, Args...>, Less> {
   using type = lcat<
     typename qs<
-      first<typename part<List<Args...>, curry<Predicate, T>>::type>,
-      Predicate
+      first<typename part<List<Args...>, curry<Less, T>>::type>,
+      Less
     >::type,
     typename qs<
-      second<typename part<List<Args...>, curry<Predicate, T>>::type>,
-      Predicate
+      second<typename part<List<Args...>, curry<Less, T>>::type>,
+      Less
     >::type,
     T
   >;
@@ -285,12 +285,12 @@ template <
   template <typename V, V...> class Sequence,
   typename T,
   T... Values,
-  typename Predicate
+  typename Less
 >
-struct qs<Sequence<T, Values...>, Predicate> {
+struct qs<Sequence<T, Values...>, Less> {
   using type = as_sequence<
     Sequence,
-    typename qs<list<std::integral_constant<T, Values>...>, Predicate>::type,
+    typename qs<list<std::integral_constant<T, Values>...>, Less>::type,
     T
   >;
 };

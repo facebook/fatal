@@ -12,20 +12,28 @@
 
 #include <fatal/type/apply.h>
 #include <fatal/type/compare.h>
+#include <fatal/type/slice.h>
 
 #include <fatal/type/impl/sort.h>
 
 namespace fatal {
 
-template <typename T, typename Predicate>
-using partition = typename impl_sort::part<T, Predicate>::type;
+template <typename T, typename Less>
+using partition = typename impl_sort::part<T, Less>::type;
 
 // TODO: ACCEPT A CUSTOM PREDICATE
 template  <typename LHS, typename RHS>
 using merge = typename impl_sort::merge<LHS, RHS>::type;
 
-template <typename T, typename Predicate = applier<less>>
-using sort = typename impl_sort::qs<T, Predicate>::type;
+template <typename T, typename Less = applier<less>>
+using sort = typename impl_sort::qs<T, Less>::type;
+
+// TODO: MAKE IT GENERATE LESS TEMPLATES FOR THE PREDICATE
+template <typename T, typename Less = applier<less>>
+using sequence_map_sort = sort<
+  T,
+  filtered_applier<sequence_compare<Less>::template apply, first>
+>;
 
 } // namespace fatal {
 
