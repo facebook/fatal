@@ -13,23 +13,38 @@
 namespace fatal {
 namespace impl_apply {
 
-template <typename> struct to;
+template <template <typename...> class, typename...> struct ls;
 
-template <template <typename...> class List, typename... Args>
-struct to<List<Args...>> {
-  template <template <typename...> class To, typename... Suffix>
-  using apply = To<Args..., Suffix...>;
-
-  template <template <typename...> class To, typename... Prefix>
-  using front = To<Prefix..., Args...>;
+template <
+  template <typename...> class To,
+  template <typename...> class List,
+  typename... Args,
+  typename... Suffix
+>
+struct ls<To, List<Args...>, Suffix...> {
+  using type = To<Args..., Suffix...>;
 };
+
+template <template <typename...> class, typename...> struct lsf;
+
+template <
+  template <typename...> class To,
+  template <typename...> class List,
+  typename... Args,
+  typename... Prefix
+>
+struct lsf<To, List<Args...>, Prefix...> {
+  using type = To<Prefix..., Args...>;
+};
+
+template <typename> struct sq;
 
 template <
   template <typename V, V...> class Sequence,
   typename T,
   T... Values
 >
-struct to<Sequence<T, Values...>> {
+struct sq<Sequence<T, Values...>> {
   template<template <typename V, V...> class To, T... Suffix>
   using apply = To<T, Values..., Suffix...>;
 

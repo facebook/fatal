@@ -14,8 +14,14 @@
 
 namespace fatal {
 
+template <typename T, template <typename...> class To, typename... Suffix>
+using list_apply = typename impl_apply::ls<To, T, Suffix...>::type;
+
+template <typename T, template <typename...> class To, typename... Prefix>
+using list_apply_front = typename impl_apply::lsf<To, T, Prefix...>::type;
+
 template <typename T>
-using apply_to = impl_apply::to<T>;
+using sequence_apply = impl_apply::sq<T>;
 
 template <template <typename...> class T>
 struct applier {
