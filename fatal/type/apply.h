@@ -26,21 +26,29 @@ using sequence_apply = impl_apply::sq<T>;
 template <template <typename...> class T>
 struct applier {
   template <typename... Args>
-  using apply = typename impl_apply::applier<T, Args...>::type;
+  using apply = typename impl_apply::app<T, Args...>::type;
 };
 
+template <template <typename...> class T, template <typename> class Filter>
+struct filtered_applier {
+  template <typename... Args>
+  using apply = typename impl_apply::app<T, Filter<Args>...>::type;
+};
+
+// TODO: ADD FILTERED VARIANT
 template <typename T, typename... Bound>
 struct curry {
   template <typename... Args>
-  using apply = typename impl_apply::applier<
+  using apply = typename impl_apply::app<
     T::template apply, Bound..., Args...
   >::type;
 };
 
+// TODO: ADD FILTERED VARIANT
 template <typename T, typename... Bound>
 struct curry_back {
   template <typename... Args>
-  using apply = typename impl_apply::applier<
+  using apply = typename impl_apply::app<
     T::template apply, Args..., Bound...
   >::type;
 };

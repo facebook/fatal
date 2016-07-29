@@ -53,17 +53,17 @@ struct sq<Sequence<T, Values...>> {
 };
 
 template <template <typename...> class T, typename... Args>
-struct applier {
+struct app {
   using type = T<Args...>;
 };
 
 template <template <typename> class T, typename U>
-struct applier<T, U> {
+struct app<T, U> {
   using type = T<U>;
 };
 
 template <template <typename, typename> class T, typename U0, typename U1>
-struct applier<T, U0, U1> {
+struct app<T, U0, U1> {
   using type = T<U0, U1>;
 };
 
@@ -71,7 +71,7 @@ template <
   template <typename, typename, typename> class T,
   typename U0, typename U1, typename U2
 >
-struct applier<T, U0, U1, U2> {
+struct app<T, U0, U1, U2> {
   using type = T<U0, U1, U2>;
 };
 
@@ -79,7 +79,7 @@ template <
   template <typename, typename, typename, typename> class T,
   typename U0, typename U1, typename U2, typename U3
 >
-struct applier<T, U0, U1, U2, U3> {
+struct app<T, U0, U1, U2, U3> {
   using type = T<U0, U1, U2, U3>;
 };
 
@@ -87,7 +87,7 @@ template <
   template <typename, typename, typename, typename, typename> class T,
   typename U0, typename U1, typename U2, typename U3, typename U4
 >
-struct applier<T, U0, U1, U2, U3, U4> {
+struct app<T, U0, U1, U2, U3, U4> {
   using type = T<U0, U1, U2, U3, U4>;
 };
 
@@ -95,7 +95,7 @@ template <
   template <typename, typename, typename, typename, typename, typename> class T,
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5
 >
-struct applier<T, U0, U1, U2, U3, U4, U5> {
+struct app<T, U0, U1, U2, U3, U4, U5> {
   using type = T<U0, U1, U2, U3, U4, U5>;
 };
 
@@ -106,7 +106,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0
 >
-struct applier<T, U0, U1, U2, U3, U4, U5, V0> {
+struct app<T, U0, U1, U2, U3, U4, U5, V0> {
   using type = T<U0, U1, U2, U3, U4, U5, V0>;
 };
 
@@ -118,7 +118,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1
 >
-struct applier<T, U0, U1, U2, U3, U4, U5, V0, V1> {
+struct app<T, U0, U1, U2, U3, U4, U5, V0, V1> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1>;
 };
 
@@ -130,7 +130,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1, typename V2
 >
-struct applier<T, U0, U1, U2, U3, U4, U5, V0, V1, V2> {
+struct app<T, U0, U1, U2, U3, U4, U5, V0, V1, V2> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2>;
 };
 
@@ -142,7 +142,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1, typename V2, typename V3
 >
-struct applier<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3> {
+struct app<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3>;
 };
 
@@ -154,7 +154,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1, typename V2, typename V3, typename V4
 >
-struct applier<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4> {
+struct app<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4>;
 };
 
@@ -166,7 +166,7 @@ template <
   typename U0, typename U1, typename U2, typename U3, typename U4, typename U5,
   typename V0, typename V1, typename V2, typename V3, typename V4, typename V5
 >
-struct applier<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
+struct app<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5>;
 };
 
