@@ -11,11 +11,19 @@
 #define FATAL_INCLUDE_fatal_type_map_h
 
 #include <fatal/type/list.h>
+#include <fatal/type/slice.h>
+#include <fatal/type/transform.h>
 
 namespace fatal {
 
 template <typename... Pairs>
 using map = list<Pairs...>;
+
+template <typename T>
+using map_keys = transform<T, first>;
+
+template <typename T>
+using map_values = transform<T, second>;
 
 } // namespace fatal {
 
