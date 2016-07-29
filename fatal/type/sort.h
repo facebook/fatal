@@ -30,6 +30,13 @@ using sort = typename impl_sort::qs<T, Less>::type;
 
 // TODO: MAKE IT GENERATE LESS TEMPLATES FOR THE PREDICATE
 template <typename T, typename Less = applier<less>>
+using map_sort = sort<
+  T,
+  filtered_applier<Less::template apply, first>
+>;
+
+// TODO: MAKE IT GENERATE LESS TEMPLATES FOR THE PREDICATE
+template <typename T, typename Less = applier<less>>
 using sequence_map_sort = sort<
   T,
   filtered_applier<sequence_compare<Less>::template apply, first>
