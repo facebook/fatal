@@ -11,10 +11,15 @@
 #define FATAL_INCLUDE_fatal_type_variant_traits_h
 
 #include <fatal/container/static_array.h>
-#include <fatal/type/fast_pass.h>
-#include <fatal/type/deprecated/type_map.h>
-#include <fatal/type/registry.h>
+#include <fatal/type/apply.h>
 #include <fatal/type/deprecated/transform.h>
+#include <fatal/type/deprecated/type_map.h>
+#include <fatal/type/fast_pass.h>
+#include <fatal/type/map.h>
+#include <fatal/type/registry.h>
+#include <fatal/type/search.h>
+#include <fatal/type/slice.h>
+#include <fatal/type/sort.h>
 
 #include <type_traits>
 #include <utility>
@@ -88,14 +93,14 @@ template <typename, typename> class variant_traits_by;
 template <typename T>
 class variant_traits {
   using impl = registry_lookup<detail::variant_traits_impl::metadata_tag, T>;
-  using traits = typename impl::template at<0>;
+  using traits = at<impl, 0>;
 
 public:
   using type = typename traits::type;
   using name = typename traits::name;
   using id = typename traits::id;
 
-  using metadata = typename impl::template try_at<1, void>;
+  using metadata = try_at<impl, 1, void>;
 
   using ids = typename traits::ids;
 
@@ -103,15 +108,12 @@ public:
 
   using by_id = variant_traits_by<
     traits,
-    typename type_map_from<get_member_type::id>
-      ::template list<descriptors>
-      ::template sort<>
+    map_sort<as_map<descriptors, get_member_type::id>>
   >;
 
   using by_type = variant_traits_by<
     traits,
-    typename type_map_from<get_member_type::type>
-      ::template list<descriptors>
+    as_map<descriptors, get_member_type::type>
   >;
 
   struct array {
@@ -131,7 +133,8 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using ids = typename by_id::tags::template apply<
+    using ids = list_apply<
+      typename by_id::tags,
       static_array<id>::template value
     >;
   };
@@ -166,11 +169,11 @@ class variant_traits_by {
 public:
   using map = Map;
 
-  using tags = typename map::keys;
+  using tags = map_keys<map>;
 
   // TODO: TEST
   template <typename Tag>
-  using descriptor = typename map::template get<Tag>;
+  using descriptor = map_get<map, Tag>;
 
   template <typename Tag>
   using id = typename descriptor<Tag>::id;
