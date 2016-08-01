@@ -92,10 +92,10 @@ struct part<Pair, List<Args...>, Less>:
   prt<Pair, List<>, List<>, Less, Args...>
 {};
 
-template <template <typename> class, typename...> struct fl;
+template <typename...> struct fl;
 
 template <
-  template <typename> class Predicate,
+  typename Predicate,
   template <typename...> class Variadics,
   typename... Result
 >
@@ -104,7 +104,7 @@ struct fl<Predicate, Variadics<Result...>> {
 };
 
 template <
-  template <typename> class Predicate,
+  typename Predicate,
   template <typename...> class Variadics,
   typename... Result,
   typename T,
@@ -114,7 +114,7 @@ struct fl<Predicate, Variadics<Result...>, T, Args...>:
   fl<
     Predicate,
     typename std::conditional<
-      Predicate<T>::value,
+      Predicate::template apply<T>::value,
       Variadics<Result..., T>,
       Variadics<Result...>
     >::type,
@@ -122,11 +122,11 @@ struct fl<Predicate, Variadics<Result...>, T, Args...>:
   >
 {};
 
-template <template <typename> class, typename...> struct flt;
+template <typename...> struct flt;
 
 // TODO: OPTIMIZE
 template <
-  template <typename> class Predicate,
+  typename Predicate,
   template <typename...> class Variadics,
   typename... Args
 >

@@ -23,11 +23,11 @@ namespace fatal {
 template <typename T, typename Less, template <typename...> class Pair = pair>
 using partition = typename impl_srt::part<Pair, T, Less>::type;
 
-template <typename T, template <typename> class Predicate>
+template <typename T, typename Predicate>
 using filter = typename impl_srt::flt<Predicate, T>::type;
 
-template <typename T, template <typename> class Predicate>
-using reject = filter<T, negation<Predicate>::template apply>;
+template <typename T, typename Predicate>
+using reject = filter<T, negation<Predicate>>;
 
 // TODO: ACCEPT A CUSTOM PREDICATE
 template  <typename LHS, typename RHS>

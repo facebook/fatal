@@ -32,10 +32,13 @@ namespace fatal {
 template <typename T>
 using negate = std::integral_constant<bool, !T::value>;
 
-template <template <typename> class Predicate>
+template <typename Predicate>
 struct negation {
   template <typename T>
-  using apply = std::integral_constant<bool, !Predicate<T>::value>;
+  using apply = std::integral_constant<
+    bool,
+    !Predicate::template apply<T>::value
+  >;
 };
 
 /**
