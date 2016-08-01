@@ -32,6 +32,12 @@ namespace fatal {
 template <typename T>
 using negate = std::integral_constant<bool, !T::value>;
 
+template <template <typename> class Predicate>
+struct negation {
+  template <typename T>
+  using apply = std::integral_constant<bool, !Predicate<T>::value>;
+};
+
 /**
  * Yields an std::integral_constant whose value is the logical AND of the value
  * of each argument.
