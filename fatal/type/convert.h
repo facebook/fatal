@@ -11,6 +11,9 @@
 #define FATAL_INCLUDE_fatal_type_convert_h
 
 #include <fatal/type/identity.h>
+#include <fatal/type/list.h>
+#include <fatal/type/map.h>
+#include <fatal/type/pair.h>
 
 #include <type_traits>
 
@@ -31,15 +34,17 @@ template <
 >
 using as_sequence = typename impl_conv::seq<Sequence, From, T...>::type;
 
-template <template <typename...> class List, typename T>
+template <typename T, template <typename...> class List = list>
 using as_list = typename impl_conv::lst<List, T>::type;
 
 template <
   typename T,
   template <typename> class Key,
-  template <typename> class Value = identity
+  template <typename> class Value = identity,
+  template <typename...> class Map = map,
+  template <typename...> class Pair = pair
 >
-using as_map = typename impl_conv::mp<T, Key, Value>::type;
+using as_map = typename impl_conv::mp<T, Map, Pair, Key, Value>::type;
 
 namespace bound {
 
@@ -52,7 +57,7 @@ struct as_sequence {
 template <template <typename...> class List>
 struct as_list {
   template <typename T>
-  using apply = fatal::as_list<List, T>;
+  using apply = fatal::as_list<T, List>;
 };
 
 } // namespace bound {

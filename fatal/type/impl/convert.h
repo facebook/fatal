@@ -10,9 +10,6 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_convert_h
 #define FATAL_INCLUDE_fatal_type_impl_convert_h
 
-#include <fatal/type/map.h>
-#include <fatal/type/pair.h>
-
 namespace fatal {
 namespace impl_conv {
 
@@ -105,18 +102,18 @@ struct lst<List, Variadics<Args...>> {
   using type = List<Args...>;
 };
 
-template <typename, template <typename> class...> struct mp;
+template <typename, template <typename...> class...> struct mp;
 
 template <
   template <typename...> class Variadics,
   typename... Args,
+  template <typename...> class Map,
+  template <typename...> class Pair,
   template <typename> class Key,
   template <typename> class Value
 >
-struct mp<Variadics<Args...>, Key, Value> {
-  using type = map<
-    pair<Key<Args>, Value<Args>>...
-  >;
+struct mp<Variadics<Args...>, Map, Pair, Key, Value> {
+  using type = Map<Pair<Key<Args>, Value<Args>>...>;
 };
 
 } // namespace impl_conv {
