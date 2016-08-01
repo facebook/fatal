@@ -12,6 +12,7 @@
 
 #include <fatal/type/apply.h>
 #include <fatal/type/compare.h>
+#include <fatal/type/logical.h>
 #include <fatal/type/pair.h>
 #include <fatal/type/slice.h>
 
@@ -24,6 +25,9 @@ using partition = typename impl_srt::part<Pair, T, Less>::type;
 
 template <typename T, template <typename> class Predicate>
 using filter = typename impl_srt::flt<Predicate, T>::type;
+
+template <typename T, template <typename> class Predicate>
+using reject = filter<T, negation<Predicate>::template apply>;
 
 // TODO: ACCEPT A CUSTOM PREDICATE
 template  <typename LHS, typename RHS>
