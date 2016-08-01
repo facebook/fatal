@@ -8,7 +8,6 @@
  */
 
 #include <fatal/type/cat.h>
-#include <fatal/type/pair.h>
 #include <fatal/type/slice.h>
 
 // TODO: REMOVE THESE HEADERS WHEN A PROPER SORT FOR SEQUENCES IS IN
@@ -21,12 +20,13 @@
 #define FATAL_INCLUDE_fatal_type_impl_sort_h
 
 namespace fatal {
-namespace impl_sort {
+namespace impl_srt {
 
-template <typename...> struct prt;
-template <bool, typename...> struct psel;
+template <template <typename...> class, typename...> struct prt;
+template <bool, template <typename...> class, typename...> struct psel;
 
 template <
+  template <typename...> class Pair,
   template <typename...> class List,
   typename... Left,
   typename... Right,
@@ -34,25 +34,28 @@ template <
   typename T,
   typename... Args
 >
-struct prt<List<Left...>, List<Right...>, Less, T, Args...>:
+struct prt<Pair, List<Left...>, List<Right...>, Less, T, Args...>:
   psel<
     Less::template apply<T>::value,
+    Pair,
     List<Left...>, List<Right...>,
     Less, T, Args...
   >
 {};
 
 template <
+  template <typename...> class Pair,
   template <typename...> class List,
   typename... Left,
   typename... Right,
   typename Less
 >
-struct prt<List<Left...>, List<Right...>, Less> {
-  using type = pair<List<Left...>, List<Right...>>;
+struct prt<Pair, List<Left...>, List<Right...>, Less> {
+  using type = Pair<List<Left...>, List<Right...>>;
 };
 
 template <
+  template <typename...> class Pair,
   template <typename...> class List,
   typename... Left,
   typename... Right,
@@ -60,11 +63,12 @@ template <
   typename T,
   typename... Args
 >
-struct psel<false, List<Left...>, List<Right...>, Less, T, Args...>:
-  prt<List<Left..., T>, List<Right...>, Less, Args...>
+struct psel<false, Pair, List<Left...>, List<Right...>, Less, T, Args...>:
+  prt<Pair, List<Left..., T>, List<Right...>, Less, Args...>
 {};
 
 template <
+  template <typename...> class Pair,
   template <typename...> class List,
   typename... Left,
   typename... Right,
@@ -72,19 +76,62 @@ template <
   typename T,
   typename... Args
 >
-struct psel<true, List<Left...>, List<Right...>, Less, T, Args...>:
-  prt<List<Left...>, List<Right..., T>, Less, Args...>
+struct psel<true, Pair, List<Left...>, List<Right...>, Less, T, Args...>:
+  prt<Pair, List<Left...>, List<Right..., T>, Less, Args...>
 {};
 
-template <typename...> struct part;
+template <template <typename...> class, typename...> struct part;
 
 template <
+  template <typename...> class Pair,
   typename Less,
   template <typename...> class List,
   typename... Args
 >
-struct part<List<Args...>, Less>:
-  prt<List<>, List<>, Less, Args...>
+struct part<Pair, List<Args...>, Less>:
+  prt<Pair, List<>, List<>, Less, Args...>
+{};
+
+template <template <typename> class, typename...> struct fl;
+
+template <
+  template <typename> class Predicate,
+  template <typename...> class Variadics,
+  typename... Result
+>
+struct fl<Predicate, Variadics<Result...>> {
+  using type = Variadics<Result...>;
+};
+
+template <
+  template <typename> class Predicate,
+  template <typename...> class Variadics,
+  typename... Result,
+  typename T,
+  typename... Args
+>
+struct fl<Predicate, Variadics<Result...>, T, Args...>:
+  fl<
+    Predicate,
+    typename std::conditional<
+      Predicate<T>::value,
+      Variadics<Result..., T>,
+      Variadics<Result...>
+    >::type,
+    Args...
+  >
+{};
+
+template <template <typename> class, typename...> struct flt;
+
+// TODO: OPTIMIZE
+template <
+  template <typename> class Predicate,
+  template <typename...> class Variadics,
+  typename... Args
+>
+struct flt<Predicate, Variadics<Args...>>:
+  fl<Predicate, Variadics<>, Args...>
 {};
 
 template <typename...> struct mrg;
@@ -269,11 +316,11 @@ template <
 struct qs<List<T, Args...>, Less> {
   using type = lcat<
     typename qs<
-      first<typename part<List<Args...>, curry<Less, T>>::type>,
+      first<typename part<pair, List<Args...>, curry<Less, T>>::type>,
       Less
     >::type,
     typename qs<
-      second<typename part<List<Args...>, curry<Less, T>>::type>,
+      second<typename part<pair, List<Args...>, curry<Less, T>>::type>,
       Less
     >::type,
     T
@@ -295,7 +342,7 @@ struct qs<Sequence<T, Values...>, Less> {
   >;
 };
 
-} // namespace impl_sort {
+} // namespace impl_srt {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_sort_h
