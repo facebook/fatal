@@ -13,7 +13,6 @@
 #include <fatal/container/constant_array.h>
 #include <fatal/preprocessor.h>
 #include <fatal/type/deprecated/type_list.h>
-#include <fatal/type/operation.h>
 
 #include <type_traits>
 
@@ -29,9 +28,144 @@ namespace constant_sequence_impl {
 template <typename, typename...> struct concat;
 template <typename, typename> struct reverse;
 template <typename T, typename, T, T, T> struct polynomial;
+template <typename, typename TChar, TChar, TChar...> struct parse_sequence;
+template <typename, typename> struct from_sequence;
+template <typename T, template <typename, T...> class, typename U, U>
+struct to_sequence;
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
+
+////////////////////
+// parse_sequence //
+////////////////////
+
+/**
+ * Provides mechanisms to parse the integral value of type `T`
+ * represented by a sequence of characters.
+ *
+ * Parameters:
+ *
+ *  - T: the type of the integral value that will be parsed.
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+struct parse_sequence {
+  /**
+   * Provides mechanisms to parse the integral value represented
+   * by a sequence of characters of type `TChar`.
+   *
+   * Parameters:
+   *
+   *  - TChar: the type of the characters in the sequence to be parsed.
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TChar>
+  struct bind {
+    /**
+     * Parses the integral value represented by the
+     * given sequence of characters.
+     *
+     * Parameters:
+     *
+     *  - Chars: the sequence of characters to be parsed.
+     *
+     * Example:
+     *
+     *  // yields `std::integral_constant<int, -56>`
+     *  using result = parse_sequence<int>::bind<char>::apply<'-', '5', '6'>;
+     *
+     * @author: Marcelo Juchem <marcelo@fb.com>
+     */
+    template <TChar... Chars>
+    using apply = typename detail::constant_sequence_impl::parse_sequence<
+      T, TChar, Chars...
+    >::type;
+  };
+
+  /**
+   * Parses the integral value represented by the
+   * given sequence of `characters.
+   *
+   * Parameters:
+   *
+   *  - TChar: the type of the characters in the sequence.
+   *  - Chars: the sequence of characters to be parsed.
+   *
+   * Example:
+   *
+   *  // yields `std::integral_constant<int, -56>`
+   *  using result = parse_sequence<int>::bind<char>::apply<'-', '5', '6'>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TChar, TChar... Chars>
+  using apply = typename bind<TChar>::template apply<Chars...>;
+
+  /**
+   * Parses the given sequence as an integral value.
+   *
+   * Parameters:
+   *
+   *  - TSequence: the sequence to be parsed.
+   *
+   * Example:
+   *
+   *  using str = std::integer_sequence<char, '-', '5', '6'>;
+   *
+   *  // yields `std::integral_constant<int, -56>`
+   *  using result = parse_sequence<int>::from<str>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename TSequence>
+  using from = typename detail::constant_sequence_impl::from_sequence<
+    T, TSequence
+  >::type;
+};
+
+/////////////////
+// to_sequence //
+/////////////////
+
+/**
+ * Converts an integral value to its string representation,
+ * as a sequence of characters.
+ *
+ * Parameters:
+ *
+ *  - T: the type of the integral value
+ *  - Value: the value to be converted
+ *  - TChar: the type of the characters in the sequence. Defaults to `char`.
+ *
+ * Example:
+ *
+ *  // yields `std::integer_sequence<char, '4', '2'>`
+ *  using result1 = to_sequence<std::integer_sequence>::apply<std::size_t, 42>;
+ *
+ *  // yields `std::integer_sequence<wchar_t, L'-', L'5', L'6'>`
+ *  using result2 = to_sequence<std::integer_sequence, wchar_t>
+ *    ::apply<int, -56>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <template <typename U, U...> class TSequence, typename TChar = char>
+struct to_sequence {
+  template <typename T>
+  struct bind {
+    template <T Value>
+    using apply = typename detail::constant_sequence_impl::to_sequence<
+      TChar, TSequence, T, Value
+    >::type;
+  };
+
+  template <typename T, T Value>
+  using apply = typename detail::constant_sequence_impl::to_sequence<
+    TChar, TSequence, T, Value
+  >::type;
+};
 
 //////////////////////////////////////
 // constant_sequence IMPLEMENTATION //
@@ -1058,6 +1192,179 @@ struct polynomial<
   using type = std::integral_constant<T, Accumulator>;
 };
 
+////////////////////
+// parse_sequence //
+////////////////////
+
+template <typename T, typename TChar, TChar Char>
+struct parse_type_char {
+  static_assert(
+    Char == static_cast<TChar>('0')
+    || Char == static_cast<TChar>('1')
+    || Char == static_cast<TChar>('2')
+    || Char == static_cast<TChar>('3')
+    || Char == static_cast<TChar>('4')
+    || Char == static_cast<TChar>('5')
+    || Char == static_cast<TChar>('6')
+    || Char == static_cast<TChar>('7')
+    || Char == static_cast<TChar>('8')
+    || Char == static_cast<TChar>('9'),
+    "character is not a valid digit"
+  );
+
+  using type = std::integral_constant<
+    T,
+    Char == static_cast<TChar>('0') ? static_cast<T>(0)
+    : Char == static_cast<TChar>('1') ? static_cast<T>(1)
+    : Char == static_cast<TChar>('2') ? static_cast<T>(2)
+    : Char == static_cast<TChar>('3') ? static_cast<T>(3)
+    : Char == static_cast<TChar>('4') ? static_cast<T>(4)
+    : Char == static_cast<TChar>('5') ? static_cast<T>(5)
+    : Char == static_cast<TChar>('6') ? static_cast<T>(6)
+    : Char == static_cast<TChar>('7') ? static_cast<T>(7)
+    : Char == static_cast<TChar>('8') ? static_cast<T>(8)
+    : Char == static_cast<TChar>('9') ? static_cast<T>(9)
+    : 10
+  >;
+
+  static_assert(
+    type::value >= 0 && type::value <= 9,
+    "character is not a valid digit"
+  );
+};
+
+template <typename T>
+struct parse_sequence_add_tail {
+  template <T Value, T Next>
+  using positive = std::integral_constant<T, Value + Next>;
+
+  template <T Value, T Next>
+  using negative = std::integral_constant<T, Value - Next>;
+};
+
+template <typename T, T, template <T, T> class, typename TChar, TChar...>
+struct parse_sequence_recursion;
+
+template <
+  typename T, T Value, template <T, T> class TAddTail,
+  typename TChar, TChar Head, TChar... Tail
+>
+struct parse_sequence_recursion<T, Value, TAddTail, TChar, Head, Tail...> {
+  using type = typename parse_sequence_recursion<
+    T,
+    TAddTail<Value * 10, parse_type_char<T, TChar, Head>::type::value>::value,
+    TAddTail, TChar, Tail...
+  >::type;
+};
+
+template <typename T, T Value, template <T, T> class TAddTail, typename TChar>
+struct parse_sequence_recursion<T, Value, TAddTail, TChar> {
+  using type = std::integral_constant<T, Value>;
+};
+
+template <bool, typename T, typename TChar, TChar Head, TChar... Tail>
+struct parse_sequence_selector {
+  using head = typename parse_type_char<T, TChar, Head>::type;
+
+  static_assert(
+    sizeof...(Tail) == 0 || head::value > 0,
+    "integral can't have a leading zero"
+  );
+
+  using type = typename parse_sequence_recursion<
+    T, head::value,
+    parse_sequence_add_tail<T>::template positive,
+    TChar, Tail...
+  >::type;
+};
+
+template <typename T, typename TChar, TChar Sign, TChar Head, TChar... Tail>
+struct parse_sequence_selector<true, T, TChar, Sign, Head, Tail...> {
+  static_assert(Sign == static_cast<TChar>('-'), "unrecognized sign");
+
+  using head = typename parse_type_char<T, TChar, Head>::type;
+
+  static_assert(head::value > 0, "negative integral can't have a leading zero");
+
+  using type = typename parse_sequence_recursion<
+    T, -head::value,
+    parse_sequence_add_tail<T>::template negative,
+    TChar, Tail...
+  >::type;
+};
+
+template <typename T, typename TChar, TChar Head, TChar... Tail>
+struct parse_sequence {
+  using is_sign = std::integral_constant<bool, Head == static_cast<TChar>('-')>;
+
+  static_assert(
+    std::is_signed<T>::value || !is_sign::value,
+    "unsigned integral can't have a sign"
+  );
+
+  using type = typename parse_sequence_selector<
+    is_sign::value, T, TChar, Head, Tail...
+  >::type;
+};
+
+///////////////////
+// from_sequence //
+///////////////////
+
+template <
+  typename T,
+  typename TChar,
+  template <typename, TChar...> class U,
+  TChar... Chars
+>
+struct from_sequence<T, U<TChar, Chars...>> {
+  using type = typename parse_sequence<T, TChar, Chars...>::type;
+};
+
+/////////////////
+// to_sequence //
+/////////////////
+
+template <
+  bool Negative, typename TChar, template <typename, TChar...> class TSequence,
+  typename T, T Value, bool Done = (Value == 0)
+>
+struct to_sequence_impl {
+  template <TChar... Suffix>
+  using apply = typename to_sequence_impl<
+    Negative, TChar, TSequence, T, Value / 10
+  >::template apply<
+    static_cast<TChar>("9876543210123456789"[(Value % 10) + 9]), Suffix...
+  >;
+};
+
+template <
+  bool Negative, typename TChar, template <typename, TChar...> class TSequence,
+  typename T, T Value
+>
+struct to_sequence_impl<Negative, TChar, TSequence, T, Value, true> {
+  template <TChar... Chars>
+  using apply = typename std::conditional<
+    Negative,
+    TSequence<TChar, static_cast<TChar>('-'), Chars...>,
+    TSequence<TChar, Chars...>
+  >::type;
+};
+
+template <
+  typename TChar, template <typename, TChar...> class TSequence,
+  typename T, T Value
+>
+struct to_sequence {
+  using type = typename std::conditional<
+    Value == 0,
+    TSequence<TChar, static_cast<TChar>('0')>,
+    typename to_sequence_impl<
+      (Value < 0), TChar, TSequence, T, Value
+    >::template apply<>
+  >::type;
+};
+
 ///////////////
 // FATAL_STR //
 ///////////////
@@ -1099,6 +1406,12 @@ constexpr std::size_t size(T const (&)[Size]) {
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
+
+template <typename T, T... Values>
+struct type_get_traits<constant_sequence<T, Values...>>:
+  public type_get_traits<type_list<std::integral_constant<T, Values>...>>
+{};
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_deprecated_constant_sequence_h
