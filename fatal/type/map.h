@@ -11,7 +11,6 @@
 #define FATAL_INCLUDE_fatal_type_map_h
 
 #include <fatal/type/apply.h>
-#include <fatal/type/list.h>
 #include <fatal/type/slice.h>
 #include <fatal/type/transform.h>
 
