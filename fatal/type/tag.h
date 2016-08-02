@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_tag_h
 #define FATAL_INCLUDE_fatal_type_tag_h
 
+#include <fatal/type/pair.h>
+
 #include <type_traits>
 
 namespace fatal {
@@ -25,6 +27,9 @@ struct indexed:
 {
   using type = T;
 };
+
+template <typename First, typename Second, std::size_t Index>
+using indexed_pair = indexed<pair<First, Second>, Index>;
 
 struct not_found {};
 
