@@ -58,6 +58,10 @@ using index = typename impl_at::idx<
   make_index_sequence<size<Container>::value>
 >;
 
+// TODO: REDUCE TEMPLATE INSTANTIATIONS
+template <typename T, typename Of>
+using index_of = typename index<T>::template of<Of>;
+
 namespace bound {
 
 template <std::size_t Index>
