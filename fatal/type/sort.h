@@ -50,6 +50,10 @@ using sequence_map_sort = sort<
   filtered_applier<sequence_compare<Less>::template apply, first>
 >;
 
+// TODO: REVIEW / MOVE SOMEWHERE ELSE / GENERALIZE / ...
+template <typename T>
+using invert = typename impl_srt::inv<T>::type;
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_sort_h

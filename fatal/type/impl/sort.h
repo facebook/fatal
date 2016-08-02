@@ -342,6 +342,23 @@ struct qs<Sequence<T, Values...>, Less> {
   >;
 };
 
+template <typename> struct inv;
+
+template <template <typename, typename> class Pair, typename LHS, typename RHS>
+struct inv<Pair<LHS, RHS>> {
+  using type = Pair<RHS, LHS>;
+};
+
+template <
+  template <typename...> class Variadics,
+  typename LHS,
+  typename RHS,
+  typename... Args
+>
+struct inv<Variadics<LHS, RHS, Args...>> {
+  using type = Variadics<RHS, LHS, Args...>;
+};
+
 } // namespace impl_srt {
 } // namespace fatal {
 
