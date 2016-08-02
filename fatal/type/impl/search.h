@@ -149,16 +149,16 @@ template <typename...> struct fe;
 
 template <>
 struct fe<> {
-  template <typename Visitor, typename... VArgs>
-  static void foreach(Visitor &&, VArgs &&...) {}
+  template <std::size_t, typename... Args>
+  static void foreach(Args &&...) {}
 };
 
 template <typename T, typename... Args>
 struct fe<T, Args...> {
-  template <typename Visitor, typename... VArgs>
+  template <std::size_t Index = 0, typename Visitor, typename... VArgs>
   static void foreach(Visitor &&visitor, VArgs &&...args) {
-    visitor(args...);
-    fe<Args...>::foreach(
+    visitor(indexed<T, Index>(), args...);
+    fe<Args...>::template foreach<Index + 1>(
       std::forward<Visitor>(visitor),
       std::forward<VArgs>(args)...
     );
