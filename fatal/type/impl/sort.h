@@ -64,7 +64,7 @@ template <
   typename... Args
 >
 struct psel<false, Pair, List<Left...>, List<Right...>, Less, T, Args...>:
-  prt<Pair, List<Left..., T>, List<Right...>, Less, Args...>
+  prt<Pair, List<Left...>, List<Right..., T>, Less, Args...>
 {};
 
 template <
@@ -77,7 +77,7 @@ template <
   typename... Args
 >
 struct psel<true, Pair, List<Left...>, List<Right...>, Less, T, Args...>:
-  prt<Pair, List<Left...>, List<Right..., T>, Less, Args...>
+  prt<Pair, List<Left..., T>, List<Right...>, Less, Args...>
 {};
 
 template <template <typename...> class, typename...> struct part;
@@ -316,11 +316,11 @@ template <
 struct qs<List<T, Args...>, Less> {
   using type = lcat<
     typename qs<
-      first<typename part<pair, List<Args...>, curry<Less, T>>::type>,
+      second<typename part<pair, List<Args...>, curry<Less, T>>::type>,
       Less
     >::type,
     typename qs<
-      second<typename part<pair, List<Args...>, curry<Less, T>>::type>,
+      first<typename part<pair, List<Args...>, curry<Less, T>>::type>,
       Less
     >::type,
     T
