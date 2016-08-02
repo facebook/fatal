@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_map_h
 #define FATAL_INCLUDE_fatal_type_map_h
 
+#include <fatal/type/apply.h>
 #include <fatal/type/list.h>
 #include <fatal/type/slice.h>
 #include <fatal/type/transform.h>
@@ -19,11 +20,11 @@ namespace fatal {
 template <typename... Pairs>
 using map = list<Pairs...>;
 
-template <typename T>
-using map_keys = transform<T, first>;
+template <typename T, template <typename...> class List = list>
+using map_keys = transform<list_apply<T, List>, first>;
 
-template <typename T>
-using map_values = transform<T, second>;
+template <typename T, template <typename...> class List = list>
+using map_values = transform<list_apply<T, List>, second>;
 
 } // namespace fatal {
 
