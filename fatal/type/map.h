@@ -18,7 +18,7 @@
 namespace fatal {
 
 template <typename... Pairs>
-using map = list<Pairs...>;
+struct map {};
 
 template <typename T, template <typename...> class List = list>
 using map_keys = transform<list_apply<T, List>, first>;
