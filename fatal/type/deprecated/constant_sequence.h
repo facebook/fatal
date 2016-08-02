@@ -746,7 +746,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  static constexpr type const *data() { return z_data<Suffix...>(); }
+  static type const *data() { return z_data<Suffix...>(); }
 
   /**
    * Gets a constexpr array with the values from this sequence,
@@ -789,7 +789,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  static constexpr type const *z_data() { return z_array<Suffix...>::data(); }
+  static type const *z_data() { return z_array<Suffix...>::data(); }
 
   /**
    * The `std::basic_string` type returned by the `string()` method.

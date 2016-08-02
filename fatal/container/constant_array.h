@@ -42,7 +42,7 @@ struct constant_array {
   static constexpr type get{{Values...}};
 
   // TODO: DOCUMENT
-  static constexpr value_type const *data() { return get.data(); }
+  static value_type const *data() { return get.data(); }
 };
 
 // TODO: DOCUMENT AND TEST
