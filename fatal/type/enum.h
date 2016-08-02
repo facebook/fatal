@@ -194,7 +194,7 @@ public:
   using str = typename traits::str;
 
   /**
-   * A `type_map` from name to value for each known enumeration field.
+   * A map from name to value for each known enumeration field.
    *
    * Field names are represented as `constant_sequence`, while field values are
    * represented as a `std::integral_constant` of the given enumeration.
@@ -213,7 +213,7 @@ public:
   using name_to_value = typename traits::name_to_value;
 
   /**
-   * A `type_map` from value to name for each known enumeration field.
+   * A map from value to name for each known enumeration field.
    *
    * Field names are represented as `constant_sequence`, while field values are
    * represented as a `std::integral_constant` of the given enumeration.
@@ -229,7 +229,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using value_to_name = typename name_to_value::template invert<>;
+  using value_to_name = transform<name_to_value, invert>;
 
   /**
    * A `type_list` of type strings for the names of each known
@@ -696,10 +696,10 @@ constexpr char const *enum_to_string(Enum e, char const *fallback = nullptr) {
  *      FATAL_STR(field2, "field2");
  *    };
  *
- *    using name_to_value = build_type_map<
- *      str::field0, std::integral_constant<type, type::field0>,
- *      str::field1, std::integral_constant<type, type::field1>,
- *      str::field2, std::integral_constant<type, type::field2>
+ *    using name_to_value = map<
+ *      pair<str::field0, std::integral_constant<type, type::field0>>,
+ *      pair<str::field1, std::integral_constant<type, type::field1>>,
+ *      pair<str::field2, std::integral_constant<type, type::field2>>
  *    >;
  *
  *    // this function is optional but its presence greatly
@@ -754,7 +754,10 @@ constexpr char const *enum_to_string(Enum e, char const *fallback = nullptr) {
 
 #define FATAL_IMPL_EXPORT_RICH_ENUM_STR_VALUE_LIST(Arg, IsFirst, Index, ...) \
   FATAL_CONDITIONAL(IsFirst)()(,) \
-  str::__VA_ARGS__, ::std::integral_constant<type, type::__VA_ARGS__>
+  fatal::pair< \
+    str::__VA_ARGS__, \
+    ::std::integral_constant<type, type::__VA_ARGS__> \
+  >
 
 #define FATAL_IMPL_EXPORT_RICH_ENUM_TO_STR(...) \
   case type::__VA_ARGS__: return FATAL_TO_STR(__VA_ARGS__);
@@ -771,7 +774,7 @@ constexpr char const *enum_to_string(Enum e, char const *fallback = nullptr) {
       FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR, __VA_ARGS__) \
     }; \
     \
-    using name_to_value = ::fatal::build_type_map< \
+    using name_to_value = ::fatal::map< \
       FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR_VALUE_LIST, ~, __VA_ARGS__) \
     >; \
     \
