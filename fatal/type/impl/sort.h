@@ -336,8 +336,8 @@ template <
 >
 struct qs<Sequence<T, Values...>, Less> {
   using type = as_sequence<
-    Sequence,
     typename qs<list<std::integral_constant<T, Values>...>, Less>::type,
+    Sequence,
     T
   >;
 };

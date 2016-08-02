@@ -14,6 +14,7 @@
 #include <fatal/type/list.h>
 #include <fatal/type/map.h>
 #include <fatal/type/pair.h>
+#include <fatal/type/sequence.h>
 
 #include <type_traits>
 
@@ -28,8 +29,8 @@ template <typename T>
 using value_type_of = typename impl_conv::vto<T>::type;
 
 template <
-  template <typename V, V...> class Sequence,
   typename From,
+  template <typename V, V...> class Sequence = sequence,
   typename... T
 >
 using as_sequence = typename impl_conv::seq<Sequence, From, T...>::type;
@@ -51,7 +52,7 @@ namespace bound {
 template <template <typename V, V...> class Sequence, typename... T>
 struct as_sequence {
   template <typename From>
-  using apply = fatal::as_sequence<Sequence, From, T...>;
+  using apply = fatal::as_sequence<From, Sequence, T...>;
 };
 
 template <template <typename...> class List>
