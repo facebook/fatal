@@ -10,8 +10,6 @@
 #ifndef FATAL_INCLUDE_fatal_type_pair_h
 #define FATAL_INCLUDE_fatal_type_pair_h
 
-#include <fatal/type/list.h>
-
 namespace fatal {
 
 template <typename, typename>
