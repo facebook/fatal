@@ -145,6 +145,26 @@ struct srt<T, Offset, 2> {
   }
 };
 
+template <typename...> struct fe;
+
+template <>
+struct fe<> {
+  template <typename Visitor, typename... VArgs>
+  static void foreach(Visitor &&, VArgs &&...) {}
+};
+
+template <typename T, typename... Args>
+struct fe<T, Args...> {
+  template <typename Visitor, typename... VArgs>
+  static void foreach(Visitor &&visitor, VArgs &&...args) {
+    visitor(args...);
+    fe<Args...>::foreach(
+      std::forward<Visitor>(visitor),
+      std::forward<VArgs>(args)...
+    );
+  }
+};
+
 } // namespace impl_srch {
 } // namespace fatal {
 

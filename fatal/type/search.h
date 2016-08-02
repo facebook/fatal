@@ -89,6 +89,15 @@ constexpr bool sorted_map_search(Args &&...args) {
   return sorted_search<T, first, Comparer>(std::forward<Args>(args)...);
 }
 
+// TODO: MOVE SOMEWHERE ELSE??
+template <typename T, typename Visitor, typename... Args>
+void foreach(Visitor &&visitor, Args &&...args) {
+  return list_apply<T, impl_srch::fe>::foreach(
+    std::forward<Visitor>(visitor),
+    std::forward<Args>(args)...
+  );
+}
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_search_h
