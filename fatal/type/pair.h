@@ -14,8 +14,8 @@
 
 namespace fatal {
 
-template <typename First, typename Second>
-using pair = list<First, Second>;
+template <typename, typename>
+struct pair {};
 
 } // namespace fatal {
 
