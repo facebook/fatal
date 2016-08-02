@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#ifndef FATAL_INCLUDE_fatal_type_operation_h
-#define FATAL_INCLUDE_fatal_type_operation_h
+#ifndef FATAL_INCLUDE_fatal_type_deprecated_flatten_h
+#define FATAL_INCLUDE_fatal_type_deprecated_flatten_h
 
 ////////////////////////////////////////
 // IMPLEMENTATION FORWARD DECLARATION //
@@ -160,4 +160,4 @@ struct flatten_sequence<> {
 } // namespace detail {
 } // namespace fatal {
 
-#endif // FATAL_INCLUDE_fatal_type_operation_h
+#endif // FATAL_INCLUDE_fatal_type_deprecated_flatten_h
