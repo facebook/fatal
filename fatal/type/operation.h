@@ -12,7 +12,6 @@
 
 #include <fatal/type/slice.h>
 #include <fatal/type/deprecated/flatten.h>
-#include <fatal/type/deprecated/flatten_sequence.h>
 #include <fatal/type/deprecated/transform.h>
 
 ////////////////////////////////////////
