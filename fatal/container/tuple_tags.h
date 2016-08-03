@@ -10,9 +10,11 @@
 #ifndef FATAL_INCLUDE_fatal_container_tuple_tags_h
 #define FATAL_INCLUDE_fatal_container_tuple_tags_h
 
-#include <fatal/type/deprecated/type_list.h>
-#include <fatal/type/deprecated/type_map.h>
+#include <fatal/type/find.h>
+#include <fatal/type/list.h>
+#include <fatal/type/map.h>
 #include <fatal/type/reflect_template.h>
+#include <fatal/type/search.h>
 
 #include <tuple>
 #include <utility>
@@ -23,12 +25,12 @@ namespace tuple_tags_impl {
 
 struct foreach_visitor {
   template <
-    typename TTag, std::size_t Index,
-    typename TTuple, typename V, typename... VArgs
+    typename Tag, std::size_t Index,
+    typename Tuple, typename V, typename... VArgs
   >
   void operator ()(
-    indexed_type_tag<TTag, Index> tag,
-    TTuple &&tuple, V &&visitor, VArgs &&...args
+    indexed<Tag, Index> tag,
+    Tuple &&tuple, V &&visitor, VArgs &&...args
   ) const {
     visitor(tag, std::get<Index>(tuple), args...);
   }
@@ -37,22 +39,22 @@ struct foreach_visitor {
 } // namespace tuple_tags_impl {
 } // namespace detail {
 
-template <typename... TTags>
+template <typename... Tags>
 struct tuple_tags {
   /**
-   * A `type_list` of tags.
+   * A `list` of tags.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using list = type_list<TTags...>;
+  using list = fatal::list<Tags...>;
 
   /**
    *  TODO: DOCUMENT AND TEST
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTag>
-  using supports = typename list::template contains<TTag>;
+  template <typename Tag>
+  using supports = contains<list, Tag>;
 
   /**
    * Gets the index associated with a given tag.
@@ -76,8 +78,8 @@ struct tuple_tags {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTag>
-  using index_of = typename list::template checked_index_of<TTag>;
+  template <typename Tag>
+  using index_of = index_of<list, Tag>;
 
   /**
    * Gets the type of the tuple's element associated with a given tag.
@@ -101,32 +103,32 @@ struct tuple_tags {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTag, typename TTuple>
+  template <typename Tag, typename Tuple>
   using type_of = typename std::tuple_element<
-    index_of<TTag>::value, TTuple
+    index_of<Tag>::value, Tuple
   >::type;
 
   /**
-   * A `type_map` of tags to the type of the tuple's element associated with it.
+   * A `map` of tags to the type of the tuple's element associated with it.
    *
    * Example:
    *
    *  typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
    *  typedef std::tuple<int, double, bool, long> tuple;
    *
-   *  // yields `type_map<
-   *  //    type_pair<Foo, int>,
-   *  //    type_pair<Bar, double>,
-   *  //    type_pair<Baz, bool>,
-   *  //    type_pair<Gaz, long>
+   *  // yields `map<
+   *  //    pair<Foo, int>,
+   *  //    pair<Bar, double>,
+   *  //    pair<Baz, bool>,
+   *  //    pair<Gaz, long>
    *  // >`
    *  typedef tags::map<tuple> result;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTuple>
-  using map = type_map<
-    type_pair<TTags, type_of<TTags, TTuple>>...
+  template <typename Tuple>
+  using map = fatal::map<
+    pair<Tags, type_of<Tags, Tuple>>...
   >;
 
   /**
@@ -151,76 +153,17 @@ struct tuple_tags {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTag, typename TTuple>
-  static auto get(TTuple &&tuple)
-    -> decltype(std::get<index_of<TTag>::value>(std::forward<TTuple>(tuple)))
+  template <typename Tag, typename Tuple>
+  static auto get(Tuple &&tuple)
+    -> decltype(std::get<index_of<Tag>::value>(std::forward<Tuple>(tuple)))
   {
-    return std::get<index_of<TTag>::value>(std::forward<TTuple>(tuple));
+    return std::get<index_of<Tag>::value>(std::forward<Tuple>(tuple));
   }
-
-  /**
-   * Calls the given visitor for each element in the tuple whose tag is
-   * accepted by the given predicate.
-   *
-   * The first parameter given to the visitor is `indexed_type_tag`
-   * with the tag and its index, followed by `args`.
-   *
-   * The predicate must accept a tag as its single template parameter
-   * and evaluate to a `std::integral_constant<bool>` like type with
-   * the result. A value of `true` means the element should be visited.
-   * A value of `false` means it should be ignored.
-   *
-   * This function returns the amount of elements visited (i.e.: the amount of
-   * calls to the visitor or the amount of tags accepted by the predicate).
-   *
-   * Note: this is a runtime facility.
-   *
-   * Example:
-   *
-   *  struct visitor {
-   *    template <typename TTag, std::size_t Index, typename T>
-   *    void operator ()(indexed_type_tag<TTag, Index>, T &&element) const {
-   *      std::cout << "visiting '" << element << '\'' << std::endl;
-   *    }
-   *  };
-   *
-   *  template <std::size_t Id>
-   *  using tag = std::integral_constant<std::size_t, Id>;
-   *
-   *  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
-   *
-   *  template <typename T>
-   *  using predicate = std::integral_constant<bool, T::value % 2 == 0>;
-   *
-   *  auto tuple = std::make_tuple("hello", "world", '!');
-   *
-   *  // yields `2` and prints `
-   *  //  visiting 'hello'
-   *  //  visiting '!'
-   *  // `
-   *  auto result = tags::foreach_if<predicate>(tuple, visitor());
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  template <
-    template <typename...> class TPredicate,
-    typename TTuple, typename V, typename... VArgs
-  >
-  static constexpr std::size_t foreach_if(
-    TTuple &&tuple, V &&visitor, VArgs &&...args
-  ) {
-    return list::template foreach_if<TPredicate>(
-      detail::tuple_tags_impl::foreach_visitor(),
-      std::forward<TTuple>(tuple),
-      std::forward<V>(visitor),
-      std::forward<VArgs>(args)...
-    );
-  };
 
   /**
    * Calls the given visitor for each element in the tuple.
    *
-   * The first parameter given to the visitor is `indexed_type_tag`
+   * The first parameter given to the visitor is `indexed`
    * with the tag and its index. The second parameter is the tuple
    * element, followed by `args`, if any.
    *
@@ -233,8 +176,8 @@ struct tuple_tags {
    * Example:
    *
    *  struct visitor {
-   *    template <typename TTag, std::size_t Index, typename T>
-   *    void operator ()(indexed_type_tag<TTag, Index>, T &&element) const {
+   *    template <typename Tag, std::size_t Index, typename T>
+   *    void operator ()(indexed<Tag, Index>, T &&element) const {
    *      std::cout << "visiting '" << element << '\'' << std::endl;
    *    }
    *  };
@@ -255,14 +198,14 @@ struct tuple_tags {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <typename TTuple, typename V, typename... VArgs>
-  static constexpr bool foreach(TTuple &&tuple, V &&visitor, VArgs &&...args) {
-    return list::foreach(
+  template <typename Tuple, typename V, typename... VArgs>
+  static constexpr bool foreach(Tuple &&tuple, V &&visitor, VArgs &&...args) {
+    return fatal::foreach<list>(
       detail::tuple_tags_impl::foreach_visitor(),
-      std::forward<TTuple>(tuple),
+      std::forward<Tuple>(tuple),
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
-    );
+    ), !empty<list>::value;
   };
 };
 
@@ -287,9 +230,9 @@ struct tuple_tags {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename T, template <typename> class TTagTransform = identity>
+template <typename T, template <typename> class TagTransform = identity>
 using tuple_tags_from = typename reflect_template<T>::types
-  ::template transform<TTagTransform>
+  ::template transform<TagTransform>
   ::template apply<tuple_tags>;
 
 } // namespace fatal {

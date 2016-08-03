@@ -21,12 +21,12 @@ struct Gaz {};
 template <typename> struct Tag {};
 
 template <std::size_t Id>
-using tag = std::integral_constant<std::size_t, Id>;
+using itag = std::integral_constant<std::size_t, Id>;
 
 FATAL_TEST(tuple_tags, tags) {
   typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
 
-  FATAL_EXPECT_SAME<type_list<Foo, Bar, Baz, Gaz>, tags::list>();
+  FATAL_EXPECT_SAME<list<Foo, Bar, Baz, Gaz>, tags::list>();
 }
 
 FATAL_TEST(tuple_tags, map) {
@@ -34,11 +34,11 @@ FATAL_TEST(tuple_tags, map) {
   typedef std::tuple<int, double, bool, long> tuple;
 
   FATAL_EXPECT_SAME<
-    type_map<
-      type_pair<Foo, int>,
-      type_pair<Bar, double>,
-      type_pair<Baz, bool>,
-      type_pair<Gaz, long>
+    map<
+      pair<Foo, int>,
+      pair<Bar, double>,
+      pair<Baz, bool>,
+      pair<Gaz, long>
     >,
     tags::map<tuple>
   >();
@@ -77,7 +77,7 @@ FATAL_TEST(tuple_tags, get) {
 struct foreach_visitor {
   template <typename TTag, std::size_t Index, typename T>
   void operator ()(
-    indexed_type_tag<TTag, Index>,
+    indexed<TTag, Index>,
     T &&element,
     std::vector<std::size_t> &indexes,
     std::vector<std::string> &elements
@@ -90,27 +90,8 @@ struct foreach_visitor {
 template <typename T>
 using is_even_predicate = std::integral_constant<bool, T::value % 2 == 0>;
 
-FATAL_TEST(tuple_tags, foreach_if) {
-  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
-
-  auto tuple = std::make_tuple("hello", "world", "!");
-
-  std::vector<std::size_t> indexes;
-  std::vector<std::string> elements;
-
-  FATAL_EXPECT_EQ(
-    2,
-    tags::foreach_if<is_even_predicate>(
-      tuple, foreach_visitor(), indexes, elements
-    )
-  );
-
-  FATAL_EXPECT_EQ((std::vector<std::size_t>{0, 2}), indexes);
-  FATAL_EXPECT_EQ((std::vector<std::string>{"hello", "!"}), elements);
-}
-
 FATAL_TEST(tuple_tags, foreach) {
-  using tags = tuple_tags<tag<0>, tag<1>, tag<2>>;
+  using tags = tuple_tags<itag<0>, itag<1>, itag<2>>;
 
   auto tuple = std::make_tuple("hello", "world", "!");
 

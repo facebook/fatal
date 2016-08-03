@@ -11,9 +11,11 @@
 #define FATAL_INCLUDE_fatal_container_tuple_h
 
 #include <fatal/container/tuple_tags.h>
-#include <fatal/type/deprecated/type_list.h>
-#include <fatal/type/deprecated/type_pair.h>
-#include <fatal/type/deprecated/type_tag.h>
+#include <fatal/type/list.h>
+#include <fatal/type/pair.h>
+#include <fatal/type/push.h>
+#include <fatal/type/slice.h>
+#include <fatal/type/tag.h>
 #include <fatal/type/traits.h>
 
 #include <tuple>
@@ -44,9 +46,9 @@ namespace fatal {
  *  // - element `1` is of type `double` and can be indexed with `tag_b`
  *  // - element `2` is of type `std::string` and can be indexed with `tag_c`
  *  using type = tuple<
- *    type_pair<tag_a, int>,
- *    type_pair<tag_b, double>,
- *    type_pair<tag_c, std::string>
+ *    pair<tag_a, int>,
+ *    pair<tag_b, double>,
+ *    pair<tag_c, std::string>
  *  >;
  *
  *  // instantiates the tuple above with given values for its fields
@@ -70,28 +72,28 @@ struct tuple {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using map = type_map<Args...>;
+  using map = fatal::map<Args...>;
 
   /**
    * The `tuple_tags` type associated with this tuple.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using tags = tuple_tags<type_get_first<Args>...>;
+  using tags = tuple_tags<first<Args>...>;
 
   /**
    * A type list of the element types.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using values = type_list<type_get_second<Args>...>;
+  using values = list<second<Args>...>;
 
   /**
    * The non-tagged `std::tuple` wrapped by this tagged tuple.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using type = typename values::template apply<std::tuple>;
+  using type = list_apply<values, std::tuple>;
 
   /**
    * Gets the type of the element associated with the given tag.
@@ -125,9 +127,9 @@ struct tuple {
    *  struct tag_c {};
    *
    *  using type = tuple<
-   *    type_pair<tag_a, int>,
-   *    type_pair<tag_b, double>,
-   *    type_pair<tag_c, std::string>
+   *    pair<tag_a, int>,
+   *    pair<tag_b, double>,
+   *    pair<tag_c, std::string>
    *  >;
    *
    *  // default constructs the elements of the tuple
@@ -281,27 +283,11 @@ struct tuple {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <
-    template <typename...> class TypeTransform = identity,
-    template <typename...> class TagTransform = identity
-  >
-  using transform = typename map::template transform<
-    TypeTransform, TagTransform
-  >::contents::template apply<fatal::tuple>;
-
-  /**
-   * TODO: DOCUMENT AND TEST
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  template <
-    typename Tag,
-    template <typename...> class TypeTransform = identity,
-    template <typename...> class TagTransform = identity
-  >
-  using transform_at = typename map::template transform_at<
-    Tag, TypeTransform, TagTransform
-  >::template apply<fatal::tuple>;
+  template <typename... TPairs>
+  using push_front = list_apply<
+    push_front<typename tags::list, TPairs...>,
+    fatal::tuple
+  >;
 
   /**
    * TODO: DOCUMENT AND TEST
@@ -309,17 +295,10 @@ struct tuple {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... TPairs>
-  using push_front = typename tags::list::template push_front<TPairs...>
-    ::template apply<fatal::tuple>;
-
-  /**
-   * TODO: DOCUMENT AND TEST
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  template <typename... TPairs>
-  using push_back = typename tags::list::template push_back<TPairs...>
-    ::template apply<fatal::tuple>;
+  using push_back = list_apply<
+    push_back<typename tags::list, TPairs...>,
+    fatal::tuple
+  >;
 
   /**
    * TODO: DOCUMENT
@@ -417,9 +396,15 @@ class tuple_from {
   >
   class impl {
     template <typename T>
-    using pair = type_pair<
+    using pair = fatal::pair<
       fatal::apply<TagTransform, T>,
       fatal::apply<TypeTransform, T>
+    >;
+
+    template <typename T>
+    using map_entry_transform = fatal::pair<
+      TagTransform<first<T>>,
+      TypeTransform<second<T>>
     >;
 
   public:
@@ -427,12 +412,10 @@ class tuple_from {
     using args = tuple<pair<UArgs>...>;
 
     template <typename List>
-    using list = typename List::template transform<pair>::template apply<tuple>;
+    using list = list_apply<transform<List, pair>, tuple>;
 
     template <typename Map>
-    using map = typename Map::template apply<
-      tuple, TypeTransform, TagTransform
-    >;
+    using map = list_apply<transform<Map, map_entry_transform>, tuple>;
   };
 
 public:
@@ -449,9 +432,9 @@ public:
    *  };
    *
    *  // yields `tuple<
-   *  //   type_pair<int, double>,
-   *  //   type_pair<float, bool>,
-   *  //   type_pair<short, long>
+   *  //   pair<int, double>,
+   *  //   pair<float, bool>,
+   *  //   pair<short, long>
    *  // >`
    *  using result = tuple_from<
    *    my_metadata<int, double>,
@@ -483,16 +466,16 @@ public:
    *    using type = Type;
    *  };
    *
-   *  using my_list = type_list<
+   *  using my_list = list<
    *    my_metadata<int, double>,
    *    my_metadata<float, bool>,
    *    my_metadata<short, long>
    *  >;
    *
    *  // yields `tuple<
-   *  //   type_pair<int, double>,
-   *  //   type_pair<float, bool>,
-   *  //   type_pair<short, long>
+   *  //   pair<int, double>,
+   *  //   pair<float, bool>,
+   *  //   pair<short, long>
    *  // >`
    *  using result = tuple_from<my_list>::list<
    *    fatal::get_member_type::tag,
@@ -527,16 +510,16 @@ public:
    *  >;
    *
    *  // yields `tuple<
-   *  //   type_pair<int, double>,
-   *  //   type_pair<float, bool>,
-   *  //   type_pair<short, long>
+   *  //   pair<int, double>,
+   *  //   pair<float, bool>,
+   *  //   pair<short, long>
    *  // >`
    *  using result1 = tuple_from<my_map>::map<>;
    *
    *  // yields `tuple<
-   *  //   type_pair<my_tag<int>, my_value<double>>,
-   *  //   type_pair<my_tag<float>, my_value<bool>>,
-   *  //   type_pair<my_tag<short>, my_value<long>>
+   *  //   pair<my_tag<int>, my_value<double>>,
+   *  //   pair<my_tag<float>, my_value<bool>>,
+   *  //   pair<my_tag<short>, my_value<long>>
    *  // >`
    *  using result2 = tuple_from<my_map>::map<my_value, my_tag>;
    *
@@ -617,9 +600,9 @@ using build_tuple = typename detail::tuple_impl::builder<
  */
 template <typename... Tags, typename... Args>
 constexpr auto make_tuple(Args &&...args)
-  -> tuple<type_pair<Tags, typename std::decay<Args>::type>...>
+  -> tuple<pair<Tags, typename std::decay<Args>::type>...>
 {
-  return tuple<type_pair<Tags, typename std::decay<Args>::type>...>(
+  return tuple<pair<Tags, typename std::decay<Args>::type>...>(
     std::forward<Args>(args)...
   );
 }
@@ -653,16 +636,16 @@ constexpr auto make_tuple(Args &&...args)
  */
 template <typename... Tags, typename... Args>
 constexpr auto make_tuple(std::tuple<Args...> &&tuple)
-  -> fatal::tuple<type_pair<Tags, Args>...>
+  -> fatal::tuple<pair<Tags, Args>...>
 {
-  return fatal::tuple<type_pair<Tags, Args>...>(std::move(tuple));
+  return fatal::tuple<pair<Tags, Args>...>(std::move(tuple));
 }
 
 template <typename... Tags, typename... Args>
 constexpr auto make_tuple(std::tuple<Args...> const &tuple)
-  -> fatal::tuple<type_pair<Tags, Args>...>
+  -> fatal::tuple<pair<Tags, Args>...>
 {
-  return fatal::tuple<type_pair<Tags, Args>...>(tuple);
+  return fatal::tuple<pair<Tags, Args>...>(tuple);
 }
 
 ////////////////////////////
@@ -679,10 +662,13 @@ class builder {
   using tags = typename args::template unzip<2, 0>;
   using types = typename args::template unzip<2, 1>;
 
-  static_assert(tags::size == types::size, "not all tags map to a type");
+  static_assert(
+    size<tags>::value == size<types>::value,
+    "not all tags map to a type"
+  );
 
 public:
-  using type = typename tags::template combine<type_pair>::template list<types>
+  using type = typename tags::template combine<pair>::template list<types>
     ::template apply<tuple>;
 };
 
