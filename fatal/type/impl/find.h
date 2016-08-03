@@ -17,6 +17,8 @@
 namespace fatal {
 namespace impl_fnd {
 
+struct nf {};
+
 template <typename Default, typename Key, typename Value>
 static Value sfinae(pair<Key, Value>);
 
