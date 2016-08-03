@@ -23,10 +23,10 @@ static Value sfinae(pair<Key, Value>);
 template <typename Default, typename...>
 static Default sfinae(...);
 
-template <typename> struct find;
+template <typename> struct fnd;
 
 template <template <typename...> class List, typename... Args>
-struct find<List<Args...>> {
+struct fnd<List<Args...>> {
   template <typename Key, template <typename> class KeyFilter, typename Default>
   using type = decltype(
     sfinae<Default, Key>(
@@ -35,10 +35,10 @@ struct find<List<Args...>> {
   );
 };
 
-template <typename> struct map_find;
+template <typename> struct mfnd;
 
 template <template <typename...> class List, typename... Args>
-struct map_find<List<Args...>> {
+struct mfnd<List<Args...>> {
   template <
     typename Key,
     template <typename> class KeyFilter,
