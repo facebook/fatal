@@ -145,11 +145,9 @@ struct srt<T, Offset, 2> {
   }
 };
 
-template <typename...> struct fe;
-
-template <>
-struct fe<> {
-  template <std::size_t, typename... Args>
+template <typename...>
+struct fe {
+  template <std::size_t = 0, typename... Args>
   static void foreach(Args &&...) {}
 };
 

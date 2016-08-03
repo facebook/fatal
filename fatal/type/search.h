@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_search_h
 
 #include <fatal/functional/no_op.h>
+#include <fatal/type/apply.h>
 #include <fatal/type/identity.h>
 #include <fatal/type/slice.h>
 
@@ -92,7 +93,7 @@ constexpr bool sorted_map_search(Args &&...args) {
 // TODO: MOVE SOMEWHERE ELSE??
 template <typename T, typename Visitor, typename... Args>
 void foreach(Visitor &&visitor, Args &&...args) {
-  return list_apply<T, impl_srch::fe>::foreach(
+  list_apply<T, impl_srch::fe>::foreach(
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...
   );
