@@ -22,11 +22,11 @@ template <
   template <typename> class KeyFilter = first,
   typename Default = not_found
 >
-using find = typename impl_find::find<T>
+using find = typename impl_fnd::fnd<T>
   ::template type<Key, KeyFilter, Default>;
 
 template <typename T, typename Key, typename Default = not_found>
-using map_find = typename impl_find::map_find<T>
+using map_find = typename impl_fnd::mfnd<T>
   ::template type<Key, first, second, Default>;
 
 } // namespace fatal {

@@ -15,7 +15,7 @@
 #include <fatal/type/tag.h>
 
 namespace fatal {
-namespace impl_find {
+namespace impl_fnd {
 
 template <typename Default, typename Key, typename Value>
 static Value sfinae(pair<Key, Value>);
@@ -52,7 +52,7 @@ struct mfnd<List<Args...>> {
   );
 };
 
-} // namespace impl_find {
+} // namespace impl_fnd {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_find_h
