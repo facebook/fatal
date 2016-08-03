@@ -14,8 +14,10 @@
 #include <fatal/preprocessor.h>
 #include <fatal/type/apply.h>
 #include <fatal/type/call_traits.h>
+#include <fatal/type/list.h>
 #include <fatal/type/map.h>
 #include <fatal/type/prefix_tree.h>
+#include <fatal/type/push.h>
 #include <fatal/type/registry.h>
 #include <fatal/type/search.h>
 #include <fatal/type/sequence.h>
@@ -232,14 +234,14 @@ public:
   using value_to_name = transform<name_to_value, invert>;
 
   /**
-   * A `type_list` of type strings for the names of each known
+   * A type list of type strings for the names of each known
    * enumeration fields.
    *
    * Example:
    *
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
    *
-   *  // yields `type_list<
+   *  // yields `list<
    *  //   enum_traits<my_enum>::str::field0,
    *  //   enum_traits<my_enum>::str::field1,
    *  //   enum_traits<my_enum>::str::field2
@@ -251,14 +253,14 @@ public:
   using names = map_keys<name_to_value>;
 
   /**
-   * A `type_list` of `std::integral_constant` for each of the
+   * A type list of `std::integral_constant` for each of the
    * known enumeration values.
    *
    * Example:
    *
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
    *
-   *  // yields `type_list<
+   *  // yields `list<
    *  //   std::integral_constant<my_enum, my_enum::field0>,
    *  //   std::integral_constant<my_enum, my_enum::field1>,
    *  //   std::integral_constant<my_enum, my_enum::field2>
@@ -726,7 +728,7 @@ constexpr char const *enum_to_string(Enum e, char const *fallback = nullptr) {
   FATAL_REGISTER_TYPE( \
     ::fatal::detail::enum_impl::metadata_tag, \
     Traits::type, \
-    ::fatal::type_list<Traits>::push_back<__VA_ARGS__> \
+    ::fatal::push<::fatal::list<Traits>>::back<__VA_ARGS__> \
   )
 
 ////////////////////////////
