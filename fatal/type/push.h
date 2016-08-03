@@ -17,6 +17,14 @@ namespace fatal {
 template <typename T>
 using push = typename impl_push::to<T>;
 
+// TODO: REDUCE TEMPLATE INSTANTIATIONS
+template <typename T, typename... Args>
+using push_back = typename push<T>::template back<Args...>;
+
+// TODO: REDUCE TEMPLATE INSTANTIATIONS
+template <typename T, typename... Args>
+using push_front = typename push<T>::template front<Args...>;
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_push_h
