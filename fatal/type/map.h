@@ -15,6 +15,8 @@
 #include <fatal/type/slice.h>
 #include <fatal/type/transform.h>
 
+#include <fatal/type/impl/map.h>
+
 namespace fatal {
 
 template <typename... Pairs>
@@ -25,6 +27,9 @@ using map_keys = transform<list_apply<T, List>, first>;
 
 template <typename T, template <typename...> class List = list>
 using map_values = transform<list_apply<T, List>, second>;
+
+template <typename... Args>
+using make_map = typename impl_mp::mk<map<>, Args...>::type;
 
 } // namespace fatal {
 
