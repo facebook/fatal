@@ -109,8 +109,8 @@ template <
   typename... Args,
   template <typename...> class Map,
   template <typename...> class Pair,
-  template <typename> class Key,
-  template <typename> class Value
+  template <typename...> class Key,
+  template <typename...> class Value
 >
 struct mp<Variadics<Args...>, Map, Pair, Key, Value> {
   using type = Map<Pair<Key<Args>, Value<Args>>...>;

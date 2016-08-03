@@ -40,8 +40,8 @@ using as_list = typename impl_conv::lst<List, T>::type;
 
 template <
   typename T,
-  template <typename> class Key,
-  template <typename> class Value = identity,
+  template <typename...> class Key,
+  template <typename...> class Value = identity,
   template <typename...> class Map = map,
   template <typename...> class Pair = pair
 >
