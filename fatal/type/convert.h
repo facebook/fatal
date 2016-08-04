@@ -17,6 +17,7 @@
 #include <fatal/type/sequence.h>
 
 #include <type_traits>
+#include <utility>
 
 #include <fatal/type/impl/convert.h>
 
@@ -46,6 +47,11 @@ template <
   template <typename...> class Pair = pair
 >
 using as_map = typename impl_conv::mp<T, Map, Pair, Key, Value>::type;
+
+template <typename To, typename T, typename... Args>
+constexpr To to_instance(Args &&...args) {
+  return impl_conv::toi<To, T>::to(std::forward<Args>(args)...);
+}
 
 namespace bound {
 

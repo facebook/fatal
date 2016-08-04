@@ -116,6 +116,29 @@ struct mp<Variadics<Args...>, Map, Pair, Key, Value> {
   using type = Map<Pair<Key<Args>, Value<Args>>...>;
 };
 
+template <typename...> struct toi;
+
+template <typename To, template <typename...> class Variadics, typename... T>
+struct toi<To, Variadics<T...>> {
+  template <typename... Args>
+  static constexpr To to(Args &&...args) {
+    return To{T::value..., std::forward<Args>(args)...};
+  }
+};
+
+template <
+  typename To,
+  template <typename V, V...> class Variadics,
+  typename T,
+  T... Values
+>
+struct toi<To, Variadics<T, Values...>> {
+  template <typename... Args>
+  static constexpr To to(Args &&...args) {
+    return To{Values..., std::forward<Args>(args)...};
+  }
+};
+
 } // namespace impl_conv {
 } // namespace fatal {
 
