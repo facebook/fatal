@@ -21,12 +21,6 @@
 
 namespace fatal {
 
-template <typename T, typename Key, template <typename> class KeyFilter = first>
-using get = typename impl_srch::get<T, KeyFilter>::template type<Key>;
-
-template <typename T, typename Key>
-using map_get = second<get<T, Key>>;
-
 // TODO: MOVE IT SOMEWHERE ELSE
 template <typename LHS>
 struct value_comparer {

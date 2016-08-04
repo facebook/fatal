@@ -70,8 +70,8 @@ struct at<2, List<First, Second, Third, Args...>> {
 };
 
 template <
+  template <typename V, V...> class Sequence,
   typename T,
-  template <typename, T...> class Sequence,
   T Value,
   T... Values
 >
@@ -80,8 +80,8 @@ struct at<0, Sequence<T, Value, Values...>> {
 };
 
 template <
+  template <typename V, V...> class Sequence,
   typename T,
-  template <typename, T...> class Sequence,
   T First,
   T Second,
   T... Values
@@ -91,8 +91,8 @@ struct at<1, Sequence<T, First, Second, Values...>> {
 };
 
 template <
+  template <typename V, V...> class Sequence,
   typename T,
-  template <typename, T...> class Sequence,
   T First,
   T Second,
   T Third,
@@ -146,8 +146,8 @@ struct at<Index, List<Args...>> {
 
 template <
   std::size_t Index,
+  template <typename V, V...> class Sequence,
   typename T,
-  template <typename, T...> class Sequence,
   T... Values
 >
 struct at<Index, Sequence<T, Values...>> {
@@ -228,8 +228,8 @@ struct at<Index, List<Args...>> {
 
 template <
   std::size_t Index,
+  template <typename V, V...> class Sequence,
   typename T,
-  template <typename, T...> class Sequence,
   T... Values
 >
 struct at<Index, Sequence<T, Values...>> {
