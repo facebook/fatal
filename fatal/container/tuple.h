@@ -93,7 +93,7 @@ struct tuple {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using type = list_apply<values, std::tuple>;
+  using type = apply_to<values, std::tuple>;
 
   /**
    * Gets the type of the element associated with the given tag.
@@ -284,7 +284,7 @@ struct tuple {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... TPairs>
-  using push_front = list_apply<
+  using push_front = apply_to<
     push_front<typename tags::list, TPairs...>,
     fatal::tuple
   >;
@@ -295,7 +295,7 @@ struct tuple {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... TPairs>
-  using push_back = list_apply<
+  using push_back = apply_to<
     push_back<typename tags::list, TPairs...>,
     fatal::tuple
   >;
@@ -412,10 +412,10 @@ class tuple_from {
     using args = tuple<pair<UArgs>...>;
 
     template <typename List>
-    using list = list_apply<transform<List, pair>, tuple>;
+    using list = apply_to<transform<List, pair>, tuple>;
 
     template <typename Map>
-    using map = list_apply<transform<Map, map_entry_transform>, tuple>;
+    using map = apply_to<transform<Map, map_entry_transform>, tuple>;
   };
 
 public:

@@ -15,10 +15,10 @@
 namespace fatal {
 
 template <typename T, template <typename...> class To, typename... Suffix>
-using list_apply = typename impl_apply::ls<To, T, Suffix...>::type;
+using apply_to = typename impl_apply::ls<To, T, Suffix...>::type;
 
 template <typename T, template <typename...> class To, typename... Prefix>
-using list_apply_front = typename impl_apply::lsf<To, T, Prefix...>::type;
+using apply_to_front = typename impl_apply::lsf<To, T, Prefix...>::type;
 
 template <typename T>
 using sequence_apply = impl_apply::sq<T>;

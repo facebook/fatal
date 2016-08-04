@@ -133,7 +133,7 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using ids = list_apply<
+    using ids = apply_to<
       typename by_id::tags,
       static_array<id>::template value
     >;

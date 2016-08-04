@@ -93,7 +93,7 @@ constexpr bool sorted_map_search(Args &&...args) {
 // TODO: MOVE SOMEWHERE ELSE??
 template <typename T, typename Visitor, typename... Args>
 void foreach(Visitor &&visitor, Args &&...args) {
-  list_apply<T, impl_srch::fe>::foreach(
+  apply_to<T, impl_srch::fe>::foreach(
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...
   );

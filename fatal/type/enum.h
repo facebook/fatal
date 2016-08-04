@@ -291,7 +291,7 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using names = list_apply<
+    using names = apply_to<
       enum_traits::names,
       static_array<char const *>::template z_data
     >;
@@ -316,7 +316,7 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using values = list_apply<
+    using values = apply_to<
       enum_traits::values,
       static_array<type>::template value
     >;
@@ -341,7 +341,7 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using sorted_values = list_apply<
+    using sorted_values = apply_to<
       sort<enum_traits::values>,
       static_array<type>::template value
     >;

@@ -23,10 +23,10 @@ template <typename... Pairs>
 struct map {};
 
 template <typename T, template <typename...> class List = list>
-using map_keys = transform<list_apply<T, List>, first>;
+using map_keys = transform<apply_to<T, List>, first>;
 
 template <typename T, template <typename...> class List = list>
-using map_values = transform<list_apply<T, List>, second>;
+using map_values = transform<apply_to<T, List>, second>;
 
 template <typename... Args>
 using make_map = typename impl_mp::mk<map<>, Args...>::type;
