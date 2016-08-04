@@ -81,7 +81,7 @@ FATAL_TEST(operation, cartesian_product) {
 # define TEST_IMPL(List, Pair, LHS, RHS, ...) \
   FATAL_EXPECT_SAME< \
     List<__VA_ARGS__>, \
-    fatal::cartesian_product<List, Pair>::apply< \
+    fatal::bound::cartesian_product<List, Pair>::apply< \
       FATAL_UNPARENTHESIZE(LHS), \
       FATAL_UNPARENTHESIZE(RHS) \
     > \

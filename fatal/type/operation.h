@@ -10,9 +10,11 @@
 #ifndef FATAL_INCLUDE_fatal_type_operation_h
 #define FATAL_INCLUDE_fatal_type_operation_h
 
-#include <fatal/type/slice.h>
+#include <fatal/type/cartesian_product.h>
 #include <fatal/type/deprecated/flatten.h>
 #include <fatal/type/deprecated/transform.h>
+#include <fatal/type/size.h>
+#include <fatal/type/slice.h>
 
 ////////////////////////////////////////
 // IMPLEMENTATION FORWARD DECLARATION //
@@ -23,8 +25,6 @@ namespace detail {
 namespace operation_impl {
 
 template <typename...> struct list;
-template <template <typename...> class, typename, typename>
-struct cartesian_product;
 namespace expand_recursive_map {
 template <typename, typename...> struct breadth;
 template <template <typename...> class, typename...> struct depth;
@@ -60,41 +60,6 @@ struct expand<T, U<Args...>> {
   using back = fatal::apply<T, UArgs..., Args...>;
 };
 
-///////////////////////
-// cartesian_product //
-///////////////////////
-
-/**
- * Computes the cartesian product between two lists.
- *
- * Parameters:
- *
- * Example:
- *
- *  template <typename, typename> struct pair {};
- *  template <typename...> struct list {};
- *
- *  // yields `list<
- *  //   pair<int, double>,
- *  //   pair<int, bool>,
- *  //   pair<void, double>,
- *  //   pair<void, bool>
- *  // >
- *  using result = cartesian_product<list, pair>::apply<
- *    list<int, void>,
- *    list<double, bool>,
- *  >;
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <template <typename...> class List, template <typename...> class Pair >
-struct cartesian_product {
-  template <typename TLHS, typename TRHS>
-  using apply = typename detail::operation_impl::cartesian_product<
-    Pair, TLHS, TRHS
-  >::template apply<List>;
-};
-
 //////////////////////////
 // expand_recursive_map //
 //////////////////////////
@@ -126,26 +91,6 @@ struct list {
 
   template <typename... Suffix>
   using push_back = list<Args..., Suffix...>;
-};
-
-///////////////////////
-// cartesian_product //
-///////////////////////
-
-template <
-  template <typename...> class Pair,
-  template <typename...> class T,
-  typename... TArgs,
-  template <typename...> class U,
-  typename... UArgs
->
-struct cartesian_product<Pair, T<TArgs...>, U<UArgs...>> {
-template <typename V>
-  using impl = list<Pair<V, UArgs>...>;
-
-  template <template <typename...> class List>
-  using apply = typename fatal::flatten<List, list>
-    ::template apply<impl<TArgs>...>;
 };
 
 //////////////////////////
