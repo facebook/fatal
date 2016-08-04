@@ -17,6 +17,7 @@
 #include <fatal/type/slice.h>
 #include <fatal/type/tag.h>
 #include <fatal/type/traits.h>
+#include <fatal/type/zip.h>
 
 #include <tuple>
 #include <type_traits>
@@ -541,7 +542,7 @@ public:
 
 namespace detail {
 namespace tuple_impl {
-template <typename...> class builder;
+template <typename...> struct builder;
 } // namespace tuple_impl {
 } // namespace detail {
 
@@ -568,6 +569,7 @@ template <typename...> class builder;
  */
 template <typename... Args>
 using build_tuple = typename detail::tuple_impl::builder<
+  tuple<>,
   Args...
 >::type;
 
@@ -655,21 +657,16 @@ constexpr auto make_tuple(std::tuple<Args...> const &tuple)
 namespace detail {
 namespace tuple_impl {
 
-template <typename... Args>
-class builder {
-  using args = type_list<Args...>;
+template <typename T>
+struct builder<T> {
+  using type = T;
+};
 
-  using tags = typename args::template unzip<2, 0>;
-  using types = typename args::template unzip<2, 1>;
-
-  static_assert(
-    size<tags>::value == size<types>::value,
-    "not all tags map to a type"
-  );
-
-public:
-  using type = typename tags::template combine<pair>::template list<types>
-    ::template apply<tuple>;
+template <typename... T, typename Tag, typename Type, typename... Args>
+struct builder<tuple<T...>, Tag, Type, Args...>:
+  builder<tuple<T..., pair<Tag, Type>>, Args...>
+{
+  static_assert(sizeof...(Args) % 2 == 0, "not all tags map to a type");
 };
 
 } // namespace tuple_impl {
