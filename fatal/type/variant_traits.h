@@ -15,6 +15,7 @@
 #include <fatal/type/deprecated/transform.h>
 #include <fatal/type/deprecated/type_map.h>
 #include <fatal/type/fast_pass.h>
+#include <fatal/type/get.h>
 #include <fatal/type/map.h>
 #include <fatal/type/registry.h>
 #include <fatal/type/search.h>

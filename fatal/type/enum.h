@@ -14,6 +14,7 @@
 #include <fatal/preprocessor.h>
 #include <fatal/type/apply.h>
 #include <fatal/type/call_traits.h>
+#include <fatal/type/get.h>
 #include <fatal/type/list.h>
 #include <fatal/type/map.h>
 #include <fatal/type/prefix_tree.h>
