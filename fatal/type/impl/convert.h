@@ -11,32 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_impl_convert_h
 
 namespace fatal {
-namespace impl_conv {
-
-template <typename T>
-struct to {
-  using type = typename T::type;
-};
-
-template <typename T, T Value>
-struct to<std::integral_constant<T, Value>> {
-  using type = typename std::integral_constant<T, Value>::type;
-};
-
-template <template <typename V, V...> class Variadics, typename T, T... Values>
-struct to<Variadics<T, Values...>> {
-  using type = T;
-};
-
-template <typename T>
-struct vto {
-  using type = typename T::value_type;
-};
-
-template <template <typename V, V...> class Variadics, typename T, T... Values>
-struct vto<Variadics<T, Values...>> {
-  using type = T;
-};
+namespace impl_cv {
 
 template <template <typename V, V...> class, typename...> struct seq;
 
@@ -139,7 +114,7 @@ struct toi<To, Variadics<T, Values...>> {
   }
 };
 
-} // namespace impl_conv {
+} // namespace impl_cv {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_convert_h

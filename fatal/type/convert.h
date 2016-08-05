@@ -23,21 +23,15 @@
 
 namespace fatal {
 
-template <typename T>
-using type_of = typename impl_conv::to<T>::type;
-
-template <typename T>
-using value_type_of = typename impl_conv::vto<T>::type;
-
 template <
   typename From,
   template <typename V, V...> class Sequence = sequence,
   typename... T
 >
-using as_sequence = typename impl_conv::seq<Sequence, From, T...>::type;
+using as_sequence = typename impl_cv::seq<Sequence, From, T...>::type;
 
 template <typename T, template <typename...> class List = list>
-using as_list = typename impl_conv::lst<List, T>::type;
+using as_list = typename impl_cv::lst<List, T>::type;
 
 template <
   typename T,
@@ -46,11 +40,11 @@ template <
   template <typename...> class Map = map,
   template <typename...> class Pair = pair
 >
-using as_map = typename impl_conv::mp<T, Map, Pair, Key, Value>::type;
+using as_map = typename impl_cv::mp<T, Map, Pair, Key, Value>::type;
 
 template <typename To, typename T, typename... Args>
 constexpr To to_instance(Args &&...args) {
-  return impl_conv::toi<To, T>::to(std::forward<Args>(args)...);
+  return impl_cv::toi<To, T>::to(std::forward<Args>(args)...);
 }
 
 namespace bound {
