@@ -20,7 +20,7 @@ int main() {
     prevent_optimization(type_list<__VA_ARGS__>::sort<>()); \
   } while (false)
 
-  FATAL_BENCHMARK_CASES_CSV_OUTER_0_100_SHUFFLED(OUTER, WRAP);
+  FATAL_BENCHMARK_CASES_CSV_OUTER_0_50_SHUFFLED(OUTER, WRAP);
 
   return 0;
 }

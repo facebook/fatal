@@ -24,10 +24,10 @@ int main() {
 # define OUTER(...) \
   do { \
     using lst = list<__VA_ARGS__>; \
-    FATAL_BENCHMARK_CASES_MONOTONIC_INNER_0_255(INNER); \
+    FATAL_BENCHMARK_CASES_MONOTONIC_INNER_0_100(INNER); \
   } while (false)
 
-  FATAL_BENCHMARK_CASES_CSV_OUTER_0_255(OUTER, WRAP);
+  FATAL_BENCHMARK_CASES_CSV_OUTER_0_100(OUTER, WRAP);
 
   return 0;
 }
