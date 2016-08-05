@@ -7,43 +7,36 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/container/constant_array.h>
+#include <fatal/type/array.h>
+#include <fatal/type/list.h>
+#include <fatal/type/sequence.h>
+#include <fatal/type/size.h>
 
 #include <fatal/test/driver.h>
 
-#include <fatal/type/deprecated/type_list.h>
-#include <fatal/type/sequence.h>
-
+#include <array>
 #include <type_traits>
 
 namespace fatal {
 
 template <typename T>
-struct seq {
+struct input {
   template <T... Values>
-  using array = constant_array<T, Values...>;
+  using sq = sequence<T, Values...>;
 
   template <T... Values>
-  using list = type_list<std::integral_constant<T, Values>...>;
+  using ls = value_list<T, Values...>;
 };
 
-#define CHECK_CONSTANT_ARRAY(Type, ...) \
+#define CHECK_ARRAY(Type, ...) \
   do { \
     using type = Type; \
-    using values = seq<type>::list<__VA_ARGS__>; \
-    \
-    FATAL_EXPECT_SAME<type, typename actual::value_type>(); \
-    FATAL_EXPECT_EQ(values::size, actual::size); \
-    FATAL_EXPECT_EQ(values::size == 0, actual::empty); \
-    \
-    using array = std::array<type, values::size>; \
-    \
-    FATAL_EXPECT_SAME<array, typename actual::type>(); \
+    using values = input<type>::ls<__VA_ARGS__>; \
+    using array = std::array<type, size<values>::value>; \
     \
     array const expected{{__VA_ARGS__}}; \
     \
     FATAL_EXPECT_EQ(expected, actual::get); \
-    FATAL_EXPECT_EQ(actual::get.data(), actual::data()); \
   } while (false)
 
 #define TEST_CASES(Fn) \
@@ -59,11 +52,12 @@ struct seq {
     Fn(char, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'); \
   } while (false)
 
-FATAL_TEST(constant_array, constant_array) {
+FATAL_TEST(as_array, list) {
 # define TEST_IMPL(Type, ...) \
   do { \
-    using actual = seq<Type>::array<__VA_ARGS__>; \
-    CHECK_CONSTANT_ARRAY(Type, __VA_ARGS__); \
+    using list = input<Type>::ls<__VA_ARGS__>; \
+    using actual = as_array<list, Type>; \
+    CHECK_ARRAY(Type, __VA_ARGS__); \
   } while (false)
 
   TEST_CASES(TEST_IMPL);
@@ -71,40 +65,12 @@ FATAL_TEST(constant_array, constant_array) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(constant_array_from, args) {
+FATAL_TEST(as_array, sequence) {
 # define TEST_IMPL(Type, ...) \
   do { \
-    using list = seq<Type>::list<__VA_ARGS__>; \
-    using actual = list::apply<constant_array_from<Type>::args>; \
-    CHECK_CONSTANT_ARRAY(Type, __VA_ARGS__); \
-  } while (false)
-
-  TEST_CASES(TEST_IMPL);
-
-# undef TEST_IMPL
-}
-
-FATAL_TEST(constant_array_from, list) {
-# define TEST_IMPL(Type, ...) \
-  do { \
-    using list = seq<Type>::list<__VA_ARGS__>; \
-    using actual = constant_array_from<Type>::list<list>; \
-    CHECK_CONSTANT_ARRAY(Type, __VA_ARGS__); \
-  } while (false)
-
-  TEST_CASES(TEST_IMPL);
-
-# undef TEST_IMPL
-}
-
-FATAL_TEST(constant_array_from, sequence) {
-# define TEST_IMPL(Type, ...) \
-  do { \
-    using list = seq<Type>::list<__VA_ARGS__>; \
-    using actual = constant_array_from<Type>::sequence< \
-      list::apply_typed_values<Type, constant_sequence> \
-    >; \
-    CHECK_CONSTANT_ARRAY(Type, __VA_ARGS__); \
+    using sq = input<Type>::sq<__VA_ARGS__>; \
+    using actual = as_array<sq>; \
+    CHECK_ARRAY(Type, __VA_ARGS__); \
   } while (false)
 
   TEST_CASES(TEST_IMPL);

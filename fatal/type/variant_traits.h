@@ -10,8 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_variant_traits_h
 #define FATAL_INCLUDE_fatal_type_variant_traits_h
 
-#include <fatal/container/static_array.h>
 #include <fatal/type/apply.h>
+#include <fatal/type/array.h>
 #include <fatal/type/deprecated/transform.h>
 #include <fatal/type/deprecated/type_map.h>
 #include <fatal/type/fast_pass.h>
@@ -121,7 +121,7 @@ public:
     /**
      * A statically allocated array containing the names of the variant members.
      *
-     * See `container/static_array` for more info.
+     * See `type/array.h` for more info.
      *
      * Example:
      *
@@ -134,10 +134,7 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using ids = apply_to<
-      typename by_id::tags,
-      static_array<id>::template value
-    >;
+    using ids = as_array<typename by_id::tags, id>;
   };
 
   template <typename U>

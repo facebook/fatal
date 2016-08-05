@@ -10,67 +10,68 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_array_h
 #define FATAL_INCLUDE_fatal_type_impl_array_h
 
-#include <fatal/container/constant_array.h>
+#include <array>
+#include <type_traits>
 
 namespace fatal {
-namespace impl_arr {
+namespace impl_a {
 
-template <typename...> struct arr;
-
-template <template <typename...> class Variadics, typename T, typename... Args>
-struct arr<Variadics<T, Args...>> {
-  using type = constant_array<decltype(T::value), T::value, Args::value...>;
+template <typename T, T... Values>
+struct a {
+  static constexpr std::array<T, sizeof...(Values)> get{{Values...}};
 };
+
+template <typename T, T... Values>
+constexpr std::array<T, sizeof...(Values)> a<T, Values...>::get;
+
+template <typename...> struct ca;
 
 template <template <typename...> class Variadics, typename... Args, typename T>
-struct arr<Variadics<Args...>, T> {
-  using type = constant_array<T, Args::value...>;
-};
-
-template <
-  template <typename V, V...> class Variadics,
-  typename Value,
-  Value... Args
->
-struct arr<Variadics<Value, Args...>> {
-  using type = constant_array<Value, Args...>;
-};
-
-template <
-  template <typename V, V...> class Variadics,
-  typename Value,
-  Value... Args,
-  typename T
->
-struct arr<Variadics<Value, Args...>, T> {
-  using type = constant_array<T, static_cast<T>(Args)...>;
-};
-
-template <typename...> struct zdt;
+struct ca<Variadics<Args...>, T>:
+  public a<T, Args::value...>
+{};
 
 template <template <typename...> class Variadics, typename T, typename... Args>
-struct zdt<Variadics<T, Args...>> {
-  using type = constant_array<
-    decltype(T::value),
+struct ca<Variadics<T, Args...>>:
+  public a<typename std::decay<decltype(T::value)>::type, Args::value...>
+{};
+
+template <
+  template <typename V, V...> class Variadics,
+  typename V,
+  V... Values,
+  typename T
+>
+struct ca<Variadics<V, Values...>, T>:
+  public a<T, Values...>
+{};
+
+template <template <typename V, V...> class Variadics, typename T, T... Values>
+struct ca<Variadics<T, Values...>>:
+  public a<T, Values...>
+{};
+
+template <typename...> struct z;
+
+template <template <typename...> class Variadics, typename T, typename... Args>
+struct z<Variadics<T, Args...>>:
+  public a<
+    typename std::decay<decltype(T::value)>::type,
     T::value,
     Args::value...,
-    static_cast<decltype(T::value)>(0)
-  >;
-};
+    static_cast<typename std::decay<decltype(T::value)>::type>(0)
+  >
+{};
 
 template <template <typename...> class Variadics, typename... Args, typename T>
-struct zdt<Variadics<Args...>, T> {
-  using type = constant_array<T, Args::value..., static_cast<T>(0)>;
-};
+struct z<Variadics<Args...>, T>:
+  public a<T, Args::value..., static_cast<T>(0)>
+{};
 
-template <
-  template <typename V, V...> class Variadics,
-  typename Value,
-  Value... Args
->
-struct zdt<Variadics<Value, Args...>> {
-  using type = constant_array<Value, Args..., static_cast<Value>(0)>;
-};
+template <template <typename V, V...> class Variadics, typename T, T... Args>
+struct z<Variadics<T, Args...>>:
+  public a<T, Args..., static_cast<T>(0)>
+{};
 
 template <
   template <typename V, V...> class Variadics,
@@ -78,11 +79,54 @@ template <
   Value... Args,
   typename T
 >
-struct zdt<Variadics<Value, Args...>, T> {
-  using type = constant_array<T, static_cast<T>(Args)..., static_cast<T>(0)>;
+struct z<Variadics<Value, Args...>, T>:
+  public a<T, static_cast<T>(Args)..., static_cast<T>(0)>
+{};
+
+template <typename T, typename Factory, typename... Args>
+struct ar {
+  static std::array<T, sizeof...(Args)> const get;
 };
 
-} // namespace impl_arr {
+template <typename T, typename Factory, typename... Args>
+std::array<T, sizeof...(Args)> const ar<T, Factory, Args...>::get{{
+  Factory::template get<Args>()...
+}};
+
+template <typename...> struct sa;
+
+template <
+  template <typename...> class Variadics,
+  typename... Args,
+  typename Factory,
+  typename T
+>
+struct sa<Variadics<Args...>, Factory, T>:
+  public ar<T, Factory, Args...>
+{};
+
+template <
+  template <typename...> class Variadics,
+  typename T,
+  typename... Args,
+  typename Factory
+>
+struct sa<Variadics<T, Args...>, Factory>:
+  public ar<
+    typename std::decay<decltype(Factory::template get<T>())>::type,
+    Factory,
+    T, Args...
+  >
+{};
+
+struct zd {
+  template <typename T>
+  static constexpr decltype(z<T>::get.data()) get() {
+    return z<T>::get.data();
+  }
+};
+
+} // namespace impl_a {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_array_h

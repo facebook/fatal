@@ -89,7 +89,10 @@ struct templated_string_holder {
 
 FATAL_TEST(fatal_str, members) {
   FATAL_EXPECT_SAME<string_holder_s, string_holder::str>();
-  FATAL_EXPECT_SAME<templated_string_holder_s, templated_string_holder<>::str>();
+  FATAL_EXPECT_SAME<
+    templated_string_holder_s,
+    templated_string_holder<>::str
+  >();
 }
 
 //////////////////////////////////////////
@@ -958,7 +961,7 @@ FATAL_TEST(constant_sequence, typed_list_transform) {
 //////////////////////////////
 
 template <typename T, T... Values>
-struct as_array {
+struct test_as_array {
   using type = std::array<T, sizeof...(Values)>;
 
   static type get() { return {{Values...}}; }
@@ -967,16 +970,16 @@ struct as_array {
 template <typename T>
 struct curried_as_array {
   template <T... Values>
-  using type = typename as_array<T, Values...>::type;
+  using type = typename test_as_array<T, Values...>::type;
 
   template <T... Values>
-  static type<Values...> get() { return as_array<T, Values...>::get(); }
+  static type<Values...> get() { return test_as_array<T, Values...>::get(); }
 };
 
 template <typename T, T... Values>
 void check_apply() {
   FATAL_EXPECT_SAME<
-    typename as_array<T, Values...>::type,
+    typename test_as_array<T, Values...>::type,
     typename constant_sequence<T, Values...>::template apply<
       curried_as_array<T>::template type
     >
@@ -1002,8 +1005,8 @@ void check_typed_apply() {
   typedef constant_sequence<T, Values...> seq;
 
   FATAL_EXPECT_SAME<
-    typename as_array<T, Values...>::type,
-    typename seq::template typed_apply<as_array>::type
+    typename test_as_array<T, Values...>::type,
+    typename seq::template typed_apply<test_as_array>::type
   >();
 }
 
@@ -1046,33 +1049,21 @@ void check_array_data(TData data) {
   using array = TArray;
   using as_array_t = TAsArray;
 
-  FATAL_EXPECT_SAME<
-    typename as_array_t::type::value_type,
-    typename array::value_type
-  >();
-
-  FATAL_EXPECT_SAME<typename as_array_t::type, typename array::type>();
-
-  FATAL_EXPECT_EQ(as_array_t::get().empty(), array::empty);
-  FATAL_EXPECT_EQ(as_array_t::get().size(), array::size);
-
   FATAL_EXPECT_EQ(as_array_t::get(), array::get);
-
-  for (std::size_t i = 0; i < as_array_t::get().size(); ++i) {
-    FATAL_EXPECT_LT(i, array::size);
-    FATAL_EXPECT_EQ(as_array_t::get().data()[i], array::data()[i]);
-  }
 }
 
 template <typename T, T... Values>
 void check_array_data() {
   using seq = constant_sequence<T, Values...>;
 
-  check_array_data<typename seq::template array<>, as_array<T, Values...>>(
+  check_array_data<typename seq::template array<>, test_as_array<T, Values...>>(
     seq::data()
   );
 
-  check_array_data<typename seq::template z_array<>, as_array<T, Values..., 0>>(
+  check_array_data<
+    typename seq::template z_array<>,
+    test_as_array<T, Values..., 0>
+  >(
     seq::z_data()
   );
 }

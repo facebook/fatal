@@ -35,7 +35,7 @@ template <
   typename T,
   std::size_t Value
 >
-struct to<Template<T, Values>> {
+struct to<Template<T, Value>> {
   using type = T;
 };
 

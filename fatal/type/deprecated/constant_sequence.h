@@ -10,8 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_constant_sequence_h
 #define FATAL_INCLUDE_fatal_type_deprecated_constant_sequence_h
 
-#include <fatal/container/constant_array.h>
 #include <fatal/preprocessor.h>
+#include <fatal/type/array.h>
 #include <fatal/type/deprecated/type_list.h>
 
 #include <type_traits>
@@ -725,7 +725,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  using array = constant_array<type, Values..., Suffix...>;
+  using array = as_array<constant_sequence<type, Values..., Suffix...>>;
 
   /**
    * Gets a pointer to a statically allocated version of this sequence.
@@ -765,8 +765,8 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  using z_array = constant_array<
-    type, Values..., Suffix..., static_cast<type>(0)
+  using z_array = as_array<
+    constant_sequence<type, Values..., Suffix..., static_cast<type>(0)>
   >;
 
   /**
@@ -789,7 +789,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  static type const *z_data() { return z_array<Suffix...>::data(); }
+  static type const *z_data() { return z_array<Suffix...>::get.data(); }
 
   /**
    * The `std::basic_string` type returned by the `string()` method.

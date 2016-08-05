@@ -15,11 +15,18 @@
 namespace fatal {
 
 template <typename Array, typename... T>
-using as_array = typename impl_arr::arr<Array, T...>::type;
+using as_array = impl_a::ca<Array, T...>;
 
 template <typename Array, typename... T>
-constexpr typename impl_arr::zdt<Array, T...>::type::value_type const *z_data()
-{ return impl_arr::zdt<Array, T...>::type::get.data(); }
+constexpr decltype(impl_a::z<Array, T...>::get.data()) z_data() {
+  return impl_a::z<Array, T...>::get.data();
+}
+
+template <typename Array, typename Factory, typename... T>
+using as_array_from = impl_a::sa<Array, Factory, T...>;
+
+template <typename Array, typename... T>
+using z_array = as_array_from<Array, impl_a::zd, T...>;
 
 } // namespace fatal {
 

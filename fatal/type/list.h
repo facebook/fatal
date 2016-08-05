@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_list_h
 #define FATAL_INCLUDE_fatal_type_list_h
 
+#include <type_traits>
+
 namespace fatal {
 
 template <typename...> struct list {};

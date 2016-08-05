@@ -10,9 +10,9 @@
 #ifndef FATAL_INCLUDE_fatal_type_enum_h
 #define FATAL_INCLUDE_fatal_type_enum_h
 
-#include <fatal/container/static_array.h>
 #include <fatal/preprocessor.h>
 #include <fatal/type/apply.h>
+#include <fatal/type/array.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/get.h>
 #include <fatal/type/list.h>
@@ -277,7 +277,7 @@ public:
      * A statically allocated array containing the names of the enumeration
      * fields.
      *
-     * See `container/static_array` for more info.
+     * See `type/array.h` for more info.
      *
      * Example:
      *
@@ -292,16 +292,13 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using names = apply_to<
-      enum_traits::names,
-      static_array<char const *>::template z_data
-    >;
+    using names = z_array<enum_traits::names, char const *>;
 
     /**
      * A statically allocated array containing the values of the enumeration
      * fields.
      *
-     * See `container/static_array` for more info.
+     * See `type/array.h` for more info.
      *
      * Example:
      *
@@ -317,16 +314,13 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using values = apply_to<
-      enum_traits::values,
-      static_array<type>::template value
-    >;
+    using values = as_array<enum_traits::values>;
 
     /**
      * A statically allocated array containing the values of the enumeration
      * fields, in a sorted order.
      *
-     * See `container/static_array` for more info.
+     * See `type/array.h` for more info.
      *
      * Example:
      *
@@ -342,10 +336,7 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using sorted_values = apply_to<
-      sort<enum_traits::values>,
-      static_array<type>::template value
-    >;
+    using sorted_values = as_array<sort<enum_traits::values>>;
   };
 
 private:

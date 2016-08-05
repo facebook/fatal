@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/container/static_array.h>
+#include <fatal/type/array.h>
 
 #include <fatal/type/debug.h>
 #include <fatal/type/foreach.h>
@@ -26,9 +26,9 @@ namespace fatal {
 struct abc { int x; int y; int z; };
 
 struct str {
-  FATAL_STR(hello, "hello");
-  FATAL_STR(world, "world");
-  FATAL_STR(test, "test");
+  FATAL_S(hello, "hello");
+  FATAL_S(world, "world");
+  FATAL_S(test, "test");
 };
 
 struct check_abc_visitor {
@@ -54,7 +54,7 @@ struct abc_factory {
 
 template <typename Expected, typename... T>
 void check_abc_array() {
-  using array = static_array<Expected, abc_factory, T...>;
+  using array = as_array_from<Expected, abc_factory, T...>;
   static_assert(size<Expected>::value == array::get.size(), "size mismatch");
   foreach<Expected>(check_abc_visitor(), array::get);
 }
@@ -66,7 +66,7 @@ void check_abc() {
   check_abc_array<expected, abc>();
 }
 
-FATAL_TEST(static_array, struct) {
+FATAL_TEST(as_array_from, struct) {
   check_abc<int_list<0>, int_list<0>, int_list<0>>();
   check_abc<int_list<0>, int_list<1>, int_list<2>>();
   check_abc<int_list<99>, int_list<56>, int_list<43>>();
@@ -93,7 +93,7 @@ struct check_sequence_list {
   template <typename... U>
   static void impl() {
     using expected_type = std::array<T, sizeof...(Values)>;
-    using actual = static_z_array<list<Values...>, U...>;
+    using actual = z_array<list<Values...>, U...>;
     expected_type const expected{{ z_data<Values>()...  }};
 
     FATAL_EXPECT_SAME<
@@ -117,7 +117,7 @@ struct check_sequence_list {
 template <typename T>
 struct check_sequence_list<T> {
   static void check() {
-    using actual = static_z_array<list<>, T>;
+    using actual = z_array<list<>, T>;
 
     FATAL_EXPECT_SAME<
       T,
@@ -131,7 +131,7 @@ struct check_sequence_list<T> {
   }
 };
 
-FATAL_TEST(static_array, sequence list) {
+FATAL_TEST(as_array_from, sequence list) {
   check_sequence_list<char const *>::check();
   check_sequence_list<char const *, str::hello>::check();
   check_sequence_list<char const *, str::hello, str::world>::check();
