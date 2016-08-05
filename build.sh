@@ -13,7 +13,13 @@ if [ -z "$USE_CC" ]; then
     fi
   done
 else
-  for f in `find ./fatal -name \*.cpp`; do
-    CC_OPT="-O0" USE_CC="$USE_CC" NO_CLEAR=true ./compile.sh "$f" "$@"
-  done
+  if [ "$EXCLUDE_BENCHMARKS" = true ]; then
+    for f in `find fatal -name \*.cpp|grep -v '/.*/.*benchmark/'`; do
+      CC_OPT="-O0" USE_CC="$USE_CC" NO_CLEAR=true ./compile.sh "$f" "$@"
+    done
+  else
+    for f in `find fatal -name \*.cpp`; do
+      CC_OPT="-O0" USE_CC="$USE_CC" NO_CLEAR=true ./compile.sh "$f" "$@"
+    done
+  fi
 fi
