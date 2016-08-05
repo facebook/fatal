@@ -21,7 +21,7 @@ int main() {
       prevent_optimization(list<__VA_ARGS__>()); \
     } while (false)
 
-  FATAL_BENCHMARK_CASES_CSV_OUTER_0_1000(OUTER, WRAP);
+  FATAL_BENCHMARK_CASES_CSV_OUTER_0_500(OUTER, WRAP);
 
   return 0;
 }
