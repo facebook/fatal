@@ -191,7 +191,7 @@ private:
 
   template <typename T, typename TArgsList, std::size_t... Indexes>
   static void call_ctor(fatal::size_sequence<Indexes...>, instance_t &instance, request_args &args) {
-    instance.template emplace<T>(args.template get<typename TArgsList::template at<Indexes>>(Indexes)...);
+    instance.template emplace<T>(args.request_args::template get<typename TArgsList::template at<Indexes>>(Indexes)...);
   }
 
   template <typename TMethod, typename TResult, typename TArgsList, typename T, std::size_t... Indexes>
@@ -200,7 +200,7 @@ private:
   ) {
     out.set_result_of([&]() {
       return static_cast<TResult>(
-        TMethod()(std::forward<T>(instance), args.template get<typename TArgsList::template at<Indexes>>(Indexes)...)
+        TMethod()(std::forward<T>(instance), args.request_args::template get<typename TArgsList::template at<Indexes>>(Indexes)...)
       );
     });
   }

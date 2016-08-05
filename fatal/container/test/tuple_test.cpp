@@ -184,9 +184,11 @@ struct check_get_helper<T, Args...> {
       std::size_t, size::value - tail_size::value
     >;
 
+    using actual_type = typename std::decay<TActual>::type;
+    static_assert(sizeof(actual_type) >= 0, "");
     FATAL_EXPECT_EQ(
       std::get<index::value>(expected),
-      actual.template get<T>()
+      actual.actual_type::template get<T>()
     );
 
     check_get_helper<Args...>::check(

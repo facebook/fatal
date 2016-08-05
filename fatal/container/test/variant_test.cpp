@@ -891,7 +891,7 @@ T const &copyset_constget_helper(
   using type = typename std::remove_reference<T>::type;
   v.template set<type>(value);
   return static_cast<variant<TStoragePolicy, Args...> const &>(v)
-    .template get<type>();
+    .variant<TStoragePolicy, Args...>::template get<type>();
 }
 
 FATAL_TEST(variant, copyset_get) {
@@ -915,7 +915,7 @@ T &moveset_get_helper(variant<TStoragePolicy, Args...> &v, T &&value) {
 
   using type = typename std::remove_reference<T>::type;
   v.template set<type>(std::move(value));
-  return v.template get<type>();
+  return v.variant<TStoragePolicy, Args...>::template get<type>();
 }
 
 FATAL_TEST(variant, moveset_get) {
@@ -934,7 +934,7 @@ template <typename T, typename V, typename ...Args>
 T const &emplace_constget_helper(V &v, Args &&...args) {
   using type = typename std::remove_reference<T>::type;
   v.template emplace<type>(std::forward<Args>(args)...);
-  return static_cast<V const &>(v).template get<type>();
+  return static_cast<V const &>(v).V::template get<type>();
 }
 
 FATAL_TEST(variant, emplace_constget) {
