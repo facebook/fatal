@@ -161,7 +161,9 @@ struct frc<List<impl_trie::trm<T>>> {
     Args &&...args
   ) {
     assert(depth <= size<T>::value);
-    if (std::distance(begin, end) == size<T>::value - depth
+    assert(begin <= end);
+    auto const distance = static_cast<std::size_t>(std::distance(begin, end));
+    if (distance == size<T>::value - depth
       && std::equal(begin, end, std::next(as_array<T>::get.data(), depth))
     ) {
       visitor(tag<T>(), std::forward<Args>(args)...);
