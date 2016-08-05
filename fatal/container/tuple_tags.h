@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_container_tuple_tags_h
 
 #include <fatal/type/find.h>
+#include <fatal/type/foreach.h>
 #include <fatal/type/list.h>
 #include <fatal/type/map.h>
 #include <fatal/type/reflect_template.h>
