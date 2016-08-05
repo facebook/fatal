@@ -10,7 +10,11 @@
 #ifndef FATAL_INCLUDE_fatal_type_sequence_h
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
-#include <fatal/type/sequence_fwd.h>
+namespace fatal {
+
+template <typename T, T...> struct sequence;
+
+} // namespace fatal {
 
 #include <cstdint>
 
@@ -39,6 +43,15 @@ using make_index_sequence = make_sequence<std::size_t, Size>;
 
 template <std::size_t Begin, std::size_t End>
 using make_index_interval = make_interval<std::size_t, Begin, End>;
+
+template <bool... Values>
+using bool_sequence = sequence<bool, Values...>;
+
+template <char... Values>
+using char_sequence = sequence<char, Values...>;
+
+template <int... Values>
+using int_sequence = sequence<int, Values...>;
 
 #define FATAL_S(Id, String) \
   FATAL_IMPL_BUILD_STRING( \
