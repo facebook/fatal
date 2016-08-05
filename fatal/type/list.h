@@ -14,6 +14,21 @@ namespace fatal {
 
 template <typename...> struct list {};
 
+template <typename T, T... Values>
+using value_list = list<std::integral_constant<T, Values>...>;
+
+template <std::size_t... Values>
+using index_list = list<std::integral_constant<std::size_t, Values>...>;
+
+template <bool... Values>
+using bool_list = list<std::integral_constant<bool, Values>...>;
+
+template <char... Values>
+using char_list = list<std::integral_constant<char, Values>...>;
+
+template <int... Values>
+using int_list = list<std::integral_constant<int, Values>...>;
+
 } // namespace fatal {
 
 #include <fatal/type/deprecated/type_list.h>
