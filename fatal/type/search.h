@@ -11,7 +11,6 @@
 #define FATAL_INCLUDE_fatal_type_search_h
 
 #include <fatal/functional/no_op.h>
-#include <fatal/type/apply.h>
 #include <fatal/type/identity.h>
 #include <fatal/type/slice.h>
 
@@ -44,8 +43,8 @@ struct value_comparer {
 // TODO: DOCUMENT THE NEED FOR A SORTED LIST
 template <
   typename T,
-  template <typename> class Filter = identity,
-  template <typename> class Comparer = value_comparer,
+  template <typename...> class Comparer = value_comparer,
+  template <typename...> class Filter = identity,
   typename Needle,
   typename Visitor,
   typename... Args
@@ -55,7 +54,7 @@ constexpr bool sorted_search(
   Visitor &&visitor,
   Args &&...args
 ) {
-  return impl_srch::srt<T>::template sorted_search<Filter, Comparer>(
+  return impl_srch::srt<T>::template ss<Comparer, Filter>(
     std::forward<Needle>(needle),
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...
@@ -64,12 +63,12 @@ constexpr bool sorted_search(
 
 template <
   typename T,
-  template <typename> class Filter = identity,
-  template <typename> class Comparer = value_comparer,
+  template <typename...> class Comparer = value_comparer,
+  template <typename...> class Filter = identity,
   typename Needle
 >
 constexpr bool sorted_search(Needle &&needle) {
-  return sorted_search<T, Filter, Comparer>(
+  return sorted_search<T, Comparer, Filter>(
     std::forward<Needle>(needle),
     fn::no_op()
   );
@@ -77,20 +76,11 @@ constexpr bool sorted_search(Needle &&needle) {
 
 template <
   typename T,
-  template <typename> class Comparer = value_comparer,
+  template <typename...> class Comparer = value_comparer,
   typename... Args
 >
 constexpr bool sorted_map_search(Args &&...args) {
-  return sorted_search<T, first, Comparer>(std::forward<Args>(args)...);
-}
-
-// TODO: MOVE SOMEWHERE ELSE??
-template <typename T, typename Visitor, typename... Args>
-void foreach(Visitor &&visitor, Args &&...args) {
-  apply_to<T, impl_srch::fe>::foreach(
-    std::forward<Visitor>(visitor),
-    std::forward<Args>(args)...
-  );
+  return sorted_search<T, Comparer, first>(std::forward<Args>(args)...);
 }
 
 } // namespace fatal {

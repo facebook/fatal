@@ -130,7 +130,7 @@ struct frc {
     Args &&...args
   ) {
     if (begin != end) {
-      sorted_search<Edges, first/*COMPARER*/>(
+      sorted_map_search<Edges>(
         *begin,
         fv(),
         found,

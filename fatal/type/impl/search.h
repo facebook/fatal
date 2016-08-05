@@ -23,13 +23,13 @@ namespace impl_srch {
 template <typename T, std::size_t Offset = 0, std::size_t Size = size<T>::value>
 struct srt {
   template <
-    template <typename> class Filter,
-    template <typename> class Comparer,
+    template <typename...> class Comparer,
+    template <typename...> class Filter,
     typename Needle,
     typename Visitor,
     typename... Args
   >
-  static constexpr bool sorted_search(
+  static constexpr bool ss(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args
@@ -37,14 +37,14 @@ struct srt {
     static_assert(Offset + (Size / 2) < size<T>::value, "");
     using pivot = at<T, Offset + (Size / 2)>;
     return Comparer<Filter<pivot>>::greater(needle)
-      ? srt<T, Offset, Size / 2>::template sorted_search<Filter, Comparer>(
+      ? srt<T, Offset, Size / 2>::template ss<Comparer, Filter>(
         std::forward<Needle>(needle),
         std::forward<Visitor>(visitor),
         std::forward<Args>(args)...
       )
       : Comparer<Filter<pivot>>::less(needle)
         ? srt<T, (Offset + Size / 2) + 1, Size / 2 - !(Size & 1)>
-          ::template sorted_search<Filter, Comparer>(
+          ::template ss<Comparer, Filter>(
             std::forward<Needle>(needle),
             std::forward<Visitor>(visitor),
             std::forward<Args>(args)...
@@ -61,11 +61,11 @@ struct srt {
 template <typename T, std::size_t Offset>
 struct srt<T, Offset, 0> {
   template <
-    template <typename> class,
-    template <typename> class,
+    template <typename...> class,
+    template <typename...> class,
     typename... Args
   >
-  static constexpr bool sorted_search(Args &&...) {
+  static constexpr bool ss(Args &&...) {
     return false;
   }
 };
@@ -73,13 +73,13 @@ struct srt<T, Offset, 0> {
 template <typename T, std::size_t Offset>
 struct srt<T, Offset, 1> {
   template <
-    template <typename> class Filter,
-    template <typename> class Comparer,
+    template <typename...> class Comparer,
+    template <typename...> class Filter,
     typename Needle,
     typename Visitor,
     typename... Args
   >
-  static constexpr bool sorted_search(
+  static constexpr bool ss(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args
@@ -98,13 +98,13 @@ struct srt<T, Offset, 1> {
 template <typename T, std::size_t Offset>
 struct srt<T, Offset, 2> {
   template <
-    template <typename> class Filter,
-    template <typename> class Comparer,
+    template <typename...> class Comparer,
+    template <typename...> class Filter,
     typename Needle,
     typename Visitor,
     typename... Args
   >
-  static constexpr bool sorted_search(
+  static constexpr bool ss(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args
@@ -124,24 +124,6 @@ struct srt<T, Offset, 2> {
           std::forward<Args>(args)...
         ), true
       )
-    );
-  }
-};
-
-template <typename...>
-struct fe {
-  template <std::size_t = 0, typename... Args>
-  static void foreach(Args &&...) {}
-};
-
-template <typename T, typename... Args>
-struct fe<T, Args...> {
-  template <std::size_t Index = 0, typename Visitor, typename... VArgs>
-  static void foreach(Visitor &&visitor, VArgs &&...args) {
-    visitor(indexed<T, Index>(), args...);
-    fe<Args...>::template foreach<Index + 1>(
-      std::forward<Visitor>(visitor),
-      std::forward<VArgs>(args)...
     );
   }
 };
