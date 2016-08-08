@@ -84,7 +84,7 @@ using build = typename impl_trie::rc<T, 0>::type;
 template <typename> struct frc;
 
 struct fv {
-  // TODO: CAN WE INLINE RECURSE HERE?
+  // TODO: CAN WE INLINE rc HERE?
   template <
     typename Edges,
     std::size_t Index,
@@ -163,8 +163,10 @@ struct frc<List<impl_trie::trm<T>>> {
     assert(depth <= size<T>::value);
     assert(begin <= end);
     auto const distance = static_cast<std::size_t>(std::distance(begin, end));
+    using array = as_array<T>;
+    static_assert(size<T>::value == array::get.size(), "internal error");
     if (distance == size<T>::value - depth
-      && std::equal(begin, end, std::next(as_array<T>::get.data(), depth))
+      && std::equal(begin, end, std::next(array::get.data(), depth))
     ) {
       visitor(tag<T>(), std::forward<Args>(args)...);
       found = true;

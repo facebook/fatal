@@ -19,7 +19,7 @@
 
 namespace fatal {
 
-template <typename T /* TODO: COMPARER AND SHIT */>
+template <typename T /* TODO: CUSTOM COMPARER*/>
 struct prefix_tree {
   template <
     typename Begin,
