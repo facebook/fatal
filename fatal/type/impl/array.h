@@ -33,7 +33,11 @@ struct ca<Variadics<Args...>, T>:
 
 template <template <typename...> class Variadics, typename T, typename... Args>
 struct ca<Variadics<T, Args...>>:
-  public a<typename std::decay<decltype(T::value)>::type, Args::value...>
+  public a<
+    typename std::decay<decltype(T::value)>::type,
+    T::value,
+    Args::value...
+  >
 {};
 
 template <
