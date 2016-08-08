@@ -14,6 +14,7 @@
 #include <fatal/type/group_by.h>
 #include <fatal/type/search.h>
 #include <fatal/type/transform.h>
+#include <fatal/type/type.h>
 
 #include <algorithm>
 #include <iterator>
@@ -95,7 +96,6 @@ struct frc {
     bool &found,
     Begin &&begin,
     End &&end,
-    std::size_t const depth,
     Visitor &&visitor,
     Args &&...args
   ) {
@@ -106,14 +106,12 @@ struct frc {
         found,
         std::next(begin),
         std::forward<End>(end),
-        depth + 1,
         std::forward<Visitor>(visitor),
         std::forward<Args>(args)...
       );
     }
   }
 
-  // TODO: CAN WE INLINE rc HERE?
   template <
     typename TailEdges,
     std::size_t Index,
@@ -127,7 +125,6 @@ struct frc {
     bool &found,
     Begin &&begin,
     End &&end,
-    std::size_t const depth,
     Visitor &&visitor,
     Args &&...args
   ) const {
@@ -135,7 +132,6 @@ struct frc {
       found,
       std::forward<Begin>(begin),
       std::forward<End>(end),
-      depth,
       std::forward<Visitor>(visitor),
       std::forward<Args>(args)...
     );
@@ -154,17 +150,21 @@ struct frc<Depth, List<impl_trie::trm<T>>> {
     bool &found,
     Begin &&begin,
     End &&end,
-    std::size_t const depth,
     Visitor &&visitor,
     Args &&...args
   ) {
-    assert(depth <= size<T>::value);
+    static_assert(Depth <= size<T>::value, "internal error");
+    using array = as_array<tail<T, Depth>, value_type_of<T>>;
+    static_assert(
+      size<T>::value == Depth + array::get.size(),
+      "internal error"
+    );
+
     assert(begin <= end);
-    auto const distance = static_cast<std::size_t>(std::distance(begin, end));
-    using array = as_array<T>;
-    static_assert(size<T>::value == array::get.size(), "internal error");
-    if (distance == size<T>::value - depth
-      && std::equal(begin, end, std::next(array::get.data(), depth))
+    auto const length = static_cast<std::size_t>(std::distance(begin, end));
+
+    if (length == size<T>::value - Depth
+      && std::equal(begin, end, array::get.data())
     ) {
       visitor(tag<T>(), std::forward<Args>(args)...);
       found = true;
@@ -189,20 +189,18 @@ struct frc<Depth, List<impl_trie::trm<T>, Edges...>> {
     bool &found,
     Begin &&begin,
     End &&end,
-    std::size_t const depth,
     Visitor &&visitor,
     Args &&...args
   ) {
     if (begin != end) {
-      frc<Depth + 1, List<Edges...>>::f(
+      frc<Depth, List<Edges...>>::f(
         found,
         std::forward<Begin>(begin),
         std::forward<End>(end),
-        depth,
         std::forward<Visitor>(visitor),
         std::forward<Args>(args)...
       );
-    } else if (depth == size<T>::value) {
+    } else if (Depth == size<T>::value) {
       visitor(tag<T>(), std::forward<Args>(args)...);
       found = true;
     }

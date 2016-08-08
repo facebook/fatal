@@ -39,7 +39,6 @@ struct prefix_tree {
       found,
       std::forward<Begin>(begin),
       std::forward<End>(end),
-      0,
       std::forward<Visitor>(visitor),
       std::forward<Args>(args)...
     );
