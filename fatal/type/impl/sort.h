@@ -22,8 +22,7 @@
 namespace fatal {
 namespace impl_srt {
 
-template <template <typename...> class, typename...> struct prt;
-template <bool, template <typename...> class, typename...> struct psel;
+template <template <typename...> class, typename...> struct p;
 
 template <
   template <typename...> class Pair,
@@ -34,12 +33,20 @@ template <
   typename T,
   typename... Args
 >
-struct prt<Pair, List<Left...>, List<Right...>, Less, T, Args...>:
-  psel<
-    Less::template apply<T>::value,
+struct p<Pair, List<Left...>, List<Right...>, Less, T, Args...>:
+  p<
     Pair,
-    List<Left...>, List<Right...>,
-    Less, T, Args...
+    typename std::conditional<
+      Less::template apply<T>::value,
+      List<Left..., T>,
+      List<Left...>
+    >::type,
+    typename std::conditional<
+      Less::template apply<T>::value,
+      List<Right...>,
+      List<Right..., T>
+    >::type,
+    Less, Args...
   >
 {};
 
@@ -50,35 +57,9 @@ template <
   typename... Right,
   typename Less
 >
-struct prt<Pair, List<Left...>, List<Right...>, Less> {
+struct p<Pair, List<Left...>, List<Right...>, Less> {
   using type = Pair<List<Left...>, List<Right...>>;
 };
-
-template <
-  template <typename...> class Pair,
-  template <typename...> class List,
-  typename... Left,
-  typename... Right,
-  typename Less,
-  typename T,
-  typename... Args
->
-struct psel<false, Pair, List<Left...>, List<Right...>, Less, T, Args...>:
-  prt<Pair, List<Left...>, List<Right..., T>, Less, Args...>
-{};
-
-template <
-  template <typename...> class Pair,
-  template <typename...> class List,
-  typename... Left,
-  typename... Right,
-  typename Less,
-  typename T,
-  typename... Args
->
-struct psel<true, Pair, List<Left...>, List<Right...>, Less, T, Args...>:
-  prt<Pair, List<Left..., T>, List<Right...>, Less, Args...>
-{};
 
 template <template <typename...> class, typename...> struct part;
 
@@ -89,7 +70,7 @@ template <
   typename... Args
 >
 struct part<Pair, List<Args...>, Less>:
-  prt<Pair, List<>, List<>, Less, Args...>
+  p<Pair, List<>, List<>, Less, Args...>
 {};
 
 template <typename...> struct fl;
