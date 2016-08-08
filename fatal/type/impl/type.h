@@ -44,6 +44,11 @@ struct vto {
   using type = typename T::value_type;
 };
 
+template <template <typename...> class Variadics, typename T, T... Values>
+struct vto<Variadics<std::integral_constant<T, Values>...>> {
+  using type = T;
+};
+
 template <template <typename V, V...> class Variadics, typename T, T... Values>
 struct vto<Variadics<T, Values...>> {
   using type = T;
