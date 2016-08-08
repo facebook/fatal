@@ -220,8 +220,8 @@ struct fgbyr<
   Variadics<G, Group...>,
   Variadics<Result...>,
   T, Args...
->:
-  fgbys<
+> {
+  using type = fgbys<
     Key,
     RejectPredicate,
     RejectedGrouping<Rejected...>,
@@ -229,8 +229,8 @@ struct fgbyr<
     Variadics<Result...>,
     Key<T>, T,
     Args...
-  >
-{};
+  >;
+};
 
 template <
   template <typename> class Key,
@@ -250,16 +250,16 @@ struct fgbyr<
   Variadics<>,
   Variadics<Result...>,
   T, Args...
->:
-  fgby<
+> {
+  using type = fgby<
     Key,
     RejectPredicate,
     RejectedGrouping<Rejected...>,
     Variadics<T>,
     Variadics<Result...>,
     Args...
-  >
-{};
+  >;
+};
 
 template <
   template <typename> class Key,
@@ -280,16 +280,16 @@ struct fgbyr<
   Variadics<Group...>,
   Variadics<Result...>,
   T, Args...
->:
-  fgby<
+> {
+  using type = fgby<
     Key,
     RejectPredicate,
     RejectedGrouping<Rejected..., T>,
     Variadics<Group...>,
     Variadics<Result...>,
     Args...
-  >
-{};
+  >;
+};
 
 template <
   template <typename> class Key,
@@ -396,7 +396,7 @@ struct fgby<
     Variadics<Group...>,
     Variadics<Result...>,
     T, Args...
-  >
+  >::type
 {};
 
 template <
