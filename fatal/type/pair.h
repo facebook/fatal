@@ -10,6 +10,10 @@
 #ifndef FATAL_INCLUDE_fatal_type_pair_h
 #define FATAL_INCLUDE_fatal_type_pair_h
 
+#ifndef NDEBUG
+#include <fatal/type/debug.h>
+#endif // NDEBUG
+
 namespace fatal {
 
 template <typename, typename>
