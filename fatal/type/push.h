@@ -15,7 +15,7 @@
 namespace fatal {
 
 template <typename T>
-using push = typename impl_push::to<T>;
+using push = typename impl_psh::to<T>;
 
 // TODO: REDUCE TEMPLATE INSTANTIATIONS
 template <typename T, typename... Args>

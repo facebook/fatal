@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#ifndef FATAL_INCLUDE_fatal_type_impl_convert_h
-#define FATAL_INCLUDE_fatal_type_impl_convert_h
+#ifndef FATAL_INCLUDE_fatal_type_impl_type_h
+#define FATAL_INCLUDE_fatal_type_impl_type_h
 
 #include <type_traits>
 
@@ -61,4 +61,4 @@ struct vto<Template<T, Value>> {
 } // namespace impl_t {
 } // namespace fatal {
 
-#endif // FATAL_INCLUDE_fatal_type_impl_convert_h
+#endif // FATAL_INCLUDE_fatal_type_impl_type_h

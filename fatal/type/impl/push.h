@@ -11,7 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_impl_push_h
 
 namespace fatal {
-namespace impl_push {
+namespace impl_psh {
 
 template <typename> struct to;
 
@@ -37,7 +37,7 @@ struct to<Sequence<T, Values...>> {
   using front = Sequence<T, Prefix..., Values...>;
 };
 
-} // namespace impl_push {
+} // namespace impl_psh {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_push_h
