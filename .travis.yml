@@ -97,28 +97,6 @@ matrix:
 #        COMPILER=g++-6
 #        CPP_STD=c++1z
 
-# Disabling Travis' faulty clang 3.4
-#    - os: linux
-#      compiler: clang
-#      addons:
-#        apt:
-#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.4' ]
-#          packages: ['clang-3.4', 'libc++']
-#      env:
-#        COMPILER=clang++
-#        CPP_STD=c++11
-
-# Disabling Travis' faulty clang 3.4
-#    - os: linux
-#      compiler: clang
-#      addons:
-#        apt:
-#          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.4' ]
-#          packages: ['clang-3.4', 'libc++']
-#      env:
-#        COMPILER=clang++
-#        CPP_STD=c++1y
-
     - os: linux
       compiler: clang
       addons:
