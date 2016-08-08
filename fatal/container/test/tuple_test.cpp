@@ -105,7 +105,7 @@ template <typename... Tags, typename... TData>
 void check_default_ctor(TData &&...) {
   static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
 
-  std::tuple<TData...> expected;
+  std::tuple<typename std::decay<TData>::type...> expected;
 
   tuple<pair<Tags, typename std::decay<TData>::type>...> actual;
 
