@@ -81,39 +81,9 @@ struct pfn {
 template <typename T>
 using build = typename impl_trie::rc<T, 0>::type;
 
-template <typename> struct frc;
+template <std::size_t, typename> struct frc;
 
-struct fv {
-  // TODO: CAN WE INLINE rc HERE?
-  template <
-    typename Edges,
-    std::size_t Index,
-    typename Begin,
-    typename End,
-    typename Visitor,
-    typename... Args
-  >
-  void operator ()(
-    indexed<Edges, Index>,
-    bool &found,
-    Begin &&begin,
-    End &&end,
-    std::size_t const depth,
-    Visitor &&visitor,
-    Args &&...args
-  ) const {
-    frc<second<Edges>>::rec(
-      found,
-      std::forward<Begin>(begin),
-      std::forward<End>(end),
-      depth,
-      std::forward<Visitor>(visitor),
-      std::forward<Args>(args)...
-    );
-  }
-};
-
-template <typename Edges>
+template <std::size_t Depth, typename Edges>
 struct frc {
   template <
     typename Begin,
@@ -121,7 +91,7 @@ struct frc {
     typename Visitor,
     typename... Args
   >
-  static void rec(
+  static void f(
     bool &found,
     Begin &&begin,
     End &&end,
@@ -132,7 +102,7 @@ struct frc {
     if (begin != end) {
       sorted_map_search<Edges>(
         *begin,
-        fv(),
+        frc(),
         found,
         std::next(begin),
         std::forward<End>(end),
@@ -142,17 +112,45 @@ struct frc {
       );
     }
   }
+
+  // TODO: CAN WE INLINE rc HERE?
+  template <
+    typename TailEdges,
+    std::size_t Index,
+    typename Begin,
+    typename End,
+    typename Visitor,
+    typename... Args
+  >
+  void operator ()(
+    indexed<TailEdges, Index>,
+    bool &found,
+    Begin &&begin,
+    End &&end,
+    std::size_t const depth,
+    Visitor &&visitor,
+    Args &&...args
+  ) const {
+    frc<Depth + 1, second<TailEdges>>::f(
+      found,
+      std::forward<Begin>(begin),
+      std::forward<End>(end),
+      depth,
+      std::forward<Visitor>(visitor),
+      std::forward<Args>(args)...
+    );
+  }
 };
 
-template <template <typename...> class List, typename T>
-struct frc<List<impl_trie::trm<T>>> {
+template <std::size_t Depth, template <typename...> class List, typename T>
+struct frc<Depth, List<impl_trie::trm<T>>> {
   template <
     typename Begin,
     typename End,
     typename Visitor,
     typename... Args
   >
-  static void rec(
+  static void f(
     bool &found,
     Begin &&begin,
     End &&end,
@@ -174,15 +172,20 @@ struct frc<List<impl_trie::trm<T>>> {
   }
 };
 
-template <template <typename...> class List, typename T, typename... Edges>
-struct frc<List<impl_trie::trm<T>, Edges...>> {
+template <
+  std::size_t Depth,
+  template <typename...> class List,
+  typename T,
+  typename... Edges
+>
+struct frc<Depth, List<impl_trie::trm<T>, Edges...>> {
   template <
     typename Begin,
     typename End,
     typename Visitor,
     typename... Args
   >
-  static void rec(
+  static void f(
     bool &found,
     Begin &&begin,
     End &&end,
@@ -191,7 +194,7 @@ struct frc<List<impl_trie::trm<T>, Edges...>> {
     Args &&...args
   ) {
     if (begin != end) {
-      frc<List<Edges...>>::rec(
+      frc<Depth + 1, List<Edges...>>::f(
         found,
         std::forward<Begin>(begin),
         std::forward<End>(end),

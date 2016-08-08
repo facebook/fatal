@@ -35,7 +35,7 @@ struct prefix_tree {
   ) {
     bool found = false;
     using tree = impl_trie::build<sort<T, sequence_compare<applier<less>>>>;
-    impl_trie::frc<tree>::rec(
+    impl_trie::frc<0, tree>::f(
       found,
       std::forward<Begin>(begin),
       std::forward<End>(end),
