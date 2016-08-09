@@ -10,6 +10,10 @@
 #ifndef FATAL_INCLUDE_fatal_type_cat_h
 #define FATAL_INCLUDE_fatal_type_cat_h
 
+#ifndef NDEBUG
+#include <fatal/type/debug.h>
+#endif // NDEBUG
+
 #include <fatal/type/impl/cat.h>
 
 namespace fatal {
