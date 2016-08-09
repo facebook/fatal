@@ -46,8 +46,7 @@ template <typename T, std::size_t Offset>
 using tail = typename impl_at::tail<T, make_index_sequence<Offset>>::type;
 
 template <typename T, std::size_t Offset>
-using head = typename impl_at::head<Offset, T>
-  ::template type<>;
+using head = typename impl_at::head<Offset, T>::type;
 
 template <typename T, std::size_t Begin, std::size_t End>
 using slice = head<tail<T, Begin>, End - Begin>;
