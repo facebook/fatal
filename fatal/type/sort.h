@@ -21,7 +21,7 @@
 namespace fatal {
 
 template <typename T, typename Less, template <typename...> class Pair = pair>
-using partition = typename impl_srt::part<Pair, T, Less>::type;
+using partition = typename impl_srt::pr<Pair, T, Less>::type;
 
 template <typename T, typename Predicate>
 using filter = typename impl_srt::flt<Predicate, T>::type;
@@ -33,18 +33,18 @@ using reject = filter<T, negation<Predicate>>;
 template  <typename LHS, typename RHS>
 using merge = typename impl_srt::merge<LHS, RHS>::type;
 
-template <typename T, typename Less = applier<less>>
+template <typename T, typename Less = less>
 using sort = typename impl_srt::qs<T, Less>::type;
 
 // TODO: MAKE IT GENERATE LESS TEMPLATES FOR THE PREDICATE
-template <typename T, typename Less = applier<less>>
+template <typename T, typename Less = less>
 using map_sort = sort<
   T,
   filtered_applier<Less::template apply, first>
 >;
 
 // TODO: MAKE IT GENERATE LESS TEMPLATES FOR THE PREDICATE
-template <typename T, typename Less = applier<less>>
+template <typename T, typename Less = less>
 using sequence_map_sort = sort<
   T,
   filtered_applier<sequence_compare<Less>::template apply, first>
