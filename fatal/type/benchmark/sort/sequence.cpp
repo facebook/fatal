@@ -19,7 +19,7 @@ int main() {
     prevent_optimization(sort<sequence<int, __VA_ARGS__>>()); \
   } while (false)
 
-  FATAL_BENCHMARK_CASES_CSV_OUTER_0_100_SHUFFLED(OUTER);
+  FATAL_BENCHMARK_CASES_CSV_OUTER_0_500_SHUFFLED(OUTER);
 
   return 0;
 }
