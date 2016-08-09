@@ -1,4 +1,3 @@
-#include <fatal/type/type.h>
 #include <fatal/functional/no_op.h>
 #include <fatal/type/apply.h>
 #include <fatal/type/arithmetic.h>
@@ -31,6 +30,7 @@
 #include <fatal/type/split.h>
 #include <fatal/type/tag.h>
 #include <fatal/type/transform.h>
+#include <fatal/type/type.h>
 #include <fatal/type/zip.h>
 
 #include <algorithm>
@@ -184,6 +184,12 @@ struct test_search_visitor {
 };
 
 // main ////////////////////////////////////////////////////////////////////////
+
+template <std::size_t... Values>
+void test_cat() {
+  SAME(index_list<Values...>, cat<index_list<Values>...>);
+  SAME(index_sequence<Values...>, cat<index_sequence<Values>...>);
+}
 
 template <typename T, typename Needle>
 bool test_ptree() {
@@ -686,8 +692,26 @@ int main() {
     >
   );
 
+  SAME(ls1, cat<ls1>);
   SAME(lst, cat<ls1, ls2>);
+  SAME(sq1, cat<sq1>);
   SAME(index_sequence<0, 1, 2, 0, 1, 2, 3>, cat<sq1, sq2>);
+  test_cat<0, 1, 2>();
+  test_cat<0, 1, 2, 3>();
+  test_cat<0, 1, 2, 3, 4>();
+  test_cat<0, 1, 2, 3, 4, 5>();
+  test_cat<0, 1, 2, 3, 4, 5, 6>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16>();
+  test_cat<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17>();
 
   SAME(pair<int, double>, get<mp, int>);
   SAME(pair<bool, void>, get<mp, bool>);

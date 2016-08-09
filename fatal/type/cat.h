@@ -15,8 +15,8 @@
 namespace fatal {
 
 // TODO: make it variadic
-template <typename LHS, typename RHS>
-using cat = typename impl_cat::cat<LHS, RHS>::type;
+template <typename... Args>
+using cat = typename impl_cat::cat<Args...>::type;
 
 template <typename LHS, typename RHS>
 using vcat = impl_cat::vcat<LHS, RHS>;
