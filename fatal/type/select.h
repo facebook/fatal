@@ -12,15 +12,23 @@
 
 #include <fatal/type/compare.h>
 
-#include <fatal/type/impl/select.h>
+#include <type_traits>
 
 namespace fatal {
 
-template <typename LHS, typename RHS, template <typename...> class Less = less>
-using min = typename impl_select::min<!Less<LHS, RHS>::value, RHS, LHS>::type;
+template <typename LHS, typename RHS, typename Less = less>
+using min = typename std::conditional<
+  Less::template apply<RHS, LHS>::value,
+  RHS,
+  LHS
+>::type;
 
-template <typename LHS, typename RHS, template <typename...> class Less = less>
-using max = typename impl_select::min<Less<LHS, RHS>::value, RHS, LHS>::type;
+template <typename LHS, typename RHS, typename Less = less>
+using max = typename std::conditional<
+  Less::template apply<LHS, RHS>::value,
+  RHS,
+  LHS
+>::type;
 
 } // namespace fatal {
 
