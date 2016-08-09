@@ -25,17 +25,23 @@ template <typename LHS>
 struct value_comparer {
   template <typename RHS>
   static constexpr bool less(RHS &&rhs) {
-    return LHS::value < rhs;
+    return LHS::value < static_cast<
+      typename std::decay<decltype(LHS::value)>::type
+    >(rhs);
   }
 
   template <typename RHS>
   static constexpr bool equal(RHS &&rhs) {
-    return LHS::value == rhs;
+    return LHS::value == static_cast<
+      typename std::decay<decltype(LHS::value)>::type
+    >(rhs);
   }
 
   template <typename RHS>
   static constexpr bool greater(RHS &&rhs) {
-    return LHS::value > rhs;
+    return LHS::value > static_cast<
+      typename std::decay<decltype(LHS::value)>::type
+    >(rhs);
   }
 };
 
