@@ -27,18 +27,23 @@ namespace fatal {
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `false`
- *  comparison_transform::equal<A, B>::value
+ *  comparison_transform::equal::apply<A, B>::value
  *
  *  // yields `false`
- *  comparison_transform::equal<B, A>::value
+ *  comparison_transform::equal::apply<B, A>::value
  *
  *  // yields `true`
- *  comparison_transform::equal<A, A>::value
+ *  comparison_transform::equal::apply<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename LHS, typename RHS>
-using equal = std::integral_constant<bool, LHS::value == RHS::value>;
+struct equal {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, LHS::value == RHS::value>;
+
+  template <typename T, T LHS, T RHS>
+  using vapply = std::integral_constant<bool, LHS == RHS>;
+};
 
 /**
  * Helper class similar to std::integral_constant for comparing two types
@@ -51,18 +56,23 @@ using equal = std::integral_constant<bool, LHS::value == RHS::value>;
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `true`
- *  comparison_transform::not_equal<A, B>::value
+ *  comparison_transform::not_equal::apply<A, B>::value
  *
  *  // yields `true`
- *  comparison_transform::not_equal<B, A>::value
+ *  comparison_transform::not_equal::apply<B, A>::value
  *
  *  // yields `false`
- *  comparison_transform::not_equal<A, A>::value
+ *  comparison_transform::not_equal::apply<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename LHS, typename RHS>
-using not_equal = std::integral_constant<bool, LHS::value != RHS::value>;
+struct not_equal {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, LHS::value != RHS::value>;
+
+  template <typename T, T LHS, T RHS>
+  using vapply = std::integral_constant<bool, LHS != RHS>;
+};
 
 /**
  * Helper class similar to std::integral_constant for comparing two types
@@ -75,18 +85,23 @@ using not_equal = std::integral_constant<bool, LHS::value != RHS::value>;
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `true`
- *  comparison_transform::less<A, B>::value
+ *  comparison_transform::less::apply<A, B>::value
  *
  *  // yields `false`
- *  comparison_transform::less<B, A>::value
+ *  comparison_transform::less::apply<B, A>::value
  *
  *  // yields `false`
- *  comparison_transform::less<A, A>::value
+ *  comparison_transform::less::apply<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename LHS, typename RHS>
-using less = std::integral_constant<bool, (LHS::value < RHS::value)>;
+struct less {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (LHS::value < RHS::value)>;
+
+  template <typename T, T LHS, T RHS>
+  using vapply = std::integral_constant<bool, (LHS < RHS)>;
+};
 
 /**
  * Helper class similar to std::integral_constant for comparing two types
@@ -99,21 +114,23 @@ using less = std::integral_constant<bool, (LHS::value < RHS::value)>;
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `true`
- *  comparison_transform::less_equal<A, B>::value
+ *  comparison_transform::less_equal::apply<A, B>::value
  *
  *  // yields `false`
- *  comparison_transform::less_equal<B, A>::value
+ *  comparison_transform::less_equal::apply<B, A>::value
  *
  *  // yields `true`
- *  comparison_transform::less_equal<A, A>::value
+ *  comparison_transform::less_equal::apply<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename LHS, typename RHS>
-using less_equal = std::integral_constant<
-  bool,
-  (LHS::value <= RHS::value)
->;
+struct less_equal {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (LHS::value <= RHS::value)>;
+
+  template <typename T, T LHS, T RHS>
+  using vapply = std::integral_constant<bool, (LHS <= RHS)>;
+};
 
 /**
  * Helper class similar to std::integral_constant for comparing two types
@@ -126,18 +143,23 @@ using less_equal = std::integral_constant<
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `false`
- *  comparison_transform::greater<A, B>::value
+ *  comparison_transform::greater::apply<A, B>::value
  *
  *  // yields `true`
- *  comparison_transform::greater<B, A>::value
+ *  comparison_transform::greater::apply<B, A>::value
  *
  *  // yields `false`
- *  comparison_transform::greater<A, A>::value
+ *  comparison_transform::greater::apply<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename LHS, typename RHS>
-using greater = std::integral_constant<bool, (LHS::value > RHS::value)>;
+struct greater {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (LHS::value > RHS::value)>;
+
+  template <typename T, T LHS, T RHS>
+  using vapply = std::integral_constant<bool, (LHS > RHS)>;
+};
 
 /**
  * Helper class similar to std::integral_constant for comparing two types
@@ -150,21 +172,23 @@ using greater = std::integral_constant<bool, (LHS::value > RHS::value)>;
  *  using B = std::integral_constant<int, 20>;
  *
  *  // yields `false`
- *  comparison_transform::greater_equal<A, B>::value
+ *  comparison_transform::greater_equal::apply<A, B>::value
  *
  *  // yields `true`
- *  comparison_transform::greater_equal<B, A>::value
+ *  comparison_transform::greater_equal::apply<B, A>::value
  *
  *  // yields `true`
- *  comparison_transform::greater_equal<A, A>::value
+ *  comparison_transform::greater_equal::apply<A, A>::value
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename LHS, typename RHS>
-using greater_equal = std::integral_constant<
-  bool,
-  (LHS::value >= RHS::value)
->;
+struct greater_equal {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (LHS::value >= RHS::value)>;
+
+  template <typename T, T LHS, T RHS>
+  using vapply = std::integral_constant<bool, (LHS >= RHS)>;
+};
 
 // TODO: DOCUMENT REQUIREMENTS OF PREDICATE
 //         http://en.cppreference.com/w/cpp/concept/Compare
