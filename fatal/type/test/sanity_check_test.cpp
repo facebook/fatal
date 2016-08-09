@@ -1011,6 +1011,14 @@ int main() {
     reject<lst, applier<std::is_floating_point>>
   );
 
+  SAME(sz<0>, min<sz<0>, sz<0>>);
+  SAME(sz<0>, min<sz<0>, sz<1>>);
+  SAME(sz<0>, min<sz<1>, sz<0>>);
+
+  SAME(sz<1>, max<sz<0>, sz<1>>);
+  SAME(sz<1>, max<sz<1>, sz<0>>);
+  SAME(sz<1>, max<sz<1>, sz<1>>);
+
   SAME(
     make_index_sequence<10>,
     merge<index_sequence<0, 2, 4, 6, 8>, index_sequence<1, 3, 5, 7, 9>>
@@ -1026,14 +1034,8 @@ int main() {
     sort<shuf_ls>
   );
 
-  SAME(
-    str::seq::sorted,
-    sort<str::seq::shuffled, sequence_compare<applier<less>>>
-  );
-  SAME(
-    str::lst::sorted,
-    sort<str::lst::shuffled, sequence_compare<applier<less>>>
-  );
+  SAME(str::seq::sorted, sort<str::seq::shuffled, sequence_compare<less>>);
+  SAME(str::lst::sorted, sort<str::lst::shuffled, sequence_compare<less>>);
 
   SAME(srt_mp, map_sort<shuf_mp>);
   SAME(str::mp::sorted, sequence_map_sort<str::mp::shuffled>);
