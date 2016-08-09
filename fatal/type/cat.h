@@ -20,13 +20,13 @@ namespace fatal {
 
 // TODO: make it variadic
 template <typename... Args>
-using cat = typename impl_cat::cat<Args...>::type;
+using cat = typename impl_cat::c<Args...>::type;
 
 template <typename LHS, typename RHS>
-using vcat = impl_cat::vcat<LHS, RHS>;
+using vcat = impl_cat::v<LHS, RHS>;
 
 template <typename LHS, typename RHS, typename... Args>
-using lcat = typename impl_cat::lcat<LHS, RHS, Args...>::type;
+using lcat = typename impl_cat::l<LHS, RHS, Args...>::type;
 
 } // namespace fatal {
 
