@@ -154,17 +154,14 @@ struct frc<Depth, List<impl_trie::trm<T>>> {
     Args &&...args
   ) {
     static_assert(Depth <= size<T>::value, "internal error");
-    using array = as_array<tail<T, Depth>, value_type_of<T>>;
-    static_assert(
-      size<T>::value == Depth + array::get.size(),
-      "internal error"
-    );
+    using array = as_array<T>;
+    static_assert(size<T>::value == array::get.size(), "internal error");
 
     assert(begin <= end);
     auto const length = static_cast<std::size_t>(std::distance(begin, end));
 
     if (length == size<T>::value - Depth
-      && std::equal(begin, end, array::get.data())
+      && std::equal(begin, end, std::next(array::get.data(), Depth))
     ) {
       visitor(tag<T>(), std::forward<Args>(args)...);
       found = true;
