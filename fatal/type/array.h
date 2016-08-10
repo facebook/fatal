@@ -18,7 +18,7 @@ template <typename Array, typename... T>
 using as_array = impl_a::ca<Array, T...>;
 
 template <typename Array, typename... T>
-constexpr decltype(impl_a::z<Array, T...>::get.data()) z_data() {
+decltype(impl_a::z<Array, T...>::get.data()) z_data() {
   return impl_a::z<Array, T...>::get.data();
 }
 

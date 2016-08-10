@@ -125,7 +125,7 @@ struct sa<Variadics<T, Args...>, Factory>:
 
 struct zd {
   template <typename T>
-  static constexpr decltype(z<T>::get.data()) get() {
+  static decltype(z<T>::get.data()) get() {
     return z<T>::get.data();
   }
 };
