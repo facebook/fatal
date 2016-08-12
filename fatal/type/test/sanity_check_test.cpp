@@ -16,6 +16,7 @@
 #include <fatal/type/is_complete.h>
 #include <fatal/type/list.h>
 #include <fatal/type/logical.h>
+#include <fatal/type/longest_common_prefix.h>
 #include <fatal/type/map.h>
 #include <fatal/type/pair.h>
 #include <fatal/type/prefix_tree.h>
@@ -207,6 +208,14 @@ struct test_head {
     );
   }
 };
+
+template <typename... Args>
+using tst_longest_common_prefix_size = longest_common_prefix_size<
+  at,
+  0,
+  vmin<less, size<Args>...>::value,
+  Args...
+>;
 
 template <typename T, typename Needle>
 bool test_ptree() {
@@ -1587,6 +1596,30 @@ int main() {
       list<sz<20>, sz<21>, sz<22>, sz<23>>,
       list<sz<30>, sz<31>, sz<32>, sz<33>>,
       list<sz<40>, sz<41>, sz<42>, sz<43>>
+    >
+  );
+
+  EQUAL(3, tst_longest_common_prefix_size<str::misc::foo>);
+  EQUAL(6, tst_longest_common_prefix_size<str::misc::foobar>);
+  EQUAL(3, tst_longest_common_prefix_size<str::misc::foo, str::misc::foobar>);
+  EQUAL(5, tst_longest_common_prefix_size<str::misc::foobar, str::misc::foobaz>);
+
+  EQUAL(
+    4,
+    tst_longest_common_prefix_size<
+      str::misc::foobar,
+      str::misc::foobaz,
+      str::misc::foobAr
+    >
+  );
+
+  EQUAL(
+    3,
+    tst_longest_common_prefix_size<
+      str::misc::foo,
+      str::misc::foobar,
+      str::misc::foobaz,
+      str::misc::foobAr
     >
   );
 
