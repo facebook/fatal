@@ -183,6 +183,8 @@ struct test_search_visitor {
   }
 };
 
+// experiments /////////////////////////////////////////////////////////////////
+
 // main ////////////////////////////////////////////////////////////////////////
 
 template <std::size_t... Values>
@@ -257,6 +259,13 @@ struct test_as_array_from {
   } while (false)
 
 struct str {
+  struct misc {
+    FATAL_S(foo, "foo");
+    FATAL_S(foobar, "foobar");
+    FATAL_S(foobaz, "foobaz");
+    FATAL_S(foobAr, "foobAr");
+  };
+
   struct fn {
     template <typename T>
     using group_by = pair<
@@ -1018,6 +1027,180 @@ int main() {
   SAME(sz<1>, max<sz<0>, sz<1>>);
   SAME(sz<1>, max<sz<1>, sz<0>>);
   SAME(sz<1>, max<sz<1>, sz<1>>);
+
+  SAME(sz<1>, vmin<less, sz<1>>);
+  SAME(sz<1>, vmin<less, sz<1>, sz<4>>);
+  SAME(sz<1>, vmin<less, sz<1>, sz<4>, sz<7>>);
+  SAME(sz<1>, vmin<less, sz<1>, sz<4>, sz<7>, sz<10>>);
+  SAME(sz<1>, vmin<less, sz<1>, sz<4>, sz<7>, sz<10>, sz<13>>);
+  SAME(sz<1>, vmin<less, sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>>);
+  SAME(sz<1>, vmin<less, sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>>);
+  SAME(
+    sz<1>,
+    vmin<less, sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>>
+  );
+  SAME(
+    sz<1>,
+    vmin<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>
+    >
+  );
+  SAME(
+    sz<1>,
+    vmin<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>
+    >
+  );
+  SAME(
+    sz<1>,
+    vmin<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>
+    >
+  );
+  SAME(
+    sz<1>,
+    vmin<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>
+    >
+  );
+  SAME(
+    sz<1>,
+    vmin<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>, sz<52>,
+      sz<55>, sz<58>, sz<61>, sz<64>, sz<67>, sz<70>, sz<73>, sz<76>, sz<79>,
+      sz<82>, sz<85>, sz<88>, sz<91>
+    >
+  );
+  SAME(
+    sz<1>,
+    vmin<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>, sz<52>,
+      sz<55>, sz<58>, sz<61>, sz<64>, sz<67>, sz<70>, sz<73>, sz<76>, sz<79>,
+      sz<82>, sz<85>, sz<88>, sz<91>, sz<94>
+    >
+  );
+  SAME(
+    sz<1>,
+    vmin<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>, sz<52>,
+      sz<55>, sz<58>, sz<61>, sz<64>, sz<67>, sz<70>, sz<73>, sz<76>, sz<79>,
+      sz<82>, sz<85>, sz<88>, sz<91>, sz<94>, sz<97>
+    >
+  );
+  SAME(
+    sz<1>,
+    vmin<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>, sz<52>,
+      sz<55>, sz<58>, sz<61>, sz<64>, sz<67>, sz<70>, sz<73>, sz<76>, sz<79>,
+      sz<82>, sz<85>, sz<88>, sz<91>, sz<94>, sz<97>, sz<100>, sz<103>, sz<106>,
+      sz<109>, sz<112>, sz<115>, sz<118>, sz<121>, sz<124>, sz<127>, sz<130>,
+      sz<133>, sz<136>, sz<139>, sz<142>, sz<145>, sz<148>, sz<151>, sz<154>,
+      sz<157>, sz<160>, sz<163>, sz<166>, sz<169>, sz<172>, sz<175>, sz<178>,
+      sz<181>, sz<184>, sz<187>, sz<190>, sz<193>, sz<196>, sz<199>
+    >
+  );
+
+  SAME(sz<1>, vmax<less, sz<1>>);
+  SAME(sz<4>, vmax<less, sz<1>, sz<4>>);
+  SAME(sz<7>, vmax<less, sz<1>, sz<4>, sz<7>>);
+  SAME(sz<10>, vmax<less, sz<1>, sz<4>, sz<7>, sz<10>>);
+  SAME(sz<13>, vmax<less, sz<1>, sz<4>, sz<7>, sz<10>, sz<13>>);
+  SAME(sz<16>, vmax<less, sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>>);
+  SAME(sz<19>, vmax<less, sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>>);
+  SAME(
+    sz<22>,
+    vmax<less, sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>>
+  );
+  SAME(
+    sz<25>,
+    vmax<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>
+    >
+  );
+  SAME(
+    sz<43>,
+    vmax<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>
+    >
+  );
+  SAME(
+    sz<46>,
+    vmax<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>
+    >
+  );
+  SAME(
+    sz<49>,
+    vmax<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>
+    >
+  );
+  SAME(
+    sz<91>,
+    vmax<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>, sz<52>,
+      sz<55>, sz<58>, sz<61>, sz<64>, sz<67>, sz<70>, sz<73>, sz<76>, sz<79>,
+      sz<82>, sz<85>, sz<88>, sz<91>
+    >
+  );
+  SAME(
+    sz<94>,
+    vmax<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>, sz<52>,
+      sz<55>, sz<58>, sz<61>, sz<64>, sz<67>, sz<70>, sz<73>, sz<76>, sz<79>,
+      sz<82>, sz<85>, sz<88>, sz<91>, sz<94>
+    >
+  );
+  SAME(
+    sz<97>,
+    vmax<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>, sz<52>,
+      sz<55>, sz<58>, sz<61>, sz<64>, sz<67>, sz<70>, sz<73>, sz<76>, sz<79>,
+      sz<82>, sz<85>, sz<88>, sz<91>, sz<94>, sz<97>
+    >
+  );
+  SAME(
+    sz<199>,
+    vmax<
+      less,
+      sz<1>, sz<4>, sz<7>, sz<10>, sz<13>, sz<16>, sz<19>, sz<22>, sz<25>,
+      sz<28>, sz<31>, sz<34>, sz<37>, sz<40>, sz<43>, sz<46>, sz<49>, sz<52>,
+      sz<55>, sz<58>, sz<61>, sz<64>, sz<67>, sz<70>, sz<73>, sz<76>, sz<79>,
+      sz<82>, sz<85>, sz<88>, sz<91>, sz<94>, sz<97>, sz<100>, sz<103>, sz<106>,
+      sz<109>, sz<112>, sz<115>, sz<118>, sz<121>, sz<124>, sz<127>, sz<130>,
+      sz<133>, sz<136>, sz<139>, sz<142>, sz<145>, sz<148>, sz<151>, sz<154>,
+      sz<157>, sz<160>, sz<163>, sz<166>, sz<169>, sz<172>, sz<175>, sz<178>,
+      sz<181>, sz<184>, sz<187>, sz<190>, sz<193>, sz<196>, sz<199>
+    >
+  );
 
   SAME(
     make_index_sequence<10>,

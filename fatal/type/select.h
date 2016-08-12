@@ -14,21 +14,21 @@
 
 #include <type_traits>
 
+#include <fatal/type/impl/select.h>
+
 namespace fatal {
 
 template <typename LHS, typename RHS, typename Less = less>
-using min = typename std::conditional<
-  Less::template apply<RHS, LHS>::value,
-  RHS,
-  LHS
->::type;
+using min = impl_sl::min<LHS, RHS, Less>;
 
 template <typename LHS, typename RHS, typename Less = less>
-using max = typename std::conditional<
-  Less::template apply<LHS, RHS>::value,
-  RHS,
-  LHS
->::type;
+using max = impl_sl::max<LHS, RHS, Less>;
+
+template <typename Less, typename... Args>
+using vmin = typename impl_sl::vn<Less, Args...>::type;
+
+template <typename Less, typename... Args>
+using vmax = typename impl_sl::vx<Less, Args...>::type;
 
 } // namespace fatal {
 
