@@ -57,13 +57,11 @@ struct ca<Variadics<T, Values...>>:
 
 template <typename T, T... Values>
 struct za {
-  using value_type = T;
-  using type = value_type[sizeof...(Values)];
-  static constexpr value_type d[sizeof...(Values)] = {Values...};
+  static constexpr T d[sizeof...(Values)] = {Values...};
 };
 
 template <typename T, T... Values>
-constexpr typename za<T, Values...>::type za<T, Values...>::d;
+constexpr T za<T, Values...>::d[sizeof...(Values)];
 
 template <typename...> struct z;
 
