@@ -55,11 +55,21 @@ struct ca<Variadics<T, Values...>>:
   public a<T, Values...>
 {};
 
+template <typename T, T... Values>
+struct za {
+  using value_type = T;
+  using type = value_type[sizeof...(Values)];
+  static constexpr value_type d[sizeof...(Values)] = {Values...};
+};
+
+template <typename T, T... Values>
+constexpr typename za<T, Values...>::type za<T, Values...>::d;
+
 template <typename...> struct z;
 
 template <template <typename...> class Variadics, typename T, typename... Args>
 struct z<Variadics<T, Args...>>:
-  public a<
+  public za<
     typename std::decay<decltype(T::value)>::type,
     T::value,
     Args::value...,
@@ -69,12 +79,12 @@ struct z<Variadics<T, Args...>>:
 
 template <template <typename...> class Variadics, typename... Args, typename T>
 struct z<Variadics<Args...>, T>:
-  public a<T, Args::value..., static_cast<T>(0)>
+  public za<T, Args::value..., static_cast<T>(0)>
 {};
 
 template <template <typename V, V...> class Variadics, typename T, T... Args>
 struct z<Variadics<T, Args...>>:
-  public a<T, Args..., static_cast<T>(0)>
+  public za<T, Args..., static_cast<T>(0)>
 {};
 
 template <
@@ -84,7 +94,7 @@ template <
   typename T
 >
 struct z<Variadics<Value, Args...>, T>:
-  public a<T, static_cast<T>(Args)..., static_cast<T>(0)>
+  public za<T, static_cast<T>(Args)..., static_cast<T>(1)>
 {};
 
 template <typename T, typename Factory, typename... Args>

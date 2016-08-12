@@ -18,8 +18,10 @@ template <typename Array, typename... T>
 using as_array = impl_a::ca<Array, T...>;
 
 template <typename Array, typename... T>
-decltype(impl_a::z<Array, T...>::get.data()) z_data() {
-  return impl_a::z<Array, T...>::get.data();
+constexpr typename std::decay<
+  decltype(impl_a::z<Array, T...>::d)
+>::type z_data() {
+  return impl_a::z<Array, T...>::d;
 }
 
 template <typename Array, typename Factory, typename... T>
