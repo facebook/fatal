@@ -16,19 +16,12 @@
 
 #include <type_traits>
 
+#include <fatal/type/impl/size.h>
+
 namespace fatal {
 
-template <typename> struct size;
-
-template <template <typename...> class T, typename... Args>
-struct size<T<Args...>>:
-  std::integral_constant<std::size_t, sizeof...(Args)>
-{};
-
-template <typename T, template <typename, T...> class Sequence, T... Values>
-struct size<Sequence<T, Values...>>:
-  std::integral_constant<std::size_t, sizeof...(Values)>
-{};
+template <typename T>
+using size = typename impl_sz::s<T>::type;
 
 template <typename T>
 using empty = std::integral_constant<bool, size<T>::value == 0>;
