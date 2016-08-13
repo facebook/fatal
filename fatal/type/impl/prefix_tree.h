@@ -13,8 +13,8 @@
 #include <fatal/type/array.h>
 #include <fatal/type/group_by.h>
 #include <fatal/type/search.h>
+#include <fatal/type/size.h>
 #include <fatal/type/transform.h>
-#include <fatal/type/type.h>
 
 #include <algorithm>
 #include <iterator>
@@ -22,14 +22,13 @@
 #include <cassert>
 
 namespace fatal {
-namespace impl_trie {
+namespace impl_pt {
 
 // TODO: IMPLEMENT LEADING PATH-COMPRESSION
 
-template <typename...>
-struct trm {};
+// terminal //
+template <typename...> struct t {};
 
-// TODO: CAN WE COMPOSE INSTEAD OF CREATING THIS AD-HOC FILTER?
 template <std::size_t Depth>
 struct flt {
   template <typename T>
@@ -38,6 +37,7 @@ struct flt {
 
 template <std::size_t> struct pfn;
 
+// build prefix tree recursion //
 template <typename T, std::size_t Depth>
 struct rc {
   using type = transform<
@@ -45,7 +45,7 @@ struct rc {
       T,
       bound::at<Depth>::template apply,
       flt<Depth>::template apply,
-      trm
+      t
     >,
     pfn<Depth + 1>::template apply
   >;
@@ -53,7 +53,7 @@ struct rc {
 
 template <template <typename...> class List, typename T, std::size_t Depth>
 struct rc<List<T>, Depth> {
-  using type = List<trm<T>>;
+  using type = List<t<T>>;
 };
 
 template <typename, std::size_t> struct fn;
@@ -64,12 +64,12 @@ struct fn<pair<Key, Group>, Depth> {
 };
 
 template <typename... Args, std::size_t Depth>
-struct fn<trm<Args...>, Depth> {
+struct fn<t<Args...>, Depth> {
   static_assert(
     sizeof...(Args) == 1,
     "multiple strings map to a path in the prefix tree"
   );
-  using type = trm<Args...>;
+  using type = t<Args...>;
 };
 
 template <std::size_t Depth>
@@ -80,19 +80,20 @@ struct pfn {
 
 // T must be sorted
 template <typename T>
-using build = typename impl_trie::rc<T, 0>::type;
+using build = typename rc<T, 0>::type;
 
-template <std::size_t, typename> struct frc;
+// prefix tree find recursion //
+template <std::size_t, typename> struct f;
 
 template <std::size_t Depth, typename Edges>
-struct frc {
+struct f {
   template <
     typename Begin,
     typename End,
     typename Visitor,
     typename... Args
   >
-  static void f(
+  static void v(
     bool &found,
     Begin &&begin,
     End &&end,
@@ -102,7 +103,7 @@ struct frc {
     if (begin != end) {
       sorted_map_search<Edges>(
         *begin,
-        frc(),
+        f(),
         found,
         std::next(begin),
         std::forward<End>(end),
@@ -128,7 +129,7 @@ struct frc {
     Visitor &&visitor,
     Args &&...args
   ) const {
-    frc<Depth + 1, second<TailEdges>>::f(
+    f<Depth + 1, second<TailEdges>>::v(
       found,
       std::forward<Begin>(begin),
       std::forward<End>(end),
@@ -139,14 +140,14 @@ struct frc {
 };
 
 template <std::size_t Depth, template <typename...> class List, typename T>
-struct frc<Depth, List<impl_trie::trm<T>>> {
+struct f<Depth, List<t<T>>> {
   template <
     typename Begin,
     typename End,
     typename Visitor,
     typename... Args
   >
-  static void f(
+  static void v(
     bool &found,
     Begin &&begin,
     End &&end,
@@ -154,14 +155,13 @@ struct frc<Depth, List<impl_trie::trm<T>>> {
     Args &&...args
   ) {
     static_assert(Depth <= size<T>::value, "internal error");
-    using array = as_array<T>;
-    static_assert(size<T>::value == array::get.size(), "internal error");
+    static_assert(size<T>::value == size<T>::value, "internal error");
 
     assert(begin <= end);
     auto const length = static_cast<std::size_t>(std::distance(begin, end));
 
     if (length == size<T>::value - Depth
-      && std::equal(begin, end, std::next(array::get.data(), Depth))
+      && std::equal(begin, end, std::next(z_data<T>(), Depth))
     ) {
       visitor(tag<T>(), std::forward<Args>(args)...);
       found = true;
@@ -175,14 +175,14 @@ template <
   typename T,
   typename... Edges
 >
-struct frc<Depth, List<impl_trie::trm<T>, Edges...>> {
+struct f<Depth, List<t<T>, Edges...>> {
   template <
     typename Begin,
     typename End,
     typename Visitor,
     typename... Args
   >
-  static void f(
+  static void v(
     bool &found,
     Begin &&begin,
     End &&end,
@@ -190,7 +190,7 @@ struct frc<Depth, List<impl_trie::trm<T>, Edges...>> {
     Args &&...args
   ) {
     if (begin != end) {
-      frc<Depth, List<Edges...>>::f(
+      f<Depth, List<Edges...>>::v(
         found,
         std::forward<Begin>(begin),
         std::forward<End>(end),
@@ -204,7 +204,7 @@ struct frc<Depth, List<impl_trie::trm<T>, Edges...>> {
   }
 };
 
-} // namespace impl_trie {
+} // namespace impl_pt {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_prefix_tree_h

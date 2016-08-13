@@ -219,10 +219,10 @@ using tst_longest_common_prefix_size = longest_common_prefix_size<
 
 template <typename T, typename Needle>
 bool test_ptree() {
-  auto &needle = as_array<Needle, char>::get;
+  using needle = as_array<Needle, char>;
   return prefix_tree<T>::find(
-    needle.data(),
-    std::next(needle.data(), needle.size()),
+    needle::data,
+    std::next(needle::data, needle::size::value),
     test_search_visitor<tag<Needle>>()
   );
 }
@@ -230,8 +230,9 @@ bool test_ptree() {
 #define TEST_AS_ARRAY(Which, ...) \
   do { \
     using array = as_array<str::Which::__VA_ARGS__>; \
+    SAME(size<str::Which::__VA_ARGS__>, array::size); \
     std::string const expected(#__VA_ARGS__); \
-    std::string const actual(array::get.data(), array::get.size()); \
+    std::string const actual(array::data, array::size::value); \
     if (expected != actual) { \
       EQ(expected, actual); \
       std::cout << "  expected='" << expected << "' actual='" << actual << '\''\
@@ -239,16 +240,20 @@ bool test_ptree() {
     } \
   } while (false)
 
-struct test_as_array_from {
+struct test_as_array_from_factory {
   template <typename T>
   static constexpr decltype(T::value) get() { return T::value; }
 };
 
 #define TEST_AS_ARRAY_FROM(Which, ...) \
   do { \
-    using array = as_array_from<str::Which::__VA_ARGS__, test_as_array_from>; \
+    using array = as_array_from< \
+      str::Which::__VA_ARGS__, \
+      test_as_array_from_factory \
+    >; \
+    SAME(size<str::Which::__VA_ARGS__>, array::size); \
     std::string const expected(#__VA_ARGS__); \
-    std::string const actual(array::get.data(), array::get.size()); \
+    std::string const actual(array::data, array::size::value); \
     if (expected != actual) { \
       EQ(expected, actual); \
       std::cout << "  expected='" << expected << "' actual='" << actual << '\''\
@@ -342,67 +347,67 @@ struct str {
       pair<ch<'f'>, list<
         pair<ch<'a'>, list<
           pair<ch<'r'>, list<
-            impl_trie::trm<far>,
+            impl_pt::t<far>,
             pair<ch<'t'>, list<
-              impl_trie::trm<fart>,
+              impl_pt::t<fart>,
               pair<ch<'h'>, list<
-                impl_trie::trm<farther>
+                impl_pt::t<farther>
               >>
             >>
           >>,
           pair<ch<'s'>, list<
             pair<ch<'t'>, list<
-              impl_trie::trm<fast>,
+              impl_pt::t<fast>,
               pair<ch<'e'>, list<
                 pair<ch<'r'>, list<
-                  impl_trie::trm<faster>
+                  impl_pt::t<faster>
                 >>,
                 pair<ch<'s'>, list<
-                  impl_trie::trm<fastest>
+                  impl_pt::t<fastest>
                 >>
               >>
             >>
           >>,
           pair<ch<'t'>, list<
-            impl_trie::trm<fat>
+            impl_pt::t<fat>
           >>
         >>,
         pair<ch<'i'>, list<
-          impl_trie::trm<fist>
+          impl_pt::t<fist>
         >>
       >>,
       pair<ch<'g'>, list<
         pair<ch<'o'>, list<
           pair<ch<'l'>, list<
-            impl_trie::trm<gold>
+            impl_pt::t<gold>
           >>,
           pair<ch<'o'>, list<
             pair<ch<'d'>, list<
-              impl_trie::trm<good>
+              impl_pt::t<good>
             >>,
             pair<ch<'e'>, list<
-              impl_trie::trm<gooey>
+              impl_pt::t<gooey>
             >>
           >>
         >>,
         pair<ch<'r'>, list<
           pair<ch<'a'>, list<
-            impl_trie::trm<granite>
+            impl_pt::t<granite>
           >>,
           pair<ch<'e'>, list<
             pair<ch<'a'>, list<
-              impl_trie::trm<great>
+              impl_pt::t<great>
             >>,
             pair<ch<'e'>, list<
-              impl_trie::trm<green>
+              impl_pt::t<green>
             >>
           >>,
           pair<ch<'o'>, list<
             pair<ch<'k'>, list<
-              impl_trie::trm<grok>
+              impl_pt::t<grok>
             >>,
             pair<ch<'o'>, list<
-              impl_trie::trm<groove>
+              impl_pt::t<groove>
             >>
           >>
         >>
@@ -470,67 +475,67 @@ struct str {
       pair<ch<'f'>, list<
         pair<ch<'a'>, list<
           pair<ch<'r'>, list<
-            impl_trie::trm<far>,
+            impl_pt::t<far>,
             pair<ch<'t'>, list<
-              impl_trie::trm<fart>,
+              impl_pt::t<fart>,
               pair<ch<'h'>, list<
-                impl_trie::trm<farther>
+                impl_pt::t<farther>
               >>
             >>
           >>,
           pair<ch<'s'>, list<
             pair<ch<'t'>, list<
-              impl_trie::trm<fast>,
+              impl_pt::t<fast>,
               pair<ch<'e'>, list<
                 pair<ch<'r'>, list<
-                  impl_trie::trm<faster>
+                  impl_pt::t<faster>
                 >>,
                 pair<ch<'s'>, list<
-                  impl_trie::trm<fastest>
+                  impl_pt::t<fastest>
                 >>
               >>
             >>
           >>,
           pair<ch<'t'>, list<
-            impl_trie::trm<fat>
+            impl_pt::t<fat>
           >>
         >>,
         pair<ch<'i'>, list<
-          impl_trie::trm<fist>
+          impl_pt::t<fist>
         >>
       >>,
       pair<ch<'g'>, list<
         pair<ch<'o'>, list<
           pair<ch<'l'>, list<
-            impl_trie::trm<gold>
+            impl_pt::t<gold>
           >>,
           pair<ch<'o'>, list<
             pair<ch<'d'>, list<
-              impl_trie::trm<good>
+              impl_pt::t<good>
             >>,
             pair<ch<'e'>, list<
-              impl_trie::trm<gooey>
+              impl_pt::t<gooey>
             >>
           >>
         >>,
         pair<ch<'r'>, list<
           pair<ch<'a'>, list<
-            impl_trie::trm<granite>
+            impl_pt::t<granite>
           >>,
           pair<ch<'e'>, list<
             pair<ch<'a'>, list<
-              impl_trie::trm<great>
+              impl_pt::t<great>
             >>,
             pair<ch<'e'>, list<
-              impl_trie::trm<green>
+              impl_pt::t<green>
             >>
           >>,
           pair<ch<'o'>, list<
             pair<ch<'k'>, list<
-              impl_trie::trm<grok>
+              impl_pt::t<grok>
             >>,
             pair<ch<'o'>, list<
-              impl_trie::trm<groove>
+              impl_pt::t<groove>
             >>
           >>
         >>
@@ -1253,8 +1258,8 @@ int main() {
     filtered_group_by<str::lst::sorted, first, size7, test_list>
   );
 
-  SAME(str::lst::prefix_tree, impl_trie::build<str::lst::sorted>);
-  SAME(str::seq::prefix_tree, impl_trie::build<str::seq::sorted>);
+  SAME(str::lst::prefix_tree, impl_pt::build<str::lst::sorted>);
+  SAME(str::seq::prefix_tree, impl_pt::build<str::seq::sorted>);
 
   foreach<lst>(fn::no_op());
 

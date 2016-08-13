@@ -15,17 +15,17 @@
 namespace fatal {
 
 template <typename Array, typename... T>
-using as_array = impl_a::ca<Array, T...>;
+using as_array = typename impl_a::ca<Array, T...>::type;
 
 template <typename Array, typename... T>
 constexpr typename std::decay<
-  decltype(impl_a::z<Array, T...>::d)
+  decltype(impl_a::z<Array, T...>::data)
 >::type z_data() {
-  return impl_a::z<Array, T...>::d;
+  return impl_a::z<Array, T...>::data;
 }
 
 template <typename Array, typename Factory, typename... T>
-using as_array_from = impl_a::sa<Array, Factory, T...>;
+using as_array_from = typename impl_a::sa<Array, Factory, T...>::type;
 
 template <typename Array, typename... T>
 using z_array = as_array_from<Array, impl_a::zd, T...>;
