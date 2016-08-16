@@ -789,7 +789,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  static type const *z_data() { return z_array<Suffix...>::get.data(); }
+  static type const *z_data() { return z_array<Suffix...>::data; }
 
   /**
    * The `std::basic_string` type returned by the `string()` method.
