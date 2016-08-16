@@ -14,6 +14,7 @@
 #include <fatal/preprocessor.h>
 #include <fatal/type/test/parse_sequence_input.h>
 
+#include <algorithm>
 #include <iterator>
 #include <type_traits>
 
@@ -1048,8 +1049,16 @@ template <typename TArray, typename TAsArray, typename TData>
 void check_array_data(TData data) {
   using array = TArray;
   using as_array_t = TAsArray;
+  auto const a = as_array_t::get();
 
-  FATAL_EXPECT_EQ(as_array_t::get(), array::get);
+  FATAL_EXPECT_EQ(a.size(), array::size::value);
+  FATAL_EXPECT_TRUE(
+    std::equal(
+      a.begin(),
+      a.end(),
+      array::data
+    )
+  );
 }
 
 template <typename T, T... Values>
