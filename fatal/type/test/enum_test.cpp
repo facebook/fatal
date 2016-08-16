@@ -92,18 +92,18 @@ FATAL_TEST(enums, array::sorted_values) {
     std::array<std::string, 4> expected{{
       "state0", "state1", "state2", "state3"
     }};
-    FATAL_ASSERT_EQ(expected.size(), actual::get.size());
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
     FATAL_EXPECT_TRUE(
-      std::equal(expected.begin(), expected.end(), actual::get.begin())
+      std::equal(expected.begin(), expected.end(), actual::data)
     );
   }
 
   {
     using actual = enum_traits<custom_enum>::array::names;
     std::array<std::string, 3> expected{{"field0", "field1", "field2"}};
-    FATAL_ASSERT_EQ(expected.size(), actual::get.size());
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
     FATAL_EXPECT_TRUE(
-      std::equal(expected.begin(), expected.end(), actual::get.begin())
+      std::equal(expected.begin(), expected.end(), actual::data)
     );
   }
 }
