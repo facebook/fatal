@@ -34,7 +34,6 @@ struct str {
 struct check_abc_visitor {
   template <typename T, std::size_t Index, typename U>
   void operator ()(indexed<T, Index>, U const &array) const {
-    FATAL_ASSERT_LT(Index, array.size());
     FATAL_EXPECT_EQ(first<T>::value, array[Index].x);
     FATAL_EXPECT_EQ(second<T>::value, array[Index].y);
     FATAL_EXPECT_EQ(third<T>::value, array[Index].z);
@@ -55,8 +54,8 @@ struct abc_factory {
 template <typename Expected, typename... T>
 void check_abc_array() {
   using array = as_array_from<Expected, abc_factory, T...>;
-  static_assert(size<Expected>::value == array::get.size(), "size mismatch");
-  foreach<Expected>(check_abc_visitor(), array::get);
+  static_assert(size<Expected>::value == array::size::value, "size mismatch");
+  foreach<Expected>(check_abc_visitor(), array::data);
 }
 
 template <typename x, typename y, typename z>
@@ -92,20 +91,14 @@ template <typename T, typename... Values>
 struct check_sequence_list {
   template <typename... U>
   static void impl() {
-    using expected_type = std::array<T, sizeof...(Values)>;
     using actual = z_array<list<Values...>, U...>;
-    expected_type const expected{{ z_data<Values>()...  }};
+    std::array<T, sizeof...(Values)> const expected{{ z_data<Values>()...  }};
 
-    FATAL_EXPECT_SAME<
-      T,
-      value_type_of<typename std::decay<decltype(actual::get)>::type>
-    >();
-    FATAL_EXPECT_SAME<
-      expected_type,
-      typename std::decay<decltype(actual::get)>::type
-    >();
-    FATAL_EXPECT_EQ(sizeof...(Values), actual::get.size());
-    FATAL_EXPECT_EQ(expected, actual::get);
+    FATAL_EXPECT_SAME<T, value_type_of<actual>>();
+    FATAL_EXPECT_EQ(sizeof...(Values), actual::size::value);
+    FATAL_EXPECT_TRUE(
+      std::equal(expected.begin(), expected.end(), actual::data)
+    );
   };
 
   static void check() {
@@ -119,15 +112,8 @@ struct check_sequence_list<T> {
   static void check() {
     using actual = z_array<list<>, T>;
 
-    FATAL_EXPECT_SAME<
-      T,
-      value_type_of<typename std::decay<decltype(actual::get)>::type>
-    >();
-    FATAL_EXPECT_SAME<
-      std::array<T, 0>,
-      typename std::decay<decltype(actual::get)>::type
-    >();
-    FATAL_EXPECT_EQ(0, actual::get.size());
+    FATAL_EXPECT_SAME<T, value_type_of<actual>>();
+    FATAL_EXPECT_EQ(0, actual::size::value);
   }
 };
 

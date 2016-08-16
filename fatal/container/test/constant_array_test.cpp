@@ -36,7 +36,12 @@ struct input {
     \
     array const expected{{__VA_ARGS__}}; \
     \
-    FATAL_EXPECT_EQ(expected, actual::get); \
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value); \
+    FATAL_EXPECT_TRUE( \
+      std::equal(expected.begin(), \
+      expected.end(), \
+      actual::data \
+    )); \
   } while (false)
 
 #define TEST_CASES(Fn) \
