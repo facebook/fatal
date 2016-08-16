@@ -98,6 +98,7 @@ struct z<Variadics<Value, Args...>, T>:
 
 template <typename T, typename Factory, typename... Args>
 struct ar {
+  using value_type = T;
   using size = std::integral_constant<std::size_t, sizeof...(Args)>;
   static T const data[sizeof...(Args)];
 };
@@ -136,7 +137,7 @@ struct sa<Variadics<T, Args...>, Factory> {
 struct zd {
   template <typename T>
   static typename std::decay<decltype(z<T>::data)>::type get() {
-    return z<T>::type::data;
+    return z<T>::data;
   }
 };
 
