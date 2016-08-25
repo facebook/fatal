@@ -15,6 +15,11 @@
 namespace fatal {
 namespace benchmark {
 
+#define FATAL_BENCHMARK_CASES_MONOTONIC_OUTER_0_4(Fn) \
+  do { \
+    Fn(0); Fn(1); Fn(2); Fn(3); Fn(4); \
+  } while (false)
+
 #define FATAL_BENCHMARK_CASES_MONOTONIC_OUTER_0_10(Fn) \
   do { \
     Fn(0); Fn(1); Fn(2); Fn(3); Fn(4); Fn(5); Fn(6); Fn(7); Fn(8); Fn(9); \
@@ -1422,6 +1427,11 @@ namespace benchmark {
     Fn(4986); Fn(4987); Fn(4988); Fn(4989); Fn(4990); Fn(4991); Fn(4992); \
     Fn(4993); Fn(4994); Fn(4995); Fn(4996); Fn(4997); Fn(4998); Fn(4999); \
     Fn(5000); \
+  } while (false)
+
+#define FATAL_BENCHMARK_CASES_MONOTONIC_INNER_0_4(Fn) \
+  do { \
+    Fn(0); Fn(1); Fn(2); Fn(3); Fn(4); \
   } while (false)
 
 #define FATAL_BENCHMARK_CASES_MONOTONIC_INNER_0_10(Fn) \
@@ -2832,6 +2842,12 @@ namespace benchmark {
     Fn(4993); Fn(4994); Fn(4995); Fn(4996); Fn(4997); Fn(4998); Fn(4999); \
     Fn(5000); \
   } while (false)
+
+#define FATAL_BENCHMARK_CASES_CSV_OUTER_0_4(Fn, ...) \
+  Fn( \
+    __VA_ARGS__(0), __VA_ARGS__(1), __VA_ARGS__(2), __VA_ARGS__(3), \
+    __VA_ARGS__(4) \
+  )
 
 #define FATAL_BENCHMARK_CASES_CSV_OUTER_0_10(Fn, ...) \
   Fn( \
@@ -5431,6 +5447,12 @@ namespace benchmark {
     _VA_ARGS__(4992); _VA_ARGS__(4993); _VA_ARGS__(4994); _VA_ARGS__(4995); \
     _VA_ARGS__(4996); _VA_ARGS__(4997); _VA_ARGS__(4998); _VA_ARGS__(4999); \
     _VA_ARGS__(5000); \
+  )
+
+#define FATAL_BENCHMARK_CASES_CSV_INNER_0_4(Fn, ...) \
+  Fn( \
+    __VA_ARGS__(0), __VA_ARGS__(1), __VA_ARGS__(2), __VA_ARGS__(3), \
+    __VA_ARGS__(4) \
   )
 
 #define FATAL_BENCHMARK_CASES_CSV_INNER_0_10(Fn, ...) \
@@ -8033,6 +8055,11 @@ namespace benchmark {
     _VA_ARGS__(5000); \
   )
 
+#define FATAL_BENCHMARK_CASES_MONOTONIC_OUTER_0_4_SHUFFLED(Fn) \
+  do { \
+    Fn(3); Fn(1); Fn(4); Fn(2); Fn(0); \
+  } while (false)
+
 #define FATAL_BENCHMARK_CASES_MONOTONIC_OUTER_0_10_SHUFFLED(Fn) \
   do { \
     Fn(2); Fn(10); Fn(1); Fn(0); Fn(7); Fn(4); Fn(3); Fn(6); Fn(8); Fn(5); \
@@ -9545,6 +9572,11 @@ namespace benchmark {
     Fn(3098); Fn(537); Fn(2547); Fn(314); Fn(2466); Fn(1089); Fn(2114); \
     Fn(3059); Fn(3786); Fn(156); Fn(1294); Fn(3345); Fn(3580); Fn(4742); \
     Fn(362); Fn(854); Fn(2143); \
+  } while (false)
+
+#define FATAL_BENCHMARK_CASES_MONOTONIC_INNER_0_4_SHUFFLED(Fn) \
+  do { \
+    Fn(1); Fn(0); Fn(3); Fn(4); Fn(2); \
   } while (false)
 
 #define FATAL_BENCHMARK_CASES_MONOTONIC_INNER_0_10_SHUFFLED(Fn) \
@@ -11060,6 +11092,12 @@ namespace benchmark {
     Fn(4518); Fn(525); Fn(123); Fn(4137); Fn(642); Fn(1509); Fn(1467); \
     Fn(2806); Fn(1466); Fn(138); \
   } while (false)
+
+#define FATAL_BENCHMARK_CASES_CSV_OUTER_0_4_SHUFFLED(Fn, ...) \
+  Fn( \
+    __VA_ARGS__(3), __VA_ARGS__(1), __VA_ARGS__(0), __VA_ARGS__(4), \
+    __VA_ARGS__(2) \
+  )
 
 #define FATAL_BENCHMARK_CASES_CSV_OUTER_0_10_SHUFFLED(Fn, ...) \
   Fn( \
@@ -13677,6 +13715,12 @@ namespace benchmark {
     __VA_ARGS__(4789), __VA_ARGS__(1882), __VA_ARGS__(3512), __VA_ARGS__(2083),\
     __VA_ARGS__(20), __VA_ARGS__(1420), __VA_ARGS__(4096), __VA_ARGS__(3660),\
     __VA_ARGS__(4611) \
+  )
+
+#define FATAL_BENCHMARK_CASES_CSV_INNER_0_4_SHUFFLED(Fn, ...) \
+  Fn( \
+    __VA_ARGS__(0), __VA_ARGS__(3), __VA_ARGS__(1), __VA_ARGS__(2), \
+    __VA_ARGS__(4) \
   )
 
 #define FATAL_BENCHMARK_CASES_CSV_INNER_0_10_SHUFFLED(Fn, ...) \
