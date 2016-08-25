@@ -42,7 +42,7 @@ fi
 
 CC_ARGS="-o $out_binary $CC_ARGS $CC_OPT -g -pthread -ftemplate-depth-1024 -ftemplate-backtrace-limit=0"
 if [ "${USE_CC:0:5}" = "clang" ]; then
-  CC_ARGS="$CC_ARGS -ferror-limit=3"
+  CC_ARGS="$CC_ARGS -ferror-limit=1"
 fi
 if [ "$PRE_PROC" = "true" ]; then
   CC_ARGS="-E"
