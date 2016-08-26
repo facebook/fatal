@@ -20,7 +20,7 @@ template <typename T, T...> struct sequence;
 
 } // namespace fatal {
 
-#include <cstdint>
+#include <cstdlib>
 
 #include <fatal/type/impl/sequence.h>
 
