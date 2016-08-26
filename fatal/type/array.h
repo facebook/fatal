@@ -18,7 +18,7 @@ template <typename Array, typename... T>
 using as_array = typename impl_a::ca<Array, T...>::type;
 
 template <typename Array, typename... T>
-constexpr typename std::decay<
+static constexpr typename std::decay<
   decltype(impl_a::z<Array, T...>::data)
 >::type z_data() {
   return impl_a::z<Array, T...>::data;
