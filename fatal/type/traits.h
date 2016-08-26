@@ -309,6 +309,9 @@ class is_template {
 
 public:
   template <typename T>
+  using apply = logical::any<impl<TTemplates, T>...>;
+
+  template <typename T>
   using type = logical::any<impl<TTemplates, T>...>;
 };
 

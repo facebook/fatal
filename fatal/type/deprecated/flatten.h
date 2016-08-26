@@ -80,7 +80,10 @@ struct flatten_sequence;
   *
   * @author: Marcelo Juchem <marcelo@fb.com>
   */
-template <template <typename...> class List, template <typename...> class Which>
+template <
+  template <typename...> class List,
+  template <typename...> class Which = List
+>
 struct flatten {
   template <typename... Args>
   using apply = typename detail::operation_impl::flatten<Which, Args...>
