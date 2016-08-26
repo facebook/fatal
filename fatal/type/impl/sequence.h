@@ -46,7 +46,7 @@ struct offset<T, Offset, sequence<T, Values...>> {
 };
 
 template <typename T, std::size_t Size>
-constexpr std::size_t size(T const (&)[Size]) {
+static constexpr std::size_t size(T const (&)[Size]) {
   static_assert(
     Size > 0,
     "expecting a string containing at least the null terminator"
