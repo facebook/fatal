@@ -19,7 +19,7 @@ namespace impl_gt {
 template <template <typename> class, typename...> struct gt;
 
 template <typename Key, typename Value>
-Value fnd(pair<Key, Value>);
+static Value fnd(pair<Key, Value>);
 
 template <
   template <typename...> class List,
