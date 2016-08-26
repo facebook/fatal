@@ -10,7 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_longest_common_prefix_h
 #define FATAL_INCLUDE_fatal_type_longest_common_prefix_h
 
-#include <type_traits>
+#include <cstdlib>
 
 #include <fatal/type/impl/longest_common_prefix.h>
 
@@ -22,10 +22,9 @@ template <
   std::size_t End,
   typename... Args
 >
-using longest_common_prefix_size = std::integral_constant<
-  std::size_t,
-  impl_lcp::s<true, Key, Begin, End, Args...>::value
->;
+using longest_common_prefix = typename impl_lcp::s<
+  true, Key, Begin, End, Args...
+>::type;
 
 } // namespace fatal {
 
