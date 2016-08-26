@@ -19,7 +19,6 @@
 #include <fatal/type/longest_common_prefix.h>
 #include <fatal/type/map.h>
 #include <fatal/type/pair.h>
-#include <fatal/type/prefix_tree.h>
 #include <fatal/type/push.h>
 #include <fatal/type/replace.h>
 #include <fatal/type/search.h>
@@ -31,6 +30,7 @@
 #include <fatal/type/split.h>
 #include <fatal/type/tag.h>
 #include <fatal/type/transform.h>
+#include <fatal/type/trie.h>
 #include <fatal/type/type.h>
 #include <fatal/type/zip.h>
 
@@ -145,8 +145,11 @@ using all = std::true_type;
 template <typename>
 using none = std::false_type;
 
-template <typename T>
-using size7 = std::integral_constant<bool, size<T>::value == 7>;
+template <std::size_t Size>
+struct size_eq {
+  template <typename T>
+  using apply = std::integral_constant<bool, size<T>::value == Size>;
+};
 
 template <typename T>
 using is_odd = std::integral_constant<bool, (T::value & 1) != 1>;
@@ -210,7 +213,7 @@ struct test_head {
 };
 
 template <typename... Args>
-using tst_longest_common_prefix_size = longest_common_prefix_size<
+using tst_longest_common_prefix = longest_common_prefix<
   at,
   0,
   vmin<less, size<Args>...>::value,
@@ -218,10 +221,10 @@ using tst_longest_common_prefix_size = longest_common_prefix_size<
 >;
 
 template <typename T, typename Needle>
-bool test_ptree() {
+bool test_trie() {
   using needle = as_array<Needle, char>;
-  return prefix_tree<T>::find(
-    needle::data,
+  return trie_find<T>(
+    static_cast<char const *>(needle::data),
     std::next(needle::data, needle::size::value),
     test_search_visitor<tag<Needle>>()
   );
@@ -321,97 +324,24 @@ struct str {
     >;
 
     using group_by = list<
-      pair<
-        ch<'f'>,
-        list<far, fart, farther, fast, faster, fastest, fat, fist>
-      >,
-      pair<
-        ch<'g'>,
+      list<far, fart, farther, fast, faster, fastest, fat, fist>,
+      list<gold, good, gooey, granite, great, green, grok, groove>
+    >;
+
+    using filtered_group_by_3 = pair<
+      list<far, fat>,
+      list<
+        list<fart, farther, fast, faster, fastest, fist>,
         list<gold, good, gooey, granite, great, green, grok, groove>
       >
     >;
 
-    using filtered_group_by = list<
-      test_list<farther, fastest, granite>,
-      pair<
-        ch<'f'>,
-        list<far, fart, fast, faster, fat, fist>
-      >,
-      pair<
-        ch<'g'>,
+    using filtered_group_by_7 = pair<
+      list<farther, fastest, granite>,
+      list<
+        list<far, fart, fast, faster, fat, fist>,
         list<gold, good, gooey, great, green, grok, groove>
       >
-    >;
-
-    using prefix_tree = list<
-      pair<ch<'f'>, list<
-        pair<ch<'a'>, list<
-          pair<ch<'r'>, list<
-            impl_pt::t<far>,
-            pair<ch<'t'>, list<
-              impl_pt::t<fart>,
-              pair<ch<'h'>, list<
-                impl_pt::t<farther>
-              >>
-            >>
-          >>,
-          pair<ch<'s'>, list<
-            pair<ch<'t'>, list<
-              impl_pt::t<fast>,
-              pair<ch<'e'>, list<
-                pair<ch<'r'>, list<
-                  impl_pt::t<faster>
-                >>,
-                pair<ch<'s'>, list<
-                  impl_pt::t<fastest>
-                >>
-              >>
-            >>
-          >>,
-          pair<ch<'t'>, list<
-            impl_pt::t<fat>
-          >>
-        >>,
-        pair<ch<'i'>, list<
-          impl_pt::t<fist>
-        >>
-      >>,
-      pair<ch<'g'>, list<
-        pair<ch<'o'>, list<
-          pair<ch<'l'>, list<
-            impl_pt::t<gold>
-          >>,
-          pair<ch<'o'>, list<
-            pair<ch<'d'>, list<
-              impl_pt::t<good>
-            >>,
-            pair<ch<'e'>, list<
-              impl_pt::t<gooey>
-            >>
-          >>
-        >>,
-        pair<ch<'r'>, list<
-          pair<ch<'a'>, list<
-            impl_pt::t<granite>
-          >>,
-          pair<ch<'e'>, list<
-            pair<ch<'a'>, list<
-              impl_pt::t<great>
-            >>,
-            pair<ch<'e'>, list<
-              impl_pt::t<green>
-            >>
-          >>,
-          pair<ch<'o'>, list<
-            pair<ch<'k'>, list<
-              impl_pt::t<grok>
-            >>,
-            pair<ch<'o'>, list<
-              impl_pt::t<groove>
-            >>
-          >>
-        >>
-      >>
     >;
   };
 
@@ -449,97 +379,24 @@ struct str {
     >;
 
     using group_by = list<
-      pair<
-        ch<'f'>,
-        list<far, fart, farther, fast, faster, fastest, fat, fist>
-      >,
-      pair<
-        ch<'g'>,
+      list<far, fart, farther, fast, faster, fastest, fat, fist>,
+      list<gold, good, gooey, granite, great, green, grok, groove>
+    >;
+
+    using filtered_group_by_3 = pair<
+      list<far, fat>,
+      list<
+        list<fart, farther, fast, faster, fastest, fist>,
         list<gold, good, gooey, granite, great, green, grok, groove>
       >
     >;
 
-    using filtered_group_by = list<
-      test_list<farther, fastest, granite>,
-      pair<
-        ch<'f'>,
-        list<far, fart, fast, faster, fat, fist>
-      >,
-      pair<
-        ch<'g'>,
+    using filtered_group_by_7 = pair<
+      list<farther, fastest, granite>,
+      list<
+        list<far, fart, fast, faster, fat, fist>,
         list<gold, good, gooey, great, green, grok, groove>
       >
-    >;
-
-    using prefix_tree = list<
-      pair<ch<'f'>, list<
-        pair<ch<'a'>, list<
-          pair<ch<'r'>, list<
-            impl_pt::t<far>,
-            pair<ch<'t'>, list<
-              impl_pt::t<fart>,
-              pair<ch<'h'>, list<
-                impl_pt::t<farther>
-              >>
-            >>
-          >>,
-          pair<ch<'s'>, list<
-            pair<ch<'t'>, list<
-              impl_pt::t<fast>,
-              pair<ch<'e'>, list<
-                pair<ch<'r'>, list<
-                  impl_pt::t<faster>
-                >>,
-                pair<ch<'s'>, list<
-                  impl_pt::t<fastest>
-                >>
-              >>
-            >>
-          >>,
-          pair<ch<'t'>, list<
-            impl_pt::t<fat>
-          >>
-        >>,
-        pair<ch<'i'>, list<
-          impl_pt::t<fist>
-        >>
-      >>,
-      pair<ch<'g'>, list<
-        pair<ch<'o'>, list<
-          pair<ch<'l'>, list<
-            impl_pt::t<gold>
-          >>,
-          pair<ch<'o'>, list<
-            pair<ch<'d'>, list<
-              impl_pt::t<good>
-            >>,
-            pair<ch<'e'>, list<
-              impl_pt::t<gooey>
-            >>
-          >>
-        >>,
-        pair<ch<'r'>, list<
-          pair<ch<'a'>, list<
-            impl_pt::t<granite>
-          >>,
-          pair<ch<'e'>, list<
-            pair<ch<'a'>, list<
-              impl_pt::t<great>
-            >>,
-            pair<ch<'e'>, list<
-              impl_pt::t<green>
-            >>
-          >>,
-          pair<ch<'o'>, list<
-            pair<ch<'k'>, list<
-              impl_pt::t<grok>
-            >>,
-            pair<ch<'o'>, list<
-              impl_pt::t<groove>
-            >>
-          >>
-        >>
-      >>
     >;
   };
 
@@ -1241,25 +1098,34 @@ int main() {
   SAME(str::lst::group_by, group_by<str::lst::sorted, first>);
 
   SAME(
-    str::seq::group_by,
-    filtered_group_by<str::seq::sorted, first, none, test_list>
+    pair<list<>, str::seq::group_by>,
+    filtered_group_by<str::seq::sorted, first, none>
   );
   SAME(
-    str::lst::group_by,
-    filtered_group_by<str::lst::sorted, first, none, test_list>
+    pair<list<>, str::lst::group_by>,
+    filtered_group_by<str::lst::sorted, first, none>
   );
 
   SAME(
-    str::seq::filtered_group_by,
-    filtered_group_by<str::seq::sorted, first, size7, test_list>
+    str::seq::filtered_group_by_3,
+    filtered_group_by<str::seq::sorted, first, size_eq<3>::apply>
   );
   SAME(
-    str::lst::filtered_group_by,
-    filtered_group_by<str::lst::sorted, first, size7, test_list>
+    str::lst::filtered_group_by_3,
+    filtered_group_by<str::lst::sorted, first, size_eq<3>::apply>
   );
 
-  SAME(str::lst::prefix_tree, impl_pt::build<str::lst::sorted>);
-  SAME(str::seq::prefix_tree, impl_pt::build<str::seq::sorted>);
+  SAME(
+    str::seq::filtered_group_by_7,
+    filtered_group_by<str::seq::sorted, first, size_eq<7>::apply>
+  );
+  SAME(
+    str::lst::filtered_group_by_7,
+    filtered_group_by<str::lst::sorted, first, size_eq<7>::apply>
+  );
+
+  SAME(str::seq::group_by, group_by<str::seq::sorted, first>);
+  SAME(str::lst::group_by, group_by<str::lst::sorted, first>);
 
   foreach<lst>(fn::no_op());
 
@@ -1479,81 +1345,6 @@ int main() {
   TEST_AS_ARRAY_FROM(lst, fat);
   TEST_AS_ARRAY_FROM(lst, fist);
 
-  EQF(test_ptree<list<>, str::seq::fat>());
-
-  EQT(test_ptree<list<str::seq::fat>, str::seq::fat>());
-  EQF(test_ptree<list<str::seq::fat>, str::seq::gooey>());
-
-  EQF(test_ptree<list<str::seq::fastest>, str::seq::fat>());
-  EQF(test_ptree<list<str::seq::fastest>, str::seq::fast>());
-  EQF(test_ptree<list<str::seq::fastest>, str::seq::faster>());
-  EQT(test_ptree<list<str::seq::fastest>, str::seq::fastest>());
-
-  EQT(test_ptree<list<str::seq::fastest, str::seq::fat>, str::seq::fat>());
-  EQF(test_ptree<list<str::seq::fastest, str::seq::fat>, str::seq::fast>());
-  EQF(test_ptree<list<str::seq::fastest, str::seq::fat>, str::seq::gooey>());
-  EQF(test_ptree<list<str::seq::fastest, str::seq::fat>, str::seq::faster>());
-  EQT(test_ptree<list<str::seq::fastest, str::seq::fat>, str::seq::fastest>());
-
-  EQT(test_ptree<str::seq::shuffled, str::seq::gooey>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::fast>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::granite>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::fastest>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::fart>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::far>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::good>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::great>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::grok>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::faster>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::green>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::gold>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::farther>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::groove>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::fat>());
-  EQT(test_ptree<str::seq::shuffled, str::seq::fist>());
-  EQF(test_ptree<str::seq::shuffled, str::seq::empty>());
-  EQF(test_ptree<str::seq::shuffled, str::seq::x>());
-  EQF(test_ptree<str::seq::shuffled, str::seq::notfound>());
-
-  EQF(test_ptree<list<>, str::lst::fat>());
-
-  EQT(test_ptree<list<str::lst::fat>, str::lst::fat>());
-  EQF(test_ptree<list<str::lst::fat>, str::lst::gooey>());
-
-  EQF(test_ptree<list<str::lst::fastest>, str::lst::fat>());
-  EQF(test_ptree<list<str::lst::fastest>, str::lst::fast>());
-  EQF(test_ptree<list<str::lst::fastest>, str::lst::faster>());
-  EQT(test_ptree<list<str::lst::fastest>, str::lst::fastest>());
-
-  EQT(test_ptree<list<str::lst::fastest, str::lst::fat>, str::lst::fat>());
-  EQF(test_ptree<list<str::lst::fastest, str::lst::fat>, str::lst::fast>());
-  EQF(test_ptree<list<str::lst::fastest, str::lst::fat>, str::lst::gooey>());
-  EQF(test_ptree<list<str::lst::fastest, str::lst::fat>, str::lst::faster>());
-  EQT(test_ptree<list<str::lst::fastest, str::lst::fat>, str::lst::fastest>());
-
-  EQT(test_ptree<str::lst::shuffled, str::lst::gooey>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::fast>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::granite>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::fastest>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::fart>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::far>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::good>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::great>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::grok>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::faster>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::green>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::gold>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::farther>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::groove>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::fat>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::fist>());
-  EQF(test_ptree<str::lst::shuffled, str::lst::empty>());
-  EQF(test_ptree<str::lst::shuffled, str::lst::x>());
-  EQF(test_ptree<str::lst::shuffled, str::lst::notfound>());
-
-  EQT(test_ptree<str::seq::shuffled, str::seq::fastest>());
-  EQT(test_ptree<str::lst::shuffled, str::lst::fastest>());
-
   SAME(
     test_list<list<sz<10>>, list<sz<11>>, list<sz<12>>, list<sz<13>>>,
     zip<test_list, list, list<sz<10>, sz<11>, sz<12>, sz<13>>>
@@ -1604,14 +1395,14 @@ int main() {
     >
   );
 
-  EQUAL(3, tst_longest_common_prefix_size<str::misc::foo>);
-  EQUAL(6, tst_longest_common_prefix_size<str::misc::foobar>);
-  EQUAL(3, tst_longest_common_prefix_size<str::misc::foo, str::misc::foobar>);
-  EQUAL(5, tst_longest_common_prefix_size<str::misc::foobar, str::misc::foobaz>);
+  EQUAL(3, tst_longest_common_prefix<str::misc::foo>);
+  EQUAL(6, tst_longest_common_prefix<str::misc::foobar>);
+  EQUAL(3, tst_longest_common_prefix<str::misc::foo, str::misc::foobar>);
+  EQUAL(5, tst_longest_common_prefix<str::misc::foobar, str::misc::foobaz>);
 
   EQUAL(
     4,
-    tst_longest_common_prefix_size<
+    tst_longest_common_prefix<
       str::misc::foobar,
       str::misc::foobaz,
       str::misc::foobAr
@@ -1620,7 +1411,7 @@ int main() {
 
   EQUAL(
     3,
-    tst_longest_common_prefix_size<
+    tst_longest_common_prefix<
       str::misc::foo,
       str::misc::foobar,
       str::misc::foobaz,
@@ -1635,6 +1426,202 @@ int main() {
   EQ("faster", to_instance<std::string, str::lst::fast>('e', 'r'));
   EQ("faster", to_instance<std::string, str::seq::fast>('e', 'r'));
 
+  EQF(test_trie<list<>, str::seq::fat>());
+
+  EQT(test_trie<list<str::seq::empty>, str::seq::empty>());
+  EQF(test_trie<list<str::seq::empty>, str::seq::fat>());
+
+  EQT(test_trie<list<str::seq::fat>, str::seq::fat>());
+  EQF(test_trie<list<str::seq::fat>, str::seq::gooey>());
+
+  EQF(test_trie<list<str::seq::fastest>, str::seq::fat>());
+  EQF(test_trie<list<str::seq::fastest>, str::seq::fast>());
+  EQF(test_trie<list<str::seq::fastest>, str::seq::faster>());
+  EQT(test_trie<list<str::seq::fastest>, str::seq::fastest>());
+
+  EQT(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::fat>());
+  EQF(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::fast>());
+  EQF(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::gooey>());
+  EQF(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::faster>());
+  EQT(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::fastest>());
+
+  EQT(test_trie<str::seq::shuffled, str::seq::gooey>());
+  EQT(test_trie<str::seq::shuffled, str::seq::fast>());
+  EQT(test_trie<str::seq::shuffled, str::seq::granite>());
+  EQT(test_trie<str::seq::shuffled, str::seq::fastest>());
+  EQT(test_trie<str::seq::shuffled, str::seq::fart>());
+  EQT(test_trie<str::seq::shuffled, str::seq::far>());
+  EQT(test_trie<str::seq::shuffled, str::seq::good>());
+  EQT(test_trie<str::seq::shuffled, str::seq::great>());
+  EQT(test_trie<str::seq::shuffled, str::seq::grok>());
+  EQT(test_trie<str::seq::shuffled, str::seq::faster>());
+  EQT(test_trie<str::seq::shuffled, str::seq::green>());
+  EQT(test_trie<str::seq::shuffled, str::seq::gold>());
+  EQT(test_trie<str::seq::shuffled, str::seq::farther>());
+  EQT(test_trie<str::seq::shuffled, str::seq::groove>());
+  EQT(test_trie<str::seq::shuffled, str::seq::fat>());
+  EQT(test_trie<str::seq::shuffled, str::seq::fist>());
+  EQF(test_trie<str::seq::shuffled, str::seq::empty>());
+  EQF(test_trie<str::seq::shuffled, str::seq::x>());
+  EQF(test_trie<str::seq::shuffled, str::seq::notfound>());
+
+  EQF(test_trie<list<>, str::lst::fat>());
+
+  EQT(test_trie<list<str::lst::empty>, str::lst::empty>());
+  EQF(test_trie<list<str::lst::empty>, str::lst::fat>());
+
+  EQT(test_trie<list<str::lst::fat>, str::lst::fat>());
+  EQF(test_trie<list<str::lst::fat>, str::lst::gooey>());
+
+  EQF(test_trie<list<str::lst::fastest>, str::lst::fat>());
+  EQF(test_trie<list<str::lst::fastest>, str::lst::fast>());
+  EQF(test_trie<list<str::lst::fastest>, str::lst::faster>());
+  EQT(test_trie<list<str::lst::fastest>, str::lst::fastest>());
+
+  EQT(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::fat>());
+  EQF(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::fast>());
+  EQF(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::gooey>());
+  EQF(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::faster>());
+  EQT(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::fastest>());
+
+  EQT(test_trie<str::lst::shuffled, str::lst::gooey>());
+  EQT(test_trie<str::lst::shuffled, str::lst::fast>());
+  EQT(test_trie<str::lst::shuffled, str::lst::granite>());
+  EQT(test_trie<str::lst::shuffled, str::lst::fastest>());
+  EQT(test_trie<str::lst::shuffled, str::lst::fart>());
+  EQT(test_trie<str::lst::shuffled, str::lst::far>());
+  EQT(test_trie<str::lst::shuffled, str::lst::good>());
+  EQT(test_trie<str::lst::shuffled, str::lst::great>());
+  EQT(test_trie<str::lst::shuffled, str::lst::grok>());
+  EQT(test_trie<str::lst::shuffled, str::lst::faster>());
+  EQT(test_trie<str::lst::shuffled, str::lst::green>());
+  EQT(test_trie<str::lst::shuffled, str::lst::gold>());
+  EQT(test_trie<str::lst::shuffled, str::lst::farther>());
+  EQT(test_trie<str::lst::shuffled, str::lst::groove>());
+  EQT(test_trie<str::lst::shuffled, str::lst::fat>());
+  EQT(test_trie<str::lst::shuffled, str::lst::fist>());
+  EQF(test_trie<str::lst::shuffled, str::lst::empty>());
+  EQF(test_trie<str::lst::shuffled, str::lst::x>());
+  EQF(test_trie<str::lst::shuffled, str::lst::notfound>());
+
+/*
+  SAME(pt2::expected0, pt2::build_trie<pt2::input0, less>);
+  SAME(pt2::expected, pt2::build_trie<pt2::input, less>);
+  SAME(pt2::expected_, pt2::build_trie<pt2::input_, less>);
+  SAME(pt2::expected1, pt2::build_trie<pt2::input1, less>);
+  SAME(pt2::expected2, pt2::build_trie<pt2::input2, less>);
+  */
+/*
+  EQF(test_trie2<pt2::input0, pt2::empty>());
+  EQF(test_trie2<pt2::input0, pt2::foo>());
+  EQT(test_trie2<pt2::input0, pt2::foobar>());
+  EQT(test_trie2<pt2::input0, pt2::foobaz>());
+  EQF(test_trie2<pt2::input0, pt2::foogaz>());
+  EQF(test_trie2<pt2::input0, pt2::gooey>());
+  EQF(test_trie2<pt2::input0, pt2::fast>());
+  EQF(test_trie2<pt2::input0, pt2::granite>());
+  EQF(test_trie2<pt2::input0, pt2::fastest>());
+  EQF(test_trie2<pt2::input0, pt2::fart>());
+  EQF(test_trie2<pt2::input0, pt2::far>());
+  EQF(test_trie2<pt2::input0, pt2::good>());
+  EQF(test_trie2<pt2::input0, pt2::great>());
+  EQF(test_trie2<pt2::input0, pt2::grok>());
+  EQF(test_trie2<pt2::input0, pt2::faster>());
+  EQF(test_trie2<pt2::input0, pt2::green>());
+  EQF(test_trie2<pt2::input0, pt2::gold>());
+  EQF(test_trie2<pt2::input0, pt2::farther>());
+  EQF(test_trie2<pt2::input0, pt2::groove>());
+  EQF(test_trie2<pt2::input0, pt2::fat>());
+  EQF(test_trie2<pt2::input0, pt2::fist>());
+
+  EQF(test_trie2<pt2::input, pt2::empty>());
+  EQT(test_trie2<pt2::input, pt2::foo>());
+  EQT(test_trie2<pt2::input, pt2::foobar>());
+  EQT(test_trie2<pt2::input, pt2::foobaz>());
+  EQF(test_trie2<pt2::input, pt2::foogaz>());
+  EQF(test_trie2<pt2::input, pt2::gooey>());
+  EQF(test_trie2<pt2::input, pt2::fast>());
+  EQF(test_trie2<pt2::input, pt2::granite>());
+  EQF(test_trie2<pt2::input, pt2::fastest>());
+  EQF(test_trie2<pt2::input, pt2::fart>());
+  EQF(test_trie2<pt2::input, pt2::far>());
+  EQF(test_trie2<pt2::input, pt2::good>());
+  EQF(test_trie2<pt2::input, pt2::great>());
+  EQF(test_trie2<pt2::input, pt2::grok>());
+  EQF(test_trie2<pt2::input, pt2::faster>());
+  EQF(test_trie2<pt2::input, pt2::green>());
+  EQF(test_trie2<pt2::input, pt2::gold>());
+  EQF(test_trie2<pt2::input, pt2::farther>());
+  EQF(test_trie2<pt2::input, pt2::groove>());
+  EQF(test_trie2<pt2::input, pt2::fat>());
+  EQF(test_trie2<pt2::input, pt2::fist>());
+
+  EQF(test_trie2<pt2::input_, pt2::empty>());
+  EQT(test_trie2<pt2::input_, pt2::foo>());
+  EQT(test_trie2<pt2::input_, pt2::foobar>());
+  EQT(test_trie2<pt2::input_, pt2::foobaz>());
+  EQT(test_trie2<pt2::input_, pt2::foogaz>());
+  EQF(test_trie2<pt2::input_, pt2::gooey>());
+  EQF(test_trie2<pt2::input_, pt2::fast>());
+  EQF(test_trie2<pt2::input_, pt2::granite>());
+  EQF(test_trie2<pt2::input_, pt2::fastest>());
+  EQF(test_trie2<pt2::input_, pt2::fart>());
+  EQF(test_trie2<pt2::input_, pt2::far>());
+  EQF(test_trie2<pt2::input_, pt2::good>());
+  EQF(test_trie2<pt2::input_, pt2::great>());
+  EQF(test_trie2<pt2::input_, pt2::grok>());
+  EQF(test_trie2<pt2::input_, pt2::faster>());
+  EQF(test_trie2<pt2::input_, pt2::green>());
+  EQF(test_trie2<pt2::input_, pt2::gold>());
+  EQF(test_trie2<pt2::input_, pt2::farther>());
+  EQF(test_trie2<pt2::input_, pt2::groove>());
+  EQF(test_trie2<pt2::input_, pt2::fat>());
+  EQF(test_trie2<pt2::input_, pt2::fist>());
+
+  EQT(test_trie2<pt2::input1, pt2::empty>());
+  EQT(test_trie2<pt2::input1, pt2::foo>());
+  EQT(test_trie2<pt2::input1, pt2::foobar>());
+  EQT(test_trie2<pt2::input1, pt2::foobaz>());
+  EQF(test_trie2<pt2::input1, pt2::foogaz>());
+  EQF(test_trie2<pt2::input1, pt2::gooey>());
+  EQF(test_trie2<pt2::input1, pt2::fast>());
+  EQF(test_trie2<pt2::input1, pt2::granite>());
+  EQF(test_trie2<pt2::input1, pt2::fastest>());
+  EQF(test_trie2<pt2::input1, pt2::fart>());
+  EQF(test_trie2<pt2::input1, pt2::far>());
+  EQF(test_trie2<pt2::input1, pt2::good>());
+  EQF(test_trie2<pt2::input1, pt2::great>());
+  EQF(test_trie2<pt2::input1, pt2::grok>());
+  EQF(test_trie2<pt2::input1, pt2::faster>());
+  EQF(test_trie2<pt2::input1, pt2::green>());
+  EQF(test_trie2<pt2::input1, pt2::gold>());
+  EQF(test_trie2<pt2::input1, pt2::farther>());
+  EQF(test_trie2<pt2::input1, pt2::groove>());
+  EQF(test_trie2<pt2::input1, pt2::fat>());
+  EQF(test_trie2<pt2::input1, pt2::fist>());
+
+  EQF(test_trie2<pt2::input2, pt2::empty>());
+  EQF(test_trie2<pt2::input2, pt2::foo>());
+  EQF(test_trie2<pt2::input2, pt2::foobar>());
+  EQF(test_trie2<pt2::input2, pt2::foobaz>());
+  EQF(test_trie2<pt2::input2, pt2::foogaz>());
+  EQT(test_trie2<pt2::input2, pt2::gooey>());
+  EQT(test_trie2<pt2::input2, pt2::fast>());
+  EQT(test_trie2<pt2::input2, pt2::granite>());
+  EQT(test_trie2<pt2::input2, pt2::fastest>());
+  EQT(test_trie2<pt2::input2, pt2::fart>());
+  EQT(test_trie2<pt2::input2, pt2::far>());
+  EQT(test_trie2<pt2::input2, pt2::good>());
+  EQT(test_trie2<pt2::input2, pt2::great>());
+  EQT(test_trie2<pt2::input2, pt2::grok>());
+  EQT(test_trie2<pt2::input2, pt2::faster>());
+  EQT(test_trie2<pt2::input2, pt2::green>());
+  EQT(test_trie2<pt2::input2, pt2::gold>());
+  EQT(test_trie2<pt2::input2, pt2::farther>());
+  EQT(test_trie2<pt2::input2, pt2::groove>());
+  EQT(test_trie2<pt2::input2, pt2::fat>());
+  EQT(test_trie2<pt2::input2, pt2::fist>());
+*/
   std::cout << "done" << std::endl;
   return exit_code;
 }
