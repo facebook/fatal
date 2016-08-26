@@ -13,7 +13,7 @@
 #include <fatal/type/size.h>
 #include <fatal/type/tag.h>
 
-#include <cstdint>
+#include <cstdlib>
 
 #include <fatal/type/impl/slice.h>
 
@@ -30,12 +30,15 @@ using try_at = typename impl_at::tat<
   Default
 >::type;
 
+// TODO: MAKE IT A TYPE
 template <typename T>
 using first = at<T, 0>;
 
+// TODO: MAKE IT A TYPE
 template <typename T>
 using second = at<T, 1>;
 
+// TODO: MAKE IT A TYPE
 template <typename T>
 using third = at<T, 2>;
 
@@ -56,6 +59,15 @@ using index = typename impl_at::idx<
   Container,
   make_index_sequence<size<Container>::value>
 >;
+
+template <typename T0, typename...>
+using first_argument = T0;
+
+template <typename T0, typename T1, typename...>
+using second_argument = T1;
+
+template <typename T0, typename T1, typename T2, typename...>
+using third_argument = T2;
 
 // TODO: REDUCE TEMPLATE INSTANTIATIONS
 template <typename T, typename Of>
