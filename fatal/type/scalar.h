@@ -71,7 +71,7 @@ template <
   typename From,
   typename T = typename detail::scalar_impl::to_scalar<From>::default_type
 >
-constexpr T to_scalar() noexcept {
+static constexpr T to_scalar() noexcept {
   return detail::scalar_impl::to_scalar<From>::template to<T>();
 }
 
@@ -105,7 +105,7 @@ template <typename T, bool = std::is_enum<T>::value> struct to_integral_impl;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-typename detail::scalar_impl::to_integral_impl<T>::type to_integral(
+static typename detail::scalar_impl::to_integral_impl<T>::type to_integral(
   T const value
 ) {
   return detail::scalar_impl::to_integral_impl<T>::convert(value);
@@ -130,11 +130,11 @@ typename detail::scalar_impl::to_integral_impl<T>::type to_integral(
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-T bitwise_merge(T const value) { return value; }
+static constexpr T bitwise_merge(T const value) { return value; }
 
 // TODO: Implement in logarithmic time
 template <typename T, typename... Args>
-T bitwise_merge(T const lhs, T const rhs, Args... args) {
+static constexpr T bitwise_merge(T const lhs, T const rhs, Args... args) {
   return bitwise_merge(
     static_cast<T>(to_integral(lhs) | to_integral(rhs)),
     args...
@@ -160,10 +160,10 @@ T bitwise_merge(T const lhs, T const rhs, Args... args) {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-T bitwise_filter(T const value) { return value; }
+static constexpr T bitwise_filter(T const value) { return value; }
 
 template <typename T, typename... Args>
-T bitwise_filter(T const lhs, T const rhs, Args... args) {
+static constexpr T bitwise_filter(T const lhs, T const rhs, Args... args) {
   return bitwise_filter(
     static_cast<T>(to_integral(lhs) & to_integral(rhs)),
     args...
@@ -189,7 +189,7 @@ T bitwise_filter(T const lhs, T const rhs, Args... args) {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, typename... Args>
-bool bitwise_has_all(T const value, Args... args) {
+static constexpr bool bitwise_has_all(T const value, Args... args) {
   auto const merged = bitwise_merge(args...);
   return static_cast<T>(bitwise_filter(value, merged)) == merged;
 }
@@ -214,7 +214,7 @@ bool bitwise_has_all(T const value, Args... args) {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T, typename... Args>
-bool bitwise_has_any(T const value, Args... args) {
+static constexpr bool bitwise_has_any(T const value, Args... args) {
   return to_integral(bitwise_filter(value, bitwise_merge(args...))) != 0;
 }
 
@@ -258,6 +258,7 @@ struct to_integral_impl<T, false> {
   using type = T;
   static type convert(T value) { return value; }
 };
+
 template <typename T>
 struct to_integral_impl<T, true> {
   using type = typename std::underlying_type<T>::type;
