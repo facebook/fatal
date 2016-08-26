@@ -10,9 +10,9 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_longest_common_prefix_h
 #define FATAL_INCLUDE_fatal_type_impl_longest_common_prefix_h
 
-#include <fatal/type/select.h>
+#include <fatal/type/list.h>
 
-#include <fatal/type/impl/prefix_tree.h>
+#include <type_traits>
 
 namespace fatal {
 namespace impl_lcp {
@@ -26,44 +26,36 @@ template <
   std::size_t,
   typename...
 >
-struct s: std::integral_constant<std::size_t, Offset> {};
+struct s {
+  using type = std::integral_constant<std::size_t, Offset>;
+};
 
 template <
   template <typename, std::size_t> class Key,
   std::size_t Offset,
   std::size_t End
 >
-struct s<true, Key, Offset, End>:
-  std::integral_constant<std::size_t, Offset>
-{};
+struct s<true, Key, Offset, End> {
+  using type = std::integral_constant<std::size_t, Offset>;
+};
 
 template <
   template <typename, std::size_t> class Key,
   std::size_t End,
   typename... Args
 >
-struct s<false, Key, End, End, Args...>:
-  std::integral_constant<std::size_t, End>
-{};
-
-template <
-  bool B,
-  template <typename, std::size_t> class Key,
-  std::size_t End,
-  typename... Args
->
-struct s<B, Key, End, End, Args...>:
-  std::integral_constant<std::size_t, End>
-{};
+struct s<false, Key, End, End, Args...> {
+  using type = std::integral_constant<std::size_t, End>;
+};
 
 template <
   template <typename, std::size_t> class Key,
   std::size_t End,
   typename T, typename... Args
 >
-struct s<true, Key, End, End, T, Args...>:
-  std::integral_constant<std::size_t, End>
-{};
+struct s<true, Key, End, End, T, Args...> {
+  using type = std::integral_constant<std::size_t, End>;
+};
 
 template <
   template <typename, std::size_t> class Key,
