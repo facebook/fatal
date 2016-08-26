@@ -171,6 +171,7 @@ namespace get_type {
   FATAL_IMPL_GET_TYPE_TYPE(var);
   FATAL_IMPL_GET_TYPE_TYPE(variable);
   FATAL_IMPL_GET_TYPE_TYPE(variant);
+  FATAL_IMPL_GET_TYPE_TYPE(verb);
   FATAL_IMPL_GET_TYPE_TYPE(version);
   FATAL_IMPL_GET_TYPE_TYPE(writer);
   FATAL_IMPL_GET_TYPE_TYPE(writers);
