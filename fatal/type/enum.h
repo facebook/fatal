@@ -17,7 +17,7 @@
 #include <fatal/type/get.h>
 #include <fatal/type/list.h>
 #include <fatal/type/map.h>
-#include <fatal/type/prefix_tree.h>
+#include <fatal/type/trie.h>
 #include <fatal/type/push.h>
 #include <fatal/type/registry.h>
 #include <fatal/type/search.h>
@@ -437,7 +437,7 @@ public:
   static type parse(TBegin &&begin, TEnd &&end) {
     type out;
 
-    if (!prefix_tree<names>::find(
+    if (!trie_find<names>(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     )) {
       throw std::invalid_argument("unrecognized enum value");
@@ -491,7 +491,7 @@ public:
    */
   template <typename TBegin, typename TEnd>
   static constexpr bool try_parse(type &out, TBegin &&begin, TEnd &&end) {
-    return prefix_tree<names>::find(
+    return trie_find<names>(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     );
   }
@@ -534,7 +534,7 @@ public:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename Enum>
-constexpr bool is_valid_enum(Enum e) {
+static constexpr bool is_valid_enum(Enum e) {
   return enum_traits<typename std::decay<Enum>::type>::is_valid(e);
 }
 
@@ -557,7 +557,10 @@ constexpr bool is_valid_enum(Enum e) {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename Enum>
-constexpr char const *enum_to_string(Enum e, char const *fallback = nullptr) {
+static constexpr char const *enum_to_string(
+  Enum const e,
+  char const *fallback = nullptr
+) {
   return enum_traits<typename std::decay<Enum>::type>::to_string(e, fallback);
 }
 
