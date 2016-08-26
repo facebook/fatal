@@ -30,6 +30,12 @@ using vmin = typename impl_sl::vn<Less, Args...>::type;
 template <typename Less, typename... Args>
 using vmax = typename impl_sl::vx<Less, Args...>::type;
 
+template <typename Less, typename T, template <typename...> class... Filter>
+using lmin = typename impl_sl::ln<Less, T, Filter...>::type;
+
+template <typename Less, typename T, template <typename...> class... Filter>
+using lmax = typename impl_sl::lx<Less, T, Filter...>::type;
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_select_h

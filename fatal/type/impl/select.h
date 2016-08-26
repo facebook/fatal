@@ -159,6 +159,34 @@ struct vx<
   >
 {};
 
+// list min //
+
+template <typename, typename, template <typename...> class...> struct ln;
+
+template <typename Less, template <typename...> class List, typename... Args>
+struct ln<Less, List<Args...>>: vn<Less, Args...> {};
+
+template <
+  typename Less,
+  template <typename...> class List, typename... Args,
+  template <typename...> class Filter
+>
+struct ln<Less, List<Args...>, Filter>: vn<Less, Filter<Args>...> {};
+
+// list max //
+
+template <typename, typename, template <typename...> class...> struct lx;
+
+template <typename Less, template <typename...> class List, typename... Args>
+struct lx<Less, List<Args...>>: vx<Less, Args...> {};
+
+template <
+  typename Less,
+  template <typename...> class List, typename... Args,
+  template <typename...> class Filter
+>
+struct lx<Less, List<Args...>, Filter>: vx<Less, Filter<Args>...> {};
+
 } // namespace impl_sl {
 } // namespace fatal {
 
