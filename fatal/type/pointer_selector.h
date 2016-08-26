@@ -275,7 +275,7 @@ using pointer_selector_t = typename pointer_selector<
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename PtrClass, typename T, typename... Args, typename... UArgs>
-pointer_selector_t<PtrClass, T, Args...> make_ptr(UArgs &&...args) {
+static pointer_selector_t<PtrClass, T, Args...> make_ptr(UArgs &&...args) {
   return pointer_selector<PtrClass, T, Args...>::make(
     std::forward<UArgs>(args)...
   );
