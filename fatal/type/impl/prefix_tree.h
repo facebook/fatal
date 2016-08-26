@@ -22,6 +22,330 @@
 #include <cassert>
 
 namespace fatal {
+namespace old_TODO_REMOVE {
+
+template <template <typename> class, template <typename> class, typename...>
+struct fgby;
+
+template <template <typename> class, template <typename> class, typename...>
+struct fgbys;
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  typename... Rejected,
+  template <typename...> class Variadics,
+  typename GroupKey,
+  typename... Group,
+  typename... Result,
+  typename NextKey,
+  typename T,
+  typename... Args
+>
+struct fgbys<
+  Key,
+  RejectPredicate,
+  RejectedGrouping<Rejected...>,
+  GroupKey, Variadics<Group...>,
+  Variadics<Result...>,
+  NextKey, T,
+  Args...
+>:
+  fgby<
+    Key,
+    RejectPredicate,
+    RejectedGrouping<Rejected...>,
+    Variadics<T>,
+    Variadics<Result..., pair<GroupKey, Variadics<Group...>>>,
+    Args...
+  >
+{};
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  typename... Rejected,
+  template <typename...> class Variadics,
+  typename GroupKey,
+  typename... Group,
+  typename... Result,
+  typename T,
+  typename... Args
+>
+struct fgbys<
+  Key,
+  RejectPredicate,
+  RejectedGrouping<Rejected...>,
+  GroupKey, Variadics<Group...>,
+  Variadics<Result...>,
+  GroupKey, T,
+  Args...
+>:
+  fgby<
+    Key,
+    RejectPredicate,
+    RejectedGrouping<Rejected...>,
+    Variadics<Group..., T>,
+    Variadics<Result...>,
+    Args...
+  >
+{};
+
+template <
+  bool,
+  template <typename> class,
+  template <typename> class,
+  typename...
+>
+struct fgbyr;
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  typename... Rejected,
+  template <typename...> class Variadics,
+  typename G,
+  typename... Group,
+  typename... Result,
+  typename T,
+  typename... Args
+>
+struct fgbyr<
+  false,
+  Key,
+  RejectPredicate,
+  RejectedGrouping<Rejected...>,
+  Variadics<G, Group...>,
+  Variadics<Result...>,
+  T, Args...
+> {
+  using type = fgbys<
+    Key,
+    RejectPredicate,
+    RejectedGrouping<Rejected...>,
+    Key<G>, Variadics<G, Group...>,
+    Variadics<Result...>,
+    Key<T>, T,
+    Args...
+  >;
+};
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  typename... Rejected,
+  template <typename...> class Variadics,
+  typename... Result,
+  typename T,
+  typename... Args
+>
+struct fgbyr<
+  false,
+  Key,
+  RejectPredicate,
+  RejectedGrouping<Rejected...>,
+  Variadics<>,
+  Variadics<Result...>,
+  T, Args...
+> {
+  using type = fgby<
+    Key,
+    RejectPredicate,
+    RejectedGrouping<Rejected...>,
+    Variadics<T>,
+    Variadics<Result...>,
+    Args...
+  >;
+};
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  typename... Rejected,
+  template <typename...> class Variadics,
+  typename... Group,
+  typename... Result,
+  typename T,
+  typename... Args
+>
+struct fgbyr<
+  true,
+  Key,
+  RejectPredicate,
+  RejectedGrouping<Rejected...>,
+  Variadics<Group...>,
+  Variadics<Result...>,
+  T, Args...
+> {
+  using type = fgby<
+    Key,
+    RejectPredicate,
+    RejectedGrouping<Rejected..., T>,
+    Variadics<Group...>,
+    Variadics<Result...>,
+    Args...
+  >;
+};
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  template <typename...> class Variadics,
+  typename... Result
+>
+struct fgby<
+  Key,
+  RejectPredicate,
+  RejectedGrouping<>,
+  Variadics<>,
+  Variadics<Result...>
+> {
+  using type = Variadics<Result...>;
+};
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  typename... Rejected,
+  template <typename...> class Variadics,
+  typename... Result
+>
+struct fgby<
+  Key,
+  RejectPredicate,
+  RejectedGrouping<Rejected...>,
+  Variadics<>,
+  Variadics<Result...>
+> {
+  using type = Variadics<RejectedGrouping<Rejected...>, Result...>;
+};
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  template <typename...> class Variadics,
+  typename G,
+  typename... Group,
+  typename... Result
+>
+struct fgby<
+  Key,
+  RejectPredicate,
+  RejectedGrouping<>,
+  Variadics<G, Group...>,
+  Variadics<Result...>
+> {
+  using type = Variadics<Result..., pair<Key<G>, Variadics<G, Group...>>>;
+};
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  typename... Rejected,
+  template <typename...> class Variadics,
+  typename G,
+  typename... Group,
+  typename... Result
+>
+struct fgby<
+  Key,
+  RejectPredicate,
+  RejectedGrouping<Rejected...>,
+  Variadics<G, Group...>,
+  Variadics<Result...>
+> {
+  using type = Variadics<
+    RejectedGrouping<Rejected...>,
+    Result...,
+    pair<Key<G>, Variadics<G, Group...>>
+  >;
+};
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  typename... Rejected,
+  template <typename...> class Variadics,
+  typename... Group,
+  typename... Result,
+  typename T,
+  typename... Args
+>
+struct fgby<
+  Key,
+  RejectPredicate,
+  RejectedGrouping<Rejected...>,
+  Variadics<Group...>,
+  Variadics<Result...>,
+  T, Args...
+>:
+  fgbyr<
+    RejectPredicate<T>::value,
+    Key,
+    RejectPredicate,
+    RejectedGrouping<Rejected...>,
+    Variadics<Group...>,
+    Variadics<Result...>,
+    T, Args...
+  >::type
+{};
+
+template <
+  template <typename> class,
+  template <typename> class,
+  template <typename...> class,
+  typename...
+>
+struct filtered;
+
+template <
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping,
+  template <typename...> class Variadics,
+  typename... Args
+>
+struct filtered<
+  Key,
+  RejectPredicate,
+  RejectedGrouping,
+  Variadics<Args...>
+>:
+  fgby<
+    Key,
+    RejectPredicate,
+    RejectedGrouping<>,
+    Variadics<>,
+    Variadics<>,
+    Args...
+  >
+{};
+
+} // namespace old_TODO_REMOVE {
+
+template <
+  typename T,
+  template <typename> class Key,
+  template <typename> class RejectPredicate,
+  template <typename...> class RejectedGrouping
+>
+using TODO_REMOVE_filtered_group_by = typename old_TODO_REMOVE::filtered<
+  Key,
+  RejectPredicate,
+  RejectedGrouping,
+  T
+>::type;
+
 namespace impl_pt {
 
 // TODO: IMPLEMENT LEADING PATH-COMPRESSION
@@ -29,6 +353,7 @@ namespace impl_pt {
 // terminal //
 template <typename...> struct t {};
 
+// terminal filter //
 template <std::size_t Depth>
 struct flt {
   template <typename T>
@@ -41,7 +366,7 @@ template <std::size_t> struct pfn;
 template <typename T, std::size_t Depth>
 struct rc {
   using type = transform<
-    filtered_group_by<
+    TODO_REMOVE_filtered_group_by<
       T,
       bound::at<Depth>::template apply,
       flt<Depth>::template apply,
@@ -51,9 +376,16 @@ struct rc {
   >;
 };
 
+// trailing path compression //
 template <template <typename...> class List, typename T, std::size_t Depth>
 struct rc<List<T>, Depth> {
   using type = List<t<T>>;
+};
+
+// empty list - TODO: needed? //
+template <template <typename...> class List, std::size_t Depth>
+struct rc<List<>, Depth> {
+  using type = List<>;
 };
 
 template <typename, std::size_t> struct fn;

@@ -10,7 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_prefix_tree_h
 #define FATAL_INCLUDE_fatal_type_prefix_tree_h
 
-#include <fatal/type/list.h>
+#include <fatal/functional/no_op.h>
 #include <fatal/type/sort.h>
 
 #include <utility>
@@ -19,7 +19,7 @@
 
 namespace fatal {
 
-template <typename T /* TODO: CUSTOM COMPARER*/>
+template <typename T>
 struct prefix_tree {
   template <
     typename Begin,
