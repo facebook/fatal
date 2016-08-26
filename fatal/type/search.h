@@ -45,17 +45,16 @@ struct value_comparer {
   }
 };
 
-// TODO: USE A CUSTOM COMPARER
 // TODO: DOCUMENT THE NEED FOR A SORTED LIST
 template <
   typename T,
-  template <typename...> class Comparer = value_comparer,
   template <typename...> class Filter = identity,
+  template <typename...> class Comparer = value_comparer,
   typename Needle,
   typename Visitor,
   typename... Args
 >
-constexpr bool sorted_search(
+static constexpr bool sorted_search(
   Needle &&needle,
   Visitor &&visitor,
   Args &&...args
@@ -69,12 +68,12 @@ constexpr bool sorted_search(
 
 template <
   typename T,
-  template <typename...> class Comparer = value_comparer,
   template <typename...> class Filter = identity,
+  template <typename...> class Comparer = value_comparer,
   typename Needle
 >
-constexpr bool sorted_search(Needle &&needle) {
-  return sorted_search<T, Comparer, Filter>(
+static constexpr bool sorted_search(Needle &&needle) {
+  return sorted_search<T, Filter, Comparer>(
     std::forward<Needle>(needle),
     fn::no_op()
   );
@@ -85,8 +84,8 @@ template <
   template <typename...> class Comparer = value_comparer,
   typename... Args
 >
-constexpr bool sorted_map_search(Args &&...args) {
-  return sorted_search<T, Comparer, first>(std::forward<Args>(args)...);
+static constexpr bool sorted_map_search(Args &&...args) {
+  return sorted_search<T, first, Comparer>(std::forward<Args>(args)...);
 }
 
 } // namespace fatal {
