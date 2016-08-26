@@ -20,7 +20,7 @@ namespace fatal {
 
 // TODO: MOVE SOMEWHERE ELSE??
 template <typename T, typename Visitor, typename... Args>
-void foreach(Visitor &&visitor, Args &&...args) {
+static void foreach(Visitor &&visitor, Args &&...args) {
   apply_to<T, impl_fe::fe>::f(
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...
