@@ -20,8 +20,9 @@
 
 namespace fatal {
 
-template <typename T, typename Less, template <typename...> class Pair = pair>
-using partition = typename impl_srt::pr<Pair, T, Less>::type;
+// `Pair` is guaranteed to be instantiated at most once
+template <typename T, typename Filter, template <typename...> class Pair = pair>
+using partition = typename impl_srt::pr<Pair, T, Filter>::type;
 
 template <typename T, typename Predicate>
 using filter = typename impl_srt::flt<Predicate, T>::type;
