@@ -11,13 +11,21 @@
 #include <fatal/test/string.h>
 #include <fatal/test/type.h>
 #include <fatal/type/call_traits.h>
-#include <fatal/type/prefix_tree.h>
+#include <fatal/type/find.h>
+#include <fatal/type/foreach.h>
+#include <fatal/type/get.h>
+#include <fatal/type/get_type.h>
 #include <fatal/type/sequence.h>
+#include <fatal/type/trie.h>
+#include <fatal/type/type.h>
+#include <fatal/type/unique.h>
 
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
+
+using namespace fatal;
 
 struct request_args {
   explicit request_args(std::string const &s): offset_(0) {
@@ -30,12 +38,12 @@ struct request_args {
 
   template <typename T>
   T next() {
-    if (offset_ < tokens_.size()) { return fatal::parse<T>(tokens_[offset_++]); }
+    if (offset_ < tokens_.size()) { return parse<T>(tokens_[offset_++]); }
     throw std::runtime_error("expected: token");
   }
 
   template <typename T>
-  T get(std::size_t index) { return fatal::parse<T>(tokens_[index + offset_]); }
+  T get(std::size_t index) { return parse<T>(tokens_[index + offset_]); }
   std::size_t size() const { return tokens_.size() - offset_; }
 
 private:
@@ -43,20 +51,14 @@ private:
   std::size_t offset_;
 };
 
-struct get_member {
-  template <typename T> using name = typename T::name;
-  template <typename T> using verb = typename T::verb;
-  template <typename T> using result = typename T::result;
-};
-
 namespace metadata {
 namespace str {
 
-FATAL_STR(list, "list"); FATAL_STR(map, "map"); FATAL_STR(string, "string");
+FATAL_S(list, "list"); FATAL_S(map, "map"); FATAL_S(string, "string");
 
-FATAL_STR(append, "append"); FATAL_STR(at, "at"); FATAL_STR(create, "create");
-FATAL_STR(get, "get"); FATAL_STR(help, "help"); FATAL_STR(insert, "insert");
-FATAL_STR(json, "json"); FATAL_STR(size, "size"); FATAL_STR(substr, "substr");
+FATAL_S(append, "append"); FATAL_S(at, "at"); FATAL_S(create, "create");
+FATAL_S(get, "get"); FATAL_S(help, "help"); FATAL_S(insert, "insert");
+FATAL_S(json, "json"); FATAL_S(size, "size"); FATAL_S(substr, "substr");
 
 } // namespace str {
 
@@ -71,75 +73,67 @@ struct method {
   FATAL_CALL_TRAITS(substr, substr);
 };
 
-template <typename... Args> struct constructor { using args = fatal::type_list<Args...>; };
+template <typename... Args> struct constructor { using args = list<Args...>; };
 
 template <typename...> struct operation;
-template <typename TVerb, typename TMethod, typename TResult, typename... Args>
-struct operation<TVerb, TMethod, TResult(Args...)> {
-  using verb = TVerb;
-  using method = TMethod;
-  using result = TResult;
-  using args = fatal::type_list<Args...>;
+template <typename Verb, typename Method, typename Result, typename... Args>
+struct operation<Verb, Method, Result(Args...)> {
+  using verb = Verb;
+  using method = Method;
+  using result = Result;
+  using args = list<Args...>;
 };
 
-template <typename TName, typename T, typename... Args>
+template <typename Name, typename T, typename Constructor, typename... Operations>
 struct data_type {
-  using name = TName;
+  using name = Name;
   using type = T;
-
-private:
-  using info = fatal::type_list<Args...>;
-  using filtered_ctors = typename info::template separate<fatal::is_template<constructor>::template type>;
-  using filtered_ops = typename filtered_ctors::second::template separate<fatal::is_template<operation>::template type>;
-
-public:
-  static_assert(filtered_ctors::first::size == 1, "data type needs exactly one constructor");
-  using constructor = typename filtered_ctors::first::template at<0>;
-  using operations = typename filtered_ops::first;
-  using extra_info = typename filtered_ops::second;
+  using constructor = Constructor;
+  using operations = list<Operations...>;
 };
 
-template <typename TName, typename T, typename TArgs>
+template <typename Name, typename T, typename Args>
 struct constructor_command {
-  using name = TName;
+  using name = Name;
   using type = T;
-  using args = TArgs;
+  using args = Args;
 };
 
-template <typename TDataType>
+template <typename DataType>
 using to_constructor_command = metadata::constructor_command<
-  typename TDataType::name, typename TDataType::type, typename TDataType::constructor::args
+  typename DataType::name, typename DataType::type, typename DataType::constructor::args
 >;
 
-template <typename TName, typename T, typename TVerb, typename TMethod, typename TResult, typename TArgs>
+template <typename Name, typename T, typename Verb, typename Method, typename Result, typename Args>
 struct operation_command {
-  using name = TName;
+  using name = Name;
   using type = T;
-  using verb = TVerb;
-  using method = TMethod;
-  using result = TResult;
-  using args = TArgs;
+  using verb = Verb;
+  using method = Method;
+  using result = Result;
+  using args = Args;
 };
 
-template <typename TDataType>
+template <typename DataType>
 struct to_operation_command {
-  template <typename TOperation>
+  template <typename Operation>
   using type = metadata::operation_command<
-    typename TDataType::name, typename TDataType::type, typename TOperation::verb,
-    typename TOperation::method, typename TOperation::result, typename TOperation::args
+    typename DataType::name, typename DataType::type, typename Operation::verb,
+    typename Operation::method, typename Operation::result, typename Operation::args
   >;
 };
 
-template <typename TDataType>
-using to_operation_command_list = typename TDataType::operations::template transform<
-  to_operation_command<TDataType>::template type
+template <typename DataType>
+using to_operation_command_list = transform<
+  typename DataType::operations,
+  to_operation_command<DataType>::template type
 >;
 
 //////////////
 // metadata //
 //////////////
 
-using known = fatal::type_list<
+using known = list<
   data_type<
     str::list, std::vector<std::string>,
     constructor<>,
@@ -168,71 +162,74 @@ using known = fatal::type_list<
 
 struct ytse_jam {
   using supported = metadata::known;
-  using op_list = supported::transform<metadata::to_operation_command_list>::flatten<>;
-  using instance_t = supported::transform<fatal::get_member_type::type>::apply<fatal::auto_variant>;
-  using result_t = op_list::transform<get_member::result>::reject<fatal::transform_alias<std::is_same, void>::apply>
-    ::unique<>::apply<fatal::auto_variant>;
+  using op_list = apply_to<transform<supported, metadata::to_operation_command_list>, cat>;
+  using instance_t = apply_to<transform<supported, get_type::type>, auto_variant>;
+  // TODO: unique BEFORE apply_to
+  using result_t = apply_to<
+    reject<transform<op_list, get_type::result>, curry<applier<std::is_same>, void>>,
+    auto_variant
+  >;
 
   result_t handle(std::string const &command, request_args &args);
 
 private:
-  using data_type_trie = supported::transform<get_member::name>::apply<fatal::build_type_prefix_tree<>::from>;
-  // data_type_name -> ctor
-  using ctor_index = fatal::type_map_from<get_member::name>::list<
-    supported::transform<metadata::to_constructor_command>
-  >;
-  using built_ins = fatal::type_list<metadata::str::create, metadata::str::json, metadata::str::help>;
-  using command_trie = op_list::transform<get_member::verb>::concat<built_ins>
-    ::apply<fatal::build_type_prefix_tree<>::from>;
-  using op_trie = op_list::transform<get_member::verb>::apply<fatal::build_type_prefix_tree<>::from>;
-  // data_type -> verb -> op
-  using op_index = fatal::clustered_index<op_list, fatal::get_member_type::type, get_member::verb>;
+  using built_ins = list<metadata::str::create, metadata::str::json, metadata::str::help>;
   using instances_map = std::unordered_map<std::string, instance_t>;
 
-  template <typename T, typename TArgsList, std::size_t... Indexes>
-  static void call_ctor(fatal::size_sequence<Indexes...>, instance_t &instance, request_args &args) {
-    instance.template emplace<T>(args.request_args::template get<typename TArgsList::template at<Indexes>>(Indexes)...);
+  template <typename T, typename ArgsList, std::size_t... Indexes>
+  static void call_ctor(index_sequence<Indexes...>, instance_t &instance, request_args &args) {
+    instance.template emplace<T>(args.request_args::template get<at<ArgsList, Indexes>>(Indexes)...);
   }
 
-  template <typename TMethod, typename TResult, typename TArgsList, typename T, std::size_t... Indexes>
+  template <typename Method, typename Result, typename ArgsList, typename T, std::size_t... Indexes>
   static void call_method(
-    fatal::size_sequence<Indexes...>, result_t &out, T &&instance, request_args &args
+    index_sequence<Indexes...>, result_t &out, T &&instance, request_args &args
   ) {
     out.set_result_of([&]() {
-      return static_cast<TResult>(
-        TMethod()(std::forward<T>(instance), args.request_args::template get<typename TArgsList::template at<Indexes>>(Indexes)...)
+      return static_cast<Result>(
+        Method()(std::forward<T>(instance), args.request_args::template get<at<ArgsList, Indexes>>(Indexes)...)
       );
     });
   }
 
-  template <typename TVerb>
+  template <typename Verb>
   struct call_visitor {
     template <typename T>
-    void operator ()(T &&instance, result_t &out, request_args &args) {
-      using op_map = op_index::template find<typename std::decay<T>::type>;
+    void perform(not_found, T &instance, result_t &out, request_args &args) {
+      throw std::invalid_argument("invalid operation");
+    }
 
-      auto found = op_map::template visit<TVerb>([&](auto op_pair) { // type_pair<constant_sequence, operation>
-        using op = typename decltype(op_pair)::second;
+    template <typename Operation, typename T>
+    void perform(Operation, T &instance, result_t &out, request_args &args) {
+      if (size<typename Operation::args>::value != args.size()) {
+        throw std::invalid_argument("arguments list size mismatch");
+      }
 
-        if (op::args::size != args.size()) { throw std::invalid_argument("arguments list size mismatch"); }
+      using arg_indexes = make_index_sequence<size<typename Operation::args>::value>;
 
-        using arg_indexes = fatal::indexes_sequence<op::args::size>;
+      call_method<typename Operation::method, typename Operation::result, typename Operation::args>(
+        arg_indexes(), out, instance, args
+      );
+    }
 
-        call_method<typename op::method, typename op::result, typename op::args>(
-          arg_indexes(), out, std::forward<T>(instance), args
-        );
-      });
+    template <typename T>
+    void operator ()(T &instance, result_t &out, request_args &args) {
+      using data_type = get<supported, T, get_type::type>;
+      using operation = find<typename data_type::operations, Verb, get_type::verb>;
 
-      if (!found) { throw std::invalid_argument("invalid operation"); }
+      perform(operation(), instance, out, args);
     }
   };
 
   struct command_parser {
-    template <typename TVerb>
-    void operator ()(fatal::type_tag<TVerb>, instances_map &instances, request_args &args, result_t &out) const {
+    template <typename Verb>
+    void operator ()(tag<Verb>, instances_map &instances, request_args &args, result_t &out) const {
       auto i = instances.find(args.next<std::string>());
-      if (i == instances.end()) { throw std::invalid_argument("instance not found"); }
-      if (!i->second.visit(call_visitor<TVerb>(), out, args)) {
+      if (i == instances.end()) {
+        throw std::invalid_argument("instance not found");
+      }
+
+      if (!i->second.visit(call_visitor<Verb>(), out, args)) {
         throw std::invalid_argument("unitialized instance");
       }
     }
@@ -240,50 +237,53 @@ private:
     // built-ins
 
     void operator ()(
-      fatal::type_tag<metadata::str::create>, instances_map &instances, request_args &args, result_t &out
+      tag<metadata::str::create>, instances_map &instances, request_args &args, result_t &out
     ) const {
+      // data_type_name -> ctor
+      using ctor_index = transform<supported, metadata::to_constructor_command>;
+
       auto type = args.next<std::string>();
       auto instance = args.next<std::string>();
-      auto found = data_type_trie::match<>::exact(
+      auto found = trie_find<transform<supported, get_type::name>>(
         type.begin(), type.end(),
-        [&](auto data_type_name) { // type_tag<constant_sequence>
-          ctor_index::visit<typename decltype(data_type_name)::type>(
-            [&](auto ctor_pair) { // type_pair<constant_sequence, constructor>
-              using ctor = fatal::type_get_second<decltype(ctor_pair)>;
-              using arg_indexes = fatal::indexes_sequence<ctor::args::size>;
+        [&](auto data_type_name) { // tag<sequence>
+          using ctor = get<ctor_index, type_of<decltype(data_type_name)>, get_type::name>;
+          using arg_indexes = make_index_sequence<size<typename ctor::args>::value>;
 
-              if (ctor::args::size != args.size()) { throw std::invalid_argument("arguments list size mismatch"); }
+          if (size<typename ctor::args>::value != args.size()) {
+            throw std::invalid_argument("arguments list size mismatch");
+          }
 
-              call_ctor<typename ctor::type, typename ctor::args>(arg_indexes(), instances[instance], args);
-            }
-          );
+          call_ctor<typename ctor::type, typename ctor::args>(arg_indexes(), instances[instance], args);
         }
       );
 
-      if (!found) { throw std::invalid_argument("unknown type"); }
+      if (!found) {
+        throw std::invalid_argument("unknown type");
+      }
     }
 
     void operator ()(
-      fatal::type_tag<metadata::str::help>, instances_map &instances, request_args &args, result_t &out
+      tag<metadata::str::help>, instances_map &instances, request_args &args, result_t &out
     ) const {
-      supported::foreach([](auto data_type_tag) { // indexed_type_tag<data_type>
-        using data_type = decltype(data_type_tag);
-        if (data_type::value) { std::cout << std::endl; }
-        std::cout << data_type::type::name::z_data() << '(';
-        data_type::type::constructor::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
-          using arg = decltype(arg_tag);
-          if (arg::value) { std::cout << ", "; }
-          std::cout << fatal::type_str<typename arg::type>();
+      foreach<supported>([](auto data_type_tag) { // indexed<data_type>
+        using data_type = type_of<decltype(data_type_tag)>;
+        if (decltype(data_type_tag)::value) { std::cout << std::endl; }
+        std::cout << z_data<typename data_type::name>() << '(';
+        foreach<typename data_type::constructor::args>([](auto arg_tag) { // indexed<arg_type>
+          using arg = type_of<decltype(arg_tag)>;
+          if (decltype(arg_tag)::value) { std::cout << ", "; }
+          std::cout << type_str<arg>();
         });
         std::cout << ')' << std::endl;
 
-        data_type::type::operations::foreach([](auto op_tag) { // indexed_type_tag<operation>
-          using op = typename decltype(op_tag)::type;
-          std::cout << "- " << op::verb::z_data() << '(';
-          op::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
-            using arg = decltype(arg_tag);
-            if (arg::value) { std::cout << ", "; }
-            std::cout << fatal::type_str<typename arg::type>();
+        foreach<typename data_type::operations>([](auto op_tag) { // indexed<operation>
+          using op = type_of<decltype(op_tag)>;
+          std::cout << "- " << z_data<typename op::verb>() << '(';
+          foreach<typename op::args>([](auto arg_tag) { // indexed<arg_type>
+            using arg = type_of<decltype(arg_tag)>;
+            if (decltype(arg_tag)::value) { std::cout << ", "; }
+            std::cout << type_str<arg>();
           });
           std::cout << ')' << std::endl;
         });
@@ -291,43 +291,43 @@ private:
     }
 
     void operator ()(
-      fatal::type_tag<metadata::str::json>, instances_map &instances, request_args &args, result_t &out
+      tag<metadata::str::json>, instances_map &instances, request_args &args, result_t &out
     ) const {
       std::cout << '{' << std::endl;
-      supported::foreach([](auto data_type_tag) { // indexed_type_tag<data_type>
-        using data_type = typename decltype(data_type_tag)::type;
-        std::cout << "  \"" << data_type::name::z_data() << "\": {" << std::endl;
-        std::cout << "    \"type\": \"" << fatal::type_str<typename data_type::type>() << "\"," << std::endl;
+      foreach<supported>([](auto data_type_tag) { // indexed<data_type>
+        using data_type = type_of<decltype(data_type_tag)>;
+        std::cout << "  \"" << z_data<typename data_type::name>() << "\": {" << std::endl;
+        std::cout << "    \"type\": \"" << type_str<typename data_type::type>() << "\"," << std::endl;
         std::cout << "    \"constructor\": {" << std::endl;
         std::cout << "      \"args\": {" << std::endl;
-        data_type::constructor::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
-          using arg = decltype(arg_tag);
-          std::cout << "        \"" << arg::value << "\": \"" << fatal::type_str<typename arg::type>() << '"';
-          if (arg::value + 1 < data_type::constructor::args::size) { std::cout << ','; }
+        foreach<typename data_type::constructor::args>([](auto arg_tag) { // indexed<arg_type>
+          using arg = type_of<decltype(arg_tag)>;
+          std::cout << "        \"" << decltype(arg_tag)::value << "\": \"" << type_str<arg>() << '"';
+          if (decltype(arg_tag)::value + 1 < size<typename data_type::constructor::args>::value) { std::cout << ','; }
           std::cout << std::endl;
         });
         std::cout << "      }" << std::endl; // args
         std::cout << "    }," << std::endl; // constructor
         std::cout << "    \"operations\": {" << std::endl;
-        data_type::operations::foreach([](auto op_tag) { // indexed_type_tag<operation>
-          using op = typename decltype(op_tag)::type;
-          std::cout << "      \"" << op::verb::z_data() << "\": {" << std::endl;
-          std::cout << "        \"result\": \"" << fatal::type_str<typename op::result>() << "\"," << std::endl;
+        foreach<typename data_type::operations>([](auto op_tag) { // indexed<operation>
+          using op = type_of<decltype(op_tag)>;
+          std::cout << "      \"" << z_data<typename op::verb>() << "\": {" << std::endl;
+          std::cout << "        \"result\": \"" << type_str<typename op::result>() << "\"," << std::endl;
           std::cout << "        \"args\": {" << std::endl;
-          op::args::foreach([](auto arg_tag) { // indexed_type_tag<arg_type>
-            using arg = decltype(arg_tag);
-            std::cout << "          \"" << arg::value << "\": \"" << fatal::type_str<typename arg::type>() << '"';
-            if (arg::value + 1 < op::args::size) { std::cout << ','; }
+          foreach<typename op::args>([](auto arg_tag) { // indexed<arg_type>
+            using arg = type_of<decltype(arg_tag)>;
+            std::cout << "          \"" << decltype(arg_tag)::value << "\": \"" << type_str<arg>() << '"';
+            if (decltype(arg_tag)::value + 1 < size<typename op::args>::value) { std::cout << ','; }
             std::cout << std::endl;
           });
           std::cout << "        }" << std::endl; // args
           std::cout << "      }"; // operation
-          if (decltype(op_tag)::value + 1 < data_type::operations::size) { std::cout << ','; }
+          if (decltype(op_tag)::value + 1 < size<typename data_type::operations>::value) { std::cout << ','; }
           std::cout << std::endl;
         });
         std::cout << "    }" << std::endl; // operations
         std::cout << "  }"; // data_type
-        if (decltype(data_type_tag)::value + 1 < supported::size) { std::cout << ','; }
+        if (decltype(data_type_tag)::value + 1 < size<supported>::value) { std::cout << ','; }
         std::cout << std::endl;
       });
       std::cout << '}' << std::endl;
@@ -340,7 +340,9 @@ private:
 ytse_jam::result_t ytse_jam::handle(std::string const &command, request_args &args) {
   result_t result;
 
-  if (!command_trie::match<>::exact(command.begin(), command.end(), command_parser(), instances_, args, result)) {
+  if (!trie_find<adjacent_unique<sort<cat<built_ins, transform<op_list, get_type::verb>>, sequence_compare<less>>>>(
+    command.begin(), command.end(), command_parser(), instances_, args, result
+  )) {
     throw std::invalid_argument("command unknown");
   }
 
