@@ -188,10 +188,15 @@ static constexpr T bitwise_filter(T const lhs, T const rhs, Args... args) {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
+namespace scalar_impl {
+template <typename T>
+static constexpr bool bitwise_has_all_impl(T const value, T const merged) {
+  return static_cast<T>(bitwise_filter(value, merged)) == merged;
+}
+} // namespace scalar_impl {
 template <typename T, typename... Args>
 static constexpr bool bitwise_has_all(T const value, Args... args) {
-  auto const merged = bitwise_merge(args...);
-  return static_cast<T>(bitwise_filter(value, merged)) == merged;
+  return scalar_impl::bitwise_has_all_impl(value, bitwise_merge(args...));
 }
 
 /**
