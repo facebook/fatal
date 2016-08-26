@@ -346,7 +346,7 @@ struct tail<Sequence<T, Values...>, index_sequence<Indexes...>> {
 };
 
 template <std::size_t Size>
-constexpr std::size_t hd_chunk() {
+static constexpr std::size_t hd_chunk() {
   return Size >= 32 ? 32 : Size >= 16 ? 16 : Size >= 8 ? 8 : Size >= 4 ? 4
     : Size;
 }
