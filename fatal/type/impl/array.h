@@ -91,7 +91,7 @@ template <
   typename T
 >
 struct z<Variadics<Value, Args...>, T>:
-  a<1, T, static_cast<T>(Args)..., static_cast<T>(1)>
+  a<1, T, static_cast<T>(Args)..., static_cast<T>(0)>
 {};
 
 // non-constexpr statically allocated array from element factory//
