@@ -50,7 +50,7 @@ enum class cv_qualifier:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-constexpr bool operator &(cv_qualifier lhs, cv_qualifier rhs) {
+static constexpr bool operator &(cv_qualifier lhs, cv_qualifier rhs) {
   using type = std::underlying_type<cv_qualifier>::type;
   return static_cast<bool>(static_cast<type>(lhs) & static_cast<type>(rhs));
 }
