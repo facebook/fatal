@@ -14,6 +14,8 @@
 #include <fatal/type/array.h>
 #include <fatal/type/deprecated/type_list.h>
 
+#include <memory>
+#include <string>
 #include <type_traits>
 
 namespace fatal {
