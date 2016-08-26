@@ -43,7 +43,7 @@ template <
 using as_map = typename impl_cv::mp<T, Map, Pair, Key, Value>::type;
 
 template <typename To, typename T, typename... Args>
-constexpr To to_instance(Args &&...args) {
+static constexpr To to_instance(Args &&...args) {
   return impl_cv::toi<To, T>::to(std::forward<Args>(args)...);
 }
 
