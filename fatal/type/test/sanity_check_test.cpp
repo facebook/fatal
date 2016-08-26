@@ -32,6 +32,7 @@
 #include <fatal/type/transform.h>
 #include <fatal/type/trie.h>
 #include <fatal/type/type.h>
+#include <fatal/type/unique.h>
 #include <fatal/type/zip.h>
 
 #include <algorithm>
@@ -1094,6 +1095,35 @@ int main() {
   SAME(srt_mp, map_sort<shuf_mp>);
   SAME(str::mp::sorted, sequence_map_sort<str::mp::shuffled>);
 
+  SAME(list<>, adjacent_unique<list<>>);
+  SAME(list<int>, adjacent_unique<list<int>>);
+  SAME(
+    list<int, void, double, bool>,
+    adjacent_unique<list<int, void, double, bool>>
+  );
+  SAME(
+    list<int, void, double, bool, int, double>,
+    adjacent_unique<list<int, void, double, bool, int, double>>
+  );
+  SAME(
+    list<int, void, double, bool>,
+    adjacent_unique<
+      list<int, int, void, double, double, double, double, bool, bool>
+    >
+  );
+  SAME(
+    list<int, void, double, bool, float>,
+    adjacent_unique<
+      list<int, int, void, double, double, double, double, bool, bool, float>
+    >
+  );
+  SAME(
+    list<int, void, double, bool, int>,
+    adjacent_unique<
+      list<int, int, void, double, double, double, double, bool, bool, int>
+    >
+  );
+
   SAME(str::seq::group_by, group_by<str::seq::sorted, first>);
   SAME(str::lst::group_by, group_by<str::lst::sorted, first>);
 
@@ -1504,124 +1534,6 @@ int main() {
   EQF(test_trie<str::lst::shuffled, str::lst::x>());
   EQF(test_trie<str::lst::shuffled, str::lst::notfound>());
 
-/*
-  SAME(pt2::expected0, pt2::build_trie<pt2::input0, less>);
-  SAME(pt2::expected, pt2::build_trie<pt2::input, less>);
-  SAME(pt2::expected_, pt2::build_trie<pt2::input_, less>);
-  SAME(pt2::expected1, pt2::build_trie<pt2::input1, less>);
-  SAME(pt2::expected2, pt2::build_trie<pt2::input2, less>);
-  */
-/*
-  EQF(test_trie2<pt2::input0, pt2::empty>());
-  EQF(test_trie2<pt2::input0, pt2::foo>());
-  EQT(test_trie2<pt2::input0, pt2::foobar>());
-  EQT(test_trie2<pt2::input0, pt2::foobaz>());
-  EQF(test_trie2<pt2::input0, pt2::foogaz>());
-  EQF(test_trie2<pt2::input0, pt2::gooey>());
-  EQF(test_trie2<pt2::input0, pt2::fast>());
-  EQF(test_trie2<pt2::input0, pt2::granite>());
-  EQF(test_trie2<pt2::input0, pt2::fastest>());
-  EQF(test_trie2<pt2::input0, pt2::fart>());
-  EQF(test_trie2<pt2::input0, pt2::far>());
-  EQF(test_trie2<pt2::input0, pt2::good>());
-  EQF(test_trie2<pt2::input0, pt2::great>());
-  EQF(test_trie2<pt2::input0, pt2::grok>());
-  EQF(test_trie2<pt2::input0, pt2::faster>());
-  EQF(test_trie2<pt2::input0, pt2::green>());
-  EQF(test_trie2<pt2::input0, pt2::gold>());
-  EQF(test_trie2<pt2::input0, pt2::farther>());
-  EQF(test_trie2<pt2::input0, pt2::groove>());
-  EQF(test_trie2<pt2::input0, pt2::fat>());
-  EQF(test_trie2<pt2::input0, pt2::fist>());
-
-  EQF(test_trie2<pt2::input, pt2::empty>());
-  EQT(test_trie2<pt2::input, pt2::foo>());
-  EQT(test_trie2<pt2::input, pt2::foobar>());
-  EQT(test_trie2<pt2::input, pt2::foobaz>());
-  EQF(test_trie2<pt2::input, pt2::foogaz>());
-  EQF(test_trie2<pt2::input, pt2::gooey>());
-  EQF(test_trie2<pt2::input, pt2::fast>());
-  EQF(test_trie2<pt2::input, pt2::granite>());
-  EQF(test_trie2<pt2::input, pt2::fastest>());
-  EQF(test_trie2<pt2::input, pt2::fart>());
-  EQF(test_trie2<pt2::input, pt2::far>());
-  EQF(test_trie2<pt2::input, pt2::good>());
-  EQF(test_trie2<pt2::input, pt2::great>());
-  EQF(test_trie2<pt2::input, pt2::grok>());
-  EQF(test_trie2<pt2::input, pt2::faster>());
-  EQF(test_trie2<pt2::input, pt2::green>());
-  EQF(test_trie2<pt2::input, pt2::gold>());
-  EQF(test_trie2<pt2::input, pt2::farther>());
-  EQF(test_trie2<pt2::input, pt2::groove>());
-  EQF(test_trie2<pt2::input, pt2::fat>());
-  EQF(test_trie2<pt2::input, pt2::fist>());
-
-  EQF(test_trie2<pt2::input_, pt2::empty>());
-  EQT(test_trie2<pt2::input_, pt2::foo>());
-  EQT(test_trie2<pt2::input_, pt2::foobar>());
-  EQT(test_trie2<pt2::input_, pt2::foobaz>());
-  EQT(test_trie2<pt2::input_, pt2::foogaz>());
-  EQF(test_trie2<pt2::input_, pt2::gooey>());
-  EQF(test_trie2<pt2::input_, pt2::fast>());
-  EQF(test_trie2<pt2::input_, pt2::granite>());
-  EQF(test_trie2<pt2::input_, pt2::fastest>());
-  EQF(test_trie2<pt2::input_, pt2::fart>());
-  EQF(test_trie2<pt2::input_, pt2::far>());
-  EQF(test_trie2<pt2::input_, pt2::good>());
-  EQF(test_trie2<pt2::input_, pt2::great>());
-  EQF(test_trie2<pt2::input_, pt2::grok>());
-  EQF(test_trie2<pt2::input_, pt2::faster>());
-  EQF(test_trie2<pt2::input_, pt2::green>());
-  EQF(test_trie2<pt2::input_, pt2::gold>());
-  EQF(test_trie2<pt2::input_, pt2::farther>());
-  EQF(test_trie2<pt2::input_, pt2::groove>());
-  EQF(test_trie2<pt2::input_, pt2::fat>());
-  EQF(test_trie2<pt2::input_, pt2::fist>());
-
-  EQT(test_trie2<pt2::input1, pt2::empty>());
-  EQT(test_trie2<pt2::input1, pt2::foo>());
-  EQT(test_trie2<pt2::input1, pt2::foobar>());
-  EQT(test_trie2<pt2::input1, pt2::foobaz>());
-  EQF(test_trie2<pt2::input1, pt2::foogaz>());
-  EQF(test_trie2<pt2::input1, pt2::gooey>());
-  EQF(test_trie2<pt2::input1, pt2::fast>());
-  EQF(test_trie2<pt2::input1, pt2::granite>());
-  EQF(test_trie2<pt2::input1, pt2::fastest>());
-  EQF(test_trie2<pt2::input1, pt2::fart>());
-  EQF(test_trie2<pt2::input1, pt2::far>());
-  EQF(test_trie2<pt2::input1, pt2::good>());
-  EQF(test_trie2<pt2::input1, pt2::great>());
-  EQF(test_trie2<pt2::input1, pt2::grok>());
-  EQF(test_trie2<pt2::input1, pt2::faster>());
-  EQF(test_trie2<pt2::input1, pt2::green>());
-  EQF(test_trie2<pt2::input1, pt2::gold>());
-  EQF(test_trie2<pt2::input1, pt2::farther>());
-  EQF(test_trie2<pt2::input1, pt2::groove>());
-  EQF(test_trie2<pt2::input1, pt2::fat>());
-  EQF(test_trie2<pt2::input1, pt2::fist>());
-
-  EQF(test_trie2<pt2::input2, pt2::empty>());
-  EQF(test_trie2<pt2::input2, pt2::foo>());
-  EQF(test_trie2<pt2::input2, pt2::foobar>());
-  EQF(test_trie2<pt2::input2, pt2::foobaz>());
-  EQF(test_trie2<pt2::input2, pt2::foogaz>());
-  EQT(test_trie2<pt2::input2, pt2::gooey>());
-  EQT(test_trie2<pt2::input2, pt2::fast>());
-  EQT(test_trie2<pt2::input2, pt2::granite>());
-  EQT(test_trie2<pt2::input2, pt2::fastest>());
-  EQT(test_trie2<pt2::input2, pt2::fart>());
-  EQT(test_trie2<pt2::input2, pt2::far>());
-  EQT(test_trie2<pt2::input2, pt2::good>());
-  EQT(test_trie2<pt2::input2, pt2::great>());
-  EQT(test_trie2<pt2::input2, pt2::grok>());
-  EQT(test_trie2<pt2::input2, pt2::faster>());
-  EQT(test_trie2<pt2::input2, pt2::green>());
-  EQT(test_trie2<pt2::input2, pt2::gold>());
-  EQT(test_trie2<pt2::input2, pt2::farther>());
-  EQT(test_trie2<pt2::input2, pt2::groove>());
-  EQT(test_trie2<pt2::input2, pt2::fat>());
-  EQT(test_trie2<pt2::input2, pt2::fist>());
-*/
   std::cout << "done" << std::endl;
   return exit_code;
 }
