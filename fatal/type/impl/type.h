@@ -33,7 +33,10 @@ struct to<Variadics<T, Values...>> {
 template <
   template <typename, std::size_t> class Template,
   typename T,
-  std::size_t Value
+  typename std::enable_if<
+    !std::is_same<T, std::size_t>::value,
+    std::size_t
+  >::type Value
 >
 struct to<Template<T, Value>> {
   using type = T;
@@ -57,7 +60,10 @@ struct vto<Variadics<T, Values...>> {
 template <
   template <typename, std::size_t> class Template,
   typename T,
-  std::size_t Value
+  typename std::enable_if<
+    !std::is_same<T, std::size_t>::value,
+    std::size_t
+  >::type Value
 >
 struct vto<Template<T, Value>> {
   using type = T;
