@@ -85,7 +85,7 @@ struct abort_on_not_found;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 #define FATAL_REGISTER_TYPE(Tag, Key, ...) \
-  static __VA_ARGS__ operator <<(Tag, Key *)
+  __VA_ARGS__ operator <<(Tag, Key *)
 
 /**
  * Looks up a type previously associated by `FATAL_REGISTER_TYPE` with the type
