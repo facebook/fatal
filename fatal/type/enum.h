@@ -343,7 +343,7 @@ private:
   struct parser {
     template <typename TString>
     void operator ()(tag<TString>, Enum &out) {
-      out = map_get<name_to_value, TString>::value;
+      out = get<name_to_value, TString, first, second>::value;
     }
   };
 

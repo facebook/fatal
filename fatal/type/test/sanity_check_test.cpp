@@ -636,34 +636,45 @@ int main() {
   SAME(pair<float, char>, get<mp, float>);
   SAME(pair<unsigned, short *>, get<mp, unsigned>);
 
-  SAME(double, map_get<mp, int>);
-  SAME(void, map_get<mp, bool>);
-  SAME(char, map_get<mp, float>);
-  SAME(short *, map_get<mp, unsigned>);
+  SAME(pair<int, double>, get<mp, int, first>);
+  SAME(pair<bool, void>, get<mp, bool, first>);
+  SAME(pair<float, char>, get<mp, float, first>);
+  SAME(pair<unsigned, short *>, get<mp, unsigned, first>);
 
-  SAME(int, find<lst, int>);
-  SAME(bool, find<lst, bool>);
-  SAME(float, find<lst, float>);
-  SAME(unsigned, find<lst, unsigned>);
-  SAME(not_found, find<lst, void *>);
+  SAME(double, get<mp, int, first, second>);
+  SAME(void, get<mp, bool, first, second>);
+  SAME(char, get<mp, float, first, second>);
+  SAME(short *, get<mp, unsigned, first, second>);
 
-  SAME(pair<int, double>, find<mp, int, first>);
-  SAME(pair<bool, void>, find<mp, bool, first>);
-  SAME(pair<float, char>, find<mp, float, first>);
-  SAME(pair<unsigned, short *>, find<mp, unsigned, first>);
-  SAME(not_found, find<mp, void *, first>);
+  SAME(int, find<lst, int, not_found>);
+  SAME(bool, find<lst, bool, not_found>);
+  SAME(float, find<lst, float, not_found>);
+  SAME(unsigned, find<lst, unsigned, not_found>);
+  SAME(not_found, find<lst, void *, not_found>);
 
-  SAME(double, map_find<mp, int>);
-  SAME(void, map_find<mp, bool>);
-  SAME(char, map_find<mp, float>);
-  SAME(short *, map_find<mp, unsigned>);
-  SAME(not_found, map_find<mp, double>);
+  SAME(pair<int, double>, find<mp, int, not_found, first>);
+  SAME(pair<bool, void>, find<mp, bool, not_found, first>);
+  SAME(pair<float, char>, find<mp, float, not_found, first>);
+  SAME(pair<unsigned, short *>, find<mp, unsigned, not_found, first>);
+  SAME(not_found, find<mp, void *, not_found, first>);
+
+  SAME(double, find<mp, int, not_found, first, second>);
+  SAME(void, find<mp, bool, not_found, first, second>);
+  SAME(char, find<mp, float, not_found, first, second>);
+  SAME(short *, find<mp, unsigned, not_found, first, second>);
+  SAME(not_found, find<mp, double, not_found, first, second>);
 
   EQUAL(true, contains<lst, int>);
   EQUAL(true, contains<lst, bool>);
   EQUAL(true, contains<lst, float>);
   EQUAL(true, contains<lst, unsigned>);
   EQUAL(false, contains<lst, void *>);
+
+  EQUAL(true, contains<mp, int, first>);
+  EQUAL(true, contains<mp, bool, first>);
+  EQUAL(true, contains<mp, float, first>);
+  EQUAL(true, contains<mp, unsigned, first>);
+  EQUAL(false, contains<mp, void *, first>);
 
   SAME(shuf_mp, apply_to<transform<shuf_ls, to_map_entry>, map>);
   SAME(srt_mp, apply_to<transform<srt_ls, to_map_entry>, map>);

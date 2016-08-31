@@ -13,7 +13,6 @@
 #include <fatal/type/apply.h>
 #include <fatal/type/array.h>
 #include <fatal/type/deprecated/transform.h>
-#include <fatal/type/deprecated/type_map.h>
 #include <fatal/type/fast_pass.h>
 #include <fatal/type/get.h>
 #include <fatal/type/map.h>
@@ -171,7 +170,7 @@ public:
 
   // TODO: TEST
   template <typename Tag>
-  using descriptor = map_get<map, Tag>;
+  using descriptor = get<map, Tag, first, second>;
 
   template <typename Tag>
   using id = typename descriptor<Tag>::id;

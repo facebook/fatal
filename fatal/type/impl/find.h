@@ -17,19 +17,38 @@
 namespace fatal {
 namespace impl_fnd {
 
-struct nf {};
+// not found //
+struct n {};
 
-template <typename Default, typename Key, typename Value>
+template <typename, typename T>
+static T sfinae(tag<T>);
+
+template <typename, typename Key, typename Value>
 static Value sfinae(pair<Key, Value>);
 
 template <typename Default, typename...>
 static Default sfinae(...);
 
-template <typename> struct fnd;
+// find //
+template <typename, typename, typename, template <typename...> class...>
+struct f;
 
-template <template <typename...> class List, typename... Args>
-struct fnd<List<Args...>> {
-  template <typename Key, template <typename> class KeyFilter, typename Default>
+template <
+  template <typename...> class List, typename... Args,
+  typename Key, typename Default
+>
+struct f<List<Args...>, Key, Default> {
+  using type = decltype(
+    sfinae<Default, Key>(inherit<tag<Args>...>())
+  );
+};
+
+template <
+  template <typename...> class List, typename... Args,
+  typename Key, typename Default,
+  template <typename...> class KeyFilter
+>
+struct f<List<Args...>, Key, Default, KeyFilter> {
   using type = decltype(
     sfinae<Default, Key>(
       inherit<pair<KeyFilter<Args>, Args>...>()
@@ -37,19 +56,39 @@ struct fnd<List<Args...>> {
   );
 };
 
-template <typename> struct mfnd;
-
-template <template <typename...> class List, typename... Args>
-struct mfnd<List<Args...>> {
-  template <
-    typename Key,
-    template <typename> class KeyFilter,
-    template <typename> class ValueTransform,
-    typename Default
-  >
+template <
+  template <typename...> class List, typename... Args,
+  typename Key, typename Default,
+  template <typename...> class KeyFilter,
+  template <typename...> class PostFilter
+>
+struct f<List<Args...>, Key, Default, KeyFilter, PostFilter> {
   using type = decltype(
     sfinae<Default, Key>(
-      inherit<pair<KeyFilter<Args>, ValueTransform<Args>>...>()
+      inherit<pair<KeyFilter<Args>, PostFilter<Args>>...>()
+    )
+  );
+};
+
+template <typename, typename, template <typename...> class...> struct c;
+
+template <template <typename...> class List, typename... Args, typename Key>
+struct c<List<Args...>, Key> {
+  using type = decltype(
+    sfinae<std::false_type, Key>(
+      inherit<pair<Args, std::true_type>...>()
+    )
+  );
+};
+
+template <
+  template <typename...> class List, typename... Args, typename Key,
+  template <typename> class KeyFilter
+>
+struct c<List<Args...>, Key, KeyFilter> {
+  using type = decltype(
+    sfinae<std::false_type, Key>(
+      inherit<pair<KeyFilter<Args>, std::true_type>...>()
     )
   );
 };

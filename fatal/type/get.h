@@ -10,17 +10,12 @@
 #ifndef FATAL_INCLUDE_fatal_type_get_h
 #define FATAL_INCLUDE_fatal_type_get_h
 
-#include <fatal/type/slice.h>
-
 #include <fatal/type/impl/get.h>
 
 namespace fatal {
 
-template <typename T, typename Key, template <typename> class KeyFilter = first>
-using get = typename impl_gt::gt<KeyFilter, T, Key>::type;
-
-template <typename T, typename Key>
-using map_get = second<get<T, Key>>;
+template <typename T, typename Key, template <typename...> class... Filters>
+using get = typename impl_gt::g<T, Key, Filters...>::type;
 
 } // namespace fatal {
 
