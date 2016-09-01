@@ -492,18 +492,6 @@ int main() {
     dummy<sz<8>>,
     dummy<sz<9>>
   >;
-  using szv_ls = list<
-    sz_val<0>,
-    sz_val<1>,
-    sz_val<2>,
-    sz_val<3>,
-    sz_val<4>,
-    sz_val<5>,
-    sz_val<6>,
-    sz_val<7>,
-    sz_val<8>,
-    sz_val<9>
-  >;
 
   using mp = map<
     pair<int, double>,
@@ -660,15 +648,15 @@ int main() {
   SAME(pair<float, char>, get<mp, float>);
   SAME(pair<unsigned, short *>, get<mp, unsigned>);
 
-  SAME(pair<int, double>, get<mp, int, first>);
-  SAME(pair<bool, void>, get<mp, bool, first>);
-  SAME(pair<float, char>, get<mp, float, first>);
-  SAME(pair<unsigned, short *>, get<mp, unsigned, first>);
+  SAME(pair<int, double>, get<mp, int, get_first>);
+  SAME(pair<bool, void>, get<mp, bool, get_first>);
+  SAME(pair<float, char>, get<mp, float, get_first>);
+  SAME(pair<unsigned, short *>, get<mp, unsigned, get_first>);
 
-  SAME(double, get<mp, int, first, second>);
-  SAME(void, get<mp, bool, first, second>);
-  SAME(char, get<mp, float, first, second>);
-  SAME(short *, get<mp, unsigned, first, second>);
+  SAME(double, get<mp, int, get_first, get_second>);
+  SAME(void, get<mp, bool, get_first, get_second>);
+  SAME(char, get<mp, float, get_first, get_second>);
+  SAME(short *, get<mp, unsigned, get_first, get_second>);
 
   SAME(int, find<lst, int, not_found>);
   SAME(bool, find<lst, bool, not_found>);
@@ -676,17 +664,17 @@ int main() {
   SAME(unsigned, find<lst, unsigned, not_found>);
   SAME(not_found, find<lst, void *, not_found>);
 
-  SAME(pair<int, double>, find<mp, int, not_found, first>);
-  SAME(pair<bool, void>, find<mp, bool, not_found, first>);
-  SAME(pair<float, char>, find<mp, float, not_found, first>);
-  SAME(pair<unsigned, short *>, find<mp, unsigned, not_found, first>);
-  SAME(not_found, find<mp, void *, not_found, first>);
+  SAME(pair<int, double>, find<mp, int, not_found, get_first>);
+  SAME(pair<bool, void>, find<mp, bool, not_found, get_first>);
+  SAME(pair<float, char>, find<mp, float, not_found, get_first>);
+  SAME(pair<unsigned, short *>, find<mp, unsigned, not_found, get_first>);
+  SAME(not_found, find<mp, void *, not_found, get_first>);
 
-  SAME(double, find<mp, int, not_found, first, second>);
-  SAME(void, find<mp, bool, not_found, first, second>);
-  SAME(char, find<mp, float, not_found, first, second>);
-  SAME(short *, find<mp, unsigned, not_found, first, second>);
-  SAME(not_found, find<mp, double, not_found, first, second>);
+  SAME(double, find<mp, int, not_found, get_first, get_second>);
+  SAME(void, find<mp, bool, not_found, get_first, get_second>);
+  SAME(char, find<mp, float, not_found, get_first, get_second>);
+  SAME(short *, find<mp, unsigned, not_found, get_first, get_second>);
+  SAME(not_found, find<mp, double, not_found, get_first, get_second>);
 
   EQUAL(true, contains<lst, int>);
   EQUAL(true, contains<lst, bool>);
@@ -694,20 +682,16 @@ int main() {
   EQUAL(true, contains<lst, unsigned>);
   EQUAL(false, contains<lst, void *>);
 
-  EQUAL(true, contains<mp, int, first>);
-  EQUAL(true, contains<mp, bool, first>);
-  EQUAL(true, contains<mp, float, first>);
-  EQUAL(true, contains<mp, unsigned, first>);
-  EQUAL(false, contains<mp, void *, first>);
+  EQUAL(true, contains<mp, int, get_first>);
+  EQUAL(true, contains<mp, bool, get_first>);
+  EQUAL(true, contains<mp, float, get_first>);
+  EQUAL(true, contains<mp, unsigned, get_first>);
+  EQUAL(false, contains<mp, void *, get_first>);
 
   SAME(shuf_mp, apply_to<transform<shuf_ls, to_map_entry>, map>);
   SAME(srt_mp, apply_to<transform<srt_ls, to_map_entry>, map>);
 
   SAME(dmy_ls, transform<srt_ls, applier<dummy>::apply>);
-  SAME(
-    szv_ls,
-    transform<dmy_ls, filtered_applier<to_sz_val, get_type::type::apply>::apply>
-  );
 
   SAME(lst, tail<lst, 0>);
   SAME(list<double, bool, void, float, char, unsigned>, tail<lst, 1>);
@@ -1127,9 +1111,6 @@ int main() {
   SAME(str::seq::sorted, sort<str::seq::shuffled, sequence_compare<less>>);
   SAME(str::lst::sorted, sort<str::lst::shuffled, sequence_compare<less>>);
 
-  SAME(srt_mp, map_sort<shuf_mp>);
-  SAME(str::mp::sorted, sequence_map_sort<str::mp::shuffled>);
-
   SAME(list<>, adjacent_unique<list<>>);
   SAME(list<int>, adjacent_unique<list<int>>);
   SAME(
@@ -1235,18 +1216,6 @@ int main() {
   EQT(sorted_search<seq>(5, test_search_visitor<indexed<sz<5>, 5>>()));
   EQT(sorted_search<seq>(6, test_search_visitor<indexed<sz<6>, 6>>()));
   EQF(sorted_search<seq>(7, test_search_visitor<indexed<sz<7>, 7>>()));
-
-  EQT(sorted_map_search<srt_mp>(0, test_search_visitor<indexed<mp_entry<0>, 0>>()));
-  EQT(sorted_map_search<srt_mp>(1, test_search_visitor<indexed<mp_entry<1>, 1>>()));
-  EQT(sorted_map_search<srt_mp>(2, test_search_visitor<indexed<mp_entry<2>, 2>>()));
-  EQT(sorted_map_search<srt_mp>(3, test_search_visitor<indexed<mp_entry<3>, 3>>()));
-  EQT(sorted_map_search<srt_mp>(4, test_search_visitor<indexed<mp_entry<4>, 4>>()));
-  EQT(sorted_map_search<srt_mp>(5, test_search_visitor<indexed<mp_entry<5>, 5>>()));
-  EQT(sorted_map_search<srt_mp>(6, test_search_visitor<indexed<mp_entry<6>, 6>>()));
-  EQT(sorted_map_search<srt_mp>(7, test_search_visitor<indexed<mp_entry<7>, 7>>()));
-  EQT(sorted_map_search<srt_mp>(8, test_search_visitor<indexed<mp_entry<8>, 8>>()));
-  EQT(sorted_map_search<srt_mp>(9, test_search_visitor<indexed<mp_entry<9>, 9>>()));
-  EQF(sorted_map_search<srt_mp>(10, test_search_visitor<indexed<mp_entry<10>, 10>>()));
 
   EQF(sorted_search<make_index_sequence<0>>(0));
 
