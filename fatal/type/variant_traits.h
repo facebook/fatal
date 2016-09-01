@@ -168,7 +168,7 @@ template <typename Impl, typename Descriptors, typename KeyFilter>
 struct variant_traits_by {
   // TODO: TEST
   template <typename Tag>
-  using descriptor = get<Descriptors, Tag, KeyFilter::template apply>;
+  using descriptor = get<Descriptors, Tag, KeyFilter>;
 
   template <typename Tag>
   using id = typename descriptor<Tag>::id;
