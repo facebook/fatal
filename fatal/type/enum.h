@@ -16,8 +16,6 @@
 #include <fatal/type/call_traits.h>
 #include <fatal/type/get.h>
 #include <fatal/type/list.h>
-#include <fatal/type/map.h>
-#include <fatal/type/trie.h>
 #include <fatal/type/push.h>
 #include <fatal/type/registry.h>
 #include <fatal/type/search.h>
@@ -25,6 +23,8 @@
 #include <fatal/type/slice.h>
 #include <fatal/type/sort.h>
 #include <fatal/type/traits.h>
+#include <fatal/type/trie.h>
+#include <fatal/type/zip.h>
 
 #include <iterator>
 #include <stdexcept>
@@ -197,46 +197,10 @@ public:
   using str = typename traits::str;
 
   /**
-   * A map from name to value for each known enumeration field.
-   *
-   * Field names are represented as `constant_sequence`, while field values are
-   * represented as a `std::integral_constant` of the given enumeration.
-   *
-   * Example:
-   *
-   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
-   *
-   *  // yields `std::integral_constant<my_enum, my_enum::field0>`
-   *  using result = enum_traits<my_enum>::name_to_value::get<
-   *    enum_traits<my_enum>::str::field0
-   *  >;
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  using name_to_value = typename traits::name_to_value;
-
-  /**
-   * A map from value to name for each known enumeration field.
-   *
-   * Field names are represented as `constant_sequence`, while field values are
-   * represented as a `std::integral_constant` of the given enumeration.
-   *
-   * Example:
-   *
-   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
-   *
-   *  // yields `enum_traits<my_enum>::str::field0`
-   *  using result = enum_traits<my_enum>::value_to_name::get<
-   *    std::integral_constant<my_enum, my_enum::field0>
-   *  >;
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  using value_to_name = transform<name_to_value, invert>;
-
-  /**
    * A type list of type strings for the names of each known
    * enumeration fields.
+   *
+   * The order of this list is synchronized with the order of `values`.
    *
    * Example:
    *
@@ -251,26 +215,28 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using names = map_keys<name_to_value>;
+  using names = typename traits::names;
 
   /**
-   * A type list of `std::integral_constant` for each of the
-   * known enumeration values.
+   * A sequence for each of the known enumeration values.
+   *
+   * The order of this sequence is synchronized with the order of `names`.
    *
    * Example:
    *
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
    *
-   *  // yields `list<
-   *  //   std::integral_constant<my_enum, my_enum::field0>,
-   *  //   std::integral_constant<my_enum, my_enum::field1>,
-   *  //   std::integral_constant<my_enum, my_enum::field2>
+   *  // yields `sequence<
+   *  //   my_enum,
+   *  //   my_enum::field0,
+   *  //   my_enum::field1,
+   *  //   my_enum::field2
    *  // >`
    *  using result = enum_traits<my_enum>::values;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using values = map_values<name_to_value>;
+  using values = typename traits::values;
 
   struct array {
     /**
@@ -341,26 +307,31 @@ public:
 
 private:
   struct parser {
-    template <typename TString>
-    void operator ()(tag<TString>, Enum &out) {
-      out = get<name_to_value, TString, first, second>::value;
+    template <typename String>
+    void operator ()(tag<String>, Enum &out) {
+      out = get<
+        zip<list, pair, names, as_list<values>>,
+        String,
+        get_first, get_second
+      >::value;
     }
   };
 
   struct to_string_visitor {
     template <typename Value, typename Name, std::size_t Index>
     void operator ()(
-      indexed<type_pair<Value, Name>, Index>, char const *&out
+      indexed_pair<Name, Value, Index>, char const *&out
     ) const {
-      out = Name::z_data();
+      out = z_data<Name>();
     }
   };
 
   struct to_string_fallback {
     char const *operator ()(type e, char const *fallback) const {
-      sorted_map_search<map_sort<value_to_name>>(
-        e, to_string_visitor(), fallback
-      );
+      sorted_search<
+        sort<zip<list, pair, names, as_list<values>>, less, get_second>,
+        second
+      >(e, to_string_visitor(), fallback);
 
       return fallback;
     }
@@ -693,11 +664,8 @@ static constexpr char const *enum_to_string(
  *      FATAL_STR(field2, "field2");
  *    };
  *
- *    using name_to_value = map<
- *      pair<str::field0, std::integral_constant<type, type::field0>>,
- *      pair<str::field1, std::integral_constant<type, type::field1>>,
- *      pair<str::field2, std::integral_constant<type, type::field2>>
- *    >;
+ *    using names = list<str::field0, str::field1, str::field2>;
+ *    using values = sequence<type, type::field0, type::field1, type::field2>;
  *
  *    // this function is optional but its presence greatly
  *    // improves build times and runtime performance
@@ -749,12 +717,11 @@ static constexpr char const *enum_to_string(
 #define FATAL_IMPL_EXPORT_RICH_ENUM_STR(...) \
   FATAL_STR(__VA_ARGS__, FATAL_TO_STR(__VA_ARGS__));
 
-#define FATAL_IMPL_EXPORT_RICH_ENUM_STR_VALUE_LIST(Arg, IsFirst, Index, ...) \
-  FATAL_CONDITIONAL(IsFirst)()(,) \
-  fatal::pair< \
-    str::__VA_ARGS__, \
-    ::std::integral_constant<type, type::__VA_ARGS__> \
-  >
+#define FATAL_IMPL_EXPORT_RICH_ENUM_NAMES(Arg, IsFirst, Index, ...) \
+  FATAL_CONDITIONAL(IsFirst)()(,) str::__VA_ARGS__
+
+#define FATAL_IMPL_EXPORT_RICH_ENUM_VALUES(Arg, IsFirst, Index, ...) \
+  FATAL_CONDITIONAL(IsFirst)()(,) type::__VA_ARGS__
 
 #define FATAL_IMPL_EXPORT_RICH_ENUM_TO_STR(...) \
   case type::__VA_ARGS__: return FATAL_TO_STR(__VA_ARGS__);
@@ -771,8 +738,13 @@ static constexpr char const *enum_to_string(
       FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR, __VA_ARGS__) \
     }; \
     \
-    using name_to_value = ::fatal::map< \
-      FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR_VALUE_LIST, ~, __VA_ARGS__) \
+    using names = ::fatal::list< \
+      FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_NAMES, ~, __VA_ARGS__) \
+    >; \
+    \
+    using values = ::fatal::sequence< \
+      type, \
+      FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_VALUES, ~, __VA_ARGS__) \
     >; \
     \
     static char const *to_string(type e, char const *fallback) { \

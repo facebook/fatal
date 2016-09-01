@@ -41,11 +41,8 @@ struct custom_enum_traits {
     FATAL_STR(field2, "field2");
   };
 
-  using name_to_value = build_type_map<
-    str::field0, std::integral_constant<custom_enum, custom_enum::field0>,
-    str::field1, std::integral_constant<custom_enum, custom_enum::field1>,
-    str::field2, std::integral_constant<custom_enum, custom_enum::field2>
-  >;
+  using names = list<str::field0, str::field1, str::field2>;
+  using values = sequence<type, type::field0, type::field1, type::field2>;
 };
 
 struct custom_metadata {};
