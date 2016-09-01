@@ -12,9 +12,9 @@
 
 #include <fatal/type/apply.h>
 #include <fatal/type/array.h>
-#include <fatal/type/deprecated/transform.h>
 #include <fatal/type/fast_pass.h>
 #include <fatal/type/get.h>
+#include <fatal/type/get_type.h>
 #include <fatal/type/map.h>
 #include <fatal/type/registry.h>
 #include <fatal/type/search.h>
@@ -81,7 +81,7 @@ using has_variant_traits = std::integral_constant<
   >::value
 >;
 
-template <typename, typename> class variant_traits_by;
+template <typename, typename, typename> struct variant_traits_by;
 
 // TODO: REMOVE name
 
@@ -108,12 +108,14 @@ public:
 
   using by_id = variant_traits_by<
     traits,
-    map_sort<as_map<descriptors, get_member_type::id>>
+    sort<descriptors, less, get_type::id>,
+    get_type::id
   >;
 
   using by_type = variant_traits_by<
     traits,
-    as_map<descriptors, get_member_type::type>
+    descriptors,
+    get_type::type
   >;
 
   struct array {
@@ -127,13 +129,16 @@ public:
      *  using array = enum_traits<my_enum>::array::names;
      *
      *  // prints "field0 field1 field2 "
-     *  for (auto s: array::get) {
+     *  for (auto s: array::data) {
      *    std::cout << s << ' ';
      *  }
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using ids = as_array<typename by_id::tags, id>;
+    using ids = as_array<
+      transform<typename by_id::descriptors, get_type::id::apply>,
+      id
+    >;
   };
 
   template <typename U>
@@ -159,18 +164,11 @@ public:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename Impl, typename Map>
-class variant_traits_by {
-  using impl = Impl;
-
-public:
-  using map = Map;
-
-  using tags = map_keys<map>;
-
+template <typename Impl, typename Descriptors, typename KeyFilter>
+struct variant_traits_by {
   // TODO: TEST
   template <typename Tag>
-  using descriptor = get<map, Tag, first, second>;
+  using descriptor = get<Descriptors, Tag, KeyFilter::template apply>;
 
   template <typename Tag>
   using id = typename descriptor<Tag>::id;
