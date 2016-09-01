@@ -29,12 +29,6 @@ struct applier {
   using apply = typename impl_apply::app<T, Args...>::type;
 };
 
-template <template <typename...> class T, template <typename> class Filter>
-struct filtered_applier {
-  template <typename... Args>
-  using apply = typename impl_apply::app<T, Filter<Args>...>::type;
-};
-
 // TODO: ADD FILTERED VARIANT
 template <typename T, typename... Bound>
 struct curry {
