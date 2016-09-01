@@ -20,6 +20,7 @@ namespace impl_fnd {
 // not found //
 struct n {};
 
+// find sfinae //
 template <typename, typename T>
 static T sfinae(tag<T>);
 
