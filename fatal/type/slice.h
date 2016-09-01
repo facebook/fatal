@@ -30,17 +30,29 @@ using try_at = typename impl_at::tat<
   Default
 >::type;
 
-// TODO: MAKE IT A TYPE
 template <typename T>
 using first = at<T, 0>;
 
-// TODO: MAKE IT A TYPE
+struct get_first {
+  template <typename T>
+  using apply = first<T>;
+};
+
 template <typename T>
 using second = at<T, 1>;
 
-// TODO: MAKE IT A TYPE
+struct get_second {
+  template <typename T>
+  using apply = second<T>;
+};
+
 template <typename T>
 using third = at<T, 2>;
+
+struct get_third {
+  template <typename T>
+  using apply = third<T>;
+};
 
 template <typename T, std::size_t... Indexes>
 using pick = typename impl_at::pick<T, Indexes...>::type;
@@ -63,11 +75,26 @@ using index = typename impl_at::idx<
 template <typename T0, typename...>
 using first_argument = T0;
 
+struct get_first_argument {
+  template <typename T0, typename...>
+  using apply = T0;
+};
+
 template <typename T0, typename T1, typename...>
 using second_argument = T1;
 
+struct get_second_argument {
+  template <typename T0, typename T1, typename...>
+  using apply = T1;
+};
+
 template <typename T0, typename T1, typename T2, typename...>
 using third_argument = T2;
+
+struct get_third_argument {
+  template <typename T0, typename T1, typename T2, typename...>
+  using apply = T2;
+};
 
 // TODO: REDUCE TEMPLATE INSTANTIATIONS
 template <typename T, typename Of>
