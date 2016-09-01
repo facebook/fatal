@@ -163,10 +163,10 @@ using known = list<
 struct ytse_jam {
   using supported = metadata::known;
   using op_list = apply_to<transform<supported, metadata::to_operation_command_list>, cat>;
-  using instance_t = apply_to<transform<supported, get_type::type>, auto_variant>;
+  using instance_t = apply_to<transform<supported, get_type::type::apply>, auto_variant>;
   // TODO: unique BEFORE apply_to
   using result_t = apply_to<
-    reject<transform<op_list, get_type::result>, curry<applier<std::is_same>, void>>,
+    reject<transform<op_list, get_type::result::apply>, curry<applier<std::is_same>, void>>,
     auto_variant
   >;
 
@@ -215,7 +215,7 @@ private:
     template <typename T>
     void operator ()(T &instance, result_t &out, request_args &args) {
       using data_type = get<supported, T, get_type::type>;
-      using operation = find<typename data_type::operations, Verb, get_type::verb>;
+      using operation = find<typename data_type::operations, Verb, not_found, get_type::verb>;
 
       perform(operation(), instance, out, args);
     }
@@ -244,7 +244,7 @@ private:
 
       auto type = args.next<std::string>();
       auto instance = args.next<std::string>();
-      auto found = trie_find<transform<supported, get_type::name>>(
+      auto found = trie_find<transform<supported, get_type::name::apply>>(
         type.begin(), type.end(),
         [&](auto data_type_name) { // tag<sequence>
           using ctor = get<ctor_index, type_of<decltype(data_type_name)>, get_type::name>;
@@ -340,7 +340,7 @@ private:
 ytse_jam::result_t ytse_jam::handle(std::string const &command, request_args &args) {
   result_t result;
 
-  if (!trie_find<adjacent_unique<sort<cat<built_ins, transform<op_list, get_type::verb>>, sequence_compare<less>>>>(
+  if (!trie_find<adjacent_unique<sort<cat<built_ins, transform<op_list, get_type::verb::apply>>, sequence_compare<less>>>>(
     command.begin(), command.end(), command_parser(), instances_, args, result
   )) {
     throw std::invalid_argument("command unknown");
