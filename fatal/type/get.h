@@ -14,7 +14,7 @@
 
 namespace fatal {
 
-template <typename T, typename Key, template <typename...> class... Filters>
+template <typename T, typename Key, typename... Filters>
 using get = typename impl_gt::g<T, Key, Filters...>::type;
 
 } // namespace fatal {

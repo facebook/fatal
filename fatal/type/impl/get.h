@@ -17,32 +17,29 @@
 namespace fatal {
 namespace impl_gt {
 
-template <typename, typename, template <typename...> class...> struct g;
+template <typename...> struct g;
 
 template <typename Key, typename Value>
 static Value fnd(pair<Key, Value>);
 
 template <typename T, typename Key>
-struct g<T, Key>: g<T, Key, first> {};
+struct g<T, Key>: g<T, Key, get_first> {};
 
 template <
-  template <typename...> class List,
-  typename... Args,
-  typename Key,
-  template <typename...> class KeyFilter
+  template <typename...> class List, typename... Args,
+  typename Key, typename KeyFilter
 >
 struct g<List<Args...>, Key, KeyFilter> {
-  using type = decltype(fnd<Key>(inherit<pair<KeyFilter<Args>, Args>...>()));
+  using type = decltype(fnd<Key>(
+    inherit<pair<typename KeyFilter::template apply<Args>, Args>...>())
+  );
 };
 
-template <
-  typename T,
-  typename Key,
-  template <typename...> class KeyFilter,
-  template <typename...> class PostFilter
->
+template <typename T, typename Key, typename KeyFilter, typename PostFilter>
 struct g<T, Key, KeyFilter, PostFilter> {
-  using type = PostFilter<typename g<T, Key, KeyFilter>::type>;
+  using type = typename PostFilter::template apply<
+    typename g<T, Key, KeyFilter>::type
+  >;
 };
 
 } // namespace impl_gt {
