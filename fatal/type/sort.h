@@ -37,20 +37,6 @@ using merge = typename impl_srt::merge<LHS, RHS>::type;
 template <typename T, typename Less = less, typename... By>
 using sort = typename impl_srt::qse<T, Less, By...>::type;
 
-// TODO: MAKE IT GENERATE LESS TEMPLATES FOR THE PREDICATE
-template <typename T, typename Less = less>
-using map_sort = sort<
-  T,
-  filtered_applier<Less::template apply, first>
->;
-
-// TODO: MAKE IT GENERATE LESS TEMPLATES FOR THE PREDICATE
-template <typename T, typename Less = less>
-using sequence_map_sort = sort<
-  T,
-  filtered_applier<sequence_compare<Less>::template apply, first>
->;
-
 // TODO: REVIEW / MOVE SOMEWHERE ELSE / GENERALIZE / ...
 template <typename T>
 using invert = typename impl_srt::inv<T>::type;
