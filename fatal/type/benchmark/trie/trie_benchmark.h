@@ -65,7 +65,7 @@ struct benchmark_impl {
   static std::array<std::string, sizeof...(TStrings)> const str;
 
   template <typename TController>
-  static void prefix_tree_benchmark(TController &benchmark) {
+  static void trie_benchmark(TController &benchmark) {
     unsigned count = 0;
 
     FATAL_BENCHMARK_SUSPEND {}
@@ -197,7 +197,7 @@ std::array<std::string, sizeof...(TStrings)> const benchmark_impl<
   }(); \
   FATAL_BENCHMARK(Name, type_prefix_tree) { \
     prevent_optimization(Name##_warmup); \
-    Name##_impl::prefix_tree_benchmark(benchmark); \
+    Name##_impl::trie_benchmark(benchmark); \
   } \
   FATAL_BENCHMARK(Name, sorted_std_array) { \
     prevent_optimization(Name##_warmup); \
