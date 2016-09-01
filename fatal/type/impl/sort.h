@@ -696,6 +696,24 @@ struct qs<Variadic<T, Pivot, Args...>, Less> {
   >::template apply<Pivot>;
 };
 
+// TODO: OPTIMIZE BY EXPANDING THE QS LIST INTO A PAIR(FILTERED, T)??
+template <typename Less, typename Filter>
+struct cc {
+  template <typename LHS, typename RHS>
+  using apply = typename Less::template apply<
+    typename Filter::template apply<LHS>,
+    typename Filter::template apply<RHS>
+  >;
+};
+
+template <typename...> struct qse;
+
+template <typename T, typename Less>
+struct qse<T, Less>: qs<T, Less> {};
+
+template <typename T, typename Less, typename By>
+struct qse<T, Less, By>: qs<T, cc<Less, By>> {};
+
 template <typename> struct inv;
 
 template <template <typename, typename> class Pair, typename LHS, typename RHS>

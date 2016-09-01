@@ -34,8 +34,8 @@ using reject = filter<T, negation<Predicate>>;
 template  <typename LHS, typename RHS>
 using merge = typename impl_srt::merge<LHS, RHS>::type;
 
-template <typename T, typename Less = less>
-using sort = typename impl_srt::qs<T, Less>::type;
+template <typename T, typename Less = less, typename... By>
+using sort = typename impl_srt::qse<T, Less, By...>::type;
 
 // TODO: MAKE IT GENERATE LESS TEMPLATES FOR THE PREDICATE
 template <typename T, typename Less = less>
