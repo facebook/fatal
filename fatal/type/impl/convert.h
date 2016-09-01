@@ -13,7 +13,8 @@
 namespace fatal {
 namespace impl_cv {
 
-template <template <typename V, V...> class, typename...> struct seq;
+// as_sequence //
+template <template <typename V, V...> class, typename...> struct s;
 
 template <
   template <typename V, V...> class Sequence,
@@ -21,7 +22,7 @@ template <
   typename... Args,
   typename T
 >
-struct seq<Sequence, Variadics<Args...>, T> {
+struct s<Sequence, Variadics<Args...>, T> {
   using type = Sequence<T, Args::value...>;
 };
 
@@ -31,7 +32,7 @@ template <
   typename Head,
   typename... Tail
 >
-struct seq<Sequence, Variadics<Head, Tail...>> {
+struct s<Sequence, Variadics<Head, Tail...>> {
   using type = Sequence<typename std::decay<decltype(Head::value)>::type, Head::value, Tail::value...>;
 };
 
@@ -42,7 +43,7 @@ template <
   V... Args,
   typename T
 >
-struct seq<Sequence, Variadics<V, Args...>, T> {
+struct s<Sequence, Variadics<V, Args...>, T> {
   using type = Sequence<T, static_cast<T>(Args)...>;
 };
 
@@ -52,11 +53,12 @@ template <
   typename T,
   T... Args
 >
-struct seq<Sequence, Variadics<T, Args...>> {
+struct s<Sequence, Variadics<T, Args...>> {
   using type = Sequence<T, Args...>;
 };
 
-template <template <typename...> class, typename> struct lst;
+// as_list //
+template <template <typename...> class, typename> struct l;
 
 template <
   template <typename...> class List,
@@ -64,7 +66,7 @@ template <
   typename T,
   T... Args
 >
-struct lst<List, Variadics<T, Args...>> {
+struct l<List, Variadics<T, Args...>> {
   using type = List<std::integral_constant<T, Args>...>;
 };
 
@@ -73,28 +75,15 @@ template <
   template <typename...> class Variadics,
   typename... Args
 >
-struct lst<List, Variadics<Args...>> {
+struct l<List, Variadics<Args...>> {
   using type = List<Args...>;
 };
 
-template <typename, template <typename...> class...> struct mp;
-
-template <
-  template <typename...> class Variadics,
-  typename... Args,
-  template <typename...> class Map,
-  template <typename...> class Pair,
-  template <typename...> class Key,
-  template <typename...> class Value
->
-struct mp<Variadics<Args...>, Map, Pair, Key, Value> {
-  using type = Map<Pair<Key<Args>, Value<Args>>...>;
-};
-
-template <typename...> struct toi;
+// to_instance //
+template <typename...> struct t;
 
 template <typename To, template <typename...> class Variadics, typename... T>
-struct toi<To, Variadics<T...>> {
+struct t<To, Variadics<T...>> {
   template <typename... Args>
   static constexpr To to(Args &&...args) {
     return To{T::value..., std::forward<Args>(args)...};
@@ -107,7 +96,7 @@ template <
   typename T,
   T... Values
 >
-struct toi<To, Variadics<T, Values...>> {
+struct t<To, Variadics<T, Values...>> {
   template <typename... Args>
   static constexpr To to(Args &&...args) {
     return To{Values..., std::forward<Args>(args)...};

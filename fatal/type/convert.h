@@ -28,23 +28,14 @@ template <
   template <typename V, V...> class Sequence = sequence,
   typename... T
 >
-using as_sequence = typename impl_cv::seq<Sequence, From, T...>::type;
+using as_sequence = typename impl_cv::s<Sequence, From, T...>::type;
 
 template <typename T, template <typename...> class List = list>
-using as_list = typename impl_cv::lst<List, T>::type;
-
-template <
-  typename T,
-  template <typename...> class Key,
-  template <typename...> class Value = identity,
-  template <typename...> class Map = map,
-  template <typename...> class Pair = pair
->
-using as_map = typename impl_cv::mp<T, Map, Pair, Key, Value>::type;
+using as_list = typename impl_cv::l<List, T>::type;
 
 template <typename To, typename T, typename... Args>
 static constexpr To to_instance(Args &&...args) {
-  return impl_cv::toi<To, T>::to(std::forward<Args>(args)...);
+  return impl_cv::t<To, T>::to(std::forward<Args>(args)...);
 }
 
 namespace bound {
