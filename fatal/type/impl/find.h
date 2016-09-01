@@ -31,8 +31,7 @@ template <typename Default, typename...>
 static Default sfinae(...);
 
 // find //
-template <typename, typename, typename, template <typename...> class...>
-struct f;
+template <typename...> struct f;
 
 template <
   template <typename...> class List, typename... Args,
@@ -46,13 +45,12 @@ struct f<List<Args...>, Key, Default> {
 
 template <
   template <typename...> class List, typename... Args,
-  typename Key, typename Default,
-  template <typename...> class KeyFilter
+  typename Key, typename Default, typename KeyFilter
 >
 struct f<List<Args...>, Key, Default, KeyFilter> {
   using type = decltype(
     sfinae<Default, Key>(
-      inherit<pair<KeyFilter<Args>, Args>...>()
+      inherit<pair<typename KeyFilter::template apply<Args>, Args>...>()
     )
   );
 };
@@ -60,18 +58,22 @@ struct f<List<Args...>, Key, Default, KeyFilter> {
 template <
   template <typename...> class List, typename... Args,
   typename Key, typename Default,
-  template <typename...> class KeyFilter,
-  template <typename...> class PostFilter
+  typename KeyFilter, typename PostFilter
 >
 struct f<List<Args...>, Key, Default, KeyFilter, PostFilter> {
   using type = decltype(
     sfinae<Default, Key>(
-      inherit<pair<KeyFilter<Args>, PostFilter<Args>>...>()
+      inherit<
+        pair<
+          typename KeyFilter::template apply<Args>,
+          typename PostFilter::template apply<Args>
+        >...
+      >()
     )
   );
 };
 
-template <typename, typename, template <typename...> class...> struct c;
+template <typename...> struct c;
 
 template <template <typename...> class List, typename... Args, typename Key>
 struct c<List<Args...>, Key> {
@@ -83,13 +85,15 @@ struct c<List<Args...>, Key> {
 };
 
 template <
-  template <typename...> class List, typename... Args, typename Key,
-  template <typename> class KeyFilter
+  template <typename...> class List, typename... Args,
+  typename Key, typename KeyFilter
 >
 struct c<List<Args...>, Key, KeyFilter> {
   using type = decltype(
     sfinae<std::false_type, Key>(
-      inherit<pair<KeyFilter<Args>, std::true_type>...>()
+      inherit<
+        pair<typename KeyFilter::template apply<Args>, std::true_type>...
+      >()
     )
   );
 };

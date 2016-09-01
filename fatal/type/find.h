@@ -18,11 +18,11 @@ template <
   typename T,
   typename Key,
   typename Default,
-  template <typename...> class... Filters
+  typename... Filters
 >
 using find = typename impl_fnd::f<T, Key, Default, Filters...>::type;
 
-template <typename T, typename Key, template <typename...> class... Filters>
+template <typename T, typename Key, typename... Filters>
 using contains = typename impl_fnd::c<T, Key, Filters...>::type;
 
 } // namespace fatal {
