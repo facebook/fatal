@@ -10,52 +10,6 @@
 #ifndef FATAL_INCLUDE_fatal_type_prefix_tree_h
 #define FATAL_INCLUDE_fatal_type_prefix_tree_h
 
-#include <fatal/functional/no_op.h>
-#include <fatal/type/sort.h>
-
-#include <utility>
-
-#include <fatal/type/impl/prefix_tree.h>
-
-namespace fatal {
-
-template <typename T>
-struct prefix_tree {
-  template <
-    typename Begin,
-    typename End,
-    typename Visitor,
-    typename... Args
-  >
-  static bool find(
-    Begin &&begin,
-    End &&end,
-    Visitor &&visitor,
-    Args &&...args
-  ) {
-    bool found = false;
-    impl_pt::f<0, impl_pt::build<sort<T, sequence_compare<less>>>>::v(
-      found,
-      std::forward<Begin>(begin),
-      std::forward<End>(end),
-      std::forward<Visitor>(visitor),
-      std::forward<Args>(args)...
-    );
-    return found;
-  }
-
-  template <typename Begin, typename End>
-  static bool find(Begin &&begin, End &&end) {
-    return find(
-      std::forward<Begin>(begin),
-      std::forward<End>(end),
-      fn::no_op()
-    );
-  }
-};
-
-} // namespace fatal {
-
 #include <fatal/type/deprecated/type_prefix_tree.h>
 
 #endif // FATAL_INCLUDE_fatal_type_prefix_tree_h
