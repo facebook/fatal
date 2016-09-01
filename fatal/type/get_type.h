@@ -29,8 +29,10 @@ namespace fatal {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 # define FATAL_GET_TYPE(Name, ...) \
-  template <typename T> \
-  using Name = typename T::__VA_ARGS__
+  struct Name { \
+    template <typename Name##T> \
+    using apply = typename Name##T::__VA_ARGS__; \
+  }
 
 /**
  * Provides transforms that evaluate to a member type of a given type.

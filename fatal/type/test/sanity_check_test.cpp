@@ -129,6 +129,30 @@ std::string type_str() {
 
 // test types //////////////////////////////////////////////////////////////////
 
+template <typename...> struct t0 {};
+template <typename...> struct t1 {};
+template <typename...> struct t2 {};
+template <typename...> struct t3 {};
+template <typename...> struct t4 {};
+template <typename...> struct t5 {};
+template <typename...> struct t6 {};
+template <typename...> struct t7 {};
+template <typename...> struct t8 {};
+template <typename...> struct t9 {};
+template <typename...> struct t10 {};
+
+struct t_0 { template <typename... Args> using apply = t0<Args...>; };
+struct t_1 { template <typename... Args> using apply = t1<Args...>; };
+struct t_2 { template <typename... Args> using apply = t2<Args...>; };
+struct t_3 { template <typename... Args> using apply = t3<Args...>; };
+struct t_4 { template <typename... Args> using apply = t4<Args...>; };
+struct t_5 { template <typename... Args> using apply = t5<Args...>; };
+struct t_6 { template <typename... Args> using apply = t6<Args...>; };
+struct t_7 { template <typename... Args> using apply = t7<Args...>; };
+struct t_8 { template <typename... Args> using apply = t8<Args...>; };
+struct t_9 { template <typename... Args> using apply = t9<Args...>; };
+struct t_10 { template <typename... Args> using apply = t10<Args...>; };
+
 template <char Value>
 using ch = std::integral_constant<char, Value>;
 
@@ -682,7 +706,7 @@ int main() {
   SAME(dmy_ls, transform<srt_ls, applier<dummy>::apply>);
   SAME(
     szv_ls,
-    transform<dmy_ls, filtered_applier<to_sz_val, get_type::type>::apply>
+    transform<dmy_ls, filtered_applier<to_sz_val, get_type::type::apply>::apply>
   );
 
   SAME(lst, tail<lst, 0>);
