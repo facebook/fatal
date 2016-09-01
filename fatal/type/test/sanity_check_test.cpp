@@ -245,16 +245,6 @@ using tst_longest_common_prefix = longest_common_prefix<
   Args...
 >;
 
-template <typename T, typename Needle>
-bool test_trie() {
-  using needle = as_array<Needle, char>;
-  return trie_find<T>(
-    static_cast<char const *>(needle::data),
-    std::next(needle::data, needle::size::value),
-    test_search_visitor<tag<Needle>>()
-  );
-}
-
 #define TEST_AS_ARRAY(Which, ...) \
   do { \
     using array = as_array<str::Which::__VA_ARGS__>; \
@@ -1459,84 +1449,6 @@ int main() {
   EQ("fast", to_instance<std::string, str::seq::fast>());
   EQ("faster", to_instance<std::string, str::lst::fast>('e', 'r'));
   EQ("faster", to_instance<std::string, str::seq::fast>('e', 'r'));
-
-  EQF(test_trie<list<>, str::seq::fat>());
-
-  EQT(test_trie<list<str::seq::empty>, str::seq::empty>());
-  EQF(test_trie<list<str::seq::empty>, str::seq::fat>());
-
-  EQT(test_trie<list<str::seq::fat>, str::seq::fat>());
-  EQF(test_trie<list<str::seq::fat>, str::seq::gooey>());
-
-  EQF(test_trie<list<str::seq::fastest>, str::seq::fat>());
-  EQF(test_trie<list<str::seq::fastest>, str::seq::fast>());
-  EQF(test_trie<list<str::seq::fastest>, str::seq::faster>());
-  EQT(test_trie<list<str::seq::fastest>, str::seq::fastest>());
-
-  EQT(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::fat>());
-  EQF(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::fast>());
-  EQF(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::gooey>());
-  EQF(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::faster>());
-  EQT(test_trie<list<str::seq::fastest, str::seq::fat>, str::seq::fastest>());
-
-  EQT(test_trie<str::seq::shuffled, str::seq::gooey>());
-  EQT(test_trie<str::seq::shuffled, str::seq::fast>());
-  EQT(test_trie<str::seq::shuffled, str::seq::granite>());
-  EQT(test_trie<str::seq::shuffled, str::seq::fastest>());
-  EQT(test_trie<str::seq::shuffled, str::seq::fart>());
-  EQT(test_trie<str::seq::shuffled, str::seq::far>());
-  EQT(test_trie<str::seq::shuffled, str::seq::good>());
-  EQT(test_trie<str::seq::shuffled, str::seq::great>());
-  EQT(test_trie<str::seq::shuffled, str::seq::grok>());
-  EQT(test_trie<str::seq::shuffled, str::seq::faster>());
-  EQT(test_trie<str::seq::shuffled, str::seq::green>());
-  EQT(test_trie<str::seq::shuffled, str::seq::gold>());
-  EQT(test_trie<str::seq::shuffled, str::seq::farther>());
-  EQT(test_trie<str::seq::shuffled, str::seq::groove>());
-  EQT(test_trie<str::seq::shuffled, str::seq::fat>());
-  EQT(test_trie<str::seq::shuffled, str::seq::fist>());
-  EQF(test_trie<str::seq::shuffled, str::seq::empty>());
-  EQF(test_trie<str::seq::shuffled, str::seq::x>());
-  EQF(test_trie<str::seq::shuffled, str::seq::notfound>());
-
-  EQF(test_trie<list<>, str::lst::fat>());
-
-  EQT(test_trie<list<str::lst::empty>, str::lst::empty>());
-  EQF(test_trie<list<str::lst::empty>, str::lst::fat>());
-
-  EQT(test_trie<list<str::lst::fat>, str::lst::fat>());
-  EQF(test_trie<list<str::lst::fat>, str::lst::gooey>());
-
-  EQF(test_trie<list<str::lst::fastest>, str::lst::fat>());
-  EQF(test_trie<list<str::lst::fastest>, str::lst::fast>());
-  EQF(test_trie<list<str::lst::fastest>, str::lst::faster>());
-  EQT(test_trie<list<str::lst::fastest>, str::lst::fastest>());
-
-  EQT(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::fat>());
-  EQF(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::fast>());
-  EQF(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::gooey>());
-  EQF(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::faster>());
-  EQT(test_trie<list<str::lst::fastest, str::lst::fat>, str::lst::fastest>());
-
-  EQT(test_trie<str::lst::shuffled, str::lst::gooey>());
-  EQT(test_trie<str::lst::shuffled, str::lst::fast>());
-  EQT(test_trie<str::lst::shuffled, str::lst::granite>());
-  EQT(test_trie<str::lst::shuffled, str::lst::fastest>());
-  EQT(test_trie<str::lst::shuffled, str::lst::fart>());
-  EQT(test_trie<str::lst::shuffled, str::lst::far>());
-  EQT(test_trie<str::lst::shuffled, str::lst::good>());
-  EQT(test_trie<str::lst::shuffled, str::lst::great>());
-  EQT(test_trie<str::lst::shuffled, str::lst::grok>());
-  EQT(test_trie<str::lst::shuffled, str::lst::faster>());
-  EQT(test_trie<str::lst::shuffled, str::lst::green>());
-  EQT(test_trie<str::lst::shuffled, str::lst::gold>());
-  EQT(test_trie<str::lst::shuffled, str::lst::farther>());
-  EQT(test_trie<str::lst::shuffled, str::lst::groove>());
-  EQT(test_trie<str::lst::shuffled, str::lst::fat>());
-  EQT(test_trie<str::lst::shuffled, str::lst::fist>());
-  EQF(test_trie<str::lst::shuffled, str::lst::empty>());
-  EQF(test_trie<str::lst::shuffled, str::lst::x>());
-  EQF(test_trie<str::lst::shuffled, str::lst::notfound>());
 
   std::cout << "done" << std::endl;
   return exit_code;
