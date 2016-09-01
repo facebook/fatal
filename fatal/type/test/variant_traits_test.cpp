@@ -205,8 +205,6 @@ FATAL_TEST(poor_mans_variant, by_id) {
   using ids = poor_mans_variant_traits::ids;
   using traits = variant_traits<type>::by_id;
 
-  FATAL_EXPECT_SAME<list<ids::i, ids::d, ids::b>, traits::tags>();
-
   FATAL_EXPECT_SAME<ids::i, traits::id<ids::i>>();
   FATAL_EXPECT_SAME<ids::d, traits::id<ids::d>>();
   FATAL_EXPECT_SAME<ids::b, traits::id<ids::b>>();
@@ -254,8 +252,6 @@ FATAL_TEST(poor_mans_variant, by_type) {
   using type = poor_mans_variant;
   using ids = poor_mans_variant_traits::ids;
   using traits = variant_traits<type>::by_type;
-
-  FATAL_EXPECT_SAME<list<int, double, bool>, traits::tags>();
 
   FATAL_EXPECT_SAME<ids::i, traits::id<int>>();
   FATAL_EXPECT_SAME<ids::d, traits::id<double>>();
