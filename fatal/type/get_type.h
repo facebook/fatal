@@ -94,6 +94,8 @@ namespace get_type {
   FATAL_IMPL_GET_TYPE_TYPE(enums);
   FATAL_IMPL_GET_TYPE_TYPE(extension);
   FATAL_IMPL_GET_TYPE_TYPE(extensions);
+  FATAL_IMPL_GET_TYPE_TYPE(fault);
+  FATAL_IMPL_GET_TYPE_TYPE(faults);
   FATAL_IMPL_GET_TYPE_TYPE(first);
   FATAL_IMPL_GET_TYPE_TYPE(flag);
   FATAL_IMPL_GET_TYPE_TYPE(flags);
