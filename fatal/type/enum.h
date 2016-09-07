@@ -238,6 +238,38 @@ public:
    */
   using values = typename traits::values;
 
+  /**
+   * Gets the name associated with the field with the given `Value`.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *  using traits = enum_traits<my_enum>;
+   *
+   *  // yields `std::integral_constant<my_enum, my_enum::field0>`
+   *  using result = traits::value_of<traits::str::field0>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <type Value>
+  using name_of = at<names, index<values>::template of<Value>::value>;
+
+  /**
+   * Gets the value associated with the field with the given `Name`.
+   *
+   * Example:
+   *
+   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+   *  using traits = enum_traits<my_enum>;
+   *
+   *  // yields `std::integral_constant<my_enum, my_enum::field0>`
+   *  using result = traits::value_of<traits::str::field0>;
+   *
+   * @author: Marcelo Juchem <marcelo@fb.com>
+   */
+  template <typename Name>
+  using value_of = at<values, index_of<names, Name>::value>;
+
   struct array {
     /**
      * A statically allocated array containing the names of the enumeration
@@ -293,7 +325,7 @@ public:
      *  FATAL_RICH_ENUM_CLASS(my_enum, (field2, 2), (field0, 0), (field1, 1));
      *
      *  using traits = enum_traits<my_enum>;
-     *  using array = traits::array::sorted_values;
+     *  using array = traits::array::sorted;
      *
      *  // prints "0 1 2 "
      *  for (auto i: array::get) {
@@ -302,7 +334,7 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using sorted_values = as_array<sort<enum_traits::values>>;
+    using sorted = as_array<sort<enum_traits::values>>;
   };
 
 private:
@@ -655,13 +687,13 @@ static constexpr char const *enum_to_string(
  *  struct my_traits {
  *    using type = my_enum;
  *
- *    // see FATAL_STR
+ *    // see FATAL_S
  *    using name = constant_sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>;
  *
  *    struct str {
- *      FATAL_STR(field0, "field0");
- *      FATAL_STR(field1, "field1");
- *      FATAL_STR(field2, "field2");
+ *      FATAL_S(field0, "field0");
+ *      FATAL_S(field1, "field1");
+ *      FATAL_S(field2, "field2");
  *    };
  *
  *    using names = list<str::field0, str::field1, str::field2>;
@@ -715,7 +747,7 @@ static constexpr char const *enum_to_string(
   FATAL_EXPORT_RICH_ENUM(__VA_ARGS__)
 
 #define FATAL_IMPL_EXPORT_RICH_ENUM_STR(...) \
-  FATAL_STR(__VA_ARGS__, FATAL_TO_STR(__VA_ARGS__));
+  FATAL_S(__VA_ARGS__, FATAL_TO_STR(__VA_ARGS__));
 
 #define FATAL_IMPL_EXPORT_RICH_ENUM_NAMES(Arg, IsFirst, Index, ...) \
   FATAL_CONDITIONAL(IsFirst)()(,) str::__VA_ARGS__
@@ -732,7 +764,7 @@ static constexpr char const *enum_to_string(
   struct ClassName { \
     using type = Enum; \
     \
-    FATAL_STR(name, FATAL_TO_STR(Enum)); \
+    FATAL_S(name, FATAL_TO_STR(Enum)); \
     \
     struct str { \
       FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR, __VA_ARGS__) \

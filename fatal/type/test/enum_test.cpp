@@ -15,20 +15,27 @@
 
 namespace fatal {
 
-// TODO: FIX SUPPORT FOR EMPTY ENUMS
-//FATAL_RICH_ENUM_CLASS(empty_enum);
+struct names {
+  FATAL_S(state0, "state0");
+  FATAL_S(state1, "state1");
+  FATAL_S(state2, "state2");
+  FATAL_S(state3, "state3");
+  FATAL_S(field0, "field0");
+  FATAL_S(field1, "field1");
+  FATAL_S(field2, "field2");
+};
 
 FATAL_RICH_ENUM(
   test_enum,
   state0,
-  (state1, 4),
-  (state2, 97),
+  (state1, 97),
+  (state2, 4),
   state3
 );
-FATAL_STR(test_enum_name, "test_enum");
+FATAL_S(test_enum_name, "test_enum");
 
 enum class custom_enum { field0, field1 = 37, field2 = 22 };
-FATAL_STR(custom_enum_name, "custom_enum");
+FATAL_S(custom_enum_name, "custom_enum");
 
 struct custom_enum_traits {
   using type = custom_enum;
@@ -36,9 +43,9 @@ struct custom_enum_traits {
   using name = custom_enum_name;
 
   struct str {
-    FATAL_STR(field0, "field0");
-    FATAL_STR(field1, "field1");
-    FATAL_STR(field2, "field2");
+    using field0 = names::field0;
+    using field1 = names::field1;
+    using field2 = names::field2;
   };
 
   using names = list<str::field0, str::field1, str::field2>;
@@ -48,6 +55,26 @@ struct custom_enum_traits {
 struct custom_metadata {};
 
 FATAL_REGISTER_ENUM_TRAITS(custom_enum_traits, custom_metadata);
+
+/* TODO: FIX SUPPORT FOR EMPTY ENUMS
+FATAL_RICH_ENUM_CLASS(empty_enum);
+/*/
+enum class empty_enum {};
+FATAL_S(empty_enum_name, "empty_enum");
+
+struct empty_enum_traits {
+  using type = empty_enum;
+
+  using name = empty_enum_name;
+
+  struct str {};
+
+  using names = list<>;
+  using values = sequence<type>;
+};
+
+FATAL_REGISTER_ENUM_TRAITS(empty_enum_traits);
+//*/
 
 FATAL_TEST(enums, has_enum_traits) {
   FATAL_EXPECT_SAME<std::true_type, has_enum_traits<test_enum>>();
@@ -68,22 +95,101 @@ FATAL_TEST(enums, types) {
 
 FATAL_TEST(enums, declare_enum) {
   FATAL_EXPECT_EQ(test_enum::state0, static_cast<test_enum>(0));
-  FATAL_EXPECT_EQ(test_enum::state1, static_cast<test_enum>(4));
-  FATAL_EXPECT_EQ(test_enum::state2, static_cast<test_enum>(97));
-  FATAL_EXPECT_EQ(test_enum::state3, static_cast<test_enum>(98));
+  FATAL_EXPECT_EQ(test_enum::state1, static_cast<test_enum>(97));
+  FATAL_EXPECT_EQ(test_enum::state2, static_cast<test_enum>(4));
+  FATAL_EXPECT_EQ(test_enum::state3, static_cast<test_enum>(5));
 
   FATAL_EXPECT_EQ(custom_enum::field0, static_cast<custom_enum>(0));
   FATAL_EXPECT_EQ(custom_enum::field1, static_cast<custom_enum>(37));
   FATAL_EXPECT_EQ(custom_enum::field2, static_cast<custom_enum>(22));
 }
 
+FATAL_TEST(enums, names) {
+  FATAL_EXPECT_SAME<
+    fatal::list<names::state0, names::state1, names::state2, names::state3>,
+    enum_traits<test_enum>::names
+  >();
+
+  FATAL_EXPECT_SAME<
+    fatal::list<names::field0, names::field1, names::field2>,
+    enum_traits<custom_enum>::names
+  >();
+}
+
+FATAL_TEST(enums, values) {
+  FATAL_EXPECT_SAME<
+    fatal::sequence<
+      test_enum,
+      test_enum::state0, test_enum::state1, test_enum::state2, test_enum::state3
+    >,
+    enum_traits<test_enum>::values
+  >();
+
+  FATAL_EXPECT_SAME<
+    fatal::sequence<
+      custom_enum,
+      custom_enum::field0, custom_enum::field1, custom_enum::field2
+    >,
+    enum_traits<custom_enum>::values
+  >();
+}
+
+FATAL_TEST(enums, name_of) {
+  {
+    using traits = enum_traits<test_enum>;
+    FATAL_EXPECT_SAME<names::state0, traits::name_of<test_enum::state0>>();
+    FATAL_EXPECT_SAME<names::state1, traits::name_of<test_enum::state1>>();
+    FATAL_EXPECT_SAME<names::state2, traits::name_of<test_enum::state2>>();
+    FATAL_EXPECT_SAME<names::state3, traits::name_of<test_enum::state3>>();
+  }
+
+  {
+    using traits = enum_traits<custom_enum>;
+    FATAL_EXPECT_SAME<names::field0, traits::name_of<custom_enum::field0>>();
+    FATAL_EXPECT_SAME<names::field1, traits::name_of<custom_enum::field1>>();
+    FATAL_EXPECT_SAME<names::field2, traits::name_of<custom_enum::field2>>();
+  }
+}
+
+FATAL_TEST(enums, value_of) {
+  {
+    using traits = enum_traits<test_enum>;
+    FATAL_EXPECT_SAME<
+      std::integral_constant<test_enum, test_enum::state0>,
+     traits::value_of<names::state0>
+    >();
+    FATAL_EXPECT_SAME<
+      std::integral_constant<test_enum, test_enum::state1>,
+     traits::value_of<names::state1>
+    >();
+    FATAL_EXPECT_SAME<
+      std::integral_constant<test_enum, test_enum::state2>,
+     traits::value_of<names::state2>
+    >();
+    FATAL_EXPECT_SAME<
+      std::integral_constant<test_enum, test_enum::state3>,
+     traits::value_of<names::state3>
+    >();
+  }
+
+  {
+    using traits = enum_traits<custom_enum>;
+    FATAL_EXPECT_SAME<
+      std::integral_constant<custom_enum, custom_enum::field0>,
+      traits::value_of<names::field0>
+    >();
+    FATAL_EXPECT_SAME<
+      std::integral_constant<custom_enum, custom_enum::field1>,
+      traits::value_of<names::field1>
+    >();
+    FATAL_EXPECT_SAME<
+      std::integral_constant<custom_enum, custom_enum::field2>,
+      traits::value_of<names::field2>
+    >();
+  }
+}
+
 FATAL_TEST(enums, array::names) {
-}
-
-FATAL_TEST(enums, array::values) {
-}
-
-FATAL_TEST(enums, array::sorted_values) {
   {
     using actual = enum_traits<test_enum>::array::names;
     std::array<std::string, 4> expected{{
@@ -105,11 +211,61 @@ FATAL_TEST(enums, array::sorted_values) {
   }
 }
 
+FATAL_TEST(enums, array::values) {
+  {
+    using actual = enum_traits<test_enum>::array::values;
+    std::array<test_enum, 4> expected{{
+      test_enum::state0, test_enum::state1, test_enum::state2, test_enum::state3
+    }};
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
+    FATAL_EXPECT_TRUE(
+      std::equal(expected.begin(), expected.end(), actual::data)
+    );
+  }
+
+  {
+    using actual = enum_traits<custom_enum>::array::values;
+    std::array<custom_enum, 3> expected{{
+      custom_enum::field0, custom_enum::field1, custom_enum::field2
+    }};
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
+    FATAL_EXPECT_TRUE(
+      std::equal(expected.begin(), expected.end(), actual::data)
+    );
+  }
+}
+
+FATAL_TEST(enums, array::sorted) {
+  {
+    using actual = enum_traits<test_enum>::array::sorted;
+    std::array<test_enum, 4> expected{{
+      test_enum::state0, test_enum::state1, test_enum::state2, test_enum::state3
+    }};
+    std::sort(expected.begin(), expected.end());
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
+    FATAL_EXPECT_TRUE(
+      std::equal(expected.begin(), expected.end(), actual::data)
+    );
+  }
+
+  {
+    using actual = enum_traits<custom_enum>::array::sorted;
+    std::array<custom_enum, 3> expected{{
+      custom_enum::field0, custom_enum::field1, custom_enum::field2
+    }};
+    std::sort(expected.begin(), expected.end());
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
+    FATAL_EXPECT_TRUE(
+      std::equal(expected.begin(), expected.end(), actual::data)
+    );
+  }
+}
+
 FATAL_TEST(enums, is_valid) {
   {
-    //using traits = enum_traits<empty_enum>;
+    using traits = enum_traits<empty_enum>;
 
-    //FATAL_EXPECT_FALSE(traits::is_valid(static_cast<empty_enum>(-1)));
+    FATAL_EXPECT_FALSE(traits::is_valid(static_cast<empty_enum>(-1)));
   }
 
   {
@@ -133,7 +289,7 @@ FATAL_TEST(enums, is_valid) {
 }
 
 FATAL_TEST(enums, is_valid_enum) {
-  //FATAL_EXPECT_FALSE(is_valid_enum(static_cast<empty_enum>(-1)));
+  FATAL_EXPECT_FALSE(is_valid_enum(static_cast<empty_enum>(-1)));
 
   FATAL_EXPECT_FALSE(is_valid_enum(static_cast<test_enum>(-1)));
   FATAL_EXPECT_TRUE(is_valid_enum(test_enum::state0));
