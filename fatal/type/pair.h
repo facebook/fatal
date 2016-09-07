@@ -19,6 +19,15 @@ namespace fatal {
 template <typename, typename>
 struct pair {};
 
+template <typename First, typename Second>
+struct to_pair {
+  template <typename T>
+  using apply = pair<
+    typename First::template apply<T>,
+    typename Second::template apply<T>
+  >;
+};
+
 } // namespace fatal {
 
 #include <fatal/type/deprecated/type_pair.h>
