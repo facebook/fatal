@@ -10,29 +10,6 @@
 #ifndef FATAL_INCLUDE_fatal_type_map_h
 #define FATAL_INCLUDE_fatal_type_map_h
 
-#include <fatal/type/apply.h>
-#include <fatal/type/list.h>
-#include <fatal/type/slice.h>
-#include <fatal/type/transform.h>
-
-#include <fatal/type/impl/map.h>
-
-namespace fatal {
-
-template <typename... Pairs>
-struct map {};
-
-template <typename T, template <typename...> class List = list>
-using map_keys = transform<apply_to<T, List>, first>;
-
-template <typename T, template <typename...> class List = list>
-using map_values = transform<apply_to<T, List>, second>;
-
-template <typename... Args>
-using make_map = typename impl_mp::mk<map<>, Args...>::type;
-
-} // namespace fatal {
-
 #include <fatal/type/deprecated/type_map.h>
 
 #endif // FATAL_INCLUDE_fatal_type_map_h
