@@ -13,7 +13,6 @@
 #include <fatal/type/find.h>
 #include <fatal/type/foreach.h>
 #include <fatal/type/list.h>
-#include <fatal/type/map.h>
 #include <fatal/type/reflect_template.h>
 #include <fatal/type/search.h>
 

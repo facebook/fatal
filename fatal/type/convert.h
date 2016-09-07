@@ -12,7 +12,6 @@
 
 #include <fatal/type/identity.h>
 #include <fatal/type/list.h>
-#include <fatal/type/map.h>
 #include <fatal/type/pair.h>
 #include <fatal/type/sequence.h>
 
