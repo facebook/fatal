@@ -34,7 +34,7 @@ FATAL_TEST(tuple_tags, map) {
   typedef std::tuple<int, double, bool, long> tuple;
 
   FATAL_EXPECT_SAME<
-    map<
+    list<
       pair<Foo, int>,
       pair<Bar, double>,
       pair<Baz, bool>,

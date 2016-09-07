@@ -20,6 +20,7 @@
 #include <fatal/type/search.h>
 #include <fatal/type/slice.h>
 #include <fatal/type/sort.h>
+#include <fatal/type/transform.h>
 
 #include <type_traits>
 #include <utility>
@@ -106,17 +107,8 @@ public:
 
   using descriptors = typename traits::descriptors;
 
-  using by_id = variant_traits_by<
-    traits,
-    sort<descriptors, less, get_type::id>,
-    get_type::id
-  >;
-
-  using by_type = variant_traits_by<
-    traits,
-    descriptors,
-    get_type::type
-  >;
+  using by_id = variant_traits_by<traits, descriptors, get_type::id>;
+  using by_type = variant_traits_by<traits, descriptors, get_type::type>;
 
   struct array {
     /**

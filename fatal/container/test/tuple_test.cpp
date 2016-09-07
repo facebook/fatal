@@ -379,13 +379,13 @@ FATAL_TEST(tuple_from, map) {
   FATAL_EXPECT_SAME<tuple<>, tuple_from<type_map<>>::map<>>();
   FATAL_EXPECT_SAME<
     tuple<pair<int, double>, pair<float, bool>>,
-    tuple_from<make_map<int, double, float, bool>>::map<>
+    tuple_from<list<pair<int, double>, pair<float, bool>>>::map<>
   >();
 
   FATAL_EXPECT_SAME<tuple<>, tuple_from<type_map<>>::map<Foo, Bar>>();
   FATAL_EXPECT_SAME<
     tuple<pair<Bar<int>, Foo<double>>, pair<Bar<float>, Foo<bool>>>,
-    tuple_from<make_map<int, double, float, bool>>::map<Foo, Bar>
+    tuple_from<list<pair<int, double>, pair<float, bool>>>::map<Foo, Bar>
   >();
 }
 

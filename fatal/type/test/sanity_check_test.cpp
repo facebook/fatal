@@ -17,7 +17,6 @@
 #include <fatal/type/list.h>
 #include <fatal/type/logical.h>
 #include <fatal/type/longest_common_prefix.h>
-#include <fatal/type/map.h>
 #include <fatal/type/pair.h>
 #include <fatal/type/push.h>
 #include <fatal/type/replace.h>
@@ -416,7 +415,7 @@ struct str {
   };
 
   struct mp {
-    using shuffled = map<
+    using shuffled = list<
       to_map_entry<seq::gooey>,
       to_map_entry<seq::fast>,
       to_map_entry<seq::granite>,
@@ -435,7 +434,7 @@ struct str {
       to_map_entry<seq::fist>
     >;
 
-    using sorted = map<
+    using sorted = list<
       to_map_entry<seq::far>,
       to_map_entry<seq::fart>,
       to_map_entry<seq::farther>,
@@ -483,14 +482,14 @@ int main() {
     dummy<sz<9>>
   >;
 
-  using mp = map<
+  using mp = list<
     pair<int, double>,
     pair<bool, void>,
     pair<float, char>,
     pair<unsigned, short *>
   >;
 
-  using shuf_mp = map<
+  using shuf_mp = list<
     mp_entry<0>,
     mp_entry<8>,
     mp_entry<9>,
@@ -502,7 +501,7 @@ int main() {
     mp_entry<3>,
     mp_entry<2>
   >;
-  using srt_mp = map<
+  using srt_mp = list<
     mp_entry<0>,
     mp_entry<1>,
     mp_entry<2>,
@@ -574,21 +573,6 @@ int main() {
   EQUAL(false, empty<sq1>);
   EQUAL(false, empty<sq2>);
   EQUAL(false, empty<seq>);
-
-  SAME(
-    map<
-      pair<int, double>,
-      pair<bool, void>,
-      pair<float, char>,
-      pair<unsigned, short *>
-    >,
-    make_map<
-      int, double,
-      bool, void,
-      float, char,
-      unsigned, short *
-    >
-  );
 
   SAME(ls1, cat<ls1>);
   SAME(lst, cat<ls1, ls2>);
@@ -678,8 +662,8 @@ int main() {
   EQUAL(true, contains<mp, unsigned, get_first>);
   EQUAL(false, contains<mp, void *, get_first>);
 
-  SAME(shuf_mp, apply_to<transform<shuf_ls, to_map_entry>, map>);
-  SAME(srt_mp, apply_to<transform<srt_ls, to_map_entry>, map>);
+  SAME(shuf_mp, apply_to<transform<shuf_ls, to_map_entry>, list>);
+  SAME(srt_mp, apply_to<transform<srt_ls, to_map_entry>, list>);
 
   SAME(dmy_ls, transform<srt_ls, applier<dummy>::apply>);
 

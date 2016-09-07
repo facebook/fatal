@@ -17,6 +17,7 @@
 #include <fatal/type/slice.h>
 #include <fatal/type/tag.h>
 #include <fatal/type/traits.h>
+#include <fatal/type/transform.h>
 #include <fatal/type/zip.h>
 
 #include <tuple>
@@ -73,7 +74,7 @@ struct tuple {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using map = fatal::map<Args...>;
+  using map = fatal::list<Args...>;
 
   /**
    * The `tuple_tags` type associated with this tuple.

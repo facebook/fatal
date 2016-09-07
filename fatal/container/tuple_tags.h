@@ -117,7 +117,7 @@ struct tuple_tags {
    *  typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
    *  typedef std::tuple<int, double, bool, long> tuple;
    *
-   *  // yields `map<
+   *  // yields `list<
    *  //    pair<Foo, int>,
    *  //    pair<Bar, double>,
    *  //    pair<Baz, bool>,
@@ -128,7 +128,7 @@ struct tuple_tags {
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename Tuple>
-  using map = fatal::map<
+  using map = fatal::list<
     pair<Tags, type_of<Tags, Tuple>>...
   >;
 
