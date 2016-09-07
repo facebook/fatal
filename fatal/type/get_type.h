@@ -92,6 +92,8 @@ namespace get_type {
   FATAL_IMPL_GET_TYPE_TYPE(enumeration);
   FATAL_IMPL_GET_TYPE_TYPE(enumerations);
   FATAL_IMPL_GET_TYPE_TYPE(enums);
+  FATAL_IMPL_GET_TYPE_TYPE(exception);
+  FATAL_IMPL_GET_TYPE_TYPE(exceptions);
   FATAL_IMPL_GET_TYPE_TYPE(extension);
   FATAL_IMPL_GET_TYPE_TYPE(extensions);
   FATAL_IMPL_GET_TYPE_TYPE(fault);
@@ -105,6 +107,7 @@ namespace get_type {
   FATAL_IMPL_GET_TYPE_TYPE(hash);
   FATAL_IMPL_GET_TYPE_TYPE(hasher);
   FATAL_IMPL_GET_TYPE_TYPE(id);
+  FATAL_IMPL_GET_TYPE_TYPE(ids);
   FATAL_IMPL_GET_TYPE_TYPE(identifier);
   FATAL_IMPL_GET_TYPE_TYPE(ids);
   FATAL_IMPL_GET_TYPE_TYPE(index);
