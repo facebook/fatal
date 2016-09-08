@@ -16,6 +16,7 @@
 #include <fatal/type/get.h>
 #include <fatal/type/get_type.h>
 #include <fatal/type/sequence.h>
+#include <fatal/type/transform.h>
 #include <fatal/type/trie.h>
 #include <fatal/type/type.h>
 #include <fatal/type/unique.h>
