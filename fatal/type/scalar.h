@@ -105,9 +105,8 @@ template <typename T, bool = std::is_enum<T>::value> struct to_integral_impl;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-static typename detail::scalar_impl::to_integral_impl<T>::type to_integral(
-  T const value
-) {
+static constexpr typename detail::scalar_impl::to_integral_impl<T>::type
+to_integral(T const value) {
   return detail::scalar_impl::to_integral_impl<T>::convert(value);
 }
 
@@ -261,13 +260,13 @@ struct to_scalar<std::ratio<Numerator, Denominator>> {
 template <typename T>
 struct to_integral_impl<T, false> {
   using type = T;
-  static type convert(T value) { return value; }
+  static constexpr type convert(T value) { return value; }
 };
 
 template <typename T>
 struct to_integral_impl<T, true> {
   using type = typename std::underlying_type<T>::type;
-  static type convert(T value) { return static_cast<type>(value); }
+  static constexpr type convert(T value) { return static_cast<type>(value); }
 };
 
 } // namespace scalar_impl {
