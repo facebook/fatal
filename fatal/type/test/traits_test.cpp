@@ -1046,33 +1046,4 @@ FATAL_TEST(traits, safe_overload_variadic_t) {
   FATAL_EXPECT_EQ(ctor::universal, universal.type);
 }
 
-//////////////////////////////
-// FATAL_HAS_MEMBER_TYPEDEF //
-//////////////////////////////
-
-namespace has_member_type_test {
-  struct foo { using xyz = int; };
-  struct bar { typedef int xyz; };
-  struct baz {};
-
-  FATAL_HAS_MEMBER_TYPE(has_xyz, xyz);
-} // namespace has_member_type_test {
-
-FATAL_TEST(traits, has_member_type) {
-  FATAL_EXPECT_SAME<
-    std::true_type,
-    has_member_type_test::has_xyz::apply<has_member_type_test::foo>
-  >();
-
-  FATAL_EXPECT_SAME<
-    std::true_type,
-    has_member_type_test::has_xyz::apply<has_member_type_test::bar>
-  >();
-
-  FATAL_EXPECT_SAME<
-    std::false_type,
-    has_member_type_test::has_xyz::apply<has_member_type_test::baz>
-  >();
-}
-
 } // namespace fatal {
