@@ -17,6 +17,44 @@
 namespace fatal {
 
 /**
+ * A metafunction that always evaluates to `std::true_type` regardless of the
+ * arguments given.
+ *
+ * Example:
+ *
+ *  // yields `std::true_type`
+ *  using result1 = tautology::apply<int>;
+ *
+ *  // yields `std::true_type`
+ *  using result2 = tautology::apply<std::false_type>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct tautology {
+  template <typename...>
+  using apply = std::true_type;
+};
+
+/**
+ * A metafunction that always evaluates to `std::false_type` regardless of the
+ * arguments given.
+ *
+ * Example:
+ *
+ *  // yields `std::false_type`
+ *  using result1 = contradiction::apply<int>;
+ *
+ *  // yields `std::false_type`
+ *  using result2 = contradiction::apply<std::true_type>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+struct contradiction {
+  template <typename...>
+  using apply = std::false_type;
+};
+
+/**
  * Yields an std::integral whose value is the logical negation of T's value.
  *
  * Example:

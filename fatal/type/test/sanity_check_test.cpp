@@ -1434,6 +1434,18 @@ int main() {
   EQ("faster", to_instance<std::string, str::lst::fast>('e', 'r'));
   EQ("faster", to_instance<std::string, str::seq::fast>('e', 'r'));
 
+  SAME(std::true_type, tautology::apply<>);
+  SAME(std::true_type, tautology::apply<int>);
+  SAME(std::true_type, tautology::apply<std::true_type>);
+  SAME(std::true_type, tautology::apply<std::false_type>);
+  SAME(std::true_type, tautology::apply<int, double, bool>);
+
+  SAME(std::false_type, contradiction::apply<>);
+  SAME(std::false_type, contradiction::apply<int>);
+  SAME(std::false_type, contradiction::apply<std::true_type>);
+  SAME(std::false_type, contradiction::apply<std::false_type>);
+  SAME(std::false_type, contradiction::apply<int, double, bool>);
+
   std::cout << "done" << std::endl;
   return exit_code;
 }
