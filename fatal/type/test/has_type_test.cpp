@@ -19,7 +19,7 @@ struct baz {};
 struct gaz { struct xyz {}; };
 struct qux { int xyz; };
 
-FATAL_HAS_MEMBER_TYPE(has_xyz, xyz);
+FATAL_HAS_TYPE(has_xyz, xyz);
 
 FATAL_TEST(has_type, has_type) {
   FATAL_EXPECT_SAME<std::true_type, has_xyz::apply<foo>>();
