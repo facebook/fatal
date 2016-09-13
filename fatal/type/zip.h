@@ -10,9 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_zip_h
 #define FATAL_INCLUDE_fatal_type_zip_h
 
-#ifndef NDEBUG
 #include <fatal/type/debug.h>
-#endif // NDEBUG
 
 #include <fatal/type/impl/zip.h>
 

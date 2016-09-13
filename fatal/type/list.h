@@ -10,9 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_list_h
 #define FATAL_INCLUDE_fatal_type_list_h
 
-#ifndef NDEBUG
 #include <fatal/type/debug.h>
-#endif // NDEBUG
 
 #include <type_traits>
 
