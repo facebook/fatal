@@ -61,88 +61,115 @@ namespace fatal {
   }
 
 /**
+ * This is a convenience macro that calls `FATAL_HAS_TYPE` using the same
+ * identifier for both `Class` and `Member`.
+ *
+ * Example:
+ *
+ *  FATAL_HAS_TYPE_NAME(xyz);
+ *
+ *  struct foo { using xyz = int; };
+ *  struct bar { typedef int xyz; };
+ *  struct baz {};
+ *  struct gaz { struct xyz {}; };
+ *
+ *  // yields `std::true_type`
+ *  using result1 = xyz::apply<foo>;
+ *
+ *  // yields `std::true_type`
+ *  using result2 = xyz::apply<bar>;
+ *
+ *  // yields `std::false_type`
+ *  using result3 = xyz::apply<baz>;
+ *
+ *  // yields `std::true_type`
+ *  using result4 = xyz::apply<gaz>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+#define FATAL_HAS_TYPE_NAME(Name) \
+  FATAL_HAS_TYPE(Name, Name)
+
+/**
  * A collection of instances of `FATAL_HAS_TYPE` for common member type names.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace has_type {
-# define FATAL_IMPL_HAS_TYPE(Name) FATAL_HAS_TYPE(Name, Name)
+  FATAL_HAS_TYPE_NAME(char_type);
+  FATAL_HAS_TYPE_NAME(int_type);
+  FATAL_HAS_TYPE_NAME(type);
+  FATAL_HAS_TYPE_NAME(types);
 
-  FATAL_IMPL_HAS_TYPE(char_type);
-  FATAL_IMPL_HAS_TYPE(int_type);
-  FATAL_IMPL_HAS_TYPE(type);
-  FATAL_IMPL_HAS_TYPE(types);
+# define FATAL_IMPL_HAS_TYPE(Name) \
+  FATAL_HAS_TYPE_NAME(Name); \
+  FATAL_HAS_TYPE_NAME(Name##_type)
 
-# define FATAL_IMPL_HAS_TYPE_TYPE(Name) \
-  FATAL_IMPL_HAS_TYPE(Name); \
-  FATAL_IMPL_HAS_TYPE(Name##_type)
+  FATAL_IMPL_HAS_TYPE(allocator);
+  FATAL_IMPL_HAS_TYPE(args);
+  FATAL_IMPL_HAS_TYPE(array);
+  FATAL_IMPL_HAS_TYPE(category);
+  FATAL_IMPL_HAS_TYPE(config);
+  FATAL_IMPL_HAS_TYPE(const_iterator);
+  FATAL_IMPL_HAS_TYPE(const_pointer);
+  FATAL_IMPL_HAS_TYPE(const_ptr);
+  FATAL_IMPL_HAS_TYPE(const_ref);
+  FATAL_IMPL_HAS_TYPE(const_reference);
+  FATAL_IMPL_HAS_TYPE(const_reverse_iterator);
+  FATAL_IMPL_HAS_TYPE(data);
+  FATAL_IMPL_HAS_TYPE(decode);
+  FATAL_IMPL_HAS_TYPE(decoder);
+  FATAL_IMPL_HAS_TYPE(difference);
+  FATAL_IMPL_HAS_TYPE(element);
+  FATAL_IMPL_HAS_TYPE(encode);
+  FATAL_IMPL_HAS_TYPE(encoder);
+  FATAL_IMPL_HAS_TYPE(extension);
+  FATAL_IMPL_HAS_TYPE(first);
+  FATAL_IMPL_HAS_TYPE(flag);
+  FATAL_IMPL_HAS_TYPE(hash);
+  FATAL_IMPL_HAS_TYPE(id);
+  FATAL_IMPL_HAS_TYPE(ids);
+  FATAL_IMPL_HAS_TYPE(index);
+  FATAL_IMPL_HAS_TYPE(info);
+  FATAL_IMPL_HAS_TYPE(information);
+  FATAL_IMPL_HAS_TYPE(instance);
+  FATAL_IMPL_HAS_TYPE(item);
+  FATAL_IMPL_HAS_TYPE(iterator);
+  FATAL_IMPL_HAS_TYPE(key);
+  FATAL_IMPL_HAS_TYPE(list);
+  FATAL_IMPL_HAS_TYPE(map);
+  FATAL_IMPL_HAS_TYPE(mapped);
+  FATAL_IMPL_HAS_TYPE(mapping);
+  FATAL_IMPL_HAS_TYPE(mappings);
+  FATAL_IMPL_HAS_TYPE(member);
+  FATAL_IMPL_HAS_TYPE(members);
+  FATAL_IMPL_HAS_TYPE(name);
+  FATAL_IMPL_HAS_TYPE(names);
+  FATAL_IMPL_HAS_TYPE(pair);
+  FATAL_IMPL_HAS_TYPE(pointer);
+  FATAL_IMPL_HAS_TYPE(predicate);
+  FATAL_IMPL_HAS_TYPE(ptr);
+  FATAL_IMPL_HAS_TYPE(reader);
+  FATAL_IMPL_HAS_TYPE(ref);
+  FATAL_IMPL_HAS_TYPE(reference);
+  FATAL_IMPL_HAS_TYPE(request);
+  FATAL_IMPL_HAS_TYPE(response);
+  FATAL_IMPL_HAS_TYPE(result);
+  FATAL_IMPL_HAS_TYPE(reverse);
+  FATAL_IMPL_HAS_TYPE(reverse_iterator);
+  FATAL_IMPL_HAS_TYPE(second);
+  FATAL_IMPL_HAS_TYPE(set);
+  FATAL_IMPL_HAS_TYPE(size);
+  FATAL_IMPL_HAS_TYPE(str);
+  FATAL_IMPL_HAS_TYPE(string);
+  FATAL_IMPL_HAS_TYPE(tag);
+  FATAL_IMPL_HAS_TYPE(traits);
+  FATAL_IMPL_HAS_TYPE(tuple);
+  FATAL_IMPL_HAS_TYPE(value);
+  FATAL_IMPL_HAS_TYPE(values);
+  FATAL_IMPL_HAS_TYPE(version);
+  FATAL_IMPL_HAS_TYPE(writer);
 
-  FATAL_IMPL_HAS_TYPE_TYPE(allocator);
-  FATAL_IMPL_HAS_TYPE_TYPE(args);
-  FATAL_IMPL_HAS_TYPE_TYPE(array);
-  FATAL_IMPL_HAS_TYPE_TYPE(category);
-  FATAL_IMPL_HAS_TYPE_TYPE(config);
-  FATAL_IMPL_HAS_TYPE_TYPE(const_iterator);
-  FATAL_IMPL_HAS_TYPE_TYPE(const_pointer);
-  FATAL_IMPL_HAS_TYPE_TYPE(const_ptr);
-  FATAL_IMPL_HAS_TYPE_TYPE(const_ref);
-  FATAL_IMPL_HAS_TYPE_TYPE(const_reference);
-  FATAL_IMPL_HAS_TYPE_TYPE(const_reverse_iterator);
-  FATAL_IMPL_HAS_TYPE_TYPE(data);
-  FATAL_IMPL_HAS_TYPE_TYPE(decode);
-  FATAL_IMPL_HAS_TYPE_TYPE(decoder);
-  FATAL_IMPL_HAS_TYPE_TYPE(difference);
-  FATAL_IMPL_HAS_TYPE_TYPE(element);
-  FATAL_IMPL_HAS_TYPE_TYPE(encode);
-  FATAL_IMPL_HAS_TYPE_TYPE(encoder);
-  FATAL_IMPL_HAS_TYPE_TYPE(extension);
-  FATAL_IMPL_HAS_TYPE_TYPE(first);
-  FATAL_IMPL_HAS_TYPE_TYPE(flag);
-  FATAL_IMPL_HAS_TYPE_TYPE(hash);
-  FATAL_IMPL_HAS_TYPE_TYPE(id);
-  FATAL_IMPL_HAS_TYPE_TYPE(ids);
-  FATAL_IMPL_HAS_TYPE_TYPE(index);
-  FATAL_IMPL_HAS_TYPE_TYPE(info);
-  FATAL_IMPL_HAS_TYPE_TYPE(information);
-  FATAL_IMPL_HAS_TYPE_TYPE(instance);
-  FATAL_IMPL_HAS_TYPE_TYPE(item);
-  FATAL_IMPL_HAS_TYPE_TYPE(iterator);
-  FATAL_IMPL_HAS_TYPE_TYPE(key);
-  FATAL_IMPL_HAS_TYPE_TYPE(list);
-  FATAL_IMPL_HAS_TYPE_TYPE(map);
-  FATAL_IMPL_HAS_TYPE_TYPE(mapped);
-  FATAL_IMPL_HAS_TYPE_TYPE(mapping);
-  FATAL_IMPL_HAS_TYPE_TYPE(mappings);
-  FATAL_IMPL_HAS_TYPE_TYPE(member);
-  FATAL_IMPL_HAS_TYPE_TYPE(members);
-  FATAL_IMPL_HAS_TYPE_TYPE(name);
-  FATAL_IMPL_HAS_TYPE_TYPE(names);
-  FATAL_IMPL_HAS_TYPE_TYPE(pair);
-  FATAL_IMPL_HAS_TYPE_TYPE(pointer);
-  FATAL_IMPL_HAS_TYPE_TYPE(predicate);
-  FATAL_IMPL_HAS_TYPE_TYPE(ptr);
-  FATAL_IMPL_HAS_TYPE_TYPE(reader);
-  FATAL_IMPL_HAS_TYPE_TYPE(ref);
-  FATAL_IMPL_HAS_TYPE_TYPE(reference);
-  FATAL_IMPL_HAS_TYPE_TYPE(request);
-  FATAL_IMPL_HAS_TYPE_TYPE(response);
-  FATAL_IMPL_HAS_TYPE_TYPE(result);
-  FATAL_IMPL_HAS_TYPE_TYPE(reverse);
-  FATAL_IMPL_HAS_TYPE_TYPE(reverse_iterator);
-  FATAL_IMPL_HAS_TYPE_TYPE(second);
-  FATAL_IMPL_HAS_TYPE_TYPE(set);
-  FATAL_IMPL_HAS_TYPE_TYPE(size);
-  FATAL_IMPL_HAS_TYPE_TYPE(str);
-  FATAL_IMPL_HAS_TYPE_TYPE(string);
-  FATAL_IMPL_HAS_TYPE_TYPE(tag);
-  FATAL_IMPL_HAS_TYPE_TYPE(traits);
-  FATAL_IMPL_HAS_TYPE_TYPE(tuple);
-  FATAL_IMPL_HAS_TYPE_TYPE(value);
-  FATAL_IMPL_HAS_TYPE_TYPE(values);
-  FATAL_IMPL_HAS_TYPE_TYPE(version);
-  FATAL_IMPL_HAS_TYPE_TYPE(writer);
-
-# undef FATAL_IMPL_HAS_TYPE_TYPE
 # undef FATAL_IMPL_HAS_TYPE
 };
 
