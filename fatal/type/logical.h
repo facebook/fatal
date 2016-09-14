@@ -110,9 +110,12 @@ struct negation {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename... Values>
-using logical_and = std::is_same<
-  sequence<bool, Values::value...>,
-  sequence<bool, impl_logical::b_true<Values>()...>
+using logical_and = std::integral_constant<
+  bool,
+  std::is_same<
+    sequence<bool, Values::value...>,
+    sequence<bool, impl_logical::b_true<Values>()...>
+  >::value
 >;
 
 /**
@@ -136,9 +139,12 @@ using logical_and = std::is_same<
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename... Values>
-using logical_nor = std::is_same<
-  sequence<bool, Values::value...>,
-  sequence<bool, impl_logical::b_false<Values>()...>
+using logical_nor = std::integral_constant<
+  bool,
+  std::is_same<
+    sequence<bool, Values::value...>,
+    sequence<bool, impl_logical::b_false<Values>()...>
+  >::value
 >;
 
 /**
@@ -233,7 +239,7 @@ using logical_nand = negate<logical_and<Args...>>;
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename... Args>
-using logical_nnor = negate<logical_xor<Args...>>;
+using logical_xnor = negate<logical_xor<Args...>>;
 
 } // namespace fatal {
 

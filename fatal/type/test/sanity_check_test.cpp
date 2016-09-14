@@ -71,6 +71,8 @@ struct same_impl {
 };
 
 #define SAME(...) impl_detail::same_impl<__VA_ARGS__>()
+#define IST(...) SAME(std::true_type, __VA_ARGS__)
+#define ISF(...) SAME(std::false_type, __VA_ARGS__)
 
 template <typename T, decltype(T::value) U>
 struct equal_impl {
@@ -1434,17 +1436,79 @@ int main() {
   EQ("faster", to_instance<std::string, str::lst::fast>('e', 'r'));
   EQ("faster", to_instance<std::string, str::seq::fast>('e', 'r'));
 
-  SAME(std::true_type, tautology::apply<>);
-  SAME(std::true_type, tautology::apply<int>);
-  SAME(std::true_type, tautology::apply<std::true_type>);
-  SAME(std::true_type, tautology::apply<std::false_type>);
-  SAME(std::true_type, tautology::apply<int, double, bool>);
+  IST(tautology::apply<>);
+  IST(tautology::apply<int>);
+  IST(tautology::apply<std::true_type>);
+  IST(tautology::apply<std::false_type>);
+  IST(tautology::apply<int, double, bool>);
 
-  SAME(std::false_type, contradiction::apply<>);
-  SAME(std::false_type, contradiction::apply<int>);
-  SAME(std::false_type, contradiction::apply<std::true_type>);
-  SAME(std::false_type, contradiction::apply<std::false_type>);
-  SAME(std::false_type, contradiction::apply<int, double, bool>);
+  ISF(contradiction::apply<>);
+  ISF(contradiction::apply<int>);
+  ISF(contradiction::apply<std::true_type>);
+  ISF(contradiction::apply<std::false_type>);
+  ISF(contradiction::apply<int, double, bool>);
+
+  {
+    using f = std::false_type;
+    using t = std::true_type;
+
+    IST(negate<f>);
+    ISF(negate<t>);
+
+    ISF(logical_or<f, f, f>);
+    IST(logical_or<f, f, t>);
+    IST(logical_or<f, t, f>);
+    IST(logical_or<f, t, t>);
+    IST(logical_or<t, f, f>);
+    IST(logical_or<t, f, t>);
+    IST(logical_or<t, t, f>);
+    IST(logical_or<t, t, t>);
+
+    IST(logical_nor<f, f, f>);
+    ISF(logical_nor<f, f, t>);
+    ISF(logical_nor<f, t, f>);
+    ISF(logical_nor<f, t, t>);
+    ISF(logical_nor<t, f, f>);
+    ISF(logical_nor<t, f, t>);
+    ISF(logical_nor<t, t, f>);
+    ISF(logical_nor<t, t, t>);
+
+    ISF(logical_and<f, f, f>);
+    ISF(logical_and<f, f, t>);
+    ISF(logical_and<f, t, f>);
+    ISF(logical_and<f, t, t>);
+    ISF(logical_and<t, f, f>);
+    ISF(logical_and<t, f, t>);
+    ISF(logical_and<t, t, f>);
+    IST(logical_and<t, t, t>);
+
+    IST(logical_nand<f, f, f>);
+    IST(logical_nand<f, f, t>);
+    IST(logical_nand<f, t, f>);
+    IST(logical_nand<f, t, t>);
+    IST(logical_nand<t, f, f>);
+    IST(logical_nand<t, f, t>);
+    IST(logical_nand<t, t, f>);
+    ISF(logical_nand<t, t, t>);
+
+    ISF(logical_xor<f, f, f>);
+    IST(logical_xor<f, f, t>);
+    IST(logical_xor<f, t, f>);
+    ISF(logical_xor<f, t, t>);
+    IST(logical_xor<t, f, f>);
+    ISF(logical_xor<t, f, t>);
+    ISF(logical_xor<t, t, f>);
+    IST(logical_xor<t, t, t>);
+
+    IST(logical_xnor<f, f, f>);
+    ISF(logical_xnor<f, f, t>);
+    ISF(logical_xnor<f, t, f>);
+    IST(logical_xnor<f, t, t>);
+    ISF(logical_xnor<t, f, f>);
+    IST(logical_xnor<t, f, t>);
+    IST(logical_xnor<t, t, f>);
+    ISF(logical_xnor<t, t, t>);
+  }
 
   std::cout << "done" << std::endl;
   return exit_code;

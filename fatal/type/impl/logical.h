@@ -17,8 +17,8 @@
 namespace fatal {
 namespace impl_logical {
 
-template <bool> constexpr bool b_true() { return true; }
-template <bool> constexpr bool b_false() { return false; }
+template <typename> constexpr bool b_true() { return true; }
+template <typename> constexpr bool b_false() { return false; }
 
 template <typename...> struct l_xor;
 
