@@ -1455,6 +1455,12 @@ int main() {
     IST(negate<f>);
     ISF(negate<t>);
 
+    ISF(logical_or<f>);
+    IST(logical_or<t>);
+    ISF(logical_or<f, f>);
+    IST(logical_or<f, t>);
+    IST(logical_or<t, f>);
+    IST(logical_or<t, t>);
     ISF(logical_or<f, f, f>);
     IST(logical_or<f, f, t>);
     IST(logical_or<f, t, f>);
@@ -1464,6 +1470,12 @@ int main() {
     IST(logical_or<t, t, f>);
     IST(logical_or<t, t, t>);
 
+    IST(logical_nor<f>);
+    ISF(logical_nor<t>);
+    IST(logical_nor<f, f>);
+    ISF(logical_nor<f, t>);
+    ISF(logical_nor<t, f>);
+    ISF(logical_nor<t, t>);
     IST(logical_nor<f, f, f>);
     ISF(logical_nor<f, f, t>);
     ISF(logical_nor<f, t, f>);
@@ -1473,6 +1485,12 @@ int main() {
     ISF(logical_nor<t, t, f>);
     ISF(logical_nor<t, t, t>);
 
+    ISF(logical_and<f>);
+    IST(logical_and<t>);
+    ISF(logical_and<f, f>);
+    ISF(logical_and<f, t>);
+    ISF(logical_and<t, f>);
+    IST(logical_and<t, t>);
     ISF(logical_and<f, f, f>);
     ISF(logical_and<f, f, t>);
     ISF(logical_and<f, t, f>);
@@ -1482,6 +1500,12 @@ int main() {
     ISF(logical_and<t, t, f>);
     IST(logical_and<t, t, t>);
 
+    IST(logical_nand<f>);
+    ISF(logical_nand<t>);
+    IST(logical_nand<f, f>);
+    IST(logical_nand<f, t>);
+    IST(logical_nand<t, f>);
+    ISF(logical_nand<t, t>);
     IST(logical_nand<f, f, f>);
     IST(logical_nand<f, f, t>);
     IST(logical_nand<f, t, f>);
@@ -1491,6 +1515,12 @@ int main() {
     IST(logical_nand<t, t, f>);
     ISF(logical_nand<t, t, t>);
 
+    ISF(logical_xor<f>);
+    IST(logical_xor<t>);
+    ISF(logical_xor<f, f>);
+    IST(logical_xor<f, t>);
+    IST(logical_xor<t, f>);
+    ISF(logical_xor<t, t>);
     ISF(logical_xor<f, f, f>);
     IST(logical_xor<f, f, t>);
     IST(logical_xor<f, t, f>);
@@ -1500,6 +1530,12 @@ int main() {
     ISF(logical_xor<t, t, f>);
     IST(logical_xor<t, t, t>);
 
+    IST(logical_xnor<f>);
+    ISF(logical_xnor<t>);
+    IST(logical_xnor<f, f>);
+    ISF(logical_xnor<f, t>);
+    ISF(logical_xnor<t, f>);
+    IST(logical_xnor<t, t>);
     IST(logical_xnor<f, f, f>);
     ISF(logical_xnor<f, f, t>);
     ISF(logical_xnor<f, t, f>);
