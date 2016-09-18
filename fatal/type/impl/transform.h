@@ -10,37 +10,68 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_transform_h
 #define FATAL_INCLUDE_fatal_type_impl_transform_h
 
-#include <fatal/type/pair.h>
-#include <fatal/type/slice.h>
-
 namespace fatal {
-namespace impl_transform {
+namespace i_t {
 
-template <typename> struct transform;
+template <typename, template <typename...> class...> struct t;
 
-template <template <typename...> class T, typename... Args>
-struct transform<T<Args...>> {
-  template <template <typename...> class Transform>
-  using apply = T<Transform<Args>...>;
+template <template <typename...> class Variadic, typename... Args>
+struct t<Variadic<Args...>> {
+  using type = Variadic<Args...>;
 };
 
-template <typename> struct map_transform;
-
-template <template <typename...> class T, typename... Args>
-struct map_transform<T<Args...>> {
-  template <
-    template <typename...> class KeyTransform,
-    template <typename...> class ValueTransform
-  >
-  using apply = T<
-    pair<
-      KeyTransform<first<Args>>,
-      ValueTransform<second<Args>>
-    >...
-  >;
+template <
+  template <typename...> class Variadic, typename... Args,
+  template <typename...> class T0
+>
+struct t<Variadic<Args...>, T0> {
+  using type = Variadic<T0<Args>...>;
 };
 
-} // namespace impl_transform {
+template <
+  template <typename...> class Variadic, typename... Args,
+  template <typename...> class T0,
+  template <typename...> class T1
+>
+struct t<Variadic<Args...>, T0, T1> {
+  using type = Variadic<T1<T0<Args>>...>;
+};
+
+template <
+  template <typename...> class Variadic, typename... Args,
+  template <typename...> class T0,
+  template <typename...> class T1,
+  template <typename...> class T2
+>
+struct t<Variadic<Args...>, T0, T1, T2> {
+  using type = Variadic<T2<T1<T0<Args>>>...>;
+};
+
+template <
+  template <typename...> class Variadic, typename... Args,
+  template <typename...> class T0,
+  template <typename...> class T1,
+  template <typename...> class T2,
+  template <typename...> class T3
+>
+struct t<Variadic<Args...>, T0, T1, T2, T3> {
+  using type = Variadic<T3<T2<T1<T0<Args>>>>...>;
+};
+
+template <
+  template <typename...> class Variadic, typename... Args,
+  template <typename...> class T0,
+  template <typename...> class T1,
+  template <typename...> class T2,
+  template <typename...> class T3,
+  template <typename...> class T4,
+  template <typename...> class... Tn
+>
+struct t<Variadic<Args...>, T0, T1, T2, T3, T4, Tn...>:
+  t<Variadic<T4<T3<T2<T1<T0<Args>>>>>...>, Tn...>
+{};
+
+} // namespace i_t {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_transform_h
