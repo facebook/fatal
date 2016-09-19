@@ -12,7 +12,6 @@
 
 #include <fatal/type/apply.h>
 #include <fatal/type/array.h>
-#include <fatal/type/fast_pass.h>
 #include <fatal/type/get.h>
 #include <fatal/type/get_type.h>
 #include <fatal/type/registry.h>
@@ -138,7 +137,7 @@ public:
   }
 
   // TODO: ONLY IF traits HAS empty()
-  static bool empty(fast_pass<type> variant) {
+  static bool empty(type const &variant) {
     return traits::empty(variant);
   }
 
@@ -169,14 +168,14 @@ struct variant_traits_by {
 
   template <typename Tag, typename U>
   static auto get(U &&variant)
-    -> decltype(typename descriptor<Tag>::getter()(std::forward<U>(variant)))
+    -> decltype(descriptor<Tag>::get(std::forward<U>(variant)))
   {
-    return typename descriptor<Tag>::getter()(std::forward<U>(variant));
+    return descriptor<Tag>::get(std::forward<U>(variant));
   }
 
   template <typename Tag, typename U, typename... Args>
   static void set(U &variant, Args &&...args) {
-    typename descriptor<Tag>::setter()(variant, std::forward<Args>(args)...);
+    descriptor<Tag>::set(variant, std::forward<Args>(args)...);
   }
 };
 
@@ -202,6 +201,18 @@ struct variant_type_descriptor {
 
   // TODO: TEST
   using metadata = Metadata;
+
+  template <typename U>
+  static auto get(U &&variant)
+    -> decltype(getter()(std::forward<U>(variant)))
+  {
+    return getter()(std::forward<U>(variant));
+  }
+
+  template <typename U, typename... Args>
+  static void set(U &variant, Args &&...args) {
+    setter()(variant, std::forward<Args>(args)...);
+  }
 };
 
 } // namespace fatal
