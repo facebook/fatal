@@ -191,7 +191,7 @@ template <
   typename Setter,
   typename Metadata = void
 >
-struct variant_type_descriptor {
+struct variant_member_descriptor {
   using type = T;
 
   using id = Id;

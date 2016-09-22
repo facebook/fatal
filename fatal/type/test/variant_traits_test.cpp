@@ -94,19 +94,19 @@ public:
   };
 
   using descriptors = list<
-    variant_type_descriptor<
+    variant_member_descriptor<
       int,
       ids::i,
       get::i::member_function,
       set::i::member_function
     >,
-    variant_type_descriptor<
+    variant_member_descriptor<
       double,
       ids::d,
       get::d::member_function,
       set::d::member_function
     >,
-    variant_type_descriptor<
+    variant_member_descriptor<
       bool,
       ids::b,
       get::b::member_function,
