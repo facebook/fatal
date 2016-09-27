@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_trie_h
 
 #include <fatal/functional/no_op.h>
+#include <fatal/type/identity.h>
 #include <fatal/type/sort.h>
 
 #include <utility>
@@ -19,9 +20,11 @@
 
 namespace fatal {
 
+// TODO: INVERT COMPARER AND FILTER
 template <
   typename T,
   typename Comparer = less,
+  typename Filter = get_identity,
   typename Begin,
   typename End,
   typename Visitor,
@@ -34,7 +37,7 @@ static bool trie_find(
   VArgs &&...args
 ) {
   assert(begin <= end);
-  return impl_tr::e<sort<T, sequence_compare<Comparer>>>::type::f(
+  return i_t::e<Filter, sort<T, sequence_compare<Comparer>, Filter>>::type::f(
     static_cast<std::size_t>(std::distance(begin, end)),
     std::forward<Begin>(begin),
     std::forward<Visitor>(visitor),
@@ -42,12 +45,17 @@ static bool trie_find(
   );
 }
 
-template <typename T, typename Comparer = less, typename Begin, typename End>
+template <
+  typename T,
+  typename Comparer = less,
+  typename Filter = get_identity,
+  typename Begin,
+  typename End
+>
 static bool trie_find(Begin &&begin, End &&end) {
-  assert(begin <= end);
-  return impl_tr::e<sort<T, sequence_compare<Comparer>>>::type::f(
-    static_cast<std::size_t>(std::distance(begin, end)),
+  return trie_find<T, Comparer, Filter>(
     std::forward<Begin>(begin),
+    std::forward<End>(end),
     fn::no_op()
   );
 }

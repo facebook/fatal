@@ -25,7 +25,7 @@
 #include <cassert>
 
 namespace fatal {
-namespace impl_tr {
+namespace i_t {
 
 // represents a node in the trie //
 template <
@@ -46,19 +46,29 @@ struct N {
   using apply = n<T, IsTerminal, Begin, End, Args...>;
 };
 
-// node filter for sorted search (lookup) //
-template <std::size_t Index>
-struct node_filter {
+// filtered at
+template <std::size_t Index, typename Filter>
+struct a {
   template <typename T>
-  using apply = at<typename T::haystack, Index>;
+  using apply = at<typename Filter::template apply<T>, Index>;
+};
+
+// node filter for sorted search (lookup) //
+template <std::size_t Index, typename Filter>
+struct F {
+  template <typename T>
+  using apply = at<
+    typename Filter::template apply<typename T::haystack>,
+    Index
+  >;
 };
 
 // trie lookup implementation //
 template <std::size_t, typename...> struct l;
 
 // empty subtrie //
-template <>
-struct l<0> {
+template <typename Filter>
+struct l<0, Filter> {
   template <typename... Args>
   static constexpr bool f(Args &&...) { return false; }
 };
@@ -66,13 +76,14 @@ struct l<0> {
 // subtrie with single node //
 template <
   std::size_t Offset,
+  typename Filter,
   typename Haystack,
   bool IsTerminal,
   std::size_t Begin,
   std::size_t End,
   typename... Children
 >
-struct l<Offset, n<Haystack, IsTerminal, Begin, End, Children...>> {
+struct l<Offset, Filter, n<Haystack, IsTerminal, Begin, End, Children...>> {
   static_assert(Offset + Begin <= End, "internal error");
 
   template <
@@ -86,6 +97,8 @@ struct l<Offset, n<Haystack, IsTerminal, Begin, End, Children...>> {
     Visitor &&visitor,
     VArgs &&...args
   ) {
+    using haystack_data = typename Filter::template apply<Haystack>;
+
     if (size < End - Begin - Offset) {
       return false;
     }
@@ -102,7 +115,7 @@ struct l<Offset, n<Haystack, IsTerminal, Begin, End, Children...>> {
     if (!std::equal(
       begin,
       i,
-      std::next(z_data<Haystack, value_type>(), Offset + Begin)
+      std::next(z_data<haystack_data, value_type>(), Offset + Begin)
     )) {
       return false;
     }
@@ -112,7 +125,7 @@ struct l<Offset, n<Haystack, IsTerminal, Begin, End, Children...>> {
       return true;
     }
 
-    return l<0, Children...>::f(
+    return l<0, Filter, Children...>::f(
       size - (End - Begin - Offset),
       std::move(i),
       std::forward<Visitor>(visitor),
@@ -123,6 +136,7 @@ struct l<Offset, n<Haystack, IsTerminal, Begin, End, Children...>> {
 
 // siblings //
 template <
+  typename Filter,
   typename Haystack,
   bool IsTerminal,
   std::size_t Begin,
@@ -133,6 +147,7 @@ template <
 >
 struct l<
   0,
+  Filter,
   n<Haystack, IsTerminal, Begin, End, Children...>,
   Node,
   Siblings...
@@ -151,7 +166,7 @@ struct l<
     bool found = false;
     sorted_search<
       list<n<Haystack, IsTerminal, Begin, End, Children...>, Node, Siblings...>,
-      node_filter<Begin>::template apply
+      F<Begin, Filter>::template apply
     >(
       *begin,
       l(),
@@ -166,21 +181,21 @@ struct l<
   }
 
   template <
-    typename n,
+    typename Match,
     std::size_t Index,
     typename NeedleBegin,
     typename Visitor,
     typename... VArgs
   >
   void operator ()(
-    indexed<n, Index>,
+    indexed<Match, Index>,
     bool &found,
     std::size_t const size,
     NeedleBegin &&begin,
     Visitor &&visitor,
     VArgs &&...args
   ) const {
-    found = l<1, n>::f(
+    found = l<1, Filter, Match>::f(
       size - 1,
       std::next(begin),
       std::forward<Visitor>(visitor),
@@ -190,46 +205,55 @@ struct l<
 };
 
 // helper to expose the trie lookup implementation as a transform //
-template <typename... T>
-using L = l<0, T...>;
+template <typename Filter>
+struct L {
+  template <typename... T>
+  using apply = l<0, Filter, T...>;
+};
 
 // trie build recursion //
 template <std::size_t, typename...> struct r;
 
 // helper to expose the trie build recursion as a transform //
-template <std::size_t Depth>
+template <std::size_t Depth, typename Filter>
 struct R {
   template <typename... Args>
-  using apply = typename r<Depth, Args...>::type;
+  using apply = typename r<Depth, Filter, Args...>::type;
 };
 
 // leaf //
-template <std::size_t Depth, typename T>
-struct r<Depth, T> {
-  using type = n<T, true, Depth, size<T>::value>;
+template <std::size_t Depth, typename Filter, typename T>
+struct r<Depth, Filter, T> {
+  using type = n<
+    T, true, Depth, size<typename Filter::template apply<T>>::value
+  >;
 };
 
 // internal node //
-template <std::size_t Depth, typename T, typename... Args>
-struct r<Depth, T, Args...> {
+template <std::size_t Depth, typename Filter, typename T, typename... Args>
+struct r<Depth, Filter, T, Args...> {
   using common = longest_common_prefix<
     at,
     Depth,
-    vmin<less, size<T>, size<Args>...>::value,
-    T, Args...
+    vmin<
+      less,
+      size<typename Filter::template apply<T>>,
+      size<typename Filter::template apply<Args>>...
+    >::value,
+    typename Filter::template apply<T>, typename Filter::template apply<Args>...
   >;
 
   using type = group_by<
     typename std::conditional<
-      size<T>::value == common::value,
+      size<typename Filter::template apply<T>>::value == common::value,
       list<Args...>,
       list<T, Args...>
     >::type,
-    bound::at<common::value>::template apply,
-    R<common::value>::template apply,
+    a<common::value, Filter>::template apply,
+    R<common::value, Filter>::template apply,
     N<
       T,
-      common::value == size<T>::value,
+      common::value == size<typename Filter::template apply<T>>::value,
       Depth,
       common::value
     >::template apply
@@ -240,30 +264,33 @@ struct r<Depth, T, Args...> {
 template <bool, std::size_t, typename...> struct h;
 
 // no common prefix and no empty string //
-template <std::size_t Common, typename T, typename... Args>
-struct h<true, Common, T, Args...> {
+template <std::size_t Common, typename Filter, typename T, typename... Args>
+struct h<true, Common, Filter, T, Args...> {
   using type = group_by<
     list<T, Args...>,
-    bound::at<0>::template apply,
-    R<0>::template apply,
-    L
+    a<0, Filter>::template apply,
+    R<0, Filter>::template apply,
+    L<Filter>::template apply
   >;
 };
 
 // common prefix or empty string //
-template <std::size_t Common, typename T, typename... Args>
-struct h<false, Common, T, Args...> {
+template <std::size_t Common, typename Filter, typename T, typename... Args>
+struct h<false, Common, Filter, T, Args...> {
   using type = l<
     0,
+    Filter,
     group_by<
       typename std::conditional<
-        size<T>::value == Common,
+        size<typename Filter::template apply<T>>::value == Common,
         list<Args...>,
         list<T, Args...>
       >::type,
-      bound::at<Common>::template apply,
-      R<Common>::template apply,
-      N<T, Common == size<T>::value, 0, Common>::template apply
+      a<Common, Filter>::template apply,
+      R<Common, Filter>::template apply,
+      N<
+        T, Common == size<typename Filter::template apply<T>>::value, 0, Common
+      >::template apply
     >
   >;
 };
@@ -272,38 +299,53 @@ struct h<false, Common, T, Args...> {
 template <typename...> struct e;
 
 // non-empty input - find longest common prefix //
-template <template <typename...> class Variadic, typename T, typename... Args>
-struct e<Variadic<T, Args...>>:
+template <
+  typename Filter,
+  template <typename...> class Variadic,
+  typename T, typename... Args
+>
+struct e<Filter, Variadic<T, Args...>>:
   h<
-    (size<T>::value > 0) && !longest_common_prefix<
-      at,
-      0,
-      vmin<less, size<Args>...>::value,
-      Args...
-    >::value,
+    (size<typename Filter::template apply<T>>::value > 1)
+      && !longest_common_prefix<
+        at,
+        0,
+        vmin<less, size<typename Filter::template apply<Args>>...>::value,
+        typename Filter::template apply<Args>...
+      >::value,
     longest_common_prefix<
       at,
       0,
-      vmin<less, size<T>, size<Args>...>::value,
-      T, Args...
+      vmin<
+        less,
+        size<typename Filter::template apply<T>>,
+        size<typename Filter::template apply<Args>>...
+      >::value,
+      typename Filter::template apply<T>,
+      typename Filter::template apply<Args>...
     >::value,
+    Filter,
     T, Args...
   >
 {};
 
 // unitary input //
-template <template <typename...> class Variadic, typename T>
-struct e<Variadic<T>> {
-  using type = l<0, n<T, true, 0, size<T>::value>>;
+template <typename Filter, template <typename...> class Variadic, typename T>
+struct e<Filter, Variadic<T>> {
+  using type = l<
+    0,
+    Filter,
+    n<T, true, 0, size<typename Filter::template apply<T>>::value>
+  >;
 };
 
 // empty input //
-template <template <typename...> class Variadic>
-struct e<Variadic<>> {
-  using type = l<0>;
+template <typename Filter, template <typename...> class Variadic>
+struct e<Filter, Variadic<>> {
+  using type = l<0, Filter>;
 };
 
-} // namespace impl_tr {
+} // namespace i_t {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_trie_h
