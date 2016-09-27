@@ -21,23 +21,22 @@
 namespace fatal {
 
 // TODO: MOVE IT SOMEWHERE ELSE
-template <typename LHS>
 struct value_comparer {
-  template <typename RHS>
+  template <typename LHS, typename RHS>
   static constexpr bool less(RHS &&rhs) {
     return LHS::value < static_cast<
       typename std::decay<decltype(LHS::value)>::type
     >(rhs);
   }
 
-  template <typename RHS>
+  template <typename LHS, typename RHS>
   static constexpr bool equal(RHS &&rhs) {
     return LHS::value == static_cast<
       typename std::decay<decltype(LHS::value)>::type
     >(rhs);
   }
 
-  template <typename RHS>
+  template <typename LHS, typename RHS>
   static constexpr bool greater(RHS &&rhs) {
     return LHS::value > static_cast<
       typename std::decay<decltype(LHS::value)>::type
@@ -49,7 +48,7 @@ struct value_comparer {
 template <
   typename T,
   template <typename...> class Filter = identity,
-  template <typename...> class Comparer = value_comparer,
+  typename Comparer = value_comparer,
   typename Needle,
   typename Visitor,
   typename... Args
@@ -59,7 +58,7 @@ static constexpr bool sorted_search(
   Visitor &&visitor,
   Args &&...args
 ) {
-  return impl_srch::srt<T>::template ss<Comparer, Filter>(
+  return i_S::s<T>::template S<Comparer, Filter>(
     std::forward<Needle>(needle),
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...
@@ -69,7 +68,7 @@ static constexpr bool sorted_search(
 template <
   typename T,
   template <typename...> class Filter = identity,
-  template <typename...> class Comparer = value_comparer,
+  typename Comparer = value_comparer,
   typename Needle
 >
 static constexpr bool sorted_search(Needle &&needle) {

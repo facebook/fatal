@@ -14,37 +14,37 @@
 #include <fatal/type/tag.h>
 
 namespace fatal {
-namespace impl_srch {
+namespace i_S {
 
 // TODO: OPTIMIZE COMPILE TIMES
 // TODO: HIGHER LOG BASE OPTIMIZATION (3 or 4 should be enough)
 // TODO: SWITCH CASE OPTIMIZATION
 
 template <typename T, std::size_t Offset = 0, std::size_t Size = size<T>::value>
-struct srt {
+struct s {
   template <
-    template <typename...> class Comparer,
+    typename Comparer,
     template <typename...> class Filter,
     typename Needle,
     typename Visitor,
     typename... Args
   >
-  static constexpr bool ss(
+  static constexpr bool S(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args
   ) {
     static_assert(Offset + (Size / 2) < size<T>::value, "");
     using pivot = at<T, Offset + (Size / 2)>;
-    return Comparer<Filter<pivot>>::greater(needle)
-      ? srt<T, Offset, Size / 2>::template ss<Comparer, Filter>(
+    return Comparer::template greater<Filter<pivot>>(needle)
+      ? s<T, Offset, Size / 2>::template S<Comparer, Filter>(
         std::forward<Needle>(needle),
         std::forward<Visitor>(visitor),
         std::forward<Args>(args)...
       )
-      : Comparer<Filter<pivot>>::less(needle)
-        ? srt<T, (Offset + Size / 2) + 1, Size / 2 - !(Size & 1)>
-          ::template ss<Comparer, Filter>(
+      : Comparer::template less<Filter<pivot>>(needle)
+        ? s<T, (Offset + Size / 2) + 1, Size / 2 - !(Size & 1)>
+          ::template S<Comparer, Filter>(
             std::forward<Needle>(needle),
             std::forward<Visitor>(visitor),
             std::forward<Args>(args)...
@@ -59,33 +59,29 @@ struct srt {
 };
 
 template <typename T, std::size_t Offset>
-struct srt<T, Offset, 0> {
-  template <
-    template <typename...> class,
-    template <typename...> class,
-    typename... Args
-  >
-  static constexpr bool ss(Args &&...) {
+struct s<T, Offset, 0> {
+  template <typename, template <typename...> class, typename... Args>
+  static constexpr bool S(Args &&...) {
     return false;
   }
 };
 
 template <typename T, std::size_t Offset>
-struct srt<T, Offset, 1> {
+struct s<T, Offset, 1> {
   template <
-    template <typename...> class Comparer,
+    typename Comparer,
     template <typename...> class Filter,
     typename Needle,
     typename Visitor,
     typename... Args
   >
-  static constexpr bool ss(
+  static constexpr bool S(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args
   ) {
     static_assert(Offset < size<T>::value,  "");
-    return Comparer<Filter<at<T, Offset>>>::equal(needle) && (
+    return Comparer::template equal<Filter<at<T, Offset>>>(needle) && (
       visitor(
         indexed<at<T, Offset>, Offset>(),
         std::forward<Args>(args)...
@@ -96,29 +92,29 @@ struct srt<T, Offset, 1> {
 };
 
 template <typename T, std::size_t Offset>
-struct srt<T, Offset, 2> {
+struct s<T, Offset, 2> {
   template <
-    template <typename...> class Comparer,
+    typename Comparer,
     template <typename...> class Filter,
     typename Needle,
     typename Visitor,
     typename... Args
   >
-  static constexpr bool ss(
+  static constexpr bool S(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args
   ) {
     static_assert(Offset + 1 < size<T>::value,  "");
     return (
-      Comparer<Filter<at<T, Offset>>>::equal(needle) && (
+      Comparer::template equal<Filter<at<T, Offset>>>(needle) && (
         visitor(
           indexed<at<T, Offset>, Offset>(),
           std::forward<Args>(args)...
         ), true
       )
     ) || (
-      Comparer<Filter<at<T, Offset + 1>>>::equal(needle) && (
+      Comparer::template equal<Filter<at<T, Offset + 1>>>(needle) && (
         visitor(
           indexed<at<T, Offset + 1>, Offset + 1>(),
           std::forward<Args>(args)...
@@ -128,7 +124,7 @@ struct srt<T, Offset, 2> {
   }
 };
 
-} // namespace impl_srch {
+} // namespace i_S {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_search_h
