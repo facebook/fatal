@@ -198,7 +198,9 @@ struct sequence_compare {
   using apply = i_c::sc<Less, LHS, RHS>;
 };
 
-struct value_comparer {
+struct value_comparer:
+  public less
+{
   template <typename LHS, typename RHS>
   static constexpr bool less(RHS &&rhs) {
     return LHS::value < static_cast<
@@ -216,6 +218,31 @@ struct value_comparer {
   template <typename LHS, typename RHS>
   static constexpr bool greater(RHS &&rhs) {
     return LHS::value > static_cast<
+      typename std::decay<decltype(LHS::value)>::type
+    >(rhs);
+  }
+};
+
+struct value_reverse_comparer:
+  public greater
+{
+  template <typename LHS, typename RHS>
+  static constexpr bool less(RHS &&rhs) {
+    return LHS::value > static_cast<
+      typename std::decay<decltype(LHS::value)>::type
+    >(rhs);
+  }
+
+  template <typename LHS, typename RHS>
+  static constexpr bool equal(RHS &&rhs) {
+    return LHS::value == static_cast<
+      typename std::decay<decltype(LHS::value)>::type
+    >(rhs);
+  }
+
+  template <typename LHS, typename RHS>
+  static constexpr bool greater(RHS &&rhs) {
+    return LHS::value < static_cast<
       typename std::decay<decltype(LHS::value)>::type
     >(rhs);
   }

@@ -14,6 +14,7 @@
 #include <fatal/type/compare.h>
 #include <fatal/type/identity.h>
 #include <fatal/type/slice.h>
+#include <fatal/type/sort.h>
 
 #include <utility>
 
@@ -51,6 +52,43 @@ template <
 >
 static constexpr bool sorted_search(Needle &&needle) {
   return sorted_search<T, Filter, Comparer>(
+    std::forward<Needle>(needle),
+    fn::no_op()
+  );
+}
+
+template <
+  typename T,
+  typename Filter = get_identity,
+  typename Comparer = value_comparer,
+  typename Needle,
+  typename Visitor,
+  typename... Args
+>
+static constexpr bool sort_and_search(
+  Needle &&needle,
+  Visitor &&visitor,
+  Args &&...args
+) {
+  return sorted_search<
+    sort<T, Comparer, Filter>,
+    Filter::template apply,
+    Comparer
+  >(
+    std::forward<Needle>(needle),
+    std::forward<Visitor>(visitor),
+    std::forward<Args>(args)...
+  );
+}
+
+template <
+  typename T,
+  typename Filter = get_identity,
+  typename Comparer = value_comparer,
+  typename Needle
+>
+static constexpr bool sort_and_search(Needle &&needle) {
+  return sort_and_search<T, Filter, Comparer>(
     std::forward<Needle>(needle),
     fn::no_op()
   );
