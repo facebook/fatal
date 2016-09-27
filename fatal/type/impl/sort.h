@@ -20,7 +20,7 @@
 #define FATAL_INCLUDE_fatal_type_impl_sort_h
 
 namespace fatal {
-namespace impl_srt {
+namespace i_s {
 
 // partition recursion
 template <template <typename...> class, typename...> struct p;
@@ -199,7 +199,7 @@ struct p<
 {};
 
 // placeholder for partition's filtered sequence elements
-template <typename T, T, bool> struct fv;
+template <typename T, T, bool> struct h;
 
 template <
   template <typename...> class Pair,
@@ -207,7 +207,7 @@ template <
   T... L, T... R, T T0, typename... Args
 >
 struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>, fv<T, T0, true>, Args...
+  Pair, Variadic<T, L...>, Variadic<T, R...>, h<T, T0, true>, Args...
 >:
   p<Pair, Variadic<T, L..., T0>, Variadic<T, R...>, Args...>
 {};
@@ -218,7 +218,7 @@ template <
   typename T, T... L, T... R, T T0, typename... Args
 >
 struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>, fv<T, T0, false>, Args...
+  Pair, Variadic<T, L...>, Variadic<T, R...>, h<T, T0, false>, Args...
 >:
   p<Pair, Variadic<T, L...>, Variadic<T, R..., T0>, Args...>
 {};
@@ -230,7 +230,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, false>, fv<T, T1, false>,
+  h<T, T0, false>, h<T, T1, false>,
   Args...
 >:
   p<Pair, Variadic<T, L...>, Variadic<T, R..., T0, T1>, Args...>
@@ -243,7 +243,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, false>, fv<T, T1, true>,
+  h<T, T0, false>, h<T, T1, true>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T1>, Variadic<T, R..., T0>, Args...>
@@ -256,7 +256,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, true>, fv<T, T1, false>,
+  h<T, T0, true>, h<T, T1, false>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T0>, Variadic<T, R..., T1>, Args...>
@@ -269,7 +269,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, true>, fv<T, T1, true>,
+  h<T, T0, true>, h<T, T1, true>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T0, T1>, Variadic<T, R...>, Args...>
@@ -282,7 +282,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, false>, fv<T, T1, false>, fv<T, T2, false>,
+  h<T, T0, false>, h<T, T1, false>, h<T, T2, false>,
   Args...
 >:
   p<Pair, Variadic<T, L...>, Variadic<T, R..., T0, T1, T2>, Args...>
@@ -295,7 +295,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, false>, fv<T, T1, false>, fv<T, T2, true>,
+  h<T, T0, false>, h<T, T1, false>, h<T, T2, true>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T2>, Variadic<T, R..., T0, T1>, Args...>
@@ -308,7 +308,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, false>, fv<T, T1, true>, fv<T, T2, false>,
+  h<T, T0, false>, h<T, T1, true>, h<T, T2, false>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T1>, Variadic<T, R..., T0, T2>, Args...>
@@ -321,7 +321,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, false>, fv<T, T1, true>, fv<T, T2, true>,
+  h<T, T0, false>, h<T, T1, true>, h<T, T2, true>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T1, T2>, Variadic<T, R..., T0>, Args...>
@@ -334,7 +334,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, true>, fv<T, T1, false>, fv<T, T2, false>,
+  h<T, T0, true>, h<T, T1, false>, h<T, T2, false>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T0>, Variadic<T, R..., T1, T2>, Args...>
@@ -347,7 +347,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, true>, fv<T, T1, false>, fv<T, T2, true>,
+  h<T, T0, true>, h<T, T1, false>, h<T, T2, true>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T0, T2>, Variadic<T, R..., T1>, Args...>
@@ -360,7 +360,7 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, true>, fv<T, T1, true>, fv<T, T2, false>,
+  h<T, T0, true>, h<T, T1, true>, h<T, T2, false>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T0, T1>, Variadic<T, R..., T2>, Args...>
@@ -373,14 +373,14 @@ template <
 >
 struct p<
   Pair, Variadic<T, L...>, Variadic<T, R...>,
-  fv<T, T0, true>, fv<T, T1, true>, fv<T, T2, true>,
+  h<T, T0, true>, h<T, T1, true>, h<T, T2, true>,
   Args...
 >:
   p<Pair, Variadic<T, L..., T0, T1, T2>, Variadic<T, R...>, Args...>
 {};
 
 // partition entry point
-template <template <typename...> class, typename...> struct pr;
+template <template <typename...> class, typename...> struct P;
 
 template <
   template <typename...> class Pair,
@@ -388,7 +388,7 @@ template <
   typename... Args,
   typename Filter
 >
-struct pr<Pair, Variadic<Args...>, Filter>:
+struct P<Pair, Variadic<Args...>, Filter>:
   p<
     Pair, Variadic<>, Variadic<>,
     indexed<Args, Filter::template apply<Args>::value>...
@@ -401,21 +401,21 @@ template <
   typename T, T... Args,
   typename Filter
 >
-struct pr<Pair, Variadic<T, Args...>, Filter>:
+struct P<Pair, Variadic<T, Args...>, Filter>:
   p<
     Pair, Variadic<T>, Variadic<T>,
-    fv<T, Args, Filter::template apply<T, Args>::value>...
+    h<T, Args, Filter::template apply<T, Args>::value>...
   >
 {};
 
-template <typename...> struct fl;
+template <typename...> struct f;
 
 template <
   typename Predicate,
   template <typename...> class Variadic,
   typename... Result
 >
-struct fl<Predicate, Variadic<Result...>> {
+struct f<Predicate, Variadic<Result...>> {
   using type = Variadic<Result...>;
 };
 
@@ -426,8 +426,8 @@ template <
   typename T,
   typename... Args
 >
-struct fl<Predicate, Variadic<Result...>, T, Args...>:
-  fl<
+struct f<Predicate, Variadic<Result...>, T, Args...>:
+  f<
     Predicate,
     typename std::conditional<
       Predicate::template apply<T>::value,
@@ -438,7 +438,7 @@ struct fl<Predicate, Variadic<Result...>, T, Args...>:
   >
 {};
 
-template <typename...> struct flt;
+template <typename...> struct F;
 
 // TODO: OPTIMIZE
 template <
@@ -446,11 +446,12 @@ template <
   template <typename...> class Variadic,
   typename... Args
 >
-struct flt<Predicate, Variadic<Args...>>:
-  fl<Predicate, Variadic<>, Args...>
+struct F<Predicate, Variadic<Args...>>:
+  f<Predicate, Variadic<>, Args...>
 {};
 
-template <typename...> struct mrg;
+// merge implementation
+template <typename...> struct m;
 
 template <
   template <typename...> class Variadic,
@@ -458,26 +459,36 @@ template <
   typename R, typename... RHS,
   typename... Args
 >
-struct mrg<Variadic<L, LHS...>, Variadic<R, RHS...>, Variadic<Args...>> {
+struct m<Variadic<L, LHS...>, Variadic<R, RHS...>, Variadic<Args...>> {
   using type = typename std::conditional<
     (R::value < L::value),
-    typename mrg<Variadic<L, LHS...>, Variadic<RHS...>, Variadic<Args..., R>>::type,
-    typename mrg<Variadic<LHS...>, Variadic<R, RHS...>, Variadic<Args..., L>>::type
+    typename m<
+      Variadic<L, LHS...>, Variadic<RHS...>, Variadic<Args..., R>
+    >::type,
+    typename m<
+      Variadic<LHS...>, Variadic<R, RHS...>, Variadic<Args..., L>
+    >::type
   >::type;
 };
 
-template <template <typename...> class Variadic, typename... LHS, typename... Args>
-struct mrg<Variadic<LHS...>, Variadic<>, Variadic<Args...>> {
+template <
+  template <typename...> class Variadic,
+  typename... LHS, typename... Args
+>
+struct m<Variadic<LHS...>, Variadic<>, Variadic<Args...>> {
   using type = Variadic<Args..., LHS...>;
 };
 
-template <template <typename...> class Variadic, typename... RHS, typename... Args>
-struct mrg<Variadic<>, Variadic<RHS...>, Variadic<Args...>> {
+template <
+  template <typename...> class Variadic,
+  typename... RHS, typename... Args
+>
+struct m<Variadic<>, Variadic<RHS...>, Variadic<Args...>> {
   using type = Variadic<Args..., RHS...>;
 };
 
 template <template <typename...> class Variadic, typename... Args>
-struct mrg<Variadic<>, Variadic<>, Variadic<Args...>> {
+struct m<Variadic<>, Variadic<>, Variadic<Args...>> {
   using type = Variadic<Args...>;
 };
 
@@ -488,19 +499,19 @@ template <
   T R, T... RHS,
   T... Values
 >
-struct mrg<
+struct m<
   Variadic<T, L, LHS...>,
   Variadic<T, R, RHS...>,
   Variadic<T, Values...>
 > {
   using type = typename std::conditional<
     (R < L),
-    typename mrg<
+    typename m<
       Variadic<T, L, LHS...>,
       Variadic<T, RHS...>,
       Variadic<T, Values..., R>
     >::type,
-    typename mrg<
+    typename m<
       Variadic<T, LHS...>,
       Variadic<T, R, RHS...>,
       Variadic<T, Values..., L>
@@ -514,7 +525,7 @@ template <
   T... LHS,
   T... Values
 >
-struct mrg<Variadic<T, LHS...>, Variadic<T>, Variadic<T, Values...>> {
+struct m<Variadic<T, LHS...>, Variadic<T>, Variadic<T, Values...>> {
   using type = Variadic<T, Values..., LHS...>;
 };
 
@@ -524,21 +535,24 @@ template <
   T... RHS,
   T... Values
 >
-struct mrg<Variadic<T>, Variadic<T, RHS...>, Variadic<T, Values...>> {
+struct m<Variadic<T>, Variadic<T, RHS...>, Variadic<T, Values...>> {
   using type = Variadic<T, Values..., RHS...>;
 };
 
 template <template <typename V, V...> class Variadic, typename T, T... Values>
-struct mrg<Variadic<T>, Variadic<T>, Variadic<T, Values...>> {
+struct m<Variadic<T>, Variadic<T>, Variadic<T, Values...>> {
   using type = Variadic<T, Values...>;
 };
 
+// merge entry point
+template <typename...> struct M;
 
-template <typename...> struct merge;
-
-template <template <typename...> class Variadic, typename... LHS, typename... RHS>
-struct merge<Variadic<LHS...>, Variadic<RHS...>> {
-  using type = typename mrg<Variadic<LHS...>, Variadic<RHS...>, Variadic<>>::type;
+template <
+  template <typename...> class Variadic,
+  typename... LHS, typename... RHS
+>
+struct M<Variadic<LHS...>, Variadic<RHS...>> {
+  using type = typename m<Variadic<LHS...>, Variadic<RHS...>, Variadic<>>::type;
 };
 
 template <
@@ -547,64 +561,65 @@ template <
   T... LHS,
   T... RHS
 >
-struct merge<Variadic<T, LHS...>, Variadic<T, RHS...>> {
-  using type = typename mrg<
+struct M<Variadic<T, LHS...>, Variadic<T, RHS...>> {
+  using type = typename m<
     Variadic<T, LHS...>,
     Variadic<T, RHS...>,
     Variadic<T>
   >::type;
 };
 
-template <typename...> struct ms;
+// merge sort
+template <typename...> struct s;
 
 template <template <typename...> class Variadic>
-struct ms<Variadic<>> {
+struct s<Variadic<>> {
   using type = Variadic<>;
 };
 
 template <template <typename...> class Variadic, typename T>
-struct ms<Variadic<T>> {
+struct s<Variadic<T>> {
   using type = Variadic<T>;
 };
 
 template <template <typename...> class Variadic, typename... Args>
-struct ms<Variadic<Args...>> {
-  using type = typename mrg<
-    typename ms<head<Variadic<Args...>, sizeof...(Args) / 2>>::type,
-    typename ms<tail<Variadic<Args...>, sizeof...(Args) / 2>>::type,
+struct s<Variadic<Args...>> {
+  using type = typename m<
+    typename s<head<Variadic<Args...>, sizeof...(Args) / 2>>::type,
+    typename s<tail<Variadic<Args...>, sizeof...(Args) / 2>>::type,
     Variadic<>
   >::type;
 };
 
 template <template <typename V, V...> class Variadic, typename T>
-struct ms<Variadic<T>> {
+struct s<Variadic<T>> {
   using type = Variadic<T>;
 };
 
 template <template <typename V, V...> class Variadic, typename T, T Value>
-struct ms<Variadic<T, Value>> {
+struct s<Variadic<T, Value>> {
   using type = Variadic<T, Value>;
 };
 
 template <template <typename V, V...> class Variadic, typename T, T... Values>
-struct ms<Variadic<T, Values...>> {
-  using type = typename mrg<
-    typename ms<head<Variadic<T, Values...>, sizeof...(Values) / 2>>::type,
-    typename ms<tail<Variadic<T, Values...>, sizeof...(Values) / 2>>::type,
+struct s<Variadic<T, Values...>> {
+  using type = typename m<
+    typename s<head<Variadic<T, Values...>, sizeof...(Values) / 2>>::type,
+    typename s<tail<Variadic<T, Values...>, sizeof...(Values) / 2>>::type,
     Variadic<T>
   >::type;
 };
 
-// quick-sort
-template <typename...> struct qs;
+// quicksort
+template <typename...> struct q;
 
 template <template <typename...> class Variadic, typename Less>
-struct qs<Variadic<>, Less> {
+struct q<Variadic<>, Less> {
   using type = Variadic<>;
 };
 
 template <template <typename...> class Variadic, typename T, typename Less>
-struct qs<Variadic<T>, Less> {
+struct q<Variadic<T>, Less> {
   using type = Variadic<T>;
 };
 
@@ -614,7 +629,7 @@ template <
   typename RHS,
   typename Less
 >
-struct qs<Variadic<LHS, RHS>, Less>:
+struct q<Variadic<LHS, RHS>, Less>:
   std::conditional<
     Less::template apply<RHS, LHS>::value,
     Variadic<RHS, LHS>,
@@ -628,14 +643,14 @@ template <
   typename Pivot, typename... Args, typename Less
 >
 // TODO: USE A BETTER PIVOT
-struct qs<Variadic<Pivot, Args...>, Less> {
+struct q<Variadic<Pivot, Args...>, Less> {
   using type = lcat<
-    typename qs<
-      second<typename pr<pair, Variadic<Args...>, curry<Less, Pivot>>::type>,
+    typename q<
+      second<typename P<pair, Variadic<Args...>, curry<Less, Pivot>>::type>,
       Less
     >::type,
-    typename qs<
-      first<typename pr<pair, Variadic<Args...>, curry<Less, Pivot>>::type>,
+    typename q<
+      first<typename P<pair, Variadic<Args...>, curry<Less, Pivot>>::type>,
       Less
     >::type,
     Pivot
@@ -643,7 +658,7 @@ struct qs<Variadic<Pivot, Args...>, Less> {
 };
 
 template <template <typename V, V...> class Variadic, typename T, typename Less>
-struct qs<Variadic<T>, Less> {
+struct q<Variadic<T>, Less> {
   using type = Variadic<T>;
 };
 
@@ -652,7 +667,7 @@ template <
   typename T, T Value,
   typename Less
 >
-struct qs<Variadic<T, Value>, Less> {
+struct q<Variadic<T, Value>, Less> {
   using type = Variadic<T, Value>;
 };
 
@@ -661,7 +676,7 @@ template <
   typename T, T LHS, T RHS,
   typename Less
 >
-struct qs<Variadic<T, LHS, RHS>, Less>:
+struct q<Variadic<T, LHS, RHS>, Less>:
   std::conditional<
     Less::template vapply<T, RHS, LHS>::value,
     Variadic<T, RHS, LHS>,
@@ -671,7 +686,7 @@ struct qs<Variadic<T, LHS, RHS>, Less>:
 
 // curried comparer for sequences
 template <typename Less, typename T, T LHS>
-struct sl {
+struct c {
   template <typename U, U RHS>
   using apply = typename Less::template vapply<T, LHS, RHS>;
 };
@@ -683,22 +698,23 @@ template <
   typename Less
 >
 // TODO: USE A BETTER PIVOT
-struct qs<Variadic<T, Pivot, Args...>, Less> {
+struct q<Variadic<T, Pivot, Args...>, Less> {
   using type = typename vcat<
-    typename qs<
-      second<typename pr<pair, Variadic<T, Args...>, sl<Less, T, Pivot>>::type>,
+    typename q<
+      second<typename P<pair, Variadic<T, Args...>, c<Less, T, Pivot>>::type>,
       Less
     >::type,
-    typename qs<
-      first<typename pr<pair, Variadic<T, Args...>, sl<Less, T, Pivot>>::type>,
+    typename q<
+      first<typename P<pair, Variadic<T, Args...>, c<Less, T, Pivot>>::type>,
       Less
     >::type
   >::template apply<Pivot>;
 };
 
-// TODO: OPTIMIZE BY EXPANDING THE QS LIST INTO A PAIR(FILTERED, T)??
+// TODO: OPTIMIZE BY EXPANDING THE q LIST INTO A PAIR(FILTERED, T)??
+// filtered comparer for quicksort
 template <typename Less, typename Filter>
-struct cc {
+struct C {
   template <typename LHS, typename RHS>
   using apply = typename Less::template apply<
     typename Filter::template apply<LHS>,
@@ -706,18 +722,19 @@ struct cc {
   >;
 };
 
-template <typename...> struct qse;
+// quicksort entry-point
+template <typename...> struct Q;
 
 template <typename T, typename Less>
-struct qse<T, Less>: qs<T, Less> {};
+struct Q<T, Less>: q<T, Less> {};
 
 template <typename T, typename Less, typename By>
-struct qse<T, Less, By>: qs<T, cc<Less, By>> {};
+struct Q<T, Less, By>: q<T, C<Less, By>> {};
 
-template <typename> struct inv;
+template <typename> struct i;
 
 template <template <typename, typename> class Pair, typename LHS, typename RHS>
-struct inv<Pair<LHS, RHS>> {
+struct i<Pair<LHS, RHS>> {
   using type = Pair<RHS, LHS>;
 };
 
@@ -727,11 +744,11 @@ template <
   typename RHS,
   typename... Args
 >
-struct inv<Variadic<LHS, RHS, Args...>> {
+struct i<Variadic<LHS, RHS, Args...>> {
   using type = Variadic<RHS, LHS, Args...>;
 };
 
-} // namespace impl_srt {
+} // namespace i_s {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_sort_h

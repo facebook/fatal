@@ -22,24 +22,25 @@ namespace fatal {
 
 // `Pair` is guaranteed to be instantiated at most once
 template <typename T, typename Filter, template <typename...> class Pair = pair>
-using partition = typename impl_srt::pr<Pair, T, Filter>::type;
+using partition = typename i_s::P<Pair, T, Filter>::type;
 
 template <typename T, typename Predicate>
-using filter = typename impl_srt::flt<Predicate, T>::type;
+using filter = typename i_s::F<Predicate, T>::type;
 
 template <typename T, typename Predicate>
 using reject = filter<T, negation<Predicate>>;
 
 // TODO: ACCEPT A CUSTOM PREDICATE
 template  <typename LHS, typename RHS>
-using merge = typename impl_srt::merge<LHS, RHS>::type;
+using merge = typename i_s::M<LHS, RHS>::type;
 
+// TODO: INVERT COMPARER AND FILTER
 template <typename T, typename Less = less, typename... By>
-using sort = typename impl_srt::qse<T, Less, By...>::type;
+using sort = typename i_s::Q<T, Less, By...>::type;
 
 // TODO: REVIEW / MOVE SOMEWHERE ELSE / GENERALIZE / ...
 template <typename T>
-using invert = typename impl_srt::inv<T>::type;
+using invert = typename i_s::i<T>::type;
 
 } // namespace fatal {
 
