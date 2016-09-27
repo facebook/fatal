@@ -37,7 +37,13 @@ template <
   template <typename...> class Pair = pair,
   template <typename...> class Group = list
 >
-using filtered_group_by = typename impl_gby::filtered_group_by_entry_point<T, Key, Filter, Pair, Group>::type;
+using filtered_group_by = typename impl_gby::filtered_group_by_entry_point<
+  T,
+  Key,
+  Filter,
+  Pair,
+  Group
+>::type;
 
 } // namespace fatal {
 
