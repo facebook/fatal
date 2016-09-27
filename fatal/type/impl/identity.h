@@ -11,14 +11,14 @@
 #define FATAL_INCLUDE_fatal_type_impl_identity_h
 
 namespace fatal {
-namespace impl_identity {
+namespace i_i {
 
 template <typename T>
-struct identity {
+struct i {
   using type = T;
 };
 
-} // namespace impl_identity {
+} // namespace i_i {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_identity_h

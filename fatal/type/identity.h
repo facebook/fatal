@@ -21,7 +21,7 @@ namespace fatal {
  * Example:
  *
  *  // yields `int`
- *  using result1 = identity<int>;
+ *  using result2 = identity<int>;
  *
  *  // yields `std::string`
  *  using result2 = identity<std::string>;
@@ -32,7 +32,12 @@ namespace fatal {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using identity = typename impl_identity::identity<T>::type;
+using identity = typename i_i::i<T>::type;
+
+struct get_identity {
+  template <typename T>
+  using apply = T;
+};
 
 } // namespace fatal {
 
