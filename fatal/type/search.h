@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_search_h
 
 #include <fatal/functional/no_op.h>
+#include <fatal/type/compare.h>
 #include <fatal/type/identity.h>
 #include <fatal/type/slice.h>
 
@@ -20,29 +21,6 @@
 
 namespace fatal {
 
-// TODO: MOVE IT SOMEWHERE ELSE
-struct value_comparer {
-  template <typename LHS, typename RHS>
-  static constexpr bool less(RHS &&rhs) {
-    return LHS::value < static_cast<
-      typename std::decay<decltype(LHS::value)>::type
-    >(rhs);
-  }
-
-  template <typename LHS, typename RHS>
-  static constexpr bool equal(RHS &&rhs) {
-    return LHS::value == static_cast<
-      typename std::decay<decltype(LHS::value)>::type
-    >(rhs);
-  }
-
-  template <typename LHS, typename RHS>
-  static constexpr bool greater(RHS &&rhs) {
-    return LHS::value > static_cast<
-      typename std::decay<decltype(LHS::value)>::type
-    >(rhs);
-  }
-};
 
 // TODO: DOCUMENT THE NEED FOR A SORTED LIST
 template <
