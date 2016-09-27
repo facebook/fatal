@@ -195,7 +195,7 @@ struct greater_equal {
 template <typename Less>
 struct sequence_compare {
   template <typename LHS, typename RHS>
-  using apply = impl_comp::sc<Less, LHS, RHS>;
+  using apply = i_c::sc<Less, LHS, RHS>;
 };
 
 } // namespace fatal {

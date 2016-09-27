@@ -11,7 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_impl_compare_h
 
 namespace fatal {
-namespace impl_comp {
+namespace i_c {
 
 template <typename, typename, typename, int = 0> struct sc;
 
@@ -92,7 +92,7 @@ struct sc<Less, Variadic<T, L, LHS...>, Variadic<T, R, RHS...>, 0>:
   >
 {};
 
-} // namespace impl_comp {
+} // namespace i_c {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_compare_h
