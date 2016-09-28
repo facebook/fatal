@@ -1272,7 +1272,7 @@ public:
   }
 
   template <typename U>
-  auto try_set(U &&value)
+  auto try_set(U &&)
     -> typename std::enable_if<
       !is_supported<typename std::decay<U>::type>(), bool
     >::type

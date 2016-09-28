@@ -12,7 +12,6 @@
 
 #include <fatal/functional/identity.h>
 #include <fatal/functional/no_op.h>
-#include <fatal/type/fast_pass.h>
 #include <fatal/type/scalar.h>
 
 #include <limits>
@@ -226,7 +225,7 @@ namespace functional_impl {
 
 template <typename T, bool = std::is_unsigned<T>::value>
 struct is_negative {
-  static constexpr bool impl(fatal::fast_pass<T> value)
+  static constexpr bool impl(T const &value)
     noexcept(noexcept(value >= static_cast<T>(0)))
   {
     return value < static_cast<T>(0);
@@ -235,14 +234,14 @@ struct is_negative {
 
 template <typename T>
 struct is_negative<T, true> {
-  static constexpr bool impl(fatal::fast_pass<T> value) noexcept {
+  static constexpr bool impl(T const &) noexcept {
     return false;
   }
 };
 
 template <typename T, bool = std::is_unsigned<T>::value>
 struct not_negative {
-  static constexpr bool impl(fatal::fast_pass<T> value)
+  static constexpr bool impl(T const &value)
     noexcept(noexcept(value >= static_cast<T>(0)))
   {
     return value >= static_cast<T>(0);
@@ -251,7 +250,7 @@ struct not_negative {
 
 template <typename T>
 struct not_negative<T, true> {
-  static constexpr bool impl(fatal::fast_pass<T> value) noexcept {
+  static constexpr bool impl(T const &) noexcept {
     return true;
   }
 };

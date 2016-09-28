@@ -87,7 +87,7 @@ public:
     return nullptr;
   }
 
-  void deallocate(pointer p, size_type n) {
+  void deallocate(pointer p, size_type) {
     assert(chunks_->find(p) != chunks_->end());
     chunks_->erase(p);
   }

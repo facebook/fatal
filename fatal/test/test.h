@@ -435,7 +435,7 @@ struct any_to_string_impl {
 
 template <typename T, typename TImpl>
 struct any_to_string_impl<T, TImpl, false> {
-  static void append(std::string &out, T const &value) {
+  static void append(std::string &out, T const &) {
     out.append("<instance:");
     out.append(type_str<T>());
     out.push_back('>');
@@ -1128,7 +1128,7 @@ struct default_printer {
 
   template <typename TOut, typename TName>
   void issue(
-    TOut &out, TName const &name, source_info const &source,
+    TOut &out, TName const &, source_info const &,
     test_issue const &i, std::size_t index
   ) {
     if (index) {
@@ -1147,7 +1147,7 @@ struct default_printer {
   template <typename TOut, typename TName>
   void end_test(
     TOut &out, results const &result,
-    TName const &name, source_info const &source
+    TName const &, source_info const &
   ) {
     time::pretty_print(
       out << "<< " << (result.passed() ? "succeeded" : "failed") << " after [",
@@ -1156,7 +1156,7 @@ struct default_printer {
   }
 
   template <typename TOut, typename TGroup>
-  void end_group(TOut &out, TGroup const &group, duration_t time) {
+  void end_group(TOut &, TGroup const &, duration_t) {
   }
 
   template <typename TOut>

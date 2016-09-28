@@ -107,7 +107,7 @@ void check_type() {
 }
 
 template <typename TCSTR, typename TChar, std::size_t Size>
-void check_string_type(TChar const (&s)[Size]) {
+void check_string_type(TChar const (&)[Size]) {
   FATAL_EXPECT_SAME<TChar, typename TCSTR::type>();
   FATAL_EXPECT_SAME<TChar, typename TCSTR::value_type>();
 }
@@ -129,7 +129,7 @@ FATAL_TEST(constant_sequence, type / value_type) {
 ///////////////////////////////////
 
 template <typename TCSTR, typename TChar, std::size_t Size>
-void check_value_type(TChar const (&s)[Size]) {
+void check_value_type(TChar const (&)[Size]) {
   FATAL_EXPECT_SAME<TChar, typename TCSTR::value_type>();
 }
 
@@ -1046,7 +1046,7 @@ FATAL_TEST(constant_sequence, parse) {
 ////////////////////////////////////////////////////
 
 template <typename TArray, typename TAsArray, typename TData>
-void check_array_data(TData data) {
+void check_array_data(TData) {
   using array = TArray;
   using as_array_t = TAsArray;
   auto const a = as_array_t::get();

@@ -1032,7 +1032,7 @@ struct bs_visitor {
       >,
       Index
     >,
-    T const &needle,
+    T const &,
     T &key,
     T &mapped,
     std::size_t &index

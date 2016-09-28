@@ -1699,7 +1699,7 @@ struct bs_visitor {
   template <T Value, std::size_t Index>
   void operator ()(
     indexed_type_tag<std::integral_constant<T, Value>, Index>,
-    T const &needle,
+    T const &,
     T &out,
     std::size_t &index
   ) {

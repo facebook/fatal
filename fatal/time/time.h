@@ -121,7 +121,7 @@ struct pretty<T, Args...> {
 template <>
 struct pretty<> {
   template <typename Out, typename D>
-  static void print(Out &out, D) {}
+  static void print(Out &, D) {}
 };
 
 using pretty_print_ratios = type_list<

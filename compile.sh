@@ -53,7 +53,7 @@ if [ "$USE_CCACHE" = "true" ] && [ -e "$out_binary" ]; then
 else
   echo -n "started: "; date
   set -x
-  time "$USE_CC" $CC_ARGS -Wall -Werror "-std=$USE_STD" -I . "$file_name" 2>&1
+  time "$USE_CC" $CC_ARGS -Wall -Werror -Wextra "-std=$USE_STD" -I . "$file_name" 2>&1
   set +x
   echo -n "finished: "; date
 fi
