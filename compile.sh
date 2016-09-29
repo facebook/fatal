@@ -52,13 +52,17 @@ if [ "$USE_CCACHE" = "true" ] && [ -e "$out_binary" ]; then
   echo "using cached version of $file_name: $out_binary"
 else
   echo -n "started: "; date
+  if [ "$BE_LENIENT" == "true" ]; then
+    set +e
+  fi
   set -x
   time "$USE_CC" $CC_ARGS -Wall -Werror -Wextra "-std=$USE_STD" -I . "$file_name" 2>&1
   set +x
+  set -e
   echo -n "finished: "; date
 fi
 
-if [ ! -e "$out_binary" ]; then
+if [ ! -e "$out_binary" ] && [ "$BE_LENIENT" != "true" ]; then
   echo "binary for $file_name was not properly built"
   exit 1
 fi
