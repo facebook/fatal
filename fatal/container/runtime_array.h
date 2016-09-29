@@ -144,7 +144,7 @@ public:
     return data_[i];
   }
 
-  pointer const data() const { return data_; }
+  pointer data() const { return data_; }
   pointer data() { return data_; }
 
   const_iterator cbegin() const { return data_; }

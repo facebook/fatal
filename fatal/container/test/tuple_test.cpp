@@ -101,21 +101,6 @@ FATAL_TEST(tuple, type_of) {
   CHECK_IMPL(check_type_of);
 }
 
-template <typename... Tags, typename... TData>
-void check_default_ctor(TData &&...) {
-  static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");
-
-  std::tuple<typename std::decay<TData>::type...> expected;
-
-  tuple<pair<Tags, typename std::decay<TData>::type>...> actual;
-
-  FATAL_EXPECT_EQ(expected, actual.data());
-}
-
-FATAL_TEST(tuple, default_ctor) {
-  CHECK_IMPL(check_default_ctor);
-}
-
 FATAL_TEST(tuple, ctor) {
   auto tuple = make_tuple<W, X, Y, Z>(
     std::string("hello"),

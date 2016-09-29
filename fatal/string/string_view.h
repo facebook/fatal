@@ -146,7 +146,8 @@ struct string_view {
   }
 
   void limit(size_type size) {
-    assert(size >= 0);
+    // TODO: use `non_negative(size)` to avoid tautological comparison error
+    // assert(size >= size_type(0));
 
     if (size < this->size()) {
       end_ = std::next(begin_, size);

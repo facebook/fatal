@@ -10,8 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_math_numerics_h
 #define FATAL_INCLUDE_fatal_math_numerics_h
 
-#include <fatal/type/traits.h>
-
+#include <tuple>
 #include <utility>
 
 #include <cmath>
@@ -75,7 +74,7 @@ struct statistical_moments {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  void add(fast_pass<value_type> sample) {
+  void add(value_type const &sample) {
     auto const n = samples_++;
 
     auto const delta = sample - moment_1_;
@@ -104,7 +103,7 @@ struct statistical_moments {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  fast_pass<value_type> mean() const { return moment_1_; }
+  value_type const &mean() const { return moment_1_; }
 
   /**
    * Calculates the variance of the samples added so far.
@@ -159,7 +158,7 @@ struct statistical_moments {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  fast_pass<size_type> size() const { return samples_; }
+  size_type size() const { return samples_; }
 
   /**
    * True if no sample has been added so far, false otherwise.
@@ -227,7 +226,7 @@ struct statistical_moments {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  statistical_moments &merge(fast_pass<statistical_moments> rhs) {
+  statistical_moments &merge(statistical_moments const &rhs) {
     auto samples = samples_ + rhs.samples_;
 
     auto const delta_1 = rhs.moment_1_ - moment_1_;
@@ -314,7 +313,7 @@ struct statistical_moments {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  explicit statistical_moments(fast_pass<internal_state> state):
+  explicit statistical_moments(internal_state const &state):
     samples_(std::get<0>(state)),
     moment_1_(std::get<1>(state)),
     moment_2_(std::get<2>(state)),
