@@ -196,7 +196,7 @@ private:
   template <typename Verb>
   struct call_visitor {
     template <typename T>
-    void perform(not_found, T &instance, result_t &out, request_args &args) {
+    void perform(not_found, T &, result_t &, request_args &) {
       throw std::invalid_argument("invalid operation");
     }
 
@@ -238,7 +238,7 @@ private:
     // built-ins
 
     void operator ()(
-      tag<metadata::str::create>, instances_map &instances, request_args &args, result_t &out
+      tag<metadata::str::create>, instances_map &instances, request_args &args, result_t &
     ) const {
       // data_type_name -> ctor
       using ctor_index = transform<supported, metadata::to_constructor_command>;
@@ -265,7 +265,7 @@ private:
     }
 
     void operator ()(
-      tag<metadata::str::help>, instances_map &instances, request_args &args, result_t &out
+      tag<metadata::str::help>, instances_map &, request_args &, result_t &
     ) const {
       foreach<supported>([](auto data_type_tag) { // indexed<data_type>
         using data_type = type_of<decltype(data_type_tag)>;
@@ -292,7 +292,7 @@ private:
     }
 
     void operator ()(
-      tag<metadata::str::json>, instances_map &instances, request_args &args, result_t &out
+      tag<metadata::str::json>, instances_map &, request_args &, result_t &
     ) const {
       std::cout << '{' << std::endl;
       foreach<supported>([](auto data_type_tag) { // indexed<data_type>
