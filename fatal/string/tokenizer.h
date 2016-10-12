@@ -24,7 +24,7 @@ struct tokenizer {
   using token = Token;
   using delimiter = std::integral_constant<char, Delimiter>;
 
-  template <typename... Args, typename = safe_overload_t<tokenizer, Args...>>
+  template <typename... Args, typename = safe_overload<tokenizer, Args...>>
   explicit tokenizer(Args &&...args): data_(std::forward<Args>(args)...) {}
 
   struct const_iterator {

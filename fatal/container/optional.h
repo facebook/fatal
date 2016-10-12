@@ -33,7 +33,7 @@ public:
 
   optional() noexcept: empty_(true){};
 
-  template <typename... Args, typename = safe_overload_t<optional, Args...>>
+  template <typename... Args, typename = safe_overload<optional, Args...>>
   explicit optional(Args &&...args)
     noexcept(
       noexcept(
@@ -203,7 +203,7 @@ public:
     return *this;
   }
 
-  template <typename U, typename = safe_overload_t<optional, U>>
+  template <typename U, typename = safe_overload<optional, U>>
   optional &operator =(U &&value)
     noexcept(
       noexcept(std::declval<data>().construct(std::forward<U>(value)))

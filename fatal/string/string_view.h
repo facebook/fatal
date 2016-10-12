@@ -39,7 +39,7 @@ template <typename U>
 using convertible_t = typename std::enable_if<convertible<U>::value>::type;
 
 template <typename T, typename U>
-using safe_overload_t = typename std::enable_if<
+using safe_overload = typename std::enable_if<
   is_safe_overload<T, U>::value && convertible<U>::value
 >::type;
 
@@ -95,7 +95,7 @@ struct string_view {
     assert(begin_ <= end_);
   }
 
-  template <typename U, typename = safe_overload_t<string_view, U>>
+  template <typename U, typename = safe_overload<string_view, U>>
   explicit string_view(U &&s):
     begin_(s.data()),
     end_(std::next(s.data(), s.size()))
@@ -242,7 +242,7 @@ struct string_view {
 
   template <
     typename U,
-    typename = detail::safe_overload_t<
+    typename = detail::safe_overload<
       string_view,
       typename std::decay<U>::type
     >
@@ -253,7 +253,7 @@ struct string_view {
 
   template <
     typename U,
-    typename = detail::safe_overload_t<
+    typename = detail::safe_overload<
       string_view,
       typename std::decay<U>::type
     >
@@ -270,7 +270,7 @@ struct string_view {
 
   template <
     typename U,
-    typename = detail::safe_overload_t<
+    typename = detail::safe_overload<
       string_view,
       typename std::decay<U>::type
     >
@@ -283,7 +283,7 @@ struct string_view {
 
   template <
     typename U,
-    typename = detail::safe_overload_t<
+    typename = detail::safe_overload<
       string_view,
       typename std::decay<U>::type
     >
@@ -322,21 +322,21 @@ struct string_view_from_type {
 // operator == //
 /////////////////
 
-template <typename T, typename = detail::safe_overload_t<string_view, T>>
+template <typename T, typename = detail::safe_overload<string_view, T>>
 bool operator ==(T const &lhs, string_view rhs) { return rhs == lhs; }
 
 ////////////////
 // operator < //
 ////////////////
 
-template <typename T, typename = detail::safe_overload_t<string_view, T>>
+template <typename T, typename = detail::safe_overload<string_view, T>>
 bool operator <(T const &lhs, string_view rhs) { return rhs > lhs; }
 
 ////////////////
 // operator > //
 ////////////////
 
-template <typename T, typename = detail::safe_overload_t<string_view, T>>
+template <typename T, typename = detail::safe_overload<string_view, T>>
 bool operator >(T const &lhs, string_view rhs) { return rhs < lhs; }
 
 /////////////////
@@ -346,7 +346,7 @@ bool operator >(T const &lhs, string_view rhs) { return rhs < lhs; }
 template <typename T, typename = detail::convertible_t<T>>
 bool operator !=(string_view lhs, T const &rhs) { return !(lhs == rhs); }
 
-template <typename T, typename = detail::safe_overload_t<string_view, T>>
+template <typename T, typename = detail::safe_overload<string_view, T>>
 bool operator !=(T const &lhs, string_view rhs) { return !(rhs == lhs); }
 
 /////////////////
@@ -356,7 +356,7 @@ bool operator !=(T const &lhs, string_view rhs) { return !(rhs == lhs); }
 template <typename T, typename = detail::convertible_t<T>>
 bool operator <=(string_view lhs, T const &rhs) { return !(lhs > rhs); }
 
-template <typename T, typename = detail::safe_overload_t<string_view, T>>
+template <typename T, typename = detail::safe_overload<string_view, T>>
 bool operator <=(T const &lhs, string_view rhs) { return !(rhs < lhs); }
 
 /////////////////
@@ -366,7 +366,7 @@ bool operator <=(T const &lhs, string_view rhs) { return !(rhs < lhs); }
 template <typename T, typename = detail::convertible_t<T>>
 bool operator >=(string_view lhs, T const &rhs) { return !(lhs < rhs); }
 
-template <typename T, typename = detail::safe_overload_t<string_view, T>>
+template <typename T, typename = detail::safe_overload<string_view, T>>
 bool operator >=(T const &lhs, string_view rhs) { return !(rhs > lhs); }
 
 /////////////////////////////////////

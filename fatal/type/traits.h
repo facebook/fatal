@@ -603,9 +603,9 @@ struct enable_when {
   using callable = is_true<is_callable<T, Args...>>;
 };
 
-/////////////////////
-// safe_overload_t //
-/////////////////////
+///////////////////
+// safe_overload //
+///////////////////
 
 /**
  * Type traits to prevent the universal constructor from overloading
@@ -672,7 +672,7 @@ using is_safe_overload = typename detail::traits_impl::is_safe_overload<
  * Usage:
  *
  * struct Foo {
- *   template <typename T, typename X = safe_overload_t<Foo, T>>
+ *   template <typename T, typename X = safe_overload<Foo, T>>
  *   Foo(T &&value) { ... }
  * };
  *
@@ -681,16 +681,15 @@ using is_safe_overload = typename detail::traits_impl::is_safe_overload<
  * struct Foo {
  *   template <
  *     typename... UArgs,
- *     typename X = safe_overload_t<Foo, UArgs...>
+ *     typename X = safe_overload<Foo, UArgs...>
  *   >
  *   Foo(UArgs &&...args) { ... }
  * };
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-// TODO: RENAME TO safe_overload
 template <typename Class, typename... Args>
-using safe_overload_t = enable_when::is_true<is_safe_overload<Class, Args...>>;
+using safe_overload = enable_when::is_true<is_safe_overload<Class, Args...>>;
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //

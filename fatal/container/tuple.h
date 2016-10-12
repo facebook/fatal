@@ -144,7 +144,7 @@ struct tuple {
    */
   template <
     typename... UArgs,
-    typename = safe_overload_t<tuple, UArgs...>
+    typename = safe_overload<tuple, UArgs...>
   >
   explicit constexpr tuple(UArgs &&...args):
     data_(std::forward<UArgs>(args)...)

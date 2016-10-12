@@ -1456,7 +1456,7 @@ public:
 
   template <
     typename U,
-    typename = safe_overload_t<legacy_variant, U>,
+    typename = safe_overload<legacy_variant, U>,
     typename = enable_when::movable<U>
   >
   U &operator =(U &&value) & {
@@ -1470,7 +1470,7 @@ public:
 
   template <
     typename U,
-    typename = safe_overload_t<legacy_variant, U>,
+    typename = safe_overload<legacy_variant, U>,
     typename = enable_when::movable<U>
   >
   U &&operator =(U &&value) && {

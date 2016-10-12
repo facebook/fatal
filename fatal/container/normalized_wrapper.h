@@ -33,7 +33,7 @@ struct normalized_wrapper {
 
   template <
     typename... Args,
-    typename = safe_overload_t<normalized_wrapper, Args...>
+    typename = safe_overload<normalized_wrapper, Args...>
   >
   explicit normalized_wrapper(Args &&...args):
     wrapped_(std::forward<Args>(args)...)

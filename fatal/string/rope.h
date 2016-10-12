@@ -497,10 +497,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  template <
-    typename... Args,
-    typename = safe_overload_t<rope, Args...>
-  >
+  template <typename... Args, typename = safe_overload<rope, Args...>>
   explicit rope(Args &&...args) {
     multi_append(std::forward<Args>(args)...);
   }
@@ -995,10 +992,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  template <
-    typename... Args,
-    typename = safe_overload_t<rope, Args...>
-  >
+  template <typename... Args, typename = safe_overload<rope, Args...>>
   void append(Args &&...args) {
     auto s = string_view(std::forward<Args>(args)...);
     auto const size = s.size();
@@ -1425,7 +1419,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  template <typename T, typename = safe_overload_t<rope, T>>
+  template <typename T, typename = safe_overload<rope, T>>
   int compare(T &&rhs) const {
     return compare(string_view(std::forward<T>(rhs)));
   }
@@ -1600,7 +1594,7 @@ public:
    *
    * @author: Marcelo Juchem
    */
-  template <typename T, typename = safe_overload_t<rope, T>>
+  template <typename T, typename = safe_overload<rope, T>>
   bool operator ==(T &&rhs) const {
     return *this == string_view(std::forward<T>(rhs));
   }
@@ -1720,7 +1714,7 @@ private:
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<rope<SmallBufferSize>, T>
+  typename = safe_overload<rope<SmallBufferSize>, T>
 >
 bool operator ==(T const &lhs, rope<SmallBufferSize> const &rhs) {
   return rhs == lhs;
@@ -1733,7 +1727,7 @@ bool operator ==(T const &lhs, rope<SmallBufferSize> const &rhs) {
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<rope<SmallBufferSize>, T>
+  typename = safe_overload<rope<SmallBufferSize>, T>
 >
 bool operator <(T const &lhs, rope<SmallBufferSize> const &rhs) {
   return rhs > lhs;
@@ -1746,7 +1740,7 @@ bool operator <(T const &lhs, rope<SmallBufferSize> const &rhs) {
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<rope<SmallBufferSize>, T>
+  typename = safe_overload<rope<SmallBufferSize>, T>
 >
 bool operator >(T const &lhs, rope<SmallBufferSize> const &rhs) {
   return rhs < lhs;
@@ -1764,7 +1758,7 @@ bool operator !=(rope<SmallBufferSize> const &lhs, T const &rhs) {
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<rope<SmallBufferSize>, T>
+  typename = safe_overload<rope<SmallBufferSize>, T>
 >
 bool operator !=(T const &lhs, rope<SmallBufferSize> const &rhs) {
   return !(rhs == lhs);
@@ -1782,7 +1776,7 @@ bool operator <=(rope<SmallBufferSize> const &lhs, T const &rhs) {
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<rope<SmallBufferSize>, T>
+  typename = safe_overload<rope<SmallBufferSize>, T>
 >
 bool operator <=(T const &lhs, rope<SmallBufferSize> const &rhs) {
   return !(rhs < lhs);
@@ -1800,7 +1794,7 @@ bool operator >=(rope<SmallBufferSize> const &lhs, T const &rhs) {
 template <
   typename T,
   std::size_t SmallBufferSize,
-  typename = safe_overload_t<rope<SmallBufferSize>, T>
+  typename = safe_overload<rope<SmallBufferSize>, T>
 >
 bool operator >=(T const &lhs, rope<SmallBufferSize> const &rhs) {
   return !(rhs > lhs);
