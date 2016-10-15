@@ -469,10 +469,10 @@ void handle_exception(test_issue &issue) {
     issue.append("(std::string): \"", e, '"');
   } catch (char const *e) {
     issue.append("(char const *): \"", e, '"');
-  } catch (long long e) {
-    issue.append("(long long): \"", e, '"');
-  } catch (unsigned long long e) {
-    issue.append("(unsigned long long): \"", e, '"');
+  } catch (std::int64_t e) {
+    issue.append("(std::int64_t): \"", e, '"');
+  } catch (std::uint64_t e) {
+    issue.append("(std::uint64_t): \"", e, '"');
   } catch (long double e) {
     issue.append("(long double): \"", e, '"');
   // TODO: ADD MORE TYPES
