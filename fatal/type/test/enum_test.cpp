@@ -235,32 +235,6 @@ FATAL_TEST(enums, array::values) {
   }
 }
 
-FATAL_TEST(enums, array::sorted) {
-  {
-    using actual = enum_traits<test_enum>::array::sorted;
-    std::array<test_enum, 4> expected{{
-      test_enum::state0, test_enum::state1, test_enum::state2, test_enum::state3
-    }};
-    std::sort(expected.begin(), expected.end());
-    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
-    FATAL_EXPECT_TRUE(
-      std::equal(expected.begin(), expected.end(), actual::data)
-    );
-  }
-
-  {
-    using actual = enum_traits<custom_enum>::array::sorted;
-    std::array<custom_enum, 3> expected{{
-      custom_enum::field0, custom_enum::field1, custom_enum::field2
-    }};
-    std::sort(expected.begin(), expected.end());
-    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
-    FATAL_EXPECT_TRUE(
-      std::equal(expected.begin(), expected.end(), actual::data)
-    );
-  }
-}
-
 FATAL_TEST(enums, is_valid) {
   {
     using traits = enum_traits<empty_enum>;

@@ -313,28 +313,6 @@ public:
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
     using values = as_array<enum_traits::values>;
-
-    /**
-     * A statically allocated array containing the values of the enumeration
-     * fields, in a sorted order.
-     *
-     * See `type/array.h` for more info.
-     *
-     * Example:
-     *
-     *  FATAL_RICH_ENUM_CLASS(my_enum, (field2, 2), (field0, 0), (field1, 1));
-     *
-     *  using traits = enum_traits<my_enum>;
-     *  using array = traits::array::sorted;
-     *
-     *  // prints "0 1 2 "
-     *  for (auto i: array::get) {
-     *    std::cout << static_cast<traits::int_type>(i) << ' ';
-     *  }
-     *
-     * @author: Marcelo Juchem <marcelo@fb.com>
-     */
-    using sorted = as_array<sort<enum_traits::values>>;
   };
 
 private:
