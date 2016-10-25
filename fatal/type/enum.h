@@ -283,8 +283,11 @@ public:
      *
      *  using array = enum_traits<my_enum>::array::names;
      *
+     *  // yields `3`
+     *  auto const size = array::size::value;
+     *
      *  // prints "field0 field1 field2 "
-     *  for (auto s: array::get) {
+     *  for (auto s: array::data) {
      *    std::cout << s << ' ';
      *  }
      *
@@ -305,8 +308,11 @@ public:
      *  using traits = enum_traits<my_enum>;
      *  using array = traits::array::values;
      *
+     *  // yields `3`
+     *  auto const size = array::size::value;
+     *
      *  // prints "0 1 2 "
-     *  for (auto i: array::get) {
+     *  for (auto i: array::data) {
      *    std::cout << static_cast<traits::int_type>(i) << ' ';
      *  }
      *

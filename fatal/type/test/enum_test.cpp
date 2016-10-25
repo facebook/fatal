@@ -199,6 +199,14 @@ FATAL_TEST(enums, array::names) {
     FATAL_EXPECT_TRUE(
       std::equal(expected.begin(), expected.end(), actual::data)
     );
+
+    std::size_t i = 0;
+    for (auto const e: actual::data) {
+      FATAL_ASSERT_LT(i, expected.size());
+      FATAL_EXPECT_EQ(expected[i], e);
+      ++i;
+    }
+    FATAL_EXPECT_EQ(i, expected.size());
   }
 
   {
@@ -208,6 +216,14 @@ FATAL_TEST(enums, array::names) {
     FATAL_EXPECT_TRUE(
       std::equal(expected.begin(), expected.end(), actual::data)
     );
+
+    std::size_t i = 0;
+    for (auto const e: actual::data) {
+      FATAL_ASSERT_LT(i, expected.size());
+      FATAL_EXPECT_EQ(expected[i], e);
+      ++i;
+    }
+    FATAL_EXPECT_EQ(i, expected.size());
   }
 }
 
@@ -221,6 +237,14 @@ FATAL_TEST(enums, array::values) {
     FATAL_EXPECT_TRUE(
       std::equal(expected.begin(), expected.end(), actual::data)
     );
+
+    std::size_t i = 0;
+    for (auto const e: actual::data) {
+      FATAL_ASSERT_LT(i, expected.size());
+      FATAL_EXPECT_EQ(expected[i], e);
+      ++i;
+    }
+    FATAL_EXPECT_EQ(i, expected.size());
   }
 
   {
@@ -232,6 +256,14 @@ FATAL_TEST(enums, array::values) {
     FATAL_EXPECT_TRUE(
       std::equal(expected.begin(), expected.end(), actual::data)
     );
+
+    std::size_t i = 0;
+    for (auto const e: actual::data) {
+      FATAL_ASSERT_LT(i, expected.size());
+      FATAL_EXPECT_EQ(expected[i], e);
+      ++i;
+    }
+    FATAL_EXPECT_EQ(i, expected.size());
   }
 }
 
