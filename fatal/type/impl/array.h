@@ -128,11 +128,26 @@ struct sa<Array, Variadics<T, Args...>, Factory> {
 
 // z_array
 
-struct zd {
-  template <typename T>
-  static constexpr typename std::decay<decltype(z<T>::data)>::type get() {
-    return z<T>::data;
-  }
+template <typename T, typename... Args>
+struct za {
+  using value_type = T;
+  using size = std::integral_constant<std::size_t, sizeof...(Args)>;
+  static constexpr T const data[sizeof...(Args)] = { z<Args>::data... };
+};
+
+template <typename T, typename... Args>
+constexpr T const za<T, Args...>::data[sizeof...(Args)];
+
+template <typename...> struct ZA;
+
+template <template <typename...> class Variadics, typename... Args, typename T>
+struct ZA<Variadics<Args...>, T> {
+  using type = za<T, Args...>;
+};
+
+template <template <typename...> class Variadics, typename T, typename... Args>
+struct ZA<Variadics<T, Args...>> {
+  using type = za<typename std::decay<decltype(z<T>::data)>::type, T, Args...>;
 };
 
 // string_view_array

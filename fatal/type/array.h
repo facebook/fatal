@@ -35,7 +35,7 @@ using as_runtime_array_from = typename impl_a::sa<
 >::type;
 
 template <typename Array, typename... T>
-using z_array = as_array_from<Array, impl_a::zd, T...>;
+using z_array = typename impl_a::ZA<Array, T...>::type;
 
 template <typename Array, typename StringView>
 using string_view_array = typename impl_a::S<Array, StringView>::type;
