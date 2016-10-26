@@ -85,7 +85,7 @@ struct string_view {
   }
 
   template <std::size_t N>
-  constexpr explicit string_view(value_type const (&s)[N]):
+  constexpr string_view(value_type const (&s)[N]):
     begin_(s),
     end_(s + (N - (s[N - 1] == 0)))
   {
