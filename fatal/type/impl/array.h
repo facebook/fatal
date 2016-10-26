@@ -94,19 +94,17 @@ struct z<Variadics<Value, Args...>, T>:
   a<1, T, static_cast<T>(Args)..., static_cast<T>(0)>
 {};
 
-// non-constexpr statically allocated array from element factory//
 
 template <typename T, typename Factory, typename... Args>
 struct ar {
   using value_type = T;
   using size = std::integral_constant<std::size_t, sizeof...(Args)>;
-  static T const data[sizeof...(Args)];
+  static constexpr T const data[sizeof...(Args)] = {
+    Factory::template get<Args>()...
+  };
 };
-
 template <typename T, typename Factory, typename... Args>
-T const ar<T, Factory, Args...>::data[sizeof...(Args)] = {
-  Factory::template get<Args>()...
-};
+constexpr T const ar<T, Factory, Args...>::data[sizeof...(Args)];
 
 template <typename...> struct sa;
 
@@ -136,7 +134,7 @@ struct sa<Variadics<T, Args...>, Factory> {
 
 struct zd {
   template <typename T>
-  static typename std::decay<decltype(z<T>::data)>::type get() {
+  static constexpr typename std::decay<decltype(z<T>::data)>::type get() {
     return z<T>::data;
   }
 };
