@@ -94,38 +94,30 @@ struct z<Variadics<Value, Args...>, T>:
   a<1, T, static_cast<T>(Args)..., static_cast<T>(0)>
 {};
 
+// statically allocated array from an element factory - entry point
 
-template <typename T, typename Factory, typename... Args>
-struct ar {
-  using value_type = T;
-  using size = std::integral_constant<std::size_t, sizeof...(Args)>;
-  static constexpr T const data[sizeof...(Args)] = {
-    Factory::template get<Args>()...
-  };
-};
-template <typename T, typename Factory, typename... Args>
-constexpr T const ar<T, Factory, Args...>::data[sizeof...(Args)];
-
-template <typename...> struct sa;
+template <template <typename...> class, typename...> struct sa;
 
 template <
+  template <typename...> class Array,
   template <typename...> class Variadics,
   typename... Args,
   typename Factory,
   typename T
 >
-struct sa<Variadics<Args...>, Factory, T> {
-  using type = ar<T, Factory, Args...>;
+struct sa<Array, Variadics<Args...>, Factory, T> {
+  using type = Array<T, Factory, Args...>;
 };
 
 template <
+  template <typename...> class Array,
   template <typename...> class Variadics,
   typename T,
   typename... Args,
   typename Factory
 >
-struct sa<Variadics<T, Args...>, Factory> {
-  using type = ar<
+struct sa<Array, Variadics<T, Args...>, Factory> {
+  using type = Array<
     typename std::decay<decltype(Factory::template get<T>())>::type,
     Factory,
     T, Args...
@@ -137,6 +129,34 @@ struct zd {
   static constexpr typename std::decay<decltype(z<T>::data)>::type get() {
     return z<T>::data;
   }
+};
+
+// constexpr statically allocated array from element factory//
+
+template <typename T, typename Factory, typename... Args>
+struct c {
+  using value_type = T;
+  using size = std::integral_constant<std::size_t, sizeof...(Args)>;
+  static constexpr T const data[sizeof...(Args)] = {
+    Factory::template get<Args>()...
+  };
+};
+
+template <typename T, typename Factory, typename... Args>
+constexpr T const c<T, Factory, Args...>::data[sizeof...(Args)];
+
+// non-constexpr statically allocated array from element factory//
+
+template <typename T, typename Factory, typename... Args>
+struct n {
+  using value_type = T;
+  using size = std::integral_constant<std::size_t, sizeof...(Args)>;
+  static T const data[sizeof...(Args)];
+};
+
+template <typename T, typename Factory, typename... Args>
+T const n<T, Factory, Args...>::data[sizeof...(Args)] = {
+  Factory::template get<Args>()...
 };
 
 } // namespace impl_a {

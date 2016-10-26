@@ -25,7 +25,14 @@ static constexpr typename std::decay<
 }
 
 template <typename Array, typename Factory, typename... T>
-using as_array_from = typename impl_a::sa<Array, Factory, T...>::type;
+using as_array_from = typename impl_a::sa<
+  impl_a::c, Array, Factory, T...
+>::type;
+
+template <typename Array, typename Factory, typename... T>
+using as_runtime_array_from = typename impl_a::sa<
+  impl_a::n, Array, Factory, T...
+>::type;
 
 template <typename Array, typename... T>
 using z_array = as_array_from<Array, impl_a::zd, T...>;
