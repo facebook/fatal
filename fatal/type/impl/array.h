@@ -126,6 +126,8 @@ struct sa<Array, Variadics<T, Args...>, Factory> {
   >;
 };
 
+// z_array
+
 struct zd {
   template <typename T>
   static constexpr typename std::decay<decltype(z<T>::data)>::type get() {
@@ -133,12 +135,25 @@ struct zd {
   }
 };
 
-template <typename StringView>
+// string_view_array
+
+template <typename T, typename... Args>
 struct s {
-  template <typename T>
-  static constexpr StringView get() {
-    return StringView(z<T>::data, size<T>::value);
-  }
+  using value_type = T;
+  using size = std::integral_constant<std::size_t, sizeof...(Args)>;
+  static constexpr T const data[sizeof...(Args)] = {
+    T(z<Args, typename T::value_type>::data, fatal::size<Args>::value)...
+  };
+};
+
+template <typename T, typename... Args>
+constexpr T const s<T, Args...>::data[sizeof...(Args)];
+
+template <typename...> struct S;
+
+template <template <typename...> class Variadics, typename... Args, typename T>
+struct S<Variadics<Args...>, T> {
+  using type = s<T, Args...>;
 };
 
 // constexpr statically allocated array from element factory//

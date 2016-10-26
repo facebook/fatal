@@ -38,11 +38,7 @@ template <typename Array, typename... T>
 using z_array = as_array_from<Array, impl_a::zd, T...>;
 
 template <typename Array, typename StringView>
-using string_view_array = as_array_from<
-  Array,
-  impl_a::s<StringView>,
-  StringView
->;
+using string_view_array = typename impl_a::S<Array, StringView>::type;
 
 } // namespace fatal {
 
