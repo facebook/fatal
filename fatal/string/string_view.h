@@ -52,18 +52,22 @@ struct string_view {
 
   constexpr string_view(): begin_(nullptr), end_(nullptr) {}
 
-  string_view(const_iterator begin, const_iterator end):
+  constexpr string_view(const_iterator begin, const_iterator end):
     begin_(begin),
     end_(end)
   {
+#   if __cplusplus > 201400
     assert(begin_ <= end_);
+#   endif // __cplusplus > 201400
   }
 
-  string_view(const_iterator s, std::size_t size):
+  constexpr string_view(const_iterator s, std::size_t size):
     begin_(s),
-    end_(std::next(s, size))
+    end_(s + size)
   {
+#   if __cplusplus > 201400
     assert(begin_ <= end_);
+#   endif // __cplusplus > 201400
   }
 
   explicit string_view(value_type *s):
@@ -81,32 +85,40 @@ struct string_view {
   }
 
   template <std::size_t N>
-  explicit string_view(value_type const (&s)[N]):
+  constexpr explicit string_view(value_type const (&s)[N]):
     begin_(s),
-    end_(std::strlen(s))
+    end_(s + (N - (s[N - 1] == 0)))
   {
+#   if __cplusplus > 201400
     assert(begin_ <= end_);
+#   endif // __cplusplus > 201400
   }
 
-  explicit string_view(value_type const &c):
-    begin_(std::addressof(c)),
-    end_(std::next(std::addressof(c)))
+  constexpr explicit string_view(value_type const &c):
+    begin_(&c),
+    end_(&c + 1)
   {
+#   if __cplusplus > 201400
     assert(begin_ <= end_);
+#   endif // __cplusplus > 201400
   }
 
   template <typename U, typename = safe_overload<string_view, U>>
-  explicit string_view(U &&s):
+  constexpr explicit string_view(U &&s):
     begin_(s.data()),
-    end_(std::next(s.data(), s.size()))
+    end_(s.data() + s.size())
   {
+#   if __cplusplus > 201400
     assert(begin_ <= end_);
+#   endif // __cplusplus > 201400
   }
 
-  string_view slice(size_type offset, size_type end) const {
+  constexpr string_view slice(size_type offset, size_type end) const {
+#   if __cplusplus > 201400
     assert(offset <= size());
     assert(end <= size());
-    return string_view(std::next(begin_, offset), std::next(begin_, end));
+#   endif // __cplusplus > 201400
+    return string_view(begin_ + offset, begin_ + end);
   }
 
   const_iterator find(value_type needle) const {
@@ -114,8 +126,10 @@ struct string_view {
   }
 
   const_iterator find(value_type needle, const_iterator offset) const {
+#   if __cplusplus > 201400
     assert(begin_ <= offset);
     assert(offset <= end_);
+#   endif // __cplusplus > 201400
     return std::find(offset, end_, needle);
   }
 
@@ -156,28 +170,32 @@ struct string_view {
     assert(begin_ <= end_);
   }
 
-  const_iterator data() const { return begin_; }
+  constexpr const_iterator data() const { return begin_; }
 
   void clear() { begin_ = end_; }
 
-  size_type size() const {
+  constexpr size_type size() const {
+#   if __cplusplus > 201400
     assert(begin_ <= end_);
-    return std::distance(begin_, end_);
+#   endif // __cplusplus > 201400
+    return end_ - begin_;
   }
 
-  bool empty() const {
+  constexpr bool empty() const {
+#   if __cplusplus > 201400
     assert(begin_ <= end_);
+#   endif // __cplusplus > 201400
     return begin_ == end_;
   }
 
-  const_iterator cbegin() const { return begin_; }
-  const_iterator begin() const { return begin_; }
-  const_iterator cend() const { return end_; }
-  const_iterator end() const { return end_; }
+  constexpr const_iterator cbegin() const { return begin_; }
+  constexpr const_iterator begin() const { return begin_; }
+  constexpr const_iterator cend() const { return end_; }
+  constexpr const_iterator end() const { return end_; }
 
   // TODO: DOCUMENT AND TEST
   template <typename T>
-  T to() const {
+  constexpr T to() const {
     return T(data(), size());
   }
 
@@ -292,9 +310,9 @@ struct string_view {
     return *this > string_view(std::forward<U>(rhs));
   }
 
-  explicit operator bool() const { return begin_ < end_; }
+  constexpr explicit operator bool() const { return begin_ < end_; }
 
-  bool operator !() const { return empty(); }
+  constexpr bool operator !() const { return empty(); }
 
   struct hasher {
     using argument = string_view;
