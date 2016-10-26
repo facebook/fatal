@@ -172,6 +172,14 @@ struct string_view {
 
   constexpr const_iterator data() const { return begin_; }
 
+  constexpr value_type const &operator [](size_type i) const {
+#   if __cplusplus > 201400
+    assert(begin_ <= end_);
+    assert(i < static_cast<size_type>(end_ - begin_));
+#   endif // __cplusplus > 201400
+    return begin_[i];
+  }
+
   void clear() { begin_ = end_; }
 
   constexpr size_type size() const {
