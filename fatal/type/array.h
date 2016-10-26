@@ -37,6 +37,13 @@ using as_runtime_array_from = typename impl_a::sa<
 template <typename Array, typename... T>
 using z_array = as_array_from<Array, impl_a::zd, T...>;
 
+template <typename Array, typename StringView>
+using string_view_array = as_array_from<
+  Array,
+  impl_a::s<StringView>,
+  StringView
+>;
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_array_h

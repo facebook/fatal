@@ -9,6 +9,7 @@
 
 #include <fatal/type/array.h>
 
+#include <fatal/string/string_view.h>
 #include <fatal/type/list.h>
 #include <fatal/type/sequence.h>
 #include <fatal/type/size.h>
@@ -29,12 +30,6 @@ FATAL_S(gaz, "gaz");
 using lst = list<foo, bar, baz, gaz>;
 
 } // namespace str {
-
-FATAL_TEST(z_array, sanity check) {
-  using array = z_array<str::lst>;
-  FATAL_EXPECT_EQ(size<str::lst>::value, array::size::value);
-  static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
-}
 
 struct constexpr_factory {
   template <typename T>
@@ -67,6 +62,26 @@ FATAL_TEST(array, as_runtime_array_from) {
   FATAL_EXPECT_EQ(size<str::lst>::value, array::size::value);
   FATAL_EXPECT_EQ(
     size<first<str::lst>>::value + non_constexpr(),
+    array::data[0]
+  );
+}
+
+FATAL_TEST(array, z_array) {
+  using array = z_array<str::lst>;
+  FATAL_EXPECT_EQ(size<str::lst>::value, array::size::value);
+  static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
+}
+
+FATAL_TEST(array, string_view_array) {
+  using array = string_view_array<str::lst, string_view>;
+  FATAL_EXPECT_EQ(size<str::lst>::value, array::size::value);
+  static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
+  static_assert(
+    array::data[0].size() == size<first<str::lst>>::value,
+    "ensure it is constexpr"
+  );
+  FATAL_EXPECT_EQ(
+    string_view(z_data<first<str::lst>>(), size<first<str::lst>>::value),
     array::data[0]
   );
 }

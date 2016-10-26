@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_array_h
 #define FATAL_INCLUDE_fatal_type_impl_array_h
 
+#include <fatal/type/size.h>
+
 #include <type_traits>
 
 namespace fatal {
@@ -128,6 +130,14 @@ struct zd {
   template <typename T>
   static constexpr typename std::decay<decltype(z<T>::data)>::type get() {
     return z<T>::data;
+  }
+};
+
+template <typename StringView>
+struct s {
+  template <typename T>
+  static constexpr StringView get() {
+    return StringView(z<T>::data, size<T>::value);
   }
 };
 
