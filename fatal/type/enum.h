@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_enum_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/string/string_view.h>
 #include <fatal/type/apply.h>
 #include <fatal/type/array.h>
 #include <fatal/type/call_traits.h>
@@ -273,9 +274,9 @@ public:
   struct array {
     /**
      * A statically allocated array containing the names of the enumeration
-     * fields.
+     * fields as `fatal::string_view`.
      *
-     * See `type/array.h` for more info.
+     * See `type/array.h` and `string/string_view.h` for more info.
      *
      * Example:
      *
@@ -286,14 +287,14 @@ public:
      *  // yields `3`
      *  auto const size = array::size::value;
      *
-     *  // prints "field0 field1 field2 "
+     *  // prints "field0(6) field1(6) field2(6) "
      *  for (auto s: array::data) {
-     *    std::cout << s << ' ';
+     *    std::cout << s << '[' << s.size() << "] ";
      *  }
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using names = z_array<enum_traits::names, char const *>;
+    using names = string_view_array<enum_traits::names, string_view>;
 
     /**
      * A statically allocated array containing the values of the enumeration
