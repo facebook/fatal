@@ -44,6 +44,12 @@ FATAL_S(hot, "hot");
 
 using hs_tree = list<h, ha, hat, hi, hint, hit, ho, hot>;
 
+FATAL_S(field, "field");
+FATAL_S(field10, "field10");
+FATAL_S(field2, "field2");
+
+using fld_tree = list<field, field10, field2>;
+
 template <typename T>
 struct wrapper {
   using value = T;
@@ -386,6 +392,29 @@ FATAL_TEST(trie, find) {
   TEST_TRIE_FIND(false, lst::empty, lst::shuffled);
   TEST_TRIE_FIND(false, lst::x, lst::shuffled);
   TEST_TRIE_FIND(false, lst::notfound, lst::shuffled);
+
+  TEST_TRIE_FIND(true, field, fld_tree);
+  TEST_TRIE_FIND(true, field10, fld_tree);
+  TEST_TRIE_FIND(true, field2, fld_tree);
+  TEST_TRIE_FIND(false, lst::gooey, fld_tree);
+  TEST_TRIE_FIND(false, lst::fast, fld_tree);
+  TEST_TRIE_FIND(false, lst::granite, fld_tree);
+  TEST_TRIE_FIND(false, lst::fastest, fld_tree);
+  TEST_TRIE_FIND(false, lst::fart, fld_tree);
+  TEST_TRIE_FIND(false, lst::far, fld_tree);
+  TEST_TRIE_FIND(false, lst::good, fld_tree);
+  TEST_TRIE_FIND(false, lst::great, fld_tree);
+  TEST_TRIE_FIND(false, lst::grok, fld_tree);
+  TEST_TRIE_FIND(false, lst::faster, fld_tree);
+  TEST_TRIE_FIND(false, lst::green, fld_tree);
+  TEST_TRIE_FIND(false, lst::gold, fld_tree);
+  TEST_TRIE_FIND(false, lst::farther, fld_tree);
+  TEST_TRIE_FIND(false, lst::groove, fld_tree);
+  TEST_TRIE_FIND(false, lst::fat, fld_tree);
+  TEST_TRIE_FIND(false, lst::fist, fld_tree);
+  TEST_TRIE_FIND(false, lst::empty, fld_tree);
+  TEST_TRIE_FIND(false, lst::x, fld_tree);
+  TEST_TRIE_FIND(false, lst::notfound, fld_tree);
 }
 
 } // namespace fatal {
