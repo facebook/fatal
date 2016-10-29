@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_foreach_h
 
 #include <fatal/type/apply.h>
+#include <fatal/type/sequence.h>
 
 #include <utility>
 
@@ -19,12 +20,11 @@
 namespace fatal {
 
 // TODO: MOVE SOMEWHERE ELSE??
-template <typename T, typename Visitor, typename... Args>
-static void foreach(Visitor &&visitor, Args &&...args) {
-  apply_to<T, impl_fe::fe>::f(
-    std::forward<Visitor>(visitor),
-    std::forward<Args>(args)...
-  );
+template <typename List, typename Visitor, typename... Args>
+static void foreach(Visitor&& visitor, Args&&... args) {
+  using IndexSeq = fatal::make_index_sequence<fatal::size<List>::value>;
+  impl_fe::fe<List, IndexSeq>::f(
+      std::forward<Visitor>(visitor), std::forward<Args>(args)...);
 }
 
 } // namespace fatal {
