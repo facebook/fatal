@@ -10,26 +10,27 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_foreach_h
 #define FATAL_INCLUDE_fatal_type_impl_foreach_h
 
+#include <fatal/type/list.h>
 #include <fatal/type/tag.h>
 
 namespace fatal {
 namespace impl_fe {
 
-template <typename...>
+template <typename, typename>
 struct fe {
-  template <std::size_t = 0, typename... Args>
-  static void f(Args &&...) {}
+  template <typename Visitor, typename... Args>
+  static void go(Visitor&&, Args&&...) {}
 };
 
-template <typename T, typename... Args>
-struct fe<T, Args...> {
-  template <std::size_t Index = 0, typename Visitor, typename... VArgs>
-  static void f(Visitor &&visitor, VArgs &&...args) {
-    visitor(indexed<T, Index>(), args...);
-    fe<Args...>::template f<Index + 1>(
-      std::forward<Visitor>(visitor),
-      std::forward<VArgs>(args)...
-    );
+template <typename... Els, std::size_t... Indexes>
+struct fe<list<Els...>, index_sequence<Indexes...>> {
+  static_assert(sizeof...(Els) == sizeof...(Indexes), "size mismatch");
+  static constexpr std::size_t size = sizeof...(Els);
+
+  template <typename Visitor, typename... Args>
+  static void f(Visitor&& visitor, Args&&... args) {
+    bool _[size] = {(visitor(indexed<Els, Indexes>{}, args...), false)...};
+    (void) _;
   }
 };
 
