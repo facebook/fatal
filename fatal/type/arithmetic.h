@@ -14,20 +14,30 @@
 
 namespace fatal {
 
-template <typename... Args>
-using add = typename impl_arithmetic::add<Args...>::type;
+struct add {
+  template <typename... Args>
+  using apply = typename impl_arithmetic::add<Args...>::type;
+};
 
-template <typename... Args>
-using subtract = typename impl_arithmetic::sub<Args...>::type;
+struct subtract {
+  template <typename... Args>
+  using apply = typename impl_arithmetic::sub<Args...>::type;
+};
 
-template <typename... Args>
-using multiply = typename impl_arithmetic::mul<Args...>::type;
+struct multiply {
+  template <typename... Args>
+  using apply = typename impl_arithmetic::mul<Args...>::type;
+};
 
-template <typename... Args>
-using divide = typename impl_arithmetic::div<Args...>::type;
+struct divide {
+  template <typename... Args>
+  using apply = typename impl_arithmetic::div<Args...>::type;
+};
 
-template <typename... Args>
-using modulo = typename impl_arithmetic::mod<Args...>::type;
+struct modulo {
+  template <typename... Args>
+  using apply = typename impl_arithmetic::mod<Args...>::type;
+};
 
 } // namespace fatal {
 
