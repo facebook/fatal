@@ -42,14 +42,22 @@ struct custom_enum_traits {
 
   using name = custom_enum_name;
 
-  struct str {
-    using field = names::field;
-    using field10 = names::field10;
-    using field2 = names::field2;
+  struct member {
+    struct field {
+      using name = names::field;
+      using value = std::integral_constant<type, type::field>;
+    };
+    struct field10 {
+      using name = names::field10;
+      using value = std::integral_constant<type, type::field10>;
+    };
+    struct field2 {
+      using name = names::field2;
+      using value = std::integral_constant<type, type::field2>;
+    };
   };
 
-  using names = list<str::field, str::field10, str::field2>;
-  using values = sequence<type, type::field, type::field10, type::field2>;
+  using fields = list<member::field, member::field10, member::field2>;
 };
 
 struct custom_metadata {};
@@ -67,10 +75,9 @@ struct empty_enum_traits {
 
   using name = empty_enum_name;
 
-  struct str {};
+  struct member {};
 
-  using names = list<>;
-  using values = sequence<type>;
+  using fields = list<>;
 };
 
 FATAL_REGISTER_ENUM_TRAITS(empty_enum_traits);
@@ -107,30 +114,30 @@ FATAL_TEST(enums, declare_enum) {
 FATAL_TEST(enums, names) {
   FATAL_EXPECT_SAME<
     fatal::list<names::state0, names::state1, names::state2, names::state3>,
-    enum_traits<test_enum>::names
+    transform<enum_traits<test_enum>::fields, get_type::name::apply>
   >();
 
   FATAL_EXPECT_SAME<
     fatal::list<names::field, names::field10, names::field2>,
-    enum_traits<custom_enum>::names
+    transform<enum_traits<custom_enum>::fields, get_type::name::apply>
   >();
 }
 
 FATAL_TEST(enums, values) {
   FATAL_EXPECT_SAME<
-    fatal::sequence<
+    fatal::value_list<
       test_enum,
       test_enum::state0, test_enum::state1, test_enum::state2, test_enum::state3
     >,
-    enum_traits<test_enum>::values
+    transform<enum_traits<test_enum>::fields, get_type::value::apply>
   >();
 
   FATAL_EXPECT_SAME<
-    fatal::sequence<
+    fatal::value_list<
       custom_enum,
       custom_enum::field, custom_enum::field10, custom_enum::field2
     >,
-    enum_traits<custom_enum>::values
+    transform<enum_traits<custom_enum>::fields, get_type::value::apply>
   >();
 }
 

@@ -16,16 +16,16 @@
 #include <fatal/type/array.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/get.h>
+#include <fatal/type/get_type.h>
 #include <fatal/type/list.h>
 #include <fatal/type/push.h>
 #include <fatal/type/registry.h>
 #include <fatal/type/search.h>
 #include <fatal/type/sequence.h>
 #include <fatal/type/slice.h>
-#include <fatal/type/sort.h>
 #include <fatal/type/traits.h>
+#include <fatal/type/transform.h>
 #include <fatal/type/trie.h>
-#include <fatal/type/zip.h>
 
 #include <iterator>
 #include <stdexcept>
@@ -128,7 +128,7 @@ public:
    *
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
    *
-   *  // yields `constant_sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>`
+   *  // yields `sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>`
    *  using result = enum_traits<my_enum>::name;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
@@ -182,7 +182,8 @@ public:
   using int_type = typename std::underlying_type<type>::type;
 
   /**
-   * Provides type strings representing the name of each enumeration field.
+   * Provides compile-time representation of name and value for each
+   * enumeration field.
    *
    * The members are named exactly like its respective enumeration field.
    *
@@ -190,54 +191,36 @@ public:
    *
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
    *
-   *  // yields `constant_sequence<char, 'f', 'i', 'e', 'l', 'd', '0'>;
-   *  using result = enum_traits<my_enum>::str::field0;
+   *  // yields `sequence<char, 'f', 'i', 'e', 'l', 'd', '0'>`;
+   *  using result = enum_traits<my_enum>::member::field0::name;
+   *
+   *  // yields `std::integral_constant<my_enum, my_enum::field1>`;
+   *  using result = enum_traits<my_enum>::member::field1::value;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using str = typename traits::str;
+  using member = typename traits::member;
 
   /**
-   * A type list of type strings for the names of each known
-   * enumeration fields.
+   * A type list of compile-time representation of metadata for the enumeration
+   * fields.
    *
-   * The order of this list is synchronized with the order of `values`.
+   * This is basically a type list of all entries in `member`.
    *
    * Example:
    *
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
    *
    *  // yields `list<
-   *  //   enum_traits<my_enum>::str::field0,
-   *  //   enum_traits<my_enum>::str::field1,
-   *  //   enum_traits<my_enum>::str::field2
+   *  //   enum_traits<my_enum>::member::field0,
+   *  //   enum_traits<my_enum>::member::field1,
+   *  //   enum_traits<my_enum>::member::field2
    *  // >`
-   *  using result = enum_traits<my_enum>::names;
+   *  using result = enum_traits<my_enum>::fields;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using names = typename traits::names;
-
-  /**
-   * A sequence for each of the known enumeration values.
-   *
-   * The order of this sequence is synchronized with the order of `names`.
-   *
-   * Example:
-   *
-   *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
-   *
-   *  // yields `sequence<
-   *  //   my_enum,
-   *  //   my_enum::field0,
-   *  //   my_enum::field1,
-   *  //   my_enum::field2
-   *  // >`
-   *  using result = enum_traits<my_enum>::values;
-   *
-   * @author: Marcelo Juchem <marcelo@fb.com>
-   */
-  using values = typename traits::values;
+  using fields = typename traits::fields;
 
   /**
    * Gets the name associated with the field with the given `Value`.
@@ -247,13 +230,17 @@ public:
    *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
    *  using traits = enum_traits<my_enum>;
    *
-   *  // yields `std::integral_constant<my_enum, my_enum::field0>`
-   *  using result = traits::value_of<traits::str::field0>;
+   *  // yields `fatal::sequence<char, 'f', 'i', 'e', 'l', 'd', '0'>`
+   *  using result = traits::name_of<traits::member::field0::value::value>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type Value>
-  using name_of = at<names, index<values>::template of<Value>::value>;
+  using name_of = typename get<
+    fields,
+    std::integral_constant<type, Value>,
+    get_type::value
+  >::name;
 
   /**
    * Gets the value associated with the field with the given `Name`.
@@ -264,12 +251,12 @@ public:
    *  using traits = enum_traits<my_enum>;
    *
    *  // yields `std::integral_constant<my_enum, my_enum::field0>`
-   *  using result = traits::value_of<traits::str::field0>;
+   *  using result = traits::value_of<traits::member::field0::name>;
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename Name>
-  using value_of = at<values, index_of<names, Name>::value>;
+  using value_of = typename get<fields, Name, get_type::name>::value;
 
   struct array {
     /**
@@ -294,7 +281,11 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using names = string_view_array<enum_traits::names, string_view>;
+    using names = string_view_array<
+      enum_traits::fields,
+      string_view,
+      get_type::name
+    >;
 
     /**
      * A statically allocated array containing the values of the enumeration
@@ -319,36 +310,29 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using values = as_array<enum_traits::values>;
+    using values = as_array<
+      transform<enum_traits::fields, get_type::value::apply>
+    >;
   };
 
 private:
   struct parser {
-    template <typename String>
-    void operator ()(tag<String>, Enum &out) {
-      out = get<
-        zip<list, pair, names, as_list<values>>,
-        String,
-        get_first, get_second
-      >::value;
+    template <typename Field>
+    void operator ()(tag<Field>, Enum &out) {
+      out = Field::value::value;
     }
   };
 
   struct to_string_visitor {
-    template <typename Value, typename Name, std::size_t Index>
-    void operator ()(
-      indexed_pair<Name, Value, Index>, char const *&out
-    ) const {
-      out = z_data<Name>();
+    template <typename Field, std::size_t Index>
+    void operator ()(indexed<Field, Index>, char const *&out) const {
+      out = z_data<typename Field::name>();
     }
   };
 
   struct to_string_fallback {
     char const *operator ()(type e, char const *fallback) const {
-      sorted_search<
-        sort<zip<list, pair, names, as_list<values>>, less, get_second>,
-        second
-      >(e, to_string_visitor(), fallback);
+      scalar_search<fields, get_type::value>(e, to_string_visitor(), fallback);
 
       return fallback;
     }
@@ -373,7 +357,7 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   static constexpr bool is_valid(type e) {
-    return sorted_search<sort<values>>(e);
+    return scalar_search<fields, get_type::value>(e);
   }
 
   /**
@@ -425,7 +409,7 @@ public:
   static type parse(TBegin &&begin, TEnd &&end) {
     type out;
 
-    if (!trie_find<names>(
+    if (!trie_find<fields, less, get_type::name>(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     )) {
       throw std::invalid_argument("unrecognized enum value");
@@ -479,7 +463,7 @@ public:
    */
   template <typename TBegin, typename TEnd>
   static constexpr bool try_parse(type &out, TBegin &&begin, TEnd &&end) {
-    return trie_find<names>(
+    return trie_find<fields, less, get_type::name>(
       std::forward<TBegin>(begin), std::forward<TEnd>(end), parser(), out
     );
   }
@@ -673,16 +657,24 @@ static constexpr char const *enum_to_string(
  *    using type = my_enum;
  *
  *    // see FATAL_S
- *    using name = constant_sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>;
+ *    using name = sequence<char, 'm', 'y', '_', 'e', 'n', 'u', 'm'>;
  *
- *    struct str {
- *      FATAL_S(field0, "field0");
- *      FATAL_S(field1, "field1");
- *      FATAL_S(field2, "field2");
+ *    struct member {
+ *      struct field0 {
+ *        FATAL_S(name, "field0");
+ *        using value = std::integral_constant<type, type::field0>;
+ *      };
+ *      struct field1 {
+ *        FATAL_S(name, "field1");
+ *        using value = std::integral_constant<type, type::field1>;
+ *      };
+ *      struct field2 {
+ *        FATAL_S(name, "field2");
+ *        using value = std::integral_constant<type, type::field2>;
+ *      };
  *    };
  *
- *    using names = list<str::field0, str::field1, str::field2>;
- *    using values = sequence<type, type::field0, type::field1, type::field2>;
+ *    using fields = list<member::field0, member::field1, member::field2>;
  *
  *    // this function is optional but its presence greatly
  *    // improves build times and runtime performance
@@ -731,14 +723,15 @@ static constexpr char const *enum_to_string(
 #define FATAL_IMPL_EXPORT_RICH_ENUM_CALL(...) \
   FATAL_EXPORT_RICH_ENUM(__VA_ARGS__)
 
-#define FATAL_IMPL_EXPORT_RICH_ENUM_STR(...) \
-  FATAL_S(__VA_ARGS__, FATAL_TO_STR(__VA_ARGS__));
+#define FATAL_IMPL_EXPORT_RICH_ENUM_MEMBER(...) \
+  FATAL_CONDITIONAL(IsFirst)()(,) struct __VA_ARGS__ { \
+    FATAL_S(name, FATAL_TO_STR(__VA_ARGS__)); \
+    using value = std::integral_constant<type, type::__VA_ARGS__>; \
+  };
 
-#define FATAL_IMPL_EXPORT_RICH_ENUM_NAMES(Arg, IsFirst, Index, ...) \
-  FATAL_CONDITIONAL(IsFirst)()(,) str::__VA_ARGS__
 
-#define FATAL_IMPL_EXPORT_RICH_ENUM_VALUES(Arg, IsFirst, Index, ...) \
-  FATAL_CONDITIONAL(IsFirst)()(,) type::__VA_ARGS__
+#define FATAL_IMPL_EXPORT_RICH_ENUM_FIELDS(Arg, IsFirst, Index, ...) \
+  FATAL_CONDITIONAL(IsFirst)()(,) member::__VA_ARGS__
 
 #define FATAL_IMPL_EXPORT_RICH_ENUM_TO_STR(...) \
   case type::__VA_ARGS__: return FATAL_TO_STR(__VA_ARGS__);
@@ -751,17 +744,12 @@ static constexpr char const *enum_to_string(
     \
     FATAL_S(name, FATAL_TO_STR(Enum)); \
     \
-    struct str { \
-      FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_STR, __VA_ARGS__) \
+    struct member { \
+      FATAL_SIMPLE_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_MEMBER, __VA_ARGS__) \
     }; \
     \
-    using names = ::fatal::list< \
-      FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_NAMES, ~, __VA_ARGS__) \
-    >; \
-    \
-    using values = ::fatal::sequence< \
-      type, \
-      FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_VALUES, ~, __VA_ARGS__) \
+    using fields = ::fatal::list< \
+      FATAL_MAP(FATAL_IMPL_EXPORT_RICH_ENUM_FIELDS, ~, __VA_ARGS__) \
     >; \
     \
     static char const *to_string(type e, char const *fallback) { \
