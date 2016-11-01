@@ -28,16 +28,16 @@ struct a {
 template <std::size_t Excess, typename T, T... Values>
 constexpr T const a<Excess, T, Values...>::data[sizeof...(Values)];
 
-template <typename...> struct ca;
+template <typename...> struct C;
 
 // constexpr statically allocated array from a list or sequence //
 template <template <typename...> class Variadics, typename... Args, typename T>
-struct ca<Variadics<Args...>, T> {
+struct C<Variadics<Args...>, T> {
   using type = a<0, T, Args::value...>;
 };
 
 template <template <typename...> class Variadics, typename T, typename... Args>
-struct ca<Variadics<T, Args...>> {
+struct C<Variadics<T, Args...>> {
   using type = a<
     0,
     typename std::decay<decltype(T::value)>::type,
@@ -52,12 +52,12 @@ template <
   V... Values,
   typename T
 >
-struct ca<Variadics<V, Values...>, T> {
+struct C<Variadics<V, Values...>, T> {
   using type = a<0, T, Values...>;
 };
 
 template <template <typename V, V...> class Variadics, typename T, T... Values>
-struct ca<Variadics<T, Values...>> {
+struct C<Variadics<T, Values...>> {
   using type = a<0, T, Values...>;
 };
 
@@ -98,7 +98,7 @@ struct z<Variadics<Value, Args...>, T>:
 
 // statically allocated array from an element factory - entry point
 
-template <template <typename...> class, typename...> struct sa;
+template <template <typename...> class, typename...> struct A;
 
 template <
   template <typename...> class Array,
@@ -107,7 +107,7 @@ template <
   typename Factory,
   typename T
 >
-struct sa<Array, Variadics<Args...>, Factory, T> {
+struct A<Array, Variadics<Args...>, Factory, T> {
   using type = Array<T, Factory, Args...>;
 };
 
@@ -118,7 +118,7 @@ template <
   typename... Args,
   typename Factory
 >
-struct sa<Array, Variadics<T, Args...>, Factory> {
+struct A<Array, Variadics<T, Args...>, Factory> {
   using type = Array<
     typename std::decay<decltype(Factory::template get<T>())>::type,
     Factory,
@@ -128,47 +128,63 @@ struct sa<Array, Variadics<T, Args...>, Factory> {
 
 // z_array
 
-template <typename T, typename... Args>
-struct za {
+template <typename T, typename Filter, typename... Args>
+struct Z {
   using value_type = T;
   using size = std::integral_constant<std::size_t, sizeof...(Args)>;
-  static constexpr T const data[sizeof...(Args)] = { z<Args>::data... };
+  static constexpr T const data[sizeof...(Args)] = {
+    z<typename Filter::template apply<Args>>::data...
+  };
 };
 
-template <typename T, typename... Args>
-constexpr T const za<T, Args...>::data[sizeof...(Args)];
+template <typename T, typename Filter, typename... Args>
+constexpr T const Z<T, Filter, Args...>::data[sizeof...(Args)];
 
 template <typename...> struct ZA;
 
-template <template <typename...> class Variadics, typename... Args, typename T>
-struct ZA<Variadics<Args...>, T> {
-  using type = za<T, Args...>;
+template <template <typename...> class Variadics, typename... Args, typename Filter, typename T>
+struct ZA<Variadics<Args...>, Filter, T> {
+  using type = Z<T, Filter, Args...>;
 };
 
-template <template <typename...> class Variadics, typename T, typename... Args>
-struct ZA<Variadics<T, Args...>> {
-  using type = za<typename std::decay<decltype(z<T>::data)>::type, T, Args...>;
+template <template <typename...> class Variadics, typename T, typename... Args, typename Filter>
+struct ZA<Variadics<T, Args...>, Filter> {
+  using type = Z<
+    typename std::decay<
+      decltype(z<typename Filter::template apply<T>>::data)
+    >::type,
+    Filter,
+    T, Args...
+  >;
 };
 
 // string_view_array
 
-template <typename T, typename... Args>
+template <typename T, typename Filter, typename... Args>
 struct s {
   using value_type = T;
   using size = std::integral_constant<std::size_t, sizeof...(Args)>;
   static constexpr T const data[sizeof...(Args)] = {
-    T(z<Args, typename T::value_type>::data, fatal::size<Args>::value)...
+    T(
+      z<typename Filter::template apply<Args>, typename T::value_type>::data,
+      fatal::size<typename Filter::template apply<Args>>::value
+    )...
   };
 };
 
-template <typename T, typename... Args>
-constexpr T const s<T, Args...>::data[sizeof...(Args)];
+template <typename T, typename Filter, typename... Args>
+constexpr T const s<T, Filter, Args...>::data[sizeof...(Args)];
 
 template <typename...> struct S;
 
-template <template <typename...> class Variadics, typename... Args, typename T>
-struct S<Variadics<Args...>, T> {
-  using type = s<T, Args...>;
+template <
+  template <typename...> class Variadics,
+  typename... Args,
+  typename Filter,
+  typename T
+>
+struct S<Variadics<Args...>, Filter, T> {
+  using type = s<T, Filter, Args...>;
 };
 
 // constexpr statically allocated array from element factory//
