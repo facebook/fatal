@@ -11,6 +11,10 @@
 
 #include <fatal/test/driver.h>
 
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include <cstring>
 
 namespace fatal {
@@ -63,6 +67,30 @@ struct custom_enum_traits {
 struct custom_metadata {};
 
 FATAL_REGISTER_ENUM_TRAITS(custom_enum_traits, custom_metadata);
+
+FATAL_RICH_ENUM(
+  big_enum,
+  enum_field_0, enum_field_1, enum_field_2, enum_field_3, enum_field_4,
+  enum_field_5, enum_field_6, enum_field_7, enum_field_8, enum_field_9,
+  enum_field_10, enum_field_11, enum_field_12, enum_field_13, enum_field_14,
+  enum_field_15, enum_field_16, enum_field_17, enum_field_18, enum_field_19,
+  enum_field_20, enum_field_21, enum_field_22, enum_field_23, enum_field_24,
+  enum_field_25, enum_field_26, enum_field_27, enum_field_28, enum_field_29,
+  enum_field_30, enum_field_31, enum_field_32, enum_field_33, enum_field_34,
+  enum_field_35, enum_field_36, enum_field_37, enum_field_38, enum_field_39,
+  enum_field_40, enum_field_41, enum_field_42, enum_field_43, enum_field_44,
+  enum_field_45, enum_field_46, enum_field_47, enum_field_48, enum_field_49,
+  enum_field_50, enum_field_51, enum_field_52, enum_field_53, enum_field_54,
+  enum_field_55, enum_field_56, enum_field_57, enum_field_58, enum_field_59,
+  enum_field_60, enum_field_61, enum_field_62, enum_field_63, enum_field_64,
+  enum_field_65, enum_field_66, enum_field_67, enum_field_68, enum_field_69,
+  enum_field_70, enum_field_71, enum_field_72, enum_field_73, enum_field_74,
+  enum_field_75, enum_field_76, enum_field_77, enum_field_78, enum_field_79,
+  enum_field_80, enum_field_81, enum_field_82, enum_field_83, enum_field_84,
+  enum_field_85, enum_field_86, enum_field_87, enum_field_88, enum_field_89,
+  enum_field_90, enum_field_91, enum_field_92, enum_field_93, enum_field_94,
+  enum_field_95, enum_field_96, enum_field_97, enum_field_98, enum_field_99
+);
 
 /* TODO: FIX SUPPORT FOR EMPTY ENUMS
 FATAL_RICH_ENUM_CLASS(empty_enum);
@@ -268,6 +296,29 @@ FATAL_TEST(enums, array::names) {
     static_assert(actual::data[1][6] == '0', "ensure constexpr-ness");
     static_assert(actual::data[2][5] == '2', "ensure constexpr-ness");
   }
+
+  {
+    using actual = enum_traits<big_enum>::array::names;
+    std::vector<std::string> expected(100);
+    for (std::size_t i = 0; i < expected.size(); ++i) {
+      std::ostringstream ss;
+      ss << "enum_field_" << i;
+      expected[i] = ss.str();
+    }
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
+    FATAL_EXPECT_TRUE(
+      std::equal(expected.begin(), expected.end(), actual::data)
+    );
+
+    std::size_t i = 0;
+    for (auto const e: actual::data) {
+      FATAL_ASSERT_LT(i, expected.size());
+      FATAL_EXPECT_EQ(expected[i].size(), e.size());
+      FATAL_EXPECT_EQ(expected[i], e);
+      ++i;
+    }
+    FATAL_EXPECT_EQ(i, expected.size());
+  }
 }
 
 FATAL_TEST(enums, array::values) {
@@ -295,6 +346,26 @@ FATAL_TEST(enums, array::values) {
     std::array<custom_enum, 3> expected{{
       custom_enum::field, custom_enum::field10, custom_enum::field2
     }};
+    FATAL_ASSERT_EQ(expected.size(), actual::size::value);
+    FATAL_EXPECT_TRUE(
+      std::equal(expected.begin(), expected.end(), actual::data)
+    );
+
+    std::size_t i = 0;
+    for (auto const e: actual::data) {
+      FATAL_ASSERT_LT(i, expected.size());
+      FATAL_EXPECT_EQ(expected[i], e);
+      ++i;
+    }
+    FATAL_EXPECT_EQ(i, expected.size());
+  }
+
+  {
+    using actual = enum_traits<big_enum>::array::values;
+    std::vector<big_enum> expected(100);
+    for (std::size_t i = 0; i < expected.size(); ++i) {
+      expected[i] = static_cast<big_enum>(i);
+    }
     FATAL_ASSERT_EQ(expected.size(), actual::size::value);
     FATAL_EXPECT_TRUE(
       std::equal(expected.begin(), expected.end(), actual::data)

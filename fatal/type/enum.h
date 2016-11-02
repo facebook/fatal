@@ -281,9 +281,10 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using names = string_view_array<
-      enum_traits::fields,
+    using names = string_view_array_filtered<
+      traits,
       string_view,
+      get_type::fields,
       get_type::name
     >;
 
@@ -310,8 +311,8 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using values = as_array<
-      transform<enum_traits::fields, get_type::value::apply>
+    using values = as_array_filtered<
+      traits, get_type::fields, get_type::value, type
     >;
   };
 
@@ -352,7 +353,9 @@ public:
    *  bool result1 = enum_traits<my_enum>::is_valid(my_enum::field0);
    *
    *  // returns `false` and leaves `out` untouched
-   *  bool result2 = enum_traits<my_enum>::is_valid(static_cast<my_enum>(99999));
+   *  bool result2 = enum_traits<my_enum>::is_valid(
+   *    static_cast<my_enum>(99999)
+   *  );
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
