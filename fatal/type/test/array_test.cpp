@@ -20,16 +20,27 @@
 #include <fatal/test/driver.h>
 
 namespace fatal {
-namespace str {
+namespace seq {
 
-FATAL_S(foo, "foo");
-FATAL_S(bar, "bar");
-FATAL_S(baz, "baz");
-FATAL_S(gaz, "gaz");
+using foo = char_sequence<'f', 'o', 'o'>;
+using bar = char_sequence<'b', 'a', 'r', '1'>;
+using baz = char_sequence<'b', 'a', 'z', '$', '_', '2'>;
+using gaz = char_sequence<'g', 'a', 'z', '-', '3'>;
 
-using lst = list<foo, bar, baz, gaz>;
+using all = list<foo, bar, baz, gaz>;
 
-} // namespace str {
+} // namespace seq {
+
+namespace lst {
+
+using foo = char_list<'f', 'o', 'o'>;
+using bar = char_list<'b', 'a', 'r', '1'>;
+using baz = char_list<'b', 'a', 'z', '$', '_', '2'>;
+using gaz = char_list<'g', 'a', 'z', '-', '3'>;
+
+using all = list<foo, bar, baz, gaz>;
+
+} // namespace lst {
 
 struct constexpr_factory {
   template <typename T>
@@ -37,10 +48,10 @@ struct constexpr_factory {
 };
 
 FATAL_TEST(array, as_array_from) {
-  using array = as_array_from<str::lst, constexpr_factory>;
-  FATAL_EXPECT_EQ(size<str::lst>::value, array::size::value);
+  using array = as_array_from<seq::all, constexpr_factory>;
+  FATAL_EXPECT_EQ(size<seq::all>::value, array::size::value);
   static_assert(
-    array::data[0] == size<first<str::lst>>::value,
+    array::data[0] == size<first<seq::all>>::value,
     "ensure it is not constexpr"
   );
 }
@@ -58,31 +69,87 @@ struct non_constexpr_factory {
 };
 
 FATAL_TEST(array, as_runtime_array_from) {
-  using array = as_runtime_array_from<str::lst, non_constexpr_factory>;
-  FATAL_EXPECT_EQ(size<str::lst>::value, array::size::value);
+  using array = as_runtime_array_from<seq::all, non_constexpr_factory>;
+  FATAL_EXPECT_EQ(size<seq::all>::value, array::size::value);
   FATAL_EXPECT_EQ(
-    size<first<str::lst>>::value + non_constexpr(),
+    size<first<seq::all>>::value + non_constexpr(),
     array::data[0]
   );
 }
 
-FATAL_TEST(array, z_array) {
-  using array = z_array<str::lst>;
-  FATAL_EXPECT_EQ(size<str::lst>::value, array::size::value);
+FATAL_TEST(array, z_array from sequence / implicit type) {
+  using array = z_array<seq::all>;
+  FATAL_EXPECT_EQ(size<seq::all>::value, array::size::value);
   static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
 }
 
-FATAL_TEST(array, string_view_array) {
-  using array = string_view_array<str::lst, string_view>;
-  FATAL_EXPECT_EQ(size<str::lst>::value, array::size::value);
+FATAL_TEST(array, z_array from sequence / explicit type) {
+  using array = z_array<seq::all, const char *>;
+  FATAL_EXPECT_EQ(size<seq::all>::value, array::size::value);
+  static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
+}
+
+FATAL_TEST(array, z_array from list / implicit type) {
+  using array = z_array<lst::all>;
+  FATAL_EXPECT_EQ(size<lst::all>::value, array::size::value);
+  static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
+}
+
+FATAL_TEST(array, z_array from list / explicit type) {
+  using array = z_array<lst::all, const char *>;
+  FATAL_EXPECT_EQ(size<lst::all>::value, array::size::value);
+  static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
+}
+
+FATAL_TEST(array, string_view_array from sequence) {
+  using array = string_view_array<seq::all, string_view>;
+  FATAL_EXPECT_EQ(size<seq::all>::value, array::size::value);
   static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
   static_assert(
-    array::data[0].size() == size<first<str::lst>>::value,
+    array::data[0].size() == size<first<seq::all>>::value,
     "ensure it is constexpr"
   );
   FATAL_EXPECT_EQ(
-    string_view(z_data<first<str::lst>>(), size<first<str::lst>>::value),
+    string_view(z_data<at<seq::all, 0>>(), size<at<seq::all, 0>>::value),
     array::data[0]
+  );
+  FATAL_EXPECT_EQ(
+    string_view(z_data<at<seq::all, 1>>(), size<at<seq::all, 1>>::value),
+    array::data[1]
+  );
+  FATAL_EXPECT_EQ(
+    string_view(z_data<at<seq::all, 2>>(), size<at<seq::all, 2>>::value),
+    array::data[2]
+  );
+  FATAL_EXPECT_EQ(
+    string_view(z_data<at<seq::all, 3>>(), size<at<seq::all, 3>>::value),
+    array::data[3]
+  );
+}
+
+FATAL_TEST(array, string_view_array from list) {
+  using array = string_view_array<lst::all, string_view>;
+  FATAL_EXPECT_EQ(size<lst::all>::value, array::size::value);
+  static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
+  static_assert(
+    array::data[0].size() == size<first<lst::all>>::value,
+    "ensure it is constexpr"
+  );
+  FATAL_EXPECT_EQ(
+    string_view(z_data<at<lst::all, 0>>(), size<at<lst::all, 0>>::value),
+    array::data[0]
+  );
+  FATAL_EXPECT_EQ(
+    string_view(z_data<at<lst::all, 1>>(), size<at<lst::all, 1>>::value),
+    array::data[1]
+  );
+  FATAL_EXPECT_EQ(
+    string_view(z_data<at<lst::all, 2>>(), size<at<lst::all, 2>>::value),
+    array::data[2]
+  );
+  FATAL_EXPECT_EQ(
+    string_view(z_data<at<lst::all, 3>>(), size<at<lst::all, 3>>::value),
+    array::data[3]
   );
 }
 

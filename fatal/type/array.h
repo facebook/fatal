@@ -13,34 +13,62 @@
 #include <fatal/type/impl/array.h>
 
 #include <fatal/type/identity.h>
+#include <fatal/type/sequence.h>
+#include <fatal/type/size.h>
 
 namespace fatal {
 
+template <
+  typename Array,
+  typename OuterFilter,
+  typename InnerFilter = get_identity,
+  typename... T
+>
+using as_array_filtered = i_a::C<
+  make_index_sequence<size<typename OuterFilter::template apply<Array>>::value>,
+  OuterFilter, InnerFilter, Array, T...
+>;
+
 template <typename Array, typename... T>
-using as_array = typename impl_a::C<Array, T...>::type;
+using as_array = as_array_filtered<Array, get_identity, get_identity, T...>;
 
 template <typename Array, typename... T>
 static constexpr typename std::decay<
-  decltype(impl_a::z<Array, T...>::data)
+  decltype(i_a::z<make_index_sequence<size<Array>::value>, Array, T...>::data)
 >::type z_data() {
-  return impl_a::z<Array, T...>::data;
+  return i_a::z<make_index_sequence<size<Array>::value>, Array, T...>::data;
 }
 
 template <typename Array, typename Factory, typename... T>
-using as_array_from = typename impl_a::A<
-  impl_a::c, Array, Factory, T...
->::type;
+using as_array_from = i_a::A<i_a::c, Array, Factory, T...>;
 
 template <typename Array, typename Factory, typename... T>
-using as_runtime_array_from = typename impl_a::A<
-  impl_a::n, Array, Factory, T...
->::type;
+using as_runtime_array_from = typename i_a::A<i_a::n, Array, Factory, T...>;
 
-template <typename Array, typename Filter = get_identity, typename... T>
-using z_array = typename impl_a::ZA<Array, Filter, T...>::type;
+template <typename Array, typename Filter, typename... T>
+using z_array_filtered = i_a::ZA<Array, Filter, T...>;
 
-template <typename Array, typename StringView, typename Filter = get_identity>
-using string_view_array = typename impl_a::S<Array, Filter, StringView>::type;
+template <typename Array, typename... T>
+using z_array = z_array_filtered<Array, get_identity, T...>;
+
+template <
+  typename Array,
+  typename StringView,
+  typename OuterFilter,
+  typename InnerFilter = get_identity
+>
+using string_view_array_filtered = i_a::S<
+  make_index_sequence<size<typename OuterFilter::template apply<Array>>::value>,
+  Array, OuterFilter, InnerFilter, StringView
+>;
+
+template <typename Array, typename StringView>
+using string_view_array = string_view_array_filtered<
+  Array,
+  StringView,
+  get_identity,
+  get_identity
+>;
 
 } // namespace fatal {
 
