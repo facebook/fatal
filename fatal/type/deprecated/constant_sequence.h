@@ -11,7 +11,6 @@
 #define FATAL_INCLUDE_fatal_type_deprecated_constant_sequence_h
 
 #include <fatal/preprocessor.h>
-#include <fatal/type/array.h>
 #include <fatal/type/deprecated/type_list.h>
 
 #include <memory>
@@ -34,6 +33,7 @@ template <typename, typename TChar, TChar, TChar...> struct parse_sequence;
 template <typename, typename> struct from_sequence;
 template <typename T, template <typename, T...> class, typename U, U>
 struct to_sequence;
+template <std::size_t, typename T, T...> struct array;
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
@@ -727,7 +727,9 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  using array = as_array<constant_sequence<type, Values..., Suffix...>>;
+  using array = detail::constant_sequence_impl::array<
+    0, type, Values..., Suffix...
+  >;
 
   /**
    * Gets a pointer to a statically allocated version of this sequence.
@@ -767,8 +769,8 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <type... Suffix>
-  using z_array = as_array<
-    constant_sequence<type, Values..., Suffix..., static_cast<type>(0)>
+  using z_array = detail::constant_sequence_impl::array<
+    1, type, Values..., Suffix..., static_cast<type>(0)
   >;
 
   /**
@@ -1405,6 +1407,15 @@ constexpr std::size_t size(T const (&)[Size]) {
   using Id = typename Class::type
 
 #undef FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
+
+template <std::size_t Excess, typename T, T... Values>
+struct array {
+  using size = std::integral_constant<std::size_t, sizeof...(Values) - Excess>;
+  static constexpr T const data[sizeof...(Values)] = { Values... };
+};
+
+template <std::size_t Excess, typename T, T... Values>
+constexpr T const array<Excess, T, Values...>::data[sizeof...(Values)];
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
