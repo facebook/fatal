@@ -24,32 +24,32 @@ template <
   typename InnerFilter = get_identity,
   typename... T
 >
-using as_array_filtered = i_a::C<
+using as_array_filtered = i_a::CF<
   make_index_sequence<size<typename OuterFilter::template apply<Array>>::value>,
   OuterFilter, InnerFilter, Array, T...
 >;
 
 template <typename Array, typename... T>
-using as_array = as_array_filtered<Array, get_identity, get_identity, T...>;
+using as_array = i_a::C<Array, T...>;
 
 template <typename Array, typename... T>
 static constexpr typename std::decay<
-  decltype(i_a::z<make_index_sequence<size<Array>::value>, Array, T...>::data)
+  decltype(i_a::z<Array, T...>::data)
 >::type z_data() {
-  return i_a::z<make_index_sequence<size<Array>::value>, Array, T...>::data;
+  return i_a::z<Array, T...>::data;
 }
 
 template <typename Array, typename Factory, typename... T>
 using as_array_from = i_a::A<i_a::c, Array, Factory, T...>;
 
 template <typename Array, typename Factory, typename... T>
-using as_runtime_array_from = typename i_a::A<i_a::n, Array, Factory, T...>;
+using as_runtime_array_from = i_a::A<i_a::n, Array, Factory, T...>;
 
 template <typename Array, typename Filter, typename... T>
-using z_array_filtered = i_a::ZA<Array, Filter, T...>;
+using z_array_filtered = i_a::ZAF<Array, Filter, T...>;
 
 template <typename Array, typename... T>
-using z_array = z_array_filtered<Array, get_identity, T...>;
+using z_array = i_a::ZA<Array, T...>;
 
 template <
   typename Array,
@@ -57,18 +57,13 @@ template <
   typename OuterFilter,
   typename InnerFilter = get_identity
 >
-using string_view_array_filtered = i_a::S<
+using string_view_array_filtered = i_a::SF<
   make_index_sequence<size<typename OuterFilter::template apply<Array>>::value>,
   Array, OuterFilter, InnerFilter, StringView
 >;
 
 template <typename Array, typename StringView>
-using string_view_array = string_view_array_filtered<
-  Array,
-  StringView,
-  get_identity,
-  get_identity
->;
+using string_view_array = i_a::S<Array, StringView>;
 
 } // namespace fatal {
 

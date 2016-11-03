@@ -19,6 +19,17 @@ namespace fatal {
 namespace i_a {
 
 // constexpr statically allocated array //
+
+template <std::size_t Excess, typename T, T... Values>
+struct a {
+  static_assert(Excess <= sizeof...(Values), "internal error");
+  using size = std::integral_constant<std::size_t, sizeof...(Values) - Excess>;
+  static constexpr T const data[sizeof...(Values)] = {Values...};
+};
+
+template <std::size_t Excess, typename T, T... Values>
+constexpr T const a<Excess, T, Values...>::data[sizeof...(Values)];
+
 template <
   std::size_t Excess,
   typename T,
@@ -27,7 +38,7 @@ template <
   typename Array,
   std::size_t... Indexes
 >
-struct a {
+struct aF {
   static_assert(Excess <= sizeof...(Indexes), "internal error");
   using size = std::integral_constant<std::size_t, sizeof...(Indexes) - Excess>;
   static constexpr T const data[sizeof...(Indexes)] = {
@@ -47,11 +58,44 @@ template <
   typename Array,
   std::size_t... Indexes
 >
-constexpr T const a<
+constexpr T const aF<
   Excess, T, OuterFilter, InnerFilter, Array, Indexes...
 >::data[sizeof...(Indexes)];
 
 template <typename...> struct C;
+
+// constexpr statically allocated array from a list or sequence //
+template <template <typename...> class Variadics, typename... Args, typename T>
+struct C<Variadics<Args...>, T> {
+  using type = a<0, T, Args::value...>;
+};
+
+template <template <typename...> class Variadics, typename T, typename... Args>
+struct C<Variadics<T, Args...>> {
+  using type = a<
+    0,
+    typename std::decay<decltype(T::value)>::type,
+    T::value,
+    Args::value...
+  >;
+};
+
+template <
+  template <typename V, V...> class Variadics,
+  typename V,
+  V... Values,
+  typename T
+>
+struct C<Variadics<V, Values...>, T> {
+  using type = a<0, T, Values...>;
+};
+
+template <template <typename V, V...> class Variadics, typename T, T... Values>
+struct C<Variadics<T, Values...>> {
+  using type = a<0, T, Values...>;
+};
+
+template <typename...> struct CF;
 
 // constexpr statically allocated array from a list or sequence //
 template <
@@ -59,8 +103,8 @@ template <
   typename OuterFilter, typename InnerFilter,
   typename Array, typename T
 >
-struct C<index_sequence<Indexes...>, OuterFilter, InnerFilter, Array, T>:
-  a<0, T, OuterFilter, InnerFilter, Array, Indexes...>
+struct CF<index_sequence<Indexes...>, OuterFilter, InnerFilter, Array, T>:
+  aF<0, T, OuterFilter, InnerFilter, Array, Indexes...>
 {};
 
 template <
@@ -68,8 +112,8 @@ template <
   typename OuterFilter, typename InnerFilter,
   typename Array
 >
-struct C<index_sequence<Indexes...>, OuterFilter, InnerFilter, Array>:
-  a<
+struct CF<index_sequence<Indexes...>, OuterFilter, InnerFilter, Array>:
+  aF<
     0,
     typename std::decay<
       decltype(first<typename OuterFilter::template apply<Array>>::value)
@@ -82,13 +126,46 @@ struct C<index_sequence<Indexes...>, OuterFilter, InnerFilter, Array>:
 
 template <typename...> struct z;
 
+template <template <typename...> class Variadics, typename T, typename... Args>
+struct z<Variadics<T, Args...>>:
+  a<
+    1,
+    typename std::decay<decltype(T::value)>::type,
+    T::value,
+    Args::value...,
+    static_cast<typename std::decay<decltype(T::value)>::type>(0)
+  >
+{};
+
+template <template <typename...> class Variadics, typename... Args, typename T>
+struct z<Variadics<Args...>, T>:
+  a<1, T, Args::value..., static_cast<T>(0)>
+{};
+
+template <template <typename V, V...> class Variadics, typename T, T... Args>
+struct z<Variadics<T, Args...>>:
+  a<1, T, Args..., static_cast<T>(0)>
+{};
+
+template <
+  template <typename V, V...> class Variadics,
+  typename Value,
+  Value... Args,
+  typename T
+>
+struct z<Variadics<Value, Args...>, T>:
+  a<1, T, static_cast<T>(Args)..., static_cast<T>(0)>
+{};
+
+template <typename...> struct zF;
+
 template <
   std::size_t... Indexes,
   template <typename...> class Variadic,
   typename T, typename... Args
 >
-struct z<index_sequence<Indexes...>, Variadic<T, Args...>>:
-  a<
+struct zF<index_sequence<Indexes...>, Variadic<T, Args...>>:
+  aF<
     1, typename std::decay<decltype(T::value)>::type,
     get_identity, get_identity,
     list<
@@ -107,8 +184,8 @@ template <
   template <typename...> class Variadic,
   typename... Args, typename T
 >
-struct z<index_sequence<Indexes...>, Variadic<Args...>, T>:
-  a<
+struct zF<index_sequence<Indexes...>, Variadic<Args...>, T>:
+  aF<
     1, T,
     get_identity, get_identity,
     list<Args..., std::integral_constant<T, static_cast<T>(0)>>,
@@ -121,8 +198,8 @@ template <
   template <typename V, V...> class Variadic,
   typename T, T... Args
 >
-struct z<index_sequence<Indexes...>, Variadic<T, Args...>>:
-  a<
+struct zF<index_sequence<Indexes...>, Variadic<T, Args...>>:
+  aF<
     1, T, get_identity, get_identity,
     sequence<T, Args..., static_cast<T>(0)>,
     Indexes..., sizeof...(Indexes)
@@ -136,8 +213,8 @@ template <
   Value... Args,
   typename T
 >
-struct z<index_sequence<Indexes...>, Variadic<Value, Args...>, T>:
-  a<
+struct zF<index_sequence<Indexes...>, Variadic<Value, Args...>, T>:
+  aF<
     1, T, get_identity, get_identity,
     sequence<Value, Args..., static_cast<Value>(0)>,
     Indexes..., sizeof...(Indexes)
@@ -146,8 +223,30 @@ struct z<index_sequence<Indexes...>, Variadic<Value, Args...>, T>:
 
 // z_array
 
+template <typename T, typename... Args>
+struct Z {
+  using value_type = T;
+  using size = std::integral_constant<std::size_t, sizeof...(Args)>;
+  static constexpr T const data[sizeof...(Args)] = { z<Args>::data... };
+};
+
+template <typename T, typename... Args>
+constexpr T const Z<T, Args...>::data[sizeof...(Args)];
+
+template <typename...> struct ZA;
+
+template <template <typename...> class Variadics, typename... Args, typename T>
+struct ZA<Variadics<Args...>, T> {
+  using type = Z<T, Args...>;
+};
+
+template <template <typename...> class Variadics, typename T, typename... Args>
+struct ZA<Variadics<T, Args...>> {
+  using type = Z<typename std::decay<decltype(z<T>::data)>::type, T, Args...>;
+};
+
 template <typename T, typename Filter, typename... Args>
-class Z {
+class ZF {
   template <typename Arg>
   using indexes = make_index_sequence<
     size<typename Filter::template apply<Arg>>::value
@@ -157,7 +256,7 @@ public:
   using value_type = T;
   using size = std::integral_constant<std::size_t, sizeof...(Args)>;
   static constexpr T const data[sizeof...(Args)] = {
-    z<
+    zF<
       indexes<Args>,
       typename Filter::template apply<Args>
     >::data...
@@ -165,9 +264,9 @@ public:
 };
 
 template <typename T, typename Filter, typename... Args>
-constexpr T const Z<T, Filter, Args...>::data[sizeof...(Args)];
+constexpr T const ZF<T, Filter, Args...>::data[sizeof...(Args)];
 
-template <typename...> struct ZA;
+template <typename...> struct ZAF;
 
 template <
   template <typename...> class Variadic,
@@ -175,8 +274,8 @@ template <
   typename Filter,
   typename T
 >
-struct ZA<Variadic<Args...>, Filter, T>:
-  Z<T, Filter, Args...>
+struct ZAF<Variadic<Args...>, Filter, T>:
+  ZF<T, Filter, Args...>
 {};
 
 template <
@@ -185,11 +284,11 @@ template <
   typename... Args,
   typename Filter
 >
-struct ZA<Variadic<T, Args...>, Filter>:
-  Z<
+struct ZAF<Variadic<T, Args...>, Filter>:
+  ZF<
     typename std::decay<
       decltype(
-        z<
+        zF<
           make_index_sequence<size<typename Filter::template apply<T>>::value>,
           typename Filter::template apply<T>
         >::data
@@ -202,6 +301,25 @@ struct ZA<Variadic<T, Args...>, Filter>:
 
 // string_view_array
 
+template <typename T, typename... Args>
+struct s {
+  using value_type = T;
+  using size = std::integral_constant<std::size_t, sizeof...(Args)>;
+  static constexpr T const data[sizeof...(Args)] = {
+    T(z<Args, typename T::value_type>::data, fatal::size<Args>::value)...
+  };
+};
+
+template <typename T, typename... Args>
+constexpr T const s<T, Args...>::data[sizeof...(Args)];
+
+template <typename...> struct S;
+
+template <template <typename...> class Variadics, typename... Args, typename T>
+struct S<Variadics<Args...>, T> {
+  using type = s<T, Args...>;
+};
+
 template <
   typename T,
   typename OuterFilter,
@@ -209,9 +327,9 @@ template <
   typename Array,
   std::size_t... Indexes
 >
-class s {
+class sF {
   template <typename Element>
-  using str = z<
+  using str = zF<
     make_index_sequence<size<Element>::value>,
     Element,
     typename T::value_type
@@ -243,11 +361,11 @@ template <
   typename Array,
   std::size_t... Indexes
 >
-constexpr T const s<T, OuterFilter, InnerFilter, Array, Indexes...>::data[
+constexpr T const sF<T, OuterFilter, InnerFilter, Array, Indexes...>::data[
   sizeof...(Indexes)
 ];
 
-template <typename...> struct S;
+template <typename...> struct SF;
 
 template <
   std::size_t... Indexes,
@@ -256,8 +374,8 @@ template <
   typename InnerFilter,
   typename T
 >
-struct S<index_sequence<Indexes...>, Array, OuterFilter, InnerFilter, T>:
-  s<T, OuterFilter, InnerFilter, Array, Indexes...>
+struct SF<index_sequence<Indexes...>, Array, OuterFilter, InnerFilter, T>:
+  sF<T, OuterFilter, InnerFilter, Array, Indexes...>
 {};
 
 // statically allocated array from an element factory - entry point
