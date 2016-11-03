@@ -17,20 +17,21 @@ namespace fatal {
 namespace impl_fe {
 
 template <typename, typename>
-struct fe {
-  template <typename Visitor, typename... Args>
-  static void go(Visitor&&, Args&&...) {}
+struct f {
+  template <typename... Args>
+  static void g(Args &&...) {}
 };
 
-template <typename... Els, std::size_t... Indexes>
-struct fe<list<Els...>, index_sequence<Indexes...>> {
-  static_assert(sizeof...(Els) == sizeof...(Indexes), "size mismatch");
-  static constexpr std::size_t size = sizeof...(Els);
+template <typename... T, std::size_t... Indexes>
+struct f<list<T...>, index_sequence<Indexes...>> {
+  static_assert(sizeof...(T) == sizeof...(Indexes), "size mismatch");
 
   template <typename Visitor, typename... Args>
-  static void f(Visitor&& visitor, Args&&... args) {
-    bool _[size] = {(visitor(indexed<Els, Indexes>{}, args...), false)...};
-    (void) _;
+  static void g(Visitor &&visitor, Args &&...args) {
+    bool _[sizeof...(T)] = {
+      (visitor(indexed<T, Indexes>{}, args...), false)...
+    };
+    (void)_;
   }
 };
 

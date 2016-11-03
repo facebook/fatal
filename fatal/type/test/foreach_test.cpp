@@ -11,9 +11,10 @@ namespace fatal {
 struct example_visitor {
   template <typename Type, std::size_t Index>
   void operator()(
-      indexed<Type, Index>,
-      const std::string suffix,
-      std::vector<std::string>& out) {
+    indexed<Type, Index>,
+    const std::string suffix,
+    std::vector<std::string>& out
+  ) {
     out.push_back(to_string(Type::get(), "_", Index, "_", suffix));
   }
 };
@@ -37,8 +38,9 @@ FATAL_TEST(foreach_test, basic_example) {
   auto actual = std::vector<std::string>{};
   foreach<types>(example_visitor(), "s", actual);
 
-  const auto expected =
-    std::vector<std::string>{"foo_0_s", "bar_1_s", "baz_2_s"};
+  const auto expected = std::vector<std::string>{
+    "foo_0_s", "bar_1_s", "baz_2_s"
+  };
   FATAL_EXPECT_TRUE(expected == actual);
 }
 
@@ -71,7 +73,7 @@ FATAL_TEST(foreach_test, very_long_type_list) {
       ret.push_back(to_string("foo_", i, "_s"));
     };
     return ret;
-  } ();
+  }();
   FATAL_EXPECT_TRUE(expected == actual);
 }
 
