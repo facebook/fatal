@@ -20,7 +20,7 @@ namespace impl_gt {
 template <typename...> struct g;
 
 template <typename Key, typename Value>
-static Value fnd(pair<Key, Value>);
+static Value f(pair<Key, Value>);
 
 template <typename T, typename Key>
 struct g<T, Key>: g<T, Key, get_first> {};
@@ -30,7 +30,7 @@ template <
   typename Key, typename KeyFilter
 >
 struct g<List<Args...>, Key, KeyFilter> {
-  using type = decltype(fnd<Key>(
+  using type = decltype(f<Key>(
     inherit<pair<typename KeyFilter::template apply<Args>, Args>...>())
   );
 };
