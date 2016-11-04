@@ -13,7 +13,7 @@
 namespace fatal {
 namespace i_t {
 
-template <typename, template <typename...> class...> struct t;
+template <typename...> struct t;
 
 template <template <typename...> class Variadic, typename... Args>
 struct t<Variadic<Args...>> {
@@ -21,54 +21,74 @@ struct t<Variadic<Args...>> {
 };
 
 template <
-  template <typename...> class Variadic, typename... Args,
-  template <typename...> class T0
+  template <typename...> class Variadic, typename... Args, typename T0
 >
 struct t<Variadic<Args...>, T0> {
-  using type = Variadic<T0<Args>...>;
+  using type = Variadic<typename T0::template apply<Args>...>;
 };
 
 template <
   template <typename...> class Variadic, typename... Args,
-  template <typename...> class T0,
-  template <typename...> class T1
+  typename T0, typename T1
 >
 struct t<Variadic<Args...>, T0, T1> {
-  using type = Variadic<T1<T0<Args>>...>;
+  using type = Variadic<
+    typename T1::template apply<
+      typename T0::template apply<Args>
+    >...
+  >;
 };
 
 template <
   template <typename...> class Variadic, typename... Args,
-  template <typename...> class T0,
-  template <typename...> class T1,
-  template <typename...> class T2
+  typename T0, typename T1, typename T2
 >
 struct t<Variadic<Args...>, T0, T1, T2> {
-  using type = Variadic<T2<T1<T0<Args>>>...>;
+  using type = Variadic<
+    typename T2::template apply<
+      typename T1::template apply<
+        typename T0::template apply<Args>
+      >
+    >...
+  >;
 };
 
 template <
   template <typename...> class Variadic, typename... Args,
-  template <typename...> class T0,
-  template <typename...> class T1,
-  template <typename...> class T2,
-  template <typename...> class T3
+  typename T0, typename T1, typename T2, typename T3
 >
 struct t<Variadic<Args...>, T0, T1, T2, T3> {
-  using type = Variadic<T3<T2<T1<T0<Args>>>>...>;
+  using type = Variadic<
+    typename T3::template apply<
+      typename T2::template apply<
+        typename T1::template apply<
+          typename T0::template apply<Args>
+        >
+      >
+    >...
+  >;
 };
 
 template <
   template <typename...> class Variadic, typename... Args,
-  template <typename...> class T0,
-  template <typename...> class T1,
-  template <typename...> class T2,
-  template <typename...> class T3,
-  template <typename...> class T4,
-  template <typename...> class... Tn
+  typename T0, typename T1, typename T2, typename T3, typename T4,
+  typename... Tn
 >
 struct t<Variadic<Args...>, T0, T1, T2, T3, T4, Tn...>:
-  t<Variadic<T4<T3<T2<T1<T0<Args>>>>>...>, Tn...>
+  t<
+    Variadic<
+      typename T4::template apply<
+        typename T3::template apply<
+          typename T2::template apply<
+            typename T1::template apply<
+              typename T0::template apply<Args>
+            >
+          >
+        >
+      >...
+    >,
+    Tn...
+  >
 {};
 
 } // namespace i_t {

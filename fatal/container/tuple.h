@@ -414,10 +414,10 @@ class tuple_from {
     using args = tuple<pair<UArgs>...>;
 
     template <typename List>
-    using list = apply_to<transform<List, pair>, tuple>;
+    using list = apply_to<transform<List, applier<pair>>, tuple>;
 
     template <typename Map>
-    using map = apply_to<transform<Map, map_entry_transform>, tuple>;
+    using map = apply_to<transform<Map, applier<map_entry_transform>>, tuple>;
   };
 
 public:

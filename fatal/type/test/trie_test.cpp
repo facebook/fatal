@@ -166,7 +166,7 @@ void check_trie_find(std::string const &needle) {
   check_trie_find_impl<Expected, Tree>(needle);
   check_trie_find_impl<
     Expected,
-    transform<Tree, wrapper>,
+    transform<Tree, applier<wrapper>>,
     get_type::value
   >(needle);
 }

@@ -303,7 +303,7 @@ struct str {
     template <typename T>
     using group_by = pair<
       first<T>,
-      transform<second<T>, bound::as_list<list>::apply>
+      transform<second<T>, bound::as_list<list>>
     >;
   };
 
@@ -664,10 +664,10 @@ int main() {
   EQUAL(true, contains<mp, unsigned, get_first>);
   EQUAL(false, contains<mp, void *, get_first>);
 
-  SAME(shuf_mp, apply_to<transform<shuf_ls, to_map_entry>, list>);
-  SAME(srt_mp, apply_to<transform<srt_ls, to_map_entry>, list>);
+  SAME(shuf_mp, apply_to<transform<shuf_ls, applier<to_map_entry>>, list>);
+  SAME(srt_mp, apply_to<transform<srt_ls, applier<to_map_entry>>, list>);
 
-  SAME(dmy_ls, transform<srt_ls, applier<dummy>::apply>);
+  SAME(dmy_ls, transform<srt_ls, applier<dummy>>);
 
   SAME(lst, tail<lst, 0>);
   SAME(list<double, bool, void, float, char, unsigned>, tail<lst, 1>);

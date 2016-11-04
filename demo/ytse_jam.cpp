@@ -118,7 +118,7 @@ struct operation_command {
 template <typename DataType>
 struct to_operation_command {
   template <typename Operation>
-  using type = metadata::operation_command<
+  using apply = metadata::operation_command<
     typename DataType::name, typename DataType::type, typename Operation::verb,
     typename Operation::method, typename Operation::result, typename Operation::args
   >;
@@ -127,7 +127,7 @@ struct to_operation_command {
 template <typename DataType>
 using to_operation_command_list = transform<
   typename DataType::operations,
-  to_operation_command<DataType>::template type
+  to_operation_command<DataType>
 >;
 
 //////////////
@@ -163,11 +163,11 @@ using known = list<
 
 struct ytse_jam {
   using supported = metadata::known;
-  using op_list = apply_to<transform<supported, metadata::to_operation_command_list>, cat>;
-  using instance_t = apply_to<transform<supported, get_type::type::apply>, auto_variant>;
+  using op_list = apply_to<transform<supported, applier<metadata::to_operation_command_list>>, cat>;
+  using instance_t = apply_to<transform<supported, get_type::type>, auto_variant>;
   // TODO: unique BEFORE apply_to
   using result_t = apply_to<
-    reject<transform<op_list, get_type::result::apply>, curry<applier<std::is_same>, void>>,
+    reject<transform<op_list, get_type::result>, curry<applier<std::is_same>, void>>,
     auto_variant
   >;
 
@@ -241,11 +241,11 @@ private:
       tag<metadata::str::create>, instances_map &instances, request_args &args, result_t &
     ) const {
       // data_type_name -> ctor
-      using ctor_index = transform<supported, metadata::to_constructor_command>;
+      using ctor_index = transform<supported, applier<metadata::to_constructor_command>>;
 
       auto type = args.next<std::string>();
       auto instance = args.next<std::string>();
-      auto found = trie_find<transform<supported, get_type::name::apply>>(
+      auto found = trie_find<transform<supported, get_type::name>>(
         type.begin(), type.end(),
         [&](auto data_type_name) { // tag<sequence>
           using ctor = get<ctor_index, type_of<decltype(data_type_name)>, get_type::name>;
@@ -341,7 +341,7 @@ private:
 ytse_jam::result_t ytse_jam::handle(std::string const &command, request_args &args) {
   result_t result;
 
-  if (!trie_find<adjacent_unique<sort<cat<built_ins, transform<op_list, get_type::verb::apply>>, sequence_compare<less>>>>(
+  if (!trie_find<adjacent_unique<sort<cat<built_ins, transform<op_list, get_type::verb>>, sequence_compare<less>>>>(
     command.begin(), command.end(), command_parser(), instances_, args, result
   )) {
     throw std::invalid_argument("command unknown");

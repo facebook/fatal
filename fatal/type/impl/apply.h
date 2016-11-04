@@ -11,7 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_impl_apply_h
 
 namespace fatal {
-namespace impl_apply {
+namespace i_A {
 
 template <template <typename...> class, typename...> struct ls;
 
@@ -170,7 +170,7 @@ struct app<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
   using type = T<U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5>;
 };
 
-} // namespace impl_apply {
+} // namespace i_A {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_apply_h

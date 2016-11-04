@@ -282,7 +282,7 @@ public:
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
     using names = string_view_array<
-      fatal::transform<fields, get_type::name::apply>,
+      fatal::transform<fields, get_type::name>,
       string_view
     >;
 
@@ -309,9 +309,7 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using values = as_array<
-      fatal::transform<fields, get_type::value::apply>
-    >;
+    using values = as_array<fatal::transform<fields, get_type::value>>;
   };
 
 private:

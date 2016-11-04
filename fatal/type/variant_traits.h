@@ -126,7 +126,7 @@ public:
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
     using ids = as_array<
-      transform<typename by_id::descriptors, get_type::id::apply>,
+      transform<typename by_id::descriptors, get_type::id>,
       id
     >;
   };

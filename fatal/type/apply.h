@@ -15,25 +15,25 @@
 namespace fatal {
 
 template <typename T, template <typename...> class To, typename... Suffix>
-using apply_to = typename impl_apply::ls<To, T, Suffix...>::type;
+using apply_to = typename i_A::ls<To, T, Suffix...>::type;
 
 template <typename T, template <typename...> class To, typename... Prefix>
-using apply_to_front = typename impl_apply::lsf<To, T, Prefix...>::type;
+using apply_to_front = typename i_A::lsf<To, T, Prefix...>::type;
 
 template <typename T>
-using sequence_apply = impl_apply::sq<T>;
+using sequence_apply = i_A::sq<T>;
 
 template <template <typename...> class T>
 struct applier {
   template <typename... Args>
-  using apply = typename impl_apply::app<T, Args...>::type;
+  using apply = typename i_A::app<T, Args...>::type;
 };
 
 // TODO: ADD FILTERED VARIANT
 template <typename T, typename... Bound>
 struct curry {
   template <typename... Args>
-  using apply = typename impl_apply::app<
+  using apply = typename i_A::app<
     T::template apply, Bound..., Args...
   >::type;
 };
@@ -42,7 +42,7 @@ struct curry {
 template <typename T, typename... Bound>
 struct curry_back {
   template <typename... Args>
-  using apply = typename impl_apply::app<
+  using apply = typename i_A::app<
     T::template apply, Args..., Bound...
   >::type;
 };

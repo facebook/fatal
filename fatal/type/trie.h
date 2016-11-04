@@ -53,7 +53,7 @@ template <
   typename End
 >
 static inline bool trie_find(Begin &&begin, End &&end) {
-  return trie_find<T, Comparer, Filter>(
+  return trie_find<T, Filter, Comparer>(
     std::forward<Begin>(begin),
     std::forward<End>(end),
     fn::no_op()

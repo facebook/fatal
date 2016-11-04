@@ -9,6 +9,7 @@
 
 #include <fatal/type/transform.h>
 
+#include <fatal/type/identity.h>
 #include <fatal/type/list.h>
 
 #include <fatal/test/driver.h>
@@ -17,29 +18,42 @@
 
 namespace fatal {
 
-template <typename T>
-using id = identity<T>;
+using id = get_identity;
 
 template <int Value>
 using v = std::integral_constant<int, Value>;
 
-template <typename T>
-using p = std::integral_constant<typename T::value_type, T::value + 1>;
+struct p {
+  template <typename T>
+  using apply = std::integral_constant<typename T::value_type, T::value + 1>;
+};
 
-template <typename T>
-using m = std::integral_constant<typename T::value_type, T::value - 1>;
+struct m {
+  template <typename T>
+  using apply = std::integral_constant<typename T::value_type, T::value - 1>;
+};
 
-template <typename T>
-using n = std::integral_constant<typename T::value_type, -T::value>;
+struct n {
+  template <typename T>
+  using apply = std::integral_constant<typename T::value_type, -T::value>;
+};
 
-template <typename T>
-using d = std::integral_constant<typename T::value_type, T::value * 2>;
+struct d {
+  template <typename T>
+  using apply = std::integral_constant<typename T::value_type, T::value * 2>;
+};
 
-template <typename T>
-using s = std::integral_constant<typename T::value_type, T::value * T::value>;
+struct s {
+  template <typename T>
+  using apply = std::integral_constant<
+    typename T::value_type, T::value * T::value
+  >;
+};
 
-template <typename T>
-using h = std::integral_constant<typename T::value_type, T::value / 2>;
+struct h {
+  template <typename T>
+  using apply = std::integral_constant<typename T::value_type, T::value / 2>;
+};
 
 FATAL_TEST(transform, 0 transforms) {
   FATAL_EXPECT_SAME<list<>, transform<list<>>>();
