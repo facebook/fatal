@@ -33,7 +33,7 @@ template <typename, typename TChar, TChar, TChar...> struct parse_sequence;
 template <typename, typename> struct from_sequence;
 template <typename T, template <typename, T...> class, typename U, U>
 struct to_sequence;
-template <std::size_t, typename T, T...> struct array;
+template <typename T, T...> struct array;
 
 } // namespace constant_sequence_impl {
 } // namespace detail {
@@ -728,7 +728,7 @@ public:
    */
   template <type... Suffix>
   using array = detail::constant_sequence_impl::array<
-    0, type, Values..., Suffix...
+    type, Values..., Suffix...
   >;
 
   /**
@@ -770,7 +770,7 @@ public:
    */
   template <type... Suffix>
   using z_array = detail::constant_sequence_impl::array<
-    1, type, Values..., Suffix..., static_cast<type>(0)
+    type, Values..., Suffix..., static_cast<type>(0)
   >;
 
   /**
@@ -1408,14 +1408,14 @@ constexpr std::size_t size(T const (&)[Size]) {
 
 #undef FATAL_IMPL_HAS_MAKE_INTEGER_SEQ
 
-template <std::size_t Excess, typename T, T... Values>
+template <typename T, T... Values>
 struct array {
-  using size = std::integral_constant<std::size_t, sizeof...(Values) - Excess>;
+  using size = std::integral_constant<std::size_t, sizeof...(Values)>;
   static constexpr T const data[sizeof...(Values)] = { Values... };
 };
 
-template <std::size_t Excess, typename T, T... Values>
-constexpr T const array<Excess, T, Values...>::data[sizeof...(Values)];
+template <typename T, T... Values>
+constexpr T const array<T, Values...>::data[sizeof...(Values)];
 
 } // namespace constant_sequence_impl {
 } // namespace detail {

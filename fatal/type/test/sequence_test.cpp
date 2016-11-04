@@ -1072,9 +1072,7 @@ void check_array_data() {
   check_array_data<
     typename seq::template z_array<>,
     test_as_array<T, Values..., 0>
-  >(
-    seq::z_data()
-  );
+  >(seq::z_data());
 }
 
 FATAL_TEST(constant_sequence, array_data) {
