@@ -66,19 +66,17 @@ template <typename...> struct C;
 
 // constexpr statically allocated array from a list or sequence //
 template <template <typename...> class Variadics, typename... Args, typename T>
-struct C<Variadics<Args...>, T> {
-  using type = a<0, T, Args::value...>;
-};
+struct C<Variadics<Args...>, T>: a<0, T, Args::value...> {};
 
 template <template <typename...> class Variadics, typename T, typename... Args>
-struct C<Variadics<T, Args...>> {
-  using type = a<
+struct C<Variadics<T, Args...>>:
+  a<
     0,
     typename std::decay<decltype(T::value)>::type,
     T::value,
     Args::value...
-  >;
-};
+  >
+{};
 
 template <
   template <typename V, V...> class Variadics,
@@ -86,14 +84,10 @@ template <
   V... Values,
   typename T
 >
-struct C<Variadics<V, Values...>, T> {
-  using type = a<0, T, Values...>;
-};
+struct C<Variadics<V, Values...>, T>: a<0, T, Values...> {};
 
 template <template <typename V, V...> class Variadics, typename T, T... Values>
-struct C<Variadics<T, Values...>> {
-  using type = a<0, T, Values...>;
-};
+struct C<Variadics<T, Values...>>: a<0, T, Values...> {};
 
 template <typename...> struct CF;
 
@@ -138,14 +132,10 @@ struct z<Variadics<T, Args...>>:
 {};
 
 template <template <typename...> class Variadics, typename... Args, typename T>
-struct z<Variadics<Args...>, T>:
-  a<1, T, Args::value..., static_cast<T>(0)>
-{};
+struct z<Variadics<Args...>, T>: a<1, T, Args::value..., static_cast<T>(0)> {};
 
 template <template <typename V, V...> class Variadics, typename T, T... Args>
-struct z<Variadics<T, Args...>>:
-  a<1, T, Args..., static_cast<T>(0)>
-{};
+struct z<Variadics<T, Args...>>: a<1, T, Args..., static_cast<T>(0)> {};
 
 template <
   template <typename V, V...> class Variadics,
@@ -236,14 +226,12 @@ constexpr T const Z<T, Args...>::data[sizeof...(Args)];
 template <typename...> struct ZA;
 
 template <template <typename...> class Variadics, typename... Args, typename T>
-struct ZA<Variadics<Args...>, T> {
-  using type = Z<T, Args...>;
-};
+struct ZA<Variadics<Args...>, T>: Z<T, Args...> {};
 
 template <template <typename...> class Variadics, typename T, typename... Args>
-struct ZA<Variadics<T, Args...>> {
-  using type = Z<typename std::decay<decltype(z<T>::data)>::type, T, Args...>;
-};
+struct ZA<Variadics<T, Args...>>:
+  Z<typename std::decay<decltype(z<T>::data)>::type, T, Args...>
+{};
 
 template <typename T, typename Filter, typename... Args>
 class ZF {
@@ -274,9 +262,7 @@ template <
   typename Filter,
   typename T
 >
-struct ZAF<Variadic<Args...>, Filter, T>:
-  ZF<T, Filter, Args...>
-{};
+struct ZAF<Variadic<Args...>, Filter, T>: ZF<T, Filter, Args...> {};
 
 template <
   template <typename...> class Variadic,
@@ -316,9 +302,7 @@ constexpr T const s<T, Args...>::data[sizeof...(Args)];
 template <typename...> struct S;
 
 template <template <typename...> class Variadics, typename... Args, typename T>
-struct S<Variadics<Args...>, T> {
-  using type = s<T, Args...>;
-};
+struct S<Variadics<Args...>, T>: s<T, Args...> {};
 
 template <
   typename T,
