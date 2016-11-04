@@ -26,4 +26,4 @@ fi
 echo "compiler: $cc"
 echo "standard: $cpp_std"
 $cc --version
-USE_CC="$cc" USE_STD="$cpp_std" USE_CCACHE=true NO_CLEAR=true EXCLUDE_BENCHMARKS=true ./validate.sh
+USE_CC="$cc" USE_STD="$cpp_std" USE_CCACHE=true NO_CLEAR=true ./validate.sh
