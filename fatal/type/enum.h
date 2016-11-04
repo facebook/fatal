@@ -281,11 +281,9 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using names = string_view_array_filtered<
-      traits,
-      string_view,
-      get_type::fields,
-      get_type::name
+    using names = string_view_array<
+      fatal::transform<fields, get_type::name::apply>,
+      string_view
     >;
 
     /**
@@ -311,8 +309,8 @@ public:
      *
      * @author: Marcelo Juchem <marcelo@fb.com>
      */
-    using values = as_array_filtered<
-      traits, get_type::fields, get_type::value, type
+    using values = as_array<
+      fatal::transform<fields, get_type::value::apply>
     >;
   };
 
