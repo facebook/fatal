@@ -23,8 +23,8 @@ namespace fatal {
 // TODO: INVERT COMPARER AND FILTER
 template <
   typename T,
-  typename Comparer = less,
   typename Filter = get_identity,
+  typename Comparer = less,
   typename Begin,
   typename End,
   typename Visitor,
@@ -47,8 +47,8 @@ static inline bool trie_find(
 
 template <
   typename T,
-  typename Comparer = less,
   typename Filter = get_identity,
+  typename Comparer = less,
   typename Begin,
   typename End
 >

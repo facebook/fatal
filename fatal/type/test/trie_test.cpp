@@ -153,7 +153,7 @@ void check_trie_find_impl(std::string const &needle) {
   check_trie_find_visitor<Expected, Filter...> visitor;
 
   std::size_t matches = 0;
-  bool const result = trie_find<Tree,  less, Filter...>(
+  bool const result = trie_find<Tree, Filter...>(
     needle.begin(), needle.end(), visitor, needle, matches
   );
 

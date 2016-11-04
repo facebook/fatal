@@ -30,19 +30,19 @@ template <typename...> struct sequential_ifs_impl;
 
 template <>
 struct sequential_ifs_impl<> {
-  template <typename TInput>
-  static void match(TInput &&, unsigned &) {}
+  template <typename Input>
+  static void match(Input &&, unsigned &) {}
 };
 
-template <typename TString, typename... TStrings>
-struct sequential_ifs_impl<TString, TStrings...> {
-  template <typename TInput>
-  static void match(TInput &&input, unsigned &count) {
-    if (input == z_data<TString>()) {
+template <typename String, typename... Strings>
+struct sequential_ifs_impl<String, Strings...> {
+  template <typename Input>
+  static void match(Input &&input, unsigned &count) {
+    if (input == z_data<String>()) {
       count += input.size();
     } else {
-      sequential_ifs_impl<TStrings...>::match(
-        std::forward<TInput>(input),
+      sequential_ifs_impl<Strings...>::match(
+        std::forward<Input>(input),
         count
       );
     }
@@ -50,9 +50,9 @@ struct sequential_ifs_impl<TString, TStrings...> {
 };
 
 struct visitor {
-  template <typename TString>
+  template <typename String>
   void operator ()(
-    tag<TString>,
+    tag<String>,
     std::string const &s,
     unsigned &count
   ) {
@@ -60,39 +60,39 @@ struct visitor {
   }
 };
 
-template <typename... TStrings>
+template <typename... Strings>
 struct benchmark_impl {
-  static std::array<std::string, sizeof...(TStrings)> const str;
+  static std::array<std::string, sizeof...(Strings)> const str;
 
-  template <typename TController>
-  static void trie_benchmark(TController &benchmark) {
+  template <typename Controller>
+  static void trie_benchmark(Controller &benchmark) {
     unsigned count = 0;
 
     FATAL_BENCHMARK_SUSPEND {}
 
     for (auto const &s: str) {
-      trie_find<list<TStrings...>>(s.begin(), s.end(), visitor{}, s, count);
+      trie_find<list<Strings...>>(s.begin(), s.end(), visitor{}, s, count);
     }
 
     prevent_optimization(count);
   }
 
-  template <typename TController>
-  static void sequential_ifs_benchmark(TController &benchmark) {
+  template <typename Controller>
+  static void sequential_ifs_benchmark(Controller &benchmark) {
     unsigned count = 0;
 
     FATAL_BENCHMARK_SUSPEND {}
 
     for (auto const &s: str) {
-      sequential_ifs_impl<TStrings...>::match(s, count);
+      sequential_ifs_impl<Strings...>::match(s, count);
     }
 
     prevent_optimization(count);
   }
 
-  template <typename TController>
-  static void sorted_std_array_benchmark(TController &benchmark) {
-    std::array<std::string, sizeof...(TStrings)> c = str;
+  template <typename Controller>
+  static void sorted_std_array_benchmark(Controller &benchmark) {
+    std::array<std::string, sizeof...(Strings)> c = str;
     unsigned count = 0;
 
     FATAL_BENCHMARK_SUSPEND {
@@ -106,8 +106,8 @@ struct benchmark_impl {
     prevent_optimization(count);
   }
 
-  template <typename TController>
-  static void sorted_std_vector_benchmark(TController &benchmark) {
+  template <typename Controller>
+  static void sorted_std_vector_benchmark(Controller &benchmark) {
     std::vector<std::string> c;
     unsigned count = 0;
 
@@ -126,8 +126,8 @@ struct benchmark_impl {
     prevent_optimization(count);
   }
 
-  template <typename TController>
-  static void std_set_benchmark(TController &benchmark) {
+  template <typename Controller>
+  static void std_set_benchmark(Controller &benchmark) {
     std::set<std::string> c;
     unsigned count = 0;
 
@@ -145,8 +145,8 @@ struct benchmark_impl {
     prevent_optimization(count);
   }
 
-  template <typename TController>
-  static void std_unordered_set_benchmark(TController &benchmark) {
+  template <typename Controller>
+  static void std_unordered_set_benchmark(Controller &benchmark) {
     std::unordered_set<std::string> c;
     unsigned count = 0;
 
@@ -176,10 +176,10 @@ struct as_str<Sequence<T, Values...>> {
   static std::string get() { return {Values...}; }
 };
 
-template <typename... TStrings>
-std::array<std::string, sizeof...(TStrings)> const benchmark_impl<
-  TStrings...
->::str = {{ as_str<TStrings>::get()... }};
+template <typename... Strings>
+std::array<std::string, sizeof...(Strings)> const benchmark_impl<
+  Strings...
+>::str = {{ as_str<Strings>::get()... }};
 
 //////////////////////////////
 // BENCHMARKS INSTANTIATION //
