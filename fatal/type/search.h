@@ -32,7 +32,7 @@ template <
   typename Visitor,
   typename... Args
 >
-static constexpr bool sorted_search(
+static inline constexpr bool sorted_search(
   Needle &&needle,
   Visitor &&visitor,
   Args &&...args
@@ -50,7 +50,7 @@ template <
   typename Comparer = value_comparer,
   typename Needle
 >
-static constexpr bool sorted_search(Needle &&needle) {
+static inline constexpr bool sorted_search(Needle &&needle) {
   return sorted_search<T, Filter, Comparer>(
     std::forward<Needle>(needle),
     fn::no_op()
@@ -65,7 +65,7 @@ template <
   typename Visitor,
   typename... Args
 >
-static constexpr bool scalar_search(
+static inline constexpr bool scalar_search(
   Needle &&needle,
   Visitor &&visitor,
   Args &&...args
@@ -87,7 +87,7 @@ template <
   typename Comparer = value_comparer,
   typename Needle
 >
-static constexpr bool scalar_search(Needle &&needle) {
+static inline constexpr bool scalar_search(Needle &&needle) {
   return scalar_search<T, Filter, Comparer>(
     std::forward<Needle>(needle),
     fn::no_op()

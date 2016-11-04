@@ -20,7 +20,7 @@
 namespace fatal {
 
 template <typename List, typename Visitor, typename... Args>
-static void foreach(Visitor&& visitor, Args&&... args) {
+static inline void foreach(Visitor&& visitor, Args&&... args) {
   impl_fe::f<List, make_index_sequence<size<List>::value>>::g(
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...

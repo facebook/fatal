@@ -30,7 +30,7 @@ template <
   typename Visitor,
   typename... VArgs
 >
-static bool trie_find(
+static inline bool trie_find(
   Begin &&begin,
   End &&end,
   Visitor &&visitor,
@@ -52,7 +52,7 @@ template <
   typename Begin,
   typename End
 >
-static bool trie_find(Begin &&begin, End &&end) {
+static inline bool trie_find(Begin &&begin, End &&end) {
   return trie_find<T, Comparer, Filter>(
     std::forward<Begin>(begin),
     std::forward<End>(end),
