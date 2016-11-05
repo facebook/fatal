@@ -14,7 +14,7 @@
 #define FATAL_INCLUDE_fatal_type_impl_group_by_h
 
 namespace fatal {
-namespace impl_gby {
+namespace i_g {
 
 // TODO: SKIP 2 AT A TIME
 // group by iteration //
@@ -73,36 +73,43 @@ struct g<Outer, Grouping, list<Result...>, Key, list<Group...>> {
 };
 
 // group by entry point //
-template <typename, template <typename...> class...> struct gb;
+template <typename, typename, template <typename...> class...> struct G;
 
 template <
   template <typename...> class List,
-  template <typename...> class Key,
+  typename Key,
   template <typename...> class Grouping,
   template <typename...> class Outer
 >
-struct gb<List<>, Key, Grouping, Outer> {
+struct G<List<>, Key, Grouping, Outer> {
   using type = Outer<>;
 };
 
 template <
   template <typename...> class List,
   typename T, typename... Args,
-  template <typename...> class Key,
+  typename Key,
   template <typename...> class Grouping,
   template <typename...> class Outer
 >
-struct gb<List<T, Args...>, Key, Grouping, Outer>:
-  g<Outer, Grouping, list<>, Key<T>, list<T>, pair<Key<Args>, Args>...>
+struct G<List<T, Args...>, Key, Grouping, Outer>:
+  g<
+    Outer,
+    Grouping,
+    list<>,
+    typename Key::template apply<T>,
+    list<T>,
+    pair<typename Key::template apply<Args>, Args>...
+  >
 {};
 
 // TODO: SKIP 2 AT A TIME
-// group by iteration //
+// filtered_group_by: recursion //
 template <
   template <typename...> class,
   template <typename...> class,
   typename...
-> struct filtered_group_by_recursion;
+> struct f;
 
 // group match //
 template <
@@ -114,7 +121,7 @@ template <
   typename T,
   typename... Args
 >
-struct filtered_group_by_recursion<
+struct f<
   Pair, Grouping,
   List<Filtered...>,
   List<Result...>,
@@ -122,7 +129,7 @@ struct filtered_group_by_recursion<
   pair<Key, T>,
   Args...
 >:
-  filtered_group_by_recursion<
+  f<
     Pair, Grouping,
     List<Filtered...>,
     List<Result...>,
@@ -141,7 +148,7 @@ template <
   typename Key, typename T,
   typename... Args
 >
-struct filtered_group_by_recursion<
+struct f<
   Pair, Grouping,
   List<Filtered...>,
   List<Result...>,
@@ -149,7 +156,7 @@ struct filtered_group_by_recursion<
   pair<Key, T>,
   Args...
 >:
-  filtered_group_by_recursion<
+  f<
     Pair, Grouping,
     List<Filtered...>,
     List<Result..., Grouping<Group...>>,
@@ -167,7 +174,7 @@ template <
   typename G, typename... Group,
   typename T, typename... Args
 >
-struct filtered_group_by_recursion<
+struct f<
   Pair, Grouping,
   List<Filtered...>,
   List<Result...>,
@@ -175,7 +182,7 @@ struct filtered_group_by_recursion<
   tag<T>,
   Args...
 >:
-  filtered_group_by_recursion<
+  f<
     Pair, Grouping,
     List<Filtered..., T>,
     List<Result...>,
@@ -192,31 +199,39 @@ template <
   typename... Result,
   typename Key, typename... Group
 >
-struct filtered_group_by_recursion<Pair, Grouping, List<Filtered...>, List<Result...>, Key, List<Group...>> {
+struct f<
+  Pair,
+  Grouping,
+  List<Filtered...>,
+  List<Result...>,
+  Key,
+  List<Group...>
+> {
   using type = Pair<List<Filtered...>, List<Result..., Grouping<Group...>>>;
 };
 
 // pre-filter //
-template <bool, template <typename...> class, typename T>
-struct filtered_group_by_pre_filter {
+template <bool, typename, typename T>
+struct p {
   using type = tag<T>;
 };
 
-template <template <typename...> class Key, typename T>
-struct filtered_group_by_pre_filter<false, Key, T> {
-  using type = pair<Key<T>, T>;
+template <typename Key, typename T>
+struct p<false, Key, T> {
+  using type = pair<typename Key::template apply<T>, T>;
 };
 
 // group by entry point //
-template <typename, template <typename...> class...>
-struct filtered_group_by_entry_point;
+template <typename, typename, typename, template <typename...> class...>
+struct F;
 
+// filtered_group_by: initial filter //
 template <
   template <typename...> class,
   template <typename...> class,
   typename...
 >
-struct filtered_group_by_initial_filter;
+struct i;
 
 // filter out all input //
 template <
@@ -224,7 +239,7 @@ template <
   template <typename...> class List,
   typename... Filtered
 >
-struct filtered_group_by_initial_filter<Pair, Grouping, List<Filtered...>> {
+struct i<Pair, Grouping, List<Filtered...>> {
   using type = Pair<List<Filtered...>, Grouping<>>;
 };
 
@@ -236,8 +251,8 @@ template <
   typename... Filtered,
   typename T, typename... Args
 >
-struct filtered_group_by_initial_filter<Pair, Grouping, List<Filtered...>, tag<T>, Args...>:
-  filtered_group_by_initial_filter<Pair, Grouping, List<Filtered..., T>, Args...>
+struct i<Pair, Grouping, List<Filtered...>, tag<T>, Args...>:
+  i<Pair, Grouping, List<Filtered..., T>, Args...>
 {};
 
 // start recursion //
@@ -248,60 +263,37 @@ template <
   typename Key, typename T,
   typename... Args
 >
-struct filtered_group_by_initial_filter<Pair, Grouping, List<Filtered...>, pair<Key, T>, Args...>:
-  filtered_group_by_recursion<Pair, Grouping, List<Filtered...>, List<>, Key, List<T>, Args...>
+struct i<Pair, Grouping, List<Filtered...>, pair<Key, T>, Args...>:
+  f<Pair, Grouping, List<Filtered...>, List<>, Key, List<T>, Args...>
 {};
 
 // non-empty input //
 template <
   template <typename...> class List, typename... Args,
-  template <typename...> class Key,
-  template <typename...> class Filter,
+  typename Key,
+  typename Filter,
   template <typename...> class Pair, template <typename...> class Grouping
 >
-struct filtered_group_by_entry_point<List<Args...>, Key, Filter, Pair, Grouping>:
-  filtered_group_by_initial_filter<
+struct F<List<Args...>, Key, Filter, Pair, Grouping>:
+  i<
     Pair, Grouping,
     List<>,
-    typename filtered_group_by_pre_filter<
-      Filter<Args>::value,
-      Key,
-      Args
-    >::type...
+    typename p<Filter::template apply<Args>::value, Key, Args>::type...
   >
 {};
 
 // empty input //
 template <
   template <typename...> class List,
-  template <typename...> class Key,
-  template <typename...> class Filter,
+  typename Key,
+  typename Filter,
   template <typename...> class Pair, template <typename...> class Grouping
 >
-struct filtered_group_by_entry_point<List<>, Key, Filter, Pair, Grouping> {
+struct F<List<>, Key, Filter, Pair, Grouping> {
   using type = Pair<List<>, Grouping<>>;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-} // namespace impl_gby {
+} // namespace i_g {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_group_by_h

@@ -168,8 +168,10 @@ using to_sz_val = sz_val<T::value>;
 template <typename>
 using all = std::true_type;
 
-template <typename>
-using none = std::false_type;
+struct none {
+  template <typename>
+  using apply = std::false_type;
+};
 
 template <std::size_t Size>
 struct size_eq {
@@ -1116,38 +1118,38 @@ int main() {
     >
   );
 
-  SAME(str::seq::group_by, group_by<str::seq::sorted, first>);
-  SAME(str::lst::group_by, group_by<str::lst::sorted, first>);
+  SAME(str::seq::group_by, group_by<str::seq::sorted, get_first>);
+  SAME(str::lst::group_by, group_by<str::lst::sorted, get_first>);
 
   SAME(
     pair<list<>, str::seq::group_by>,
-    filtered_group_by<str::seq::sorted, first, none>
+    filtered_group_by<str::seq::sorted, get_first, none>
   );
   SAME(
     pair<list<>, str::lst::group_by>,
-    filtered_group_by<str::lst::sorted, first, none>
+    filtered_group_by<str::lst::sorted, get_first, none>
   );
 
   SAME(
     str::seq::filtered_group_by_3,
-    filtered_group_by<str::seq::sorted, first, size_eq<3>::apply>
+    filtered_group_by<str::seq::sorted, get_first, size_eq<3>>
   );
   SAME(
     str::lst::filtered_group_by_3,
-    filtered_group_by<str::lst::sorted, first, size_eq<3>::apply>
+    filtered_group_by<str::lst::sorted, get_first, size_eq<3>>
   );
 
   SAME(
     str::seq::filtered_group_by_7,
-    filtered_group_by<str::seq::sorted, first, size_eq<7>::apply>
+    filtered_group_by<str::seq::sorted, get_first, size_eq<7>>
   );
   SAME(
     str::lst::filtered_group_by_7,
-    filtered_group_by<str::lst::sorted, first, size_eq<7>::apply>
+    filtered_group_by<str::lst::sorted, get_first, size_eq<7>>
   );
 
-  SAME(str::seq::group_by, group_by<str::seq::sorted, first>);
-  SAME(str::lst::group_by, group_by<str::lst::sorted, first>);
+  SAME(str::seq::group_by, group_by<str::seq::sorted, get_first>);
+  SAME(str::lst::group_by, group_by<str::lst::sorted, get_first>);
 
   foreach<lst>(fn::no_op());
 

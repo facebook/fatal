@@ -29,9 +29,7 @@ int main() {
   using namespace fatal;
 
 # define INNER(Inner) \
-  prevent_optimization( \
-    filtered_group_by<input, key<Inner>::apply, filter<Inner>::apply>() \
-  )
+  prevent_optimization(filtered_group_by<input, key<Inner>, filter<Inner>>())
 
 # define OUTER(...) \
     do { \

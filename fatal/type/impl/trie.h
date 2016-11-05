@@ -249,7 +249,7 @@ struct r<Depth, Filter, T, Args...> {
       list<Args...>,
       list<T, Args...>
     >::type,
-    a<common::value, Filter>::template apply,
+    a<common::value, Filter>,
     R<common::value, Filter>::template apply,
     N<
       T,
@@ -268,7 +268,7 @@ template <std::size_t Common, typename Filter, typename T, typename... Args>
 struct h<true, Common, Filter, T, Args...> {
   using type = group_by<
     list<T, Args...>,
-    a<0, Filter>::template apply,
+    a<0, Filter>,
     R<0, Filter>::template apply,
     L<Filter>::template apply
   >;
@@ -286,7 +286,7 @@ struct h<false, Common, Filter, T, Args...> {
         list<Args...>,
         list<T, Args...>
       >::type,
-      a<Common, Filter>::template apply,
+      a<Common, Filter>,
       R<Common, Filter>::template apply,
       N<
         T, Common == size<typename Filter::template apply<T>>::value, 0, Common

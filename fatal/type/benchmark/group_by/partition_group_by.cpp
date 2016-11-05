@@ -31,7 +31,7 @@ int main() {
 
 # define INNER(Inner) \
   prevent_optimization( \
-    group_by<second<partition<input, flt<Inner>>>, key<Inner>::apply>() \
+    group_by<second<partition<input, flt<Inner>>>, key<Inner>>() \
   )
 
 # define OUTER(...) \

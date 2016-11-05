@@ -21,29 +21,23 @@ namespace fatal {
 // `Group` is guaranteed to be instantiated exactly once per group
 template <
   typename T,
-  template <typename...> class Key,
+  typename Key,
   template <typename...> class Group = list,
   template <typename...> class Outer = list
 >
-using group_by = typename impl_gby::gb<T, Key, Group, Outer>::type;
+using group_by = typename i_g::G<T, Key, Group, Outer>::type;
 
 // O(n) on the size of the variadic template T
 // `Pair` is guaranteed to be instantiated exactly once
 // `Group` is guaranteed to be instantiated exactly once per group
 template <
   typename T,
-  template <typename...> class Key,
-  template <typename...> class Filter,
+  typename Key,
+  typename Filter,
   template <typename...> class Pair = pair,
   template <typename...> class Group = list
 >
-using filtered_group_by = typename impl_gby::filtered_group_by_entry_point<
-  T,
-  Key,
-  Filter,
-  Pair,
-  Group
->::type;
+using filtered_group_by = typename i_g::F<T, Key, Filter, Pair, Group>::type;
 
 } // namespace fatal {
 
