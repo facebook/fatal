@@ -19,7 +19,7 @@ namespace impl_fe {
 template <typename, typename>
 struct f {
   template <typename... Args>
-  static void g(Args &&...) {}
+  static inline void g(Args &&...) {}
 };
 
 template <typename... T, std::size_t... Indexes>
@@ -27,7 +27,7 @@ struct f<list<T...>, index_sequence<Indexes...>> {
   static_assert(sizeof...(T) == sizeof...(Indexes), "size mismatch");
 
   template <typename Visitor, typename... Args>
-  static void g(Visitor &&visitor, Args &&...args) {
+  static inline void g(Visitor &&visitor, Args &&...args) {
     bool _[sizeof...(T)] = {
       (visitor(indexed<T, Indexes>{}, args...), false)...
     };
