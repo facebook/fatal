@@ -17,6 +17,8 @@
 #include <type_traits>
 #include <memory>
 
+// TODO: ADD TESTS FOR try_get AND try_getter
+
 namespace fatal {
 
 //////////////////////////////

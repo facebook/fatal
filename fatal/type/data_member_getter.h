@@ -117,6 +117,31 @@ public:
       return ptr(owner);
     }
   };
+
+private:
+  template <typename Owner>
+  static inline pointer<Owner> t(std::true_type, Owner &owner) {
+    return ptr(owner);
+  }
+
+  template <typename Owner>
+  static constexpr inline pointer<Owner> t(std::false_type, Owner &) {
+    return nullptr;
+  }
+
+public:
+  template <typename Owner>
+  static inline pointer<Owner> try_get(Owner &owner) {
+    return t(has<Owner>(), owner);
+  }
+
+  struct try_getter {
+    template <typename Owner>
+    inline pointer<Owner> operator ()(Owner &owner) const {
+      static_assert(std::is_pointer<pointer<Owner>>::value, "");
+      return try_get(owner);
+    }
+  };
 };
 
 #define FATAL_IMPL_DATA_MEMBER_GETTER(Class, Impl, ...) \
@@ -248,6 +273,8 @@ public:
   >;
 
   // TODO: IMPLEMENT `has`
+  // TODO: IMPLEMENT `try_get` (with has, should be data_member_getter's)
+  // TODO: IMPLEMENT `try_getter` (with has, should be data_member_getter's)
 
   template <typename Owner>
   static inline reference<Owner> ref(Owner &&owner) {
