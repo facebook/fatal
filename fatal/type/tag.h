@@ -19,7 +19,11 @@ namespace fatal {
 template <typename T> struct tag {};
 
 template <typename T, std::size_t Index>
-struct indexed: std::integral_constant<std::size_t, Index> {};
+struct indexed:
+  std::integral_constant<std::size_t, Index>
+{
+  constexpr inline operator tag<T>() const { return {}; };
+};
 
 template <typename First, typename Second, std::size_t Index>
 using indexed_pair = indexed<pair<First, Second>, Index>;
