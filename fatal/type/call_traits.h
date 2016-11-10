@@ -37,15 +37,15 @@ struct ctor_call_traits {
   struct automatic {
     using type = T;
 
-    constexpr automatic() {}
+    constexpr inline automatic() {}
 
     template <typename... UArgs>
-    constexpr static T construct(UArgs &&...args) {
+    constexpr static inline T construct(UArgs &&...args) {
       return T(std::forward<UArgs>(args)...);
     }
 
     template <typename... UArgs>
-    constexpr T operator ()(UArgs &&...args) const {
+    constexpr T inline operator ()(UArgs &&...args) const {
       return construct(std::forward<UArgs>(args)...);
     }
   };
@@ -54,15 +54,15 @@ struct ctor_call_traits {
   struct dynamic {
     using type = T;
 
-    constexpr dynamic() {}
+    constexpr inline dynamic() {}
 
     template <typename... UArgs>
-    constexpr static T *construct(UArgs &&...args) {
+    constexpr static inline T *construct(UArgs &&...args) {
       return new T(std::forward<UArgs>(args)...);
     }
 
     template <typename... UArgs>
-    constexpr T *operator ()(UArgs &&...args) const {
+    constexpr inline T *operator ()(UArgs &&...args) const {
       return construct(std::forward<UArgs>(args)...);
     }
   };
@@ -71,7 +71,7 @@ struct ctor_call_traits {
   struct placement {
     using type = T;
 
-    constexpr placement() {}
+    constexpr inline placement() {}
 
     template <typename... UArgs>
     constexpr static T *construct(T *pointer, UArgs &&...args) {
@@ -79,7 +79,7 @@ struct ctor_call_traits {
     }
 
     template <typename... UArgs>
-    constexpr T *operator ()(T *pointer, UArgs &&...args) const {
+    constexpr inline T *operator ()(T *pointer, UArgs &&...args) const {
       return construct(pointer, std::forward<UArgs>(args)...);
     }
   };
@@ -111,12 +111,12 @@ public:
   constexpr call_operator_traits() {}
 
   template <typename T, typename... UArgs>
-  constexpr static auto call(T &&subject, UArgs &&...args)
+  static constexpr inline auto call(T &&subject, UArgs &&...args)
     -> decltype(subject(std::forward<UArgs>(args)...))
   { return subject(std::forward<UArgs>(args)...); }
 
   template <typename T, typename... UArgs>
-  constexpr auto operator ()(T &&subject, UArgs &&...args) const
+  constexpr inline auto operator ()(T &&subject, UArgs &&...args) const
     -> decltype(call(std::forward<T>(subject), std::forward<UArgs>(args)...))
   { return call(std::forward<T>(subject), std::forward<UArgs>(args)...); }
 
@@ -232,12 +232,12 @@ public:
       using supports = typename bind<U>::template supports<UArgs...>; \
       \
       template <typename U, typename... UArgs> \
-      constexpr static auto call(U &&subject, UArgs &&...args) \
+      static constexpr inline auto call(U &&subject, UArgs &&...args) \
         -> decltype(subject.__VA_ARGS__(::std::forward<UArgs>(args)...)) \
       { return subject.__VA_ARGS__(::std::forward<UArgs>(args)...); } \
       \
       template <typename U, typename... UArgs> \
-      constexpr auto operator ()(U &&subject, UArgs &&...args) const \
+      constexpr inline auto operator ()(U &&subject, UArgs &&...args) const \
         -> decltype( \
           call(::std::forward<U>(subject), ::std::forward<UArgs>(args)...) \
         ) \
@@ -255,12 +255,12 @@ public:
       template <typename U> \
       class bind { \
         template <typename V, typename... UArgs> \
-        constexpr static auto call_impl(UArgs &&...args) \
+        static constexpr inline auto call_impl(UArgs &&...args) \
           -> decltype(V::__VA_ARGS__(::std::forward<UArgs>(args)...)) \
         { return V::__VA_ARGS__(::std::forward<UArgs>(args)...); } \
         \
       public: \
-        constexpr bind() {} \
+        constexpr inline bind() {} \
         \
         using type = U; \
         \
@@ -272,18 +272,18 @@ public:
         ); \
         \
         template <typename... UArgs> \
-        constexpr static auto call(UArgs &&...args) \
+        static constexpr inline auto call(UArgs &&...args) \
           -> decltype(call_impl<type>(::std::forward<UArgs>(args)...)) \
         { return call_impl<type>(::std::forward<UArgs>(args)...); } \
         \
         template <typename... UArgs> \
-        constexpr auto operator ()(UArgs &&...args) const \
+        constexpr inline auto operator ()(UArgs &&...args) const \
           -> decltype(call_impl<type>(::std::forward<UArgs>(args)...)) \
         { return call_impl<type>(::std::forward<UArgs>(args)...); } \
       }; \
       \
       template <typename U, typename... UArgs> \
-      constexpr static auto call(UArgs &&...args) \
+      static constexpr inline auto call(UArgs &&...args) \
         -> decltype(bind<U>::call(::std::forward<UArgs>(args)...)) \
       { return bind<U>::call(::std::forward<UArgs>(args)...); } \
       \
@@ -558,15 +558,15 @@ struct call_traits {
   struct Impl { \
     FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
-    constexpr Impl() {} \
+    constexpr inline Impl() {} \
     \
     template <typename... UArgs> \
-    constexpr static auto call(UArgs &&...args) \
+    static constexpr inline auto call(UArgs &&...args) \
       -> decltype(__VA_ARGS__(::std::forward<UArgs>(args)...)) \
     { return __VA_ARGS__(::std::forward<UArgs>(args)...); } \
     \
     template <typename... UArgs> \
-    constexpr auto operator ()(UArgs &&...args) const \
+    constexpr inline auto operator ()(UArgs &&...args) const \
       -> decltype(call(::std::forward<UArgs>(args)...)) \
     { return call(::std::forward<UArgs>(args)...); } \
   }; \
@@ -672,7 +672,7 @@ template <
   typename... Args,
   typename... UArgs
 >
-constexpr auto call_if(UArgs &&...args)
+constexpr inline auto call_if(UArgs &&...args)
   -> decltype(
     detail::call_traits_impl::call_if<
       fatal::apply<Predicate, Args..., UArgs...>::value
@@ -764,7 +764,7 @@ constexpr auto call_if(UArgs &&...args)
 template <
   typename CallTraits, typename Fallback, typename... Args, typename... UArgs
 >
-constexpr auto call_if_supported(UArgs &&...args)
+constexpr inline auto call_if_supported(UArgs &&...args)
   -> decltype(
     call_if<CallTraits, Fallback, CallTraits::template supports, Args...>(
       std::forward<UArgs>(args)...
@@ -786,7 +786,7 @@ namespace call_traits_impl {
 template <bool>
 struct call_if {
   template <typename Traits, typename, typename... Args, typename... UArgs>
-  constexpr static auto call(UArgs &&...args)
+  static constexpr inline auto call(UArgs &&...args)
     -> decltype(Traits::template call<Args...>(std::forward<UArgs>(args)...))
   {
     return Traits::template call<Args...>(std::forward<UArgs>(args)...);
@@ -796,7 +796,7 @@ struct call_if {
 template <>
 struct call_if<false> {
   template <typename, typename Fn, typename... Args, typename... UArgs>
-  constexpr static auto call(UArgs &&...args)
+  static constexpr inline auto call(UArgs &&...args)
     -> decltype(Fn()(std::forward<UArgs>(args)...))
   {
     return Fn()(std::forward<UArgs>(args)...);
