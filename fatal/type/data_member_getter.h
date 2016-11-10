@@ -88,14 +88,14 @@ public:
   using has = decltype(has_impl::sfinae(tag<Owner>()));
 
   template <typename Owner>
-  static reference<Owner> ref(Owner &&owner) {
+  static inline reference<Owner> ref(Owner &&owner) {
     static_assert(std::is_reference<reference<Owner>>::value, "");
     return impl::ref(std::forward<Owner>(owner));
   }
 
   struct ref_getter {
     template <typename Owner>
-    reference<Owner> operator ()(Owner &&owner) const {
+    inline reference<Owner> operator ()(Owner &&owner) const {
       static_assert(std::is_reference<reference<Owner>>::value, "");
       return ref(std::forward<Owner>(owner));
     }
@@ -105,14 +105,14 @@ public:
   using pointer = typename std::remove_reference<reference<Owner>>::type *;
 
   template <typename Owner>
-  static pointer<Owner> ptr(Owner &owner) {
+  static inline pointer<Owner> ptr(Owner &owner) {
     static_assert(std::is_pointer<pointer<Owner>>::value, "");
     return std::addressof(ref(owner));
   }
 
   struct ptr_getter {
     template <typename Owner>
-    pointer<Owner> operator ()(Owner &owner) const {
+    inline pointer<Owner> operator ()(Owner &owner) const {
       static_assert(std::is_pointer<pointer<Owner>>::value, "");
       return ptr(owner);
     }
@@ -140,7 +140,7 @@ public:
     FATAL_S(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
     template <typename Owner> \
-    static typename reference<Owner>::ref_impl ref(Owner &&owner) { \
+    static inline typename reference<Owner>::ref_impl ref(Owner &&owner) { \
       return static_cast<typename reference<Owner>::ref_impl>( \
         ::std::forward<Owner>(owner).__VA_ARGS__ \
       ); \
@@ -250,13 +250,13 @@ public:
   // TODO: IMPLEMENT `has`
 
   template <typename Owner>
-  static reference<Owner> ref(Owner &&owner) {
+  static inline reference<Owner> ref(Owner &&owner) {
     return tail::ref(OuterGetter::ref(std::forward<Owner>(owner)));
   }
 
   struct ref_getter {
     template <typename Owner>
-    reference<Owner> operator ()(Owner &&owner) const {
+    inline reference<Owner> operator ()(Owner &&owner) const {
       return ref(std::forward<Owner>(owner));
     }
   };
@@ -267,14 +267,14 @@ public:
   >;
 
   template <typename Owner>
-  static pointer<Owner> ptr(Owner &owner) {
+  static inline pointer<Owner> ptr(Owner &owner) {
     auto &&local = OuterGetter::ref(std::forward<Owner>(owner));
     return tail::ptr(local);
   }
 
   struct ptr_getter {
     template <typename Owner>
-    pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
+    inline pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
   };
 };
 
@@ -288,13 +288,13 @@ public:
   using reference = Owner &&;
 
   template <typename Owner>
-  static reference<Owner> ref(Owner &&owner) {
+  static inline reference<Owner> ref(Owner &&owner) {
     return std::forward<Owner>(owner);
   }
 
   struct ref_getter {
     template <typename Owner>
-    reference<Owner> operator ()(Owner &&owner) const {
+    inline reference<Owner> operator ()(Owner &&owner) const {
       return ref(std::forward<Owner>(owner));
     }
   };
@@ -303,11 +303,13 @@ public:
   using pointer = typename std::remove_reference<Owner>::type *;
 
   template <typename Owner>
-  static pointer<Owner> ptr(Owner &owner) { return std::addressof(owner); }
+  static inline pointer<Owner> ptr(Owner &owner) {
+    return std::addressof(owner);
+  }
 
   struct ptr_getter {
     template <typename Owner>
-    pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
+    inline pointer<Owner> operator ()(Owner &owner) const { return ptr(owner); }
   };
 };
 
