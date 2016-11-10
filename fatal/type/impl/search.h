@@ -29,7 +29,7 @@ struct s {
     typename Visitor,
     typename... Args
   >
-  static constexpr bool S(
+  static constexpr inline bool S(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args
@@ -61,7 +61,7 @@ struct s {
 template <typename T, std::size_t Offset>
 struct s<T, Offset, 0> {
   template <typename, template <typename...> class, typename... Args>
-  static constexpr bool S(Args &&...) {
+  static constexpr inline bool S(Args &&...) {
     return false;
   }
 };
@@ -75,7 +75,7 @@ struct s<T, Offset, 1> {
     typename Visitor,
     typename... Args
   >
-  static constexpr bool S(
+  static constexpr inline bool S(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args
@@ -100,7 +100,7 @@ struct s<T, Offset, 2> {
     typename Visitor,
     typename... Args
   >
-  static constexpr bool S(
+  static constexpr inline bool S(
     Needle &&needle,
     Visitor &&visitor,
     Args &&...args

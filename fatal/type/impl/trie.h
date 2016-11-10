@@ -70,7 +70,7 @@ template <std::size_t, typename...> struct l;
 template <typename Filter>
 struct l<0, Filter> {
   template <typename... Args>
-  static constexpr bool f(Args &&...) { return false; }
+  static constexpr inline bool f(Args &&...) { return false; }
 };
 
 // subtrie with single node //
@@ -91,7 +91,7 @@ struct l<Offset, Filter, n<Haystack, IsTerminal, Begin, End, Children...>> {
     typename Visitor,
     typename... VArgs
   >
-  static bool f(
+  static inline bool f(
     std::size_t const size,
     NeedleBegin &&begin,
     Visitor &&visitor,
@@ -153,7 +153,7 @@ struct l<
   Siblings...
 > {
   template <typename NeedleBegin, typename Visitor, typename... VArgs>
-  static bool f(
+  static inline bool f(
     std::size_t const size,
     NeedleBegin &&begin,
     Visitor &&visitor,
