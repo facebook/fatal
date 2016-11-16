@@ -27,6 +27,8 @@ namespace test {
 
 FATAL_TEST(to_string_literal, expanded) {
   TEST_IMPL(R"("")", as_literal<literal_style::expanded>(""));
+  TEST_IMPL(R"("\x0d")", as_literal<literal_style::expanded>("\x0d"));
+  TEST_IMPL(R"("\xd0")", as_literal<literal_style::expanded>("\xd0"));
   TEST_IMPL(R"("\x00")", as_literal<literal_style::expanded>(std::string("", 1)));
   TEST_IMPL(
     R"("\x68\x65\x6c\x6c\x6f\x2c\x20\x77\x6f\x72\x6c\x64")",
@@ -51,6 +53,8 @@ FATAL_TEST(to_string_literal, expanded) {
 
 FATAL_TEST(to_string_literal, readable) {
   TEST_IMPL("", as_literal<literal_style::readable>(""));
+  TEST_IMPL("0d", as_literal<literal_style::readable>("\x0d"));
+  TEST_IMPL("d0", as_literal<literal_style::readable>("\xd0"));
   TEST_IMPL("00", as_literal<literal_style::readable>(std::string("", 1)));
   TEST_IMPL(
     "68 65 6c 6c   6f 2c 20 77   6f 72 6c 64",
@@ -68,6 +72,8 @@ FATAL_TEST(to_string_literal, readable) {
 
 FATAL_TEST(to_string_literal, compact) {
   TEST_IMPL(R"("")", as_literal(""));
+  TEST_IMPL(R"("\r")", as_literal("\x0d"));
+  TEST_IMPL(R"("\xd0")", as_literal("\xd0"));
   TEST_IMPL(R"("\0")", as_literal(std::string("", 1)));
   TEST_IMPL(R"("hello, world")", as_literal("hello, world"));
   TEST_IMPL(R"("\x10 0")", as_literal("\x10\x20\x30"));
