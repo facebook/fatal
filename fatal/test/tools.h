@@ -16,7 +16,6 @@
 #include <cstdint>
 
 namespace fatal {
-namespace test {
 
 inline char lshd(std::uint8_t c) {
   return "0123456789abcdef"[c & 0xf];
@@ -29,7 +28,7 @@ template <
   typename Out,
   typename Buffer
 >
-void to_string_literal(Out &out, Buffer const &v) {
+void data_as_literal(Out &out, Buffer const &v) {
   switch (Style) {
     case literal_style::expanded: {
       out << '"';
@@ -106,19 +105,18 @@ void to_string_literal(Out &out, Buffer const &v) {
   }
 }
 
-template <literal_style Style = literal_style::compact, typename Buffer>
-std::string to_string_literal(Buffer const &v) {
+template <literal_style Style = literal_style::expanded, typename Buffer>
+std::string data_as_literal(Buffer const &v) {
   std::ostringstream ss;
-  to_string_literal<Style>(ss, v);
+  data_as_literal<Style>(ss, v);
   return ss.str();
 }
 
-template <literal_style Style = literal_style::compact>
-std::string as_literal(std::string const &s) {
-  return to_string_literal<Style>(s);
+template <literal_style Style = literal_style::expanded>
+std::string string_as_literal(std::string const &s) {
+  return data_as_literal<Style>(s);
 }
 
-} // namespace test {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_test_tools_h
