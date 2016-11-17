@@ -25,7 +25,7 @@ inline char lshd(std::uint8_t c) {
 enum class literal_style { compact, expanded, readable };
 
 template <
-  literal_style Style = literal_style::compact,
+  literal_style Style = literal_style::expanded,
   typename Out,
   typename Buffer
 >

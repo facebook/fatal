@@ -71,16 +71,24 @@ FATAL_TEST(to_string_literal, readable) {
 }
 
 FATAL_TEST(to_string_literal, compact) {
-  TEST_IMPL(R"("")", as_literal(""));
-  TEST_IMPL(R"("\r")", as_literal("\x0d"));
-  TEST_IMPL(R"("\xd0")", as_literal("\xd0"));
-  TEST_IMPL(R"("\0")", as_literal(std::string("", 1)));
-  TEST_IMPL(R"("hello, world")", as_literal("hello, world"));
-  TEST_IMPL(R"("\x10 0")", as_literal("\x10\x20\x30"));
-  TEST_IMPL(R"("\n\x14\x1e")", as_literal("\xa\x14\x1e"));
+  TEST_IMPL(R"("")", as_literal<literal_style::compact>(""));
+  TEST_IMPL(R"("\r")", as_literal<literal_style::compact>("\x0d"));
+  TEST_IMPL(R"("\xd0")", as_literal<literal_style::compact>("\xd0"));
+  TEST_IMPL(R"("\0")", as_literal<literal_style::compact>(std::string("", 1)));
+  TEST_IMPL(
+    R"("hello, world")",
+    as_literal<literal_style::compact>("hello, world")
+  );
+  TEST_IMPL(R"("\x10 0")", as_literal<literal_style::compact>("\x10\x20\x30"));
+  TEST_IMPL(
+    R"("\n\x14\x1e")",
+    as_literal<literal_style::compact>("\xa\x14\x1e")
+  );
   TEST_IMPL(
     R"("\n\r\t\v\a\b\f\xff;\xab""a\x5 \t'\"\x13\x10\r\n")",
-    as_literal("\n\r\t\v\a\b\f\xff;\xab""a\x5 \x9'\"\x13""\x10""\xd""\xa")
+    as_literal<literal_style::compact>(
+      "\n\r\t\v\a\b\f\xff;\xab""a\x5 \x9'\"\x13""\x10""\xd""\xa"
+    )
   );
 }
 
