@@ -186,7 +186,7 @@ public:
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-struct data_member_getter {
+struct member_getter {
 # define FATAL_IMPL_WELL_KNOWN_DATA_MEMBER_GETTER(...) \
   FATAL_DATA_MEMBER_GETTER(__VA_ARGS__, __VA_ARGS__); \
   FATAL_DATA_MEMBER_GETTER(FATAL_CAT(__VA_ARGS__, _), FATAL_CAT(__VA_ARGS__, _))
