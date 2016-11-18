@@ -405,7 +405,9 @@ FATAL_TEST(data_member_getter, getter) {
   std::vector<short> v{1, 2, 3, 4, 5, 6};
   float const fcr = 7.2;
 
-  data_member_getter_test::data x(i, scl, std::move(lr), dc, bl, v, std::move(fcr));
+  data_member_getter_test::data x(
+    i, scl, std::move(lr), dc, bl, v, std::move(fcr)
+  );
 
   FATAL_ASSERT_EQ(i, x.i);
   FATAL_ASSERT_EQ(scl, x.scl);
@@ -436,14 +438,17 @@ FATAL_TEST(data_member_getter, getter) {
     TEST_PREAMBLE_IMPL(Field); \
     \
     FATAL_EXPECT_EQ(Field, getter::ref(Data)); \
-    FATAL_EXPECT_EQ(Field, getter::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Field, data_member_referencer<getter>()(Data)); \
     FATAL_EXPECT_EQ(Field, chained_getter::ref(Data)); \
-    FATAL_EXPECT_EQ(Field, chained_getter::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Field, data_member_referencer<chained_getter>()(Data)); \
     \
     FATAL_EXPECT_EQ(Data.Field, getter::ref(Data)); \
-    FATAL_EXPECT_EQ(Data.Field, getter::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Data.Field, data_member_referencer<getter>()(Data)); \
     FATAL_EXPECT_EQ(Data.Field, chained_getter::ref(Data)); \
-    FATAL_EXPECT_EQ(Data.Field, chained_getter::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ( \
+      Data.Field, \
+      data_member_referencer<chained_getter>()(Data) \
+    ); \
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Field), \
@@ -452,7 +457,7 @@ FATAL_TEST(data_member_getter, getter) {
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Field), \
-      std::addressof(getter::ref_getter()(Data)) \
+      std::addressof(data_member_referencer<getter>()(Data)) \
     ); \
     \
     FATAL_EXPECT_EQ( \
@@ -462,7 +467,7 @@ FATAL_TEST(data_member_getter, getter) {
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Field), \
-      std::addressof(chained_getter::ref_getter()(Data)) \
+      std::addressof(data_member_referencer<chained_getter>()(Data)) \
     ); \
     \
     FATAL_EXPECT_SAME< \
@@ -482,7 +487,7 @@ FATAL_TEST(data_member_getter, getter) {
           std::remove_reference<decltype(Data)>::type \
         >::type \
       >::type, \
-      decltype(getter::ref_getter()(Data)) \
+      decltype(data_member_referencer<getter>()(Data)) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
@@ -502,7 +507,7 @@ FATAL_TEST(data_member_getter, getter) {
           std::remove_reference<decltype(Data)>::type \
         >::type \
       >::type, \
-      decltype(chained_getter::ref_getter()(Data)) \
+      decltype(data_member_referencer<chained_getter>()(Data)) \
     >(); \
   } while (false)
 
@@ -528,14 +533,17 @@ FATAL_TEST(data_member_getter, getter) {
     TEST_PREAMBLE_IMPL(Field); \
     \
     FATAL_EXPECT_EQ(Field, getter::ref(std::move(Data))); \
-    FATAL_EXPECT_EQ(Field, getter::ref_getter()(std::move(Data))); \
+    FATAL_EXPECT_EQ(Field, data_member_referencer<getter>()(std::move(Data))); \
     FATAL_EXPECT_EQ(Field, chained_getter::ref(std::move(Data))); \
-    FATAL_EXPECT_EQ(Field, chained_getter::ref_getter()(std::move(Data))); \
+    FATAL_EXPECT_EQ( \
+      Field, \
+      data_member_referencer<chained_getter>()(std::move(Data)) \
+    ); \
     \
     FATAL_EXPECT_EQ(std::move(Data).Field, getter::ref(std::move(Data))); \
     FATAL_EXPECT_EQ( \
       std::move(Data).Field, \
-      getter::ref_getter()(std::move(Data)) \
+      data_member_referencer<getter>()(std::move(Data)) \
     ); \
     \
     FATAL_EXPECT_EQ( \
@@ -544,7 +552,7 @@ FATAL_TEST(data_member_getter, getter) {
     ); \
     FATAL_EXPECT_EQ( \
       std::move(Data).Field, \
-      chained_getter::ref_getter()(std::move(Data)) \
+      data_member_referencer<chained_getter>()(std::move(Data)) \
     ); \
     \
     FATAL_EXPECT_SAME< \
@@ -564,7 +572,7 @@ FATAL_TEST(data_member_getter, getter) {
           std::remove_reference<decltype(std::move(Data))>::type \
         >::type \
       >::type, \
-      decltype(getter::ref_getter()(std::move(Data))) \
+      decltype(data_member_referencer<getter>()(std::move(Data))) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
@@ -584,7 +592,7 @@ FATAL_TEST(data_member_getter, getter) {
           std::remove_reference<decltype(std::move(Data))>::type \
         >::type \
       >::type, \
-      decltype(chained_getter::ref_getter()(std::move(Data))) \
+      decltype(data_member_referencer<chained_getter>()(std::move(Data))) \
     >(); \
   } while (false)
 
@@ -610,12 +618,15 @@ FATAL_TEST(data_member_getter, getter) {
     TEST_PREAMBLE_IMPL(Field); \
     \
     FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::ptr(Data)); \
-    FATAL_EXPECT_EQ(std::addressof(Data.Field), getter::ptr_getter()(Data)); \
+    FATAL_EXPECT_EQ( \
+      std::addressof(Data.Field), \
+      data_member_pointer<getter>()(Data) \
+    ); \
     \
     FATAL_EXPECT_EQ(std::addressof(Data.Field), chained_getter::ptr(Data)); \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Field), \
-      chained_getter::ptr_getter()(Data) \
+      data_member_pointer<chained_getter>()(Data) \
     ); \
     \
     FATAL_EXPECT_SAME< \
@@ -631,7 +642,7 @@ FATAL_TEST(data_member_getter, getter) {
         std::remove_pointer<decltype(std::addressof(Data.Field))>::type, \
         std::remove_reference<decltype(Data)>::type \
       >::type *, \
-      decltype(getter::ptr_getter()(Data)) \
+      decltype(data_member_pointer<getter>()(Data)) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
@@ -647,7 +658,7 @@ FATAL_TEST(data_member_getter, getter) {
         std::remove_pointer<decltype(std::addressof(Data.Field))>::type, \
         std::remove_reference<decltype(Data)>::type \
       >::type *, \
-      decltype(chained_getter::ptr_getter()(Data)) \
+      decltype(data_member_pointer<chained_getter>()(Data)) \
     >(); \
   } while (false)
 
@@ -1565,10 +1576,10 @@ FATAL_TEST(chained_data_member_getter, getter) {
     using getter = chained_data_member_getter<>; \
     \
     FATAL_EXPECT_EQ(Data, getter::ref(Data)); \
-    FATAL_EXPECT_EQ(Data, getter::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Data, data_member_referencer<getter>()(Data)); \
     \
     FATAL_EXPECT_EQ(Data, getter::ref(std::move(Data))); \
-    FATAL_EXPECT_EQ(Data, getter::ref_getter()(std::move(Data))); \
+    FATAL_EXPECT_EQ(Data, data_member_referencer<getter>()(std::move(Data))); \
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data), \
@@ -1577,14 +1588,14 @@ FATAL_TEST(chained_data_member_getter, getter) {
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data), \
-      std::addressof(getter::ref_getter()(Data)) \
+      std::addressof(data_member_referencer<getter>()(Data)) \
     ); \
     \
     FATAL_EXPECT_SAME<decltype(Data) &, decltype(getter::ref(Data))>(); \
     \
     FATAL_EXPECT_SAME< \
       decltype(Data) &, \
-      decltype(getter::ref_getter()(Data)) \
+      decltype(data_member_referencer<getter>()(Data)) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
@@ -1594,7 +1605,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
     \
     FATAL_EXPECT_SAME< \
       decltype(Data) &&, \
-      decltype(getter::ref_getter()(std::move(Data))) \
+      decltype(data_member_referencer<getter>()(std::move(Data))) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
@@ -1604,7 +1615,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
     \
     FATAL_EXPECT_SAME< \
       std::remove_reference<decltype(Data)>::type *, \
-      decltype(getter::ptr_getter()(Data)) \
+      decltype(data_member_pointer<getter>()(Data)) \
     >(); \
   } while (false)
 
@@ -1742,10 +1753,10 @@ FATAL_TEST(chained_data_member_getter, getter) {
     TEST_PREAMBLE_IMPL(Outer, Inner); \
     \
     FATAL_EXPECT_EQ(Outer##_##Inner, getter::ref(Data)); \
-    FATAL_EXPECT_EQ(Outer##_##Inner, getter::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Outer##_##Inner, data_member_referencer<getter>()(Data)); \
     \
     FATAL_EXPECT_EQ(Data.Outer.Inner, getter::ref(Data)); \
-    FATAL_EXPECT_EQ(Data.Outer.Inner, getter::ref_getter()(Data)); \
+    FATAL_EXPECT_EQ(Data.Outer.Inner, data_member_referencer<getter>()(Data)); \
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Outer.Inner), \
@@ -1754,7 +1765,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
     \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Outer.Inner), \
-      std::addressof(getter::ref_getter()(Data)) \
+      std::addressof(data_member_referencer<getter>()(Data)) \
     ); \
     \
     FATAL_EXPECT_SAME< \
@@ -1780,7 +1791,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
           >::type \
         >::type \
       >::type, \
-      decltype(getter::ref_getter()(Data)) \
+      decltype(data_member_referencer<getter>()(Data)) \
     >(); \
   } while (false)
 
@@ -1870,7 +1881,10 @@ FATAL_TEST(chained_data_member_getter, getter) {
     TEST_PREAMBLE_IMPL(Outer, Inner); \
     \
     FATAL_EXPECT_EQ(Outer##_##Inner, getter::ref(std::move(Data))); \
-    FATAL_EXPECT_EQ(Outer##_##Inner, getter::ref_getter()(std::move(Data))); \
+    FATAL_EXPECT_EQ( \
+      Outer##_##Inner, \
+      data_member_referencer<getter>()(std::move(Data)) \
+    ); \
     \
     FATAL_EXPECT_EQ( \
       std::move(Data).Outer.Inner, \
@@ -1878,7 +1892,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
     ); \
     FATAL_EXPECT_EQ( \
       std::move(Data).Outer.Inner, \
-      getter::ref_getter()(std::move(Data)) \
+      data_member_referencer<getter>()(std::move(Data)) \
     ); \
     \
     FATAL_EXPECT_SAME< \
@@ -1906,7 +1920,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
         >::type &&, \
         decltype(std::move(Data).Outer) \
       >::type, \
-      decltype(getter::ref_getter()(std::move(Data))) \
+      decltype(data_member_referencer<getter>()(std::move(Data))) \
     >(); \
   } while (false)
 
@@ -1998,7 +2012,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
     FATAL_EXPECT_EQ(std::addressof(Data.Outer.Inner), getter::ptr(Data)); \
     FATAL_EXPECT_EQ( \
       std::addressof(Data.Outer.Inner), \
-      getter::ptr_getter()(Data) \
+      data_member_pointer<getter>()(Data) \
     ); \
     \
     FATAL_EXPECT_SAME< \
@@ -2020,7 +2034,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
           std::remove_reference<decltype(Data.Outer)>::type \
         >::type \
       >::type *, \
-      decltype(getter::ptr_getter()(Data)) \
+      decltype(data_member_pointer<getter>()(Data)) \
     >(); \
   } while (false)
 

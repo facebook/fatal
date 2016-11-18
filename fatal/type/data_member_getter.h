@@ -14,6 +14,7 @@
 #include <fatal/type/add_reference_from.h>
 #include <fatal/type/constify_from.h>
 #include <fatal/type/sequence.h>
+#include <fatal/type/tag.h>
 
 #include <type_traits>
 #include <utility>
@@ -59,10 +60,7 @@ namespace fatal {
     __VA_ARGS__ \
   ) \
 
-namespace detail {
-
-template <typename> struct tag {};
-
+// TODO: MOVE THE CALLABLE OBJECTS OUT OF DATA_MEMBER_GETTER
 template <typename Impl>
 class data_member_getter {
   using impl = Impl;
@@ -89,7 +87,6 @@ public:
 
   template <typename Owner>
   static constexpr inline typename std::decay<type<Owner>> copy(Owner &&owner) {
-    static_assert(std::is_reference<reference<Owner>>::value, "");
     return impl::copy(std::forward<Owner>(owner));
   }
 
@@ -104,14 +101,6 @@ public:
     return impl::ref(std::forward<Owner>(owner));
   }
 
-  struct ref_getter {
-    template <typename Owner>
-    constexpr inline reference<Owner> operator ()(Owner &&owner) const {
-      static_assert(std::is_reference<reference<Owner>>::value, "");
-      return ref(std::forward<Owner>(owner));
-    }
-  };
-
   template <typename Owner>
   using pointer = typename std::remove_reference<reference<Owner>>::type *;
 
@@ -120,14 +109,6 @@ public:
     static_assert(std::is_pointer<pointer<Owner>>::value, "");
     return std::addressof(ref(owner));
   }
-
-  struct ptr_getter {
-    template <typename Owner>
-    constexpr inline pointer<Owner> operator ()(Owner &owner) const {
-      static_assert(std::is_pointer<pointer<Owner>>::value, "");
-      return ptr(owner);
-    }
-  };
 
 private:
   template <typename Owner>
@@ -145,14 +126,66 @@ public:
   static constexpr inline pointer<Owner> try_get(Owner &owner) {
     return t(has<Owner>(), owner);
   }
+};
 
-  struct try_getter {
-    template <typename Owner>
-    constexpr inline pointer<Owner> operator ()(Owner &owner) const {
-      static_assert(std::is_pointer<pointer<Owner>>::value, "");
-      return try_get(owner);
-    }
-  };
+template <typename Getter>
+struct data_member_copier {
+  template <typename Owner>
+  constexpr inline typename std::decay<
+    typename Getter::template type<Owner>
+  > operator ()(Owner &&owner) const {
+    return Getter::copy(std::forward<Owner>(owner));
+  }
+};
+
+template <typename Getter>
+struct data_member_setter {
+  template <typename Owner, typename Value>
+  inline void operator ()(Owner &&owner, Value &&value) const {
+    return Getter::set(std::forward<Owner>(owner), std::forward<Value>(value));
+  }
+};
+
+template <typename Getter>
+struct data_member_referencer {
+  template <typename Owner>
+  constexpr inline typename Getter::template reference<Owner> operator ()(
+    Owner &&owner
+  ) const {
+    static_assert(
+      std::is_reference<typename Getter::template reference<Owner>>::value,
+      ""
+    );
+    return Getter::ref(std::forward<Owner>(owner));
+  }
+};
+
+template <typename Getter>
+struct data_member_pointer {
+  template <typename Owner>
+  constexpr inline typename Getter::template pointer<Owner> operator ()(
+    Owner &owner
+  ) const {
+    static_assert(
+      std::is_pointer<typename Getter::template pointer<Owner>>::value,
+      ""
+    );
+    return Getter::ptr(owner);
+  }
+};
+
+template <typename Getter>
+struct data_member_try_getter {
+  template <typename Owner>
+  constexpr inline typename Getter::template pointer<Owner> operator ()(
+    Owner &owner
+  ) const {
+    static_assert(
+      std::is_pointer<typename Getter::template pointer<Owner>>::value,
+      ""
+    );
+    return Getter::try_get(owner);
+  }
 };
 
 #define FATAL_IMPL_DATA_MEMBER_GETTER(Class, Impl, ...) \
@@ -199,13 +232,11 @@ public:
     } \
   }; \
   \
-  using Class = ::fatal::detail::data_member_getter<Impl>
+  using Class = ::fatal::data_member_getter<Impl>
 
-} // namespace detail {
-
-////////////////////////
-// data_member_getter //
-////////////////////////
+///////////////////
+// member_getter //
+///////////////////
 
 /**
  * Instantiations of FATAL_DATA_MEMBER_GETTER
