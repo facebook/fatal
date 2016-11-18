@@ -88,14 +88,14 @@ public:
   using has = decltype(has_impl::sfinae(tag<Owner>()));
 
   template <typename Owner>
-  static inline reference<Owner> ref(Owner &&owner) {
+  static constexpr inline reference<Owner> ref(Owner &&owner) {
     static_assert(std::is_reference<reference<Owner>>::value, "");
     return impl::ref(std::forward<Owner>(owner));
   }
 
   struct ref_getter {
     template <typename Owner>
-    inline reference<Owner> operator ()(Owner &&owner) const {
+    constexpr inline reference<Owner> operator ()(Owner &&owner) const {
       static_assert(std::is_reference<reference<Owner>>::value, "");
       return ref(std::forward<Owner>(owner));
     }
@@ -105,14 +105,14 @@ public:
   using pointer = typename std::remove_reference<reference<Owner>>::type *;
 
   template <typename Owner>
-  static inline pointer<Owner> ptr(Owner &owner) {
+  static constexpr inline pointer<Owner> ptr(Owner &owner) {
     static_assert(std::is_pointer<pointer<Owner>>::value, "");
     return std::addressof(ref(owner));
   }
 
   struct ptr_getter {
     template <typename Owner>
-    inline pointer<Owner> operator ()(Owner &owner) const {
+    constexpr inline pointer<Owner> operator ()(Owner &owner) const {
       static_assert(std::is_pointer<pointer<Owner>>::value, "");
       return ptr(owner);
     }
@@ -120,7 +120,7 @@ public:
 
 private:
   template <typename Owner>
-  static inline pointer<Owner> t(std::true_type, Owner &owner) {
+  static constexpr inline pointer<Owner> t(std::true_type, Owner &owner) {
     return ptr(owner);
   }
 
@@ -131,13 +131,13 @@ private:
 
 public:
   template <typename Owner>
-  static inline pointer<Owner> try_get(Owner &owner) {
+  static constexpr inline pointer<Owner> try_get(Owner &owner) {
     return t(has<Owner>(), owner);
   }
 
   struct try_getter {
     template <typename Owner>
-    inline pointer<Owner> operator ()(Owner &owner) const {
+    constexpr inline pointer<Owner> operator ()(Owner &owner) const {
       static_assert(std::is_pointer<pointer<Owner>>::value, "");
       return try_get(owner);
     }
@@ -165,7 +165,7 @@ public:
     FATAL_S(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
     template <typename Owner> \
-    static inline typename reference<Owner>::ref_impl ref(Owner &&owner) { \
+    static constexpr inline typename reference<Owner>::ref_impl ref(Owner &&owner) { \
       return static_cast<typename reference<Owner>::ref_impl>( \
         ::std::forward<Owner>(owner).__VA_ARGS__ \
       ); \
