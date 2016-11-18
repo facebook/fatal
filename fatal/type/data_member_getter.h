@@ -88,6 +88,17 @@ public:
   using has = decltype(has_impl::sfinae(tag<Owner>()));
 
   template <typename Owner>
+  static constexpr inline typename std::decay<type<Owner>> copy(Owner &&owner) {
+    static_assert(std::is_reference<reference<Owner>>::value, "");
+    return impl::copy(std::forward<Owner>(owner));
+  }
+
+  template <typename Owner, typename Value>
+  static inline void set(Owner &&owner, Value &&value) {
+    return impl::set(std::forward<Owner>(owner), std::forward<Value>(value));
+  }
+
+  template <typename Owner>
   static constexpr inline reference<Owner> ref(Owner &&owner) {
     static_assert(std::is_reference<reference<Owner>>::value, "");
     return impl::ref(std::forward<Owner>(owner));
@@ -165,7 +176,23 @@ public:
     FATAL_S(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
     template <typename Owner> \
-    static constexpr inline typename reference<Owner>::ref_impl ref(Owner &&owner) { \
+    static constexpr inline typename ::std::decay<type<Owner>>::type copy( \
+      Owner &&owner \
+    ) { \
+      return static_cast<typename ::std::decay<type<Owner>>::type>( \
+        ::std::forward<Owner>(owner).__VA_ARGS__ \
+      ); \
+    } \
+    \
+    template <typename Owner, typename Value> \
+    static inline void set(Owner &&owner, Value &&value) { \
+      ::std::forward<Owner>(owner).__VA_ARGS__ = ::std::forward<Value>(value); \
+    } \
+    \
+    template <typename Owner> \
+    static constexpr inline typename reference<Owner>::ref_impl ref( \
+      Owner &&owner \
+    ) { \
       return static_cast<typename reference<Owner>::ref_impl>( \
         ::std::forward<Owner>(owner).__VA_ARGS__ \
       ); \
