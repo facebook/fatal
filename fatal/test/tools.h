@@ -17,7 +17,7 @@
 
 namespace fatal {
 
-inline char lshd(std::uint8_t c) {
+inline char least_significant_hex_digit(std::uint8_t c) {
   return "0123456789abcdef"[c & 0xf];
 }
 
@@ -34,8 +34,8 @@ void data_as_literal(Out &out, Buffer const &v) {
       out << '"';
       for (std::uint8_t c: v) {
         out << "\\x";
-        out << lshd(c >> 4);
-        out << lshd(c);
+        out << least_significant_hex_digit(c >> 4);
+        out << least_significant_hex_digit(c);
       }
       out << '"';
       break;
@@ -49,8 +49,8 @@ void data_as_literal(Out &out, Buffer const &v) {
             out << "  ";
           }
         }
-        out << lshd(c >> 4);
-        out << lshd(c);
+        out << least_significant_hex_digit(c >> 4);
+        out << least_significant_hex_digit(c);
         ++size;
       }
       break;
@@ -91,10 +91,9 @@ void data_as_literal(Out &out, Buffer const &v) {
             default:
               out << "\\x";
               if (c >> 4) {
-                out << lshd(c >> 4);
+                out << least_significant_hex_digit(c >> 4);
               }
-              out << lshd(c);
-              //out << std::hex << static_cast<std::uint8_t>(c);
+              out << least_significant_hex_digit(c);
               hex = true;
           }
         }
