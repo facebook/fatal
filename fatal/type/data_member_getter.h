@@ -86,7 +86,9 @@ public:
   using has = decltype(has_impl::sfinae(tag<Owner>()));
 
   template <typename Owner>
-  static constexpr inline typename std::decay<type<Owner>> copy(Owner &&owner) {
+  static constexpr inline typename std::decay<type<Owner>>::type copy(
+    Owner &&owner
+  ) {
     return impl::copy(std::forward<Owner>(owner));
   }
 
@@ -133,7 +135,7 @@ struct data_member_copier {
   template <typename Owner>
   constexpr inline typename std::decay<
     typename Getter::template type<Owner>
-  > operator ()(Owner &&owner) const {
+  >::type operator ()(Owner &&owner) const {
     return Getter::copy(std::forward<Owner>(owner));
   }
 };
