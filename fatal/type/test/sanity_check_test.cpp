@@ -18,7 +18,6 @@
 #include <fatal/type/logical.h>
 #include <fatal/type/longest_common_prefix.h>
 #include <fatal/type/pair.h>
-#include <fatal/type/push.h>
 #include <fatal/type/replace.h>
 #include <fatal/type/search.h>
 #include <fatal/type/select.h>
@@ -797,25 +796,6 @@ int main() {
   SAME(index_sequence<0, 1, 2, 3, 100, 5, 6>, replace<seq>::at<4, 100>);
   SAME(index_sequence<0, 1, 2, 3, 4, 100, 6>, replace<seq>::at<5, 100>);
   SAME(index_sequence<0, 1, 2, 3, 4, 5, 100>, replace<seq>::at<6, 100>);
-
-  SAME(lst, push<lst>::front<>);
-  SAME(lst, push<lst>::back<>);
-  SAME(
-    list<void *, int, double, bool, void, float, char, unsigned>,
-    push<lst>::front<void *>
-  );
-  SAME(
-    list<int, double, bool, void, float, char, unsigned, void *>,
-    push<lst>::back<void *>
-  );
-  SAME(
-    list<void *, int *, char *, int, double, bool, void, float, char, unsigned>,
-    push<lst>::front<void *, int *, char *>
-  );
-  SAME(
-    list<int, double, bool, void, float, char, unsigned, void *, int *, char *>,
-    push<lst>::back<void *, int *, char *>
-  );
 
   SAME(
     test_list<int, double, bool, void, float, char, unsigned>,
