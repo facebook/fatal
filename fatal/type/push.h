@@ -15,15 +15,19 @@
 namespace fatal {
 
 template <typename T>
-using push = typename impl_psh::to<T>;
+using push = typename i_P::p<T>;
 
-// TODO: REDUCE TEMPLATE INSTANTIATIONS
 template <typename T, typename... Args>
-using push_back = typename push<T>::template back<Args...>;
+using push_back = typename i_P::b<T, Args...>::type;
 
-// TODO: REDUCE TEMPLATE INSTANTIATIONS
 template <typename T, typename... Args>
-using push_front = typename push<T>::template front<Args...>;
+using push_front = typename i_P::f<T, Args...>::type;
+
+template <bool Condition, typename T, typename... Args>
+using push_back_if = typename i_P::B<Condition, T, Args...>::type;
+
+template <bool Condition, typename T, typename... Args>
+using push_front_if = typename i_P::F<Condition, T, Args...>::type;
 
 } // namespace fatal {
 
