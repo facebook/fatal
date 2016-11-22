@@ -70,27 +70,51 @@ struct p<List<Args...>> {
   using front_if = typename F<C, List<Args...>, Prefix...>::type;
 };
 
+template <bool, typename T, typename, T...> struct E;
+
+template <
+  typename T, template <typename V, V...> class Sequence,
+  T... Values, T... Suffix
+>
+struct E<true, T, Sequence<T, Values...>, Suffix...> {
+  using type = Sequence<T, Values..., Suffix...>;
+};
+
+template <typename T, typename Sequence, T... Suffix>
+struct E<false, T, Sequence, Suffix...> {
+  using type = T;
+};
+
+template <bool, typename T, typename, T...> struct S;
+
+template <
+  typename T, template <typename V, V...> class Sequence,
+  T... Values, T... Prefix
+>
+struct S<true, T, Sequence<T, Values...>, Prefix...> {
+  using type = Sequence<T, Prefix..., Values...>;
+};
+
+template <typename T, typename Sequence, T... Prefix>
+struct S<false, T, Sequence, Prefix...> {
+  using type = Sequence;
+};
+
 template <template <typename V, V...> class Sequence, typename T, T... Values>
 struct p<Sequence<T, Values...>> {
-  template<T... Suffix>
+  template <T... Suffix>
   using back = Sequence<T, Values..., Suffix...>;
 
-  template<T... Prefix>
+  template  <T... Prefix>
   using front = Sequence<T, Prefix..., Values...>;
 
-  template<bool C, T... Suffix>
-  using back_if = typename std::conditional<
-    C,
-    Sequence<T, Values..., Suffix...>,
-    Sequence<T, Values...>
-  >::type;
+  using type = Sequence<T, Values...>;
+
+  template <bool C, T... Suffix>
+  using back_if = typename E<C, T, type, Suffix...>::type;
 
   template<bool C, T... Prefix>
-  using front_if = typename std::conditional<
-    C,
-    Sequence<T, Prefix..., Values...>,
-    Sequence<T, Values...>
-  >::type;
+  using front_if = typename S<C, T, type, Prefix...>::type;
 };
 
 } // namespace i_P {
