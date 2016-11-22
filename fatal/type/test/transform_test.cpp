@@ -244,4 +244,7 @@ FATAL_TEST(transform, 6 transforms) {
   >();
 }
 
+FATAL_TEST(transform_if, transform_if) {
+}
+
 } // namespace fatal {

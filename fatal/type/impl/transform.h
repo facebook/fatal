@@ -13,6 +13,7 @@
 namespace fatal {
 namespace i_t {
 
+// transform //
 template <typename...> struct t;
 
 template <template <typename...> class Variadic, typename... Args>
@@ -90,6 +91,23 @@ struct t<Variadic<Args...>, T0, T1, T2, T3, T4, Tn...>:
     Tn...
   >
 {};
+
+// transform_if //
+template <bool, typename WhenTrue, typename>
+struct C: WhenTrue {};
+
+template <typename WhenTrue, typename WhenFalse>
+struct C<false, WhenTrue, WhenFalse>: WhenFalse {};
+
+template <typename Predicate, typename WhenTrue, typename WhenFalse>
+struct c {
+  template <typename T>
+  using apply = typename C<
+    Predicate::template apply<T>::value,
+    WhenTrue,
+    WhenFalse
+  >::template apply<T>;
+};
 
 } // namespace i_t {
 } // namespace fatal {
