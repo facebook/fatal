@@ -11,13 +11,13 @@
 #define FATAL_INCLUDE_fatal_type_impl_accumulate_h
 
 namespace fatal {
-namespace impl_acc {
+namespace i_A {
 
 // TODO: Implement a version for  sequences
-template <typename...> struct accumulate;
+template <typename...> struct a;
 
 template <typename Fn, typename Seed>
-struct accumulate<Fn, Seed> {
+struct a<Fn, Seed> {
   using type = Seed;
 };
 
@@ -27,8 +27,8 @@ template <
   typename T,
   typename... Args
 >
-struct accumulate<Fn, Seed, T, Args...>:
-  accumulate<Fn, typename Fn::template apply<Seed, T>, Args...>
+struct a<Fn, Seed, T, Args...>:
+  a<Fn, typename Fn::template apply<Seed, T>, Args...>
 {};
 
 template <typename...> struct F;
@@ -40,10 +40,16 @@ template <
   typename... Args
 >
 struct F<Seed, Fn, V<Args...>>:
-  accumulate<Fn, Seed, Args...>
+  a<Fn, Seed, Args...>
 {};
 
-} // namespace impl_acc {
+// default metafunction //
+struct f {
+  template <typename Seed, typename T>
+  using apply = typename Seed::template apply<T>;
+};
+
+} // namespace i_A {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_accumulate_h

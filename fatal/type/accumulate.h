@@ -14,8 +14,8 @@
 
 namespace fatal {
 
-template <typename Seed, typename Fn, typename T>
-using accumulate = typename impl_acc::F<Seed, Fn, T>::type;
+template <typename T, typename Seed, typename Fn = i_A::f>
+using accumulate = typename i_A::F<Seed, Fn, T>::type;
 
 } // namespace fatal {
 

@@ -19,37 +19,37 @@ namespace fatal {
 FATAL_TEST(accumulate, sanity check) {
   FATAL_EXPECT_SAME<
     std::integral_constant<int, 0>,
-    accumulate<std::integral_constant<int, 0>, add, list<>>
+    accumulate<list<>, std::integral_constant<int, 0>, add>
   >();
 
   FATAL_EXPECT_SAME<
     std::integral_constant<int, 5>,
-    accumulate<std::integral_constant<int, 0>, add, int_list<5>>
+    accumulate<int_list<5>, std::integral_constant<int, 0>, add>
   >();
 
   FATAL_EXPECT_SAME<
     std::integral_constant<int, 6>,
-    accumulate<std::integral_constant<int, 1>, add, int_list<5>>
+    accumulate<int_list<5>, std::integral_constant<int, 1>, add>
   >();
 
   FATAL_EXPECT_SAME<
     std::integral_constant<int, 5>,
-    accumulate<std::integral_constant<int, 0>, add, int_list<1, 1, 1, 1, 1>>
+    accumulate<int_list<1, 1, 1, 1, 1>,std::integral_constant<int, 0>, add>
   >();
 
   FATAL_EXPECT_SAME<
     std::integral_constant<int, 12>,
-    accumulate<std::integral_constant<int, 2>, add, int_list<2, 2, 2, 2, 2>>
+    accumulate<int_list<2, 2, 2, 2, 2>, std::integral_constant<int, 2>, add>
   >();
 
   FATAL_EXPECT_SAME<
     std::integral_constant<int, 15>,
-    accumulate<std::integral_constant<int, 0>, add, int_list<1, 2, 3, 4, 5>>
+    accumulate<int_list<1, 2, 3, 4, 5>, std::integral_constant<int, 0>, add>
   >();
 
   FATAL_EXPECT_SAME<
     std::integral_constant<int, 32>,
-    accumulate<std::integral_constant<int, 2>, add, int_list<2, 4, 6, 8, 10>>
+    accumulate<int_list<2, 4, 6, 8, 10>, std::integral_constant<int, 2>, add>
   >();
 }
 
