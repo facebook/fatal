@@ -197,13 +197,13 @@ struct data_member_try_getter {
     \
     template <typename Owner> \
     struct reference { \
-      using ref_impl = typename ::fatal::add_reference_from< \
+      using ref_impl = ::fatal::add_reference_from_t< \
         typename ::fatal::constify_from< \
           type<Owner>, \
           typename ::std::remove_reference<Owner>::type \
         >::type, \
         Owner && \
-      >::type; \
+      >; \
       \
       static_assert(std::is_reference<ref_impl>::value, ""); \
     }; \

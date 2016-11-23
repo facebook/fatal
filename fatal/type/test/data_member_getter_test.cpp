@@ -1896,7 +1896,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
     ); \
     \
     FATAL_EXPECT_SAME< \
-      add_reference_from< \
+      add_reference_from_t< \
         constify_from< \
           decltype(std::move(Data.Outer).Inner), \
           constify_from< \
@@ -1905,12 +1905,12 @@ FATAL_TEST(chained_data_member_getter, getter) {
           >::type \
         >::type &&, \
         decltype(std::move(Data).Outer) \
-      >::type, \
+      >, \
       decltype(getter::ref(std::move(Data))) \
     >(); \
     \
     FATAL_EXPECT_SAME< \
-      add_reference_from< \
+      add_reference_from_t< \
         constify_from< \
           decltype(std::move(Data).Outer.Inner), \
           constify_from< \
@@ -1919,7 +1919,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
           >::type \
         >::type &&, \
         decltype(std::move(Data).Outer) \
-      >::type, \
+      >, \
       decltype(data_member_referencer<getter>()(std::move(Data))) \
     >(); \
   } while (false)
