@@ -44,6 +44,7 @@ struct F<Seed, Fn, V<Args...>>:
 {};
 
 // default metafunction //
+// TODO: TEST DEFAULT METAFUNCTION
 struct f {
   template <typename Seed, typename T>
   using apply = typename Seed::template apply<T>;

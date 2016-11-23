@@ -23,9 +23,9 @@ template <
   typename T,
   typename Predicate,
   typename WhenTrue,
-  typename WhenFalse = identity
+  typename WhenFalse = get_identity
 >
-using transform_if = = transform<T, i_t::c<Predicate, WhenTrue, WhenFalse>>;
+using transform_if = transform<T, i_t::c<Predicate, WhenTrue, WhenFalse>>;
 
 } // namespace fatal {
 
