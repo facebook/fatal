@@ -70,12 +70,15 @@ enum class ref_qualifier:
  *
  *  // yields `foo`
  *  using result1 = add_const_from<foo, int>::type;
+ *  using result1 = add_const_from_t<foo, int>;
  *
  *  // yields `foo const`
  *  using result2 = add_const_from<foo, int const>::type;
+ *  using result2 = add_const_from_t<foo, int const>;
  *
  *  // yields `foo const`
  *  using result3 = add_const_from<foo const, int const>::type;
+ *  using result3 = add_const_from_t<foo const, int const>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -89,6 +92,9 @@ struct add_const_from<T, TFrom const> {
   using type = typename std::add_const<T>::type;
 };
 
+template <typename T, typename TFrom>
+using add_const_from_t = typename add_const_from<T, TFrom>::type;
+
 /**
  * Given types `T` and `U`:
  * - if `U` is not a reference, yield `T`
@@ -101,21 +107,27 @@ struct add_const_from<T, TFrom const> {
  *
  *  // yields `foo`
  *  using result1 = add_reference_from<foo, int>::type;
+ *  using result1 = add_reference_from_t<foo, int>;
  *
  *  // yields `foo &&`
  *  using result2 = add_reference_from<foo &&, int>::type;
+ *  using result2 = add_reference_from_t<foo &&, int>;
  *
  *  // yields `foo &`
  *  using result3 = add_reference_from<foo, int &>::type;
+ *  using result3 = add_reference_from_t<foo, int &>;
  *
  *  // yields `foo &`
  *  using result4 = add_reference_from<foo &&, int &>::type;
+ *  using result4 = add_reference_from_t<foo &&, int &>;
  *
  *  // yields `foo &&`
  *  using result5 = add_reference_from<foo, int &&>::type;
+ *  using result5 = add_reference_from_t<foo, int &&>;
  *
  *  // yields `foo &`
  *  using result6 = add_reference_from<foo &, int &&>::type;
+ *  using result6 = add_reference_from_t<foo &, int &&>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
@@ -133,6 +145,9 @@ template <typename T, typename TFrom>
 struct add_reference_from<T, TFrom &&> {
   using type = typename std::add_rvalue_reference<T>::type;
 };
+
+template <typename T, typename TFrom>
+using add_reference_from_t = typename add_reference_from<T, TFrom>::type;
 
 } // namespace fatal {
 

@@ -43,10 +43,10 @@ namespace fatal {
  */
 template <typename T>
 struct constify {
-  using type = typename add_reference_from<
+  using type = add_reference_from_t<
     typename std::decay<T>::type const,
     T
-  >::type;
+  >;
 };
 
 } // namespace fatal
