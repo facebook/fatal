@@ -96,6 +96,102 @@ template <typename T, typename TFrom>
 using add_const_from_t = typename add_const_from<T, TFrom>::type;
 
 /**
+ * Applies `std::add_volatile` to a type iff some other type is volatile.
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `foo`
+ *  using result1 = add_volatile_from<foo, int>::type;
+ *  using result1 = add_volatile_from_t<foo, int>;
+ *
+ *  // yields `foo const`
+ *  using result2 = add_volatile_from<foo, int volatile>::type;
+ *  using result2 = add_volatile_from_t<foo, int volatile>;
+ *
+ *  // yields `foo const`
+ *  using result3 = add_volatile_from<foo volatile, int volatile>::type;
+ *  using result3 = add_volatile_from_t<foo volatile, int volatile>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, typename>
+struct add_volatile_from {
+  using type = T;
+};
+
+template <typename T, typename TFrom>
+struct add_volatile_from<T, TFrom volatile> {
+  using type = typename std::add_volatile<T>::type;
+};
+
+template <typename T, typename TFrom>
+using add_volatile_from_t = typename add_volatile_from<T, TFrom>::type;
+
+/**
+ * Applies `std::add_const` to a type iff some other type is const.
+ * Applies `std::add_volatile` to a type iff some other type is volatile.
+ * Applies `std::add_cv` toa  type iff some other type is const volatile.
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `foo`
+ *  using result1 = add_cv_from<foo, int>::type;
+ *  using result1 = add_cv_from_t<foo, int>;
+ *
+ *  // yields `foo const`
+ *  using result2 = add_cv_from<foo, int const>::type;
+ *  using result2 = add_cv_from_t<foo, int const>;
+ *
+ *  // yields `foo const`
+ *  using result3 = add_cv_from<foo const, int const>::type;
+ *  using result3 = add_cv_from_t<foo const, int const>;
+ *
+ *  // yields `foo volatile`
+ *  using result4 = add_cv_from<foo, int volatile>::type;
+ *  using result4 = add_cv_from_t<foo, int volatile>;
+ *
+ *  // yields `foo volatile`
+ *  using result5 = add_cv_from<foo volatile, int volatile>::type;
+ *  using result5 = add_cv_from_t<foo volatile, int volatile>;
+ *
+ *  // yields `foo const volatile`
+ *  using result6 = add_cv_from<foo, int const volatile>::type;
+ *  using result6 = add_cv_from_t<foo, int const volatile>;
+ *
+ *  // yields `foo const volatile`
+ *  using result7 = add_cv_from<foo const volatile, int const volatile>::type;
+ *  using result7 = add_cv_from_t<foo const volatile, int const volatile>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, typename>
+struct add_cv_from {
+  using type = T;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_from<T, TFrom const> {
+  using type = typename std::add_const<T>::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_from<T, TFrom volatile> {
+  using type = typename std::add_volatile<T>::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_from<T, TFrom const volatile> {
+  using type = typename std::add_cv<T>::type;
+};
+
+template <typename T, typename TFrom>
+using add_cv_from_t = typename add_cv_from<T, TFrom>::type;
+
+/**
  * Given types `T` and `U`:
  * - if `U` is not a reference, yield `T`
  * - if `U` is an l-value reference, yield `std::add_lvalue_reference<T>::type`
