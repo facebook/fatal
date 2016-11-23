@@ -11,8 +11,8 @@
 #define FATAL_INCLUDE_fatal_type_data_member_getter_h
 
 #include <fatal/preprocessor.h>
-#include <fatal/type/add_reference_from.h>
 #include <fatal/type/constify_from.h>
+#include <fatal/type/qualifier.h>
 #include <fatal/type/sequence.h>
 #include <fatal/type/tag.h>
 

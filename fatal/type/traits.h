@@ -11,13 +11,12 @@
 #define FATAL_INCLUDE_fatal_type_traits_h
 
 #include <fatal/preprocessor.h>
-#include <fatal/type/add_const_from.h>
-#include <fatal/type/add_reference_from.h>
 #include <fatal/type/constify.h>
 #include <fatal/type/constify_from.h>
 #include <fatal/type/data_member_getter.h>
 #include <fatal/type/deprecated/transform.h>
 #include <fatal/type/fast_pass.h> // TODO: REMOVE AND FIX DEPENDENCIES
+#include <fatal/type/qualifier.h>
 #include <fatal/type/remove_rvalue_reference.h>
 #include <fatal/type/same_reference_as.h>
 #include <fatal/type/scalar.h>
