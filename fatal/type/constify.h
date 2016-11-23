@@ -10,7 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_constify_h
 #define FATAL_INCLUDE_fatal_type_constify_h
 
-#include <fatal/type/add_reference_from.h>
+#include <fatal/type/qualifier.h>
 
 #include <type_traits>
 
