@@ -88,6 +88,75 @@ FATAL_TEST(qualifier, add_const_from) {
 # undef TEST_IMPL
 }
 
+FATAL_TEST(qualifier, add_volatile_from) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME<__VA_ARGS__, add_volatile_from_t<T, From>>();
+
+  TEST_IMPL(int, int &&, int &&);
+  TEST_IMPL(int, int &, int &);
+  TEST_IMPL(int, int *&&, int *&&);
+  TEST_IMPL(int, int *&, int *&);
+  TEST_IMPL(int, int *, int *);
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int *volatile&&, int *volatile&&);
+  TEST_IMPL(int, int *volatile &, int *volatile &);
+  TEST_IMPL(int, int *volatile, int *volatile);
+  TEST_IMPL(int, int volatile &&, int volatile &&);
+  TEST_IMPL(int, int volatile &, int volatile &);
+  TEST_IMPL(int, int volatile *&&, int volatile *&&);
+  TEST_IMPL(int, int volatile *&, int volatile *&);
+  TEST_IMPL(int, int volatile *, int volatile *);
+  TEST_IMPL(int, int volatile *volatile &&, int volatile *volatile &&);
+  TEST_IMPL(int, int volatile *volatile &, int volatile *volatile &);
+  TEST_IMPL(int, int volatile *volatile, int volatile *volatile);
+  TEST_IMPL(int, int volatile, int volatile);
+
+  TEST_IMPL(int volatile, int &&, int &&);
+  TEST_IMPL(int volatile, int &, int &);
+  TEST_IMPL(int volatile, int, int volatile);
+  TEST_IMPL(int volatile, int *&&, int *&&);
+  TEST_IMPL(int volatile, int *&, int *&);
+  TEST_IMPL(int volatile, int *, int *volatile);
+  TEST_IMPL(int volatile, int *volatile &&, int *volatile &&);
+  TEST_IMPL(int volatile, int *volatile &, int *volatile &);
+  TEST_IMPL(int volatile, int *volatile, int *volatile);
+  TEST_IMPL(int volatile, int volatile &&, int volatile &&);
+  TEST_IMPL(int volatile, int volatile &, int volatile &);
+  TEST_IMPL(int volatile, int volatile, int volatile);
+  TEST_IMPL(int volatile, int volatile *&&, int volatile *&&);
+  TEST_IMPL(int volatile, int volatile *&, int volatile *&);
+  TEST_IMPL(int volatile, int volatile *, int volatile *volatile);
+  TEST_IMPL(int volatile, int volatile *volatile &&, int volatile *volatile &&);
+  TEST_IMPL(int volatile, int volatile *volatile &, int volatile *volatile &);
+  TEST_IMPL(int volatile, int volatile *volatile, int volatile *volatile);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(qualifier, add_cv_from) {
+# define TEST_IMPL(From, T, ...) \
+  FATAL_EXPECT_SAME<__VA_ARGS__, add_cv_from_t<T, From>>();
+
+  TEST_IMPL(int, int, int);
+  TEST_IMPL(int, int const, int const);
+  TEST_IMPL(int, int volatile, int volatile);
+  TEST_IMPL(int, int const volatile, int const volatile);
+  TEST_IMPL(int const, int, int const);
+  TEST_IMPL(int const, int const, int const);
+  TEST_IMPL(int const, int volatile, int const volatile);
+  TEST_IMPL(int const, int const volatile, int const volatile);
+  TEST_IMPL(int volatile, int, int volatile);
+  TEST_IMPL(int volatile, int const, int const volatile);
+  TEST_IMPL(int volatile, int volatile, int volatile);
+  TEST_IMPL(int volatile, int const volatile, int const volatile);
+  TEST_IMPL(int const volatile, int, int const volatile);
+  TEST_IMPL(int const volatile, int const, int const volatile);
+  TEST_IMPL(int const volatile, int volatile, int const volatile);
+  TEST_IMPL(int const volatile, int const volatile, int const volatile);
+
+# undef TEST_IMPL
+}
+
 FATAL_TEST(qualifier, add_reference_from) {
 # define TEST_IMPL(From, T, ...) \
   FATAL_EXPECT_SAME<__VA_ARGS__, add_reference_from_t<T, From>>();
