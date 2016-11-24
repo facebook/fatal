@@ -245,6 +245,87 @@ struct add_reference_from<T, TFrom &&> {
 template <typename T, typename TFrom>
 using add_reference_from_t = typename add_reference_from<T, TFrom>::type;
 
+/**
+ * Combine the effects of `add_cv_from` and `add_reference_from`.
+ *
+ * Example:
+ *
+ *  struct foo {};
+ *
+ *  // yields `foo`
+ *  using result_1 = add_cv_reference_from<foo, int>::type;
+ *  using result_1 = add_cv_reference_from_t<foo, int>;
+ *
+ *  // yields `foo const &`
+ *  using result_2 = add_cv_reference_from<foo, int const &>::type;
+ *  using result_2 = add_cv_reference_from_t<foo, int const &>;
+ *
+ *  // yields `foo volatile &&`
+ *  using result_3 = add_cv_reference_from<foo, int volatile &&>::type;
+ *  using result_3 = add_cv_reference_from_t<foo, int volatile &&>;
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T, typename>
+struct add_cv_reference_from {
+  using type = T;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_reference_from<T, TFrom const> {
+  using type = typename std::add_const<T>::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_reference_from<T &, TFrom const> {
+  using type = typename std::add_lvalue_reference<
+    typename std::add_const<T>::type
+  >::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_reference_from<T &&, TFrom const> {
+  using type = typename std::add_rvalue_reference<
+    typename std::add_const<T>::type
+  >::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_reference_from<T, TFrom volatile> {
+  using type = typename std::add_volatile<T>::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_reference_from<T &, TFrom volatile> {
+  using type = typename std::add_lvalue_reference<
+    typename std::add_volatile<T>::type
+  >::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_reference_from<T &&, TFrom volatile> {
+  using type = typename std::add_rvalue_reference<
+    typename std::add_volatile<T>::type
+  >::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_reference_from<T, TFrom &> {
+  using type = typename std::add_lvalue_reference<
+    typename add_cv_reference_from<T, TFrom>::type
+  >::type;
+};
+
+template <typename T, typename TFrom>
+struct add_cv_reference_from<T, TFrom &&> {
+  using type = typename std::add_rvalue_reference<
+    typename add_cv_reference_from<T, TFrom>::type
+  >::type;
+};
+
+template <typename T, typename TFrom>
+using add_cv_reference_from_t = typename add_cv_reference_from<T, TFrom>::type;
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_qualifier_h
