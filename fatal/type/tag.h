@@ -20,6 +20,7 @@ template <typename T> struct tag {};
 
 template <typename T, std::size_t Index>
 struct indexed:
+  tag<T>,
   std::integral_constant<std::size_t, Index>
 {
   constexpr inline operator tag<T>() const { return {}; };
@@ -27,6 +28,18 @@ struct indexed:
 
 template <typename First, typename Second, std::size_t Index>
 using indexed_pair = indexed<pair<First, Second>, Index>;
+
+template <typename T>
+T tag_type(tag<T> const &);
+
+template <typename T, std::size_t Index>
+constexpr std::size_t inline tag_index(indexed<T, Index>) { return Index; }
+
+template <typename First, typename Second, std::size_t Index>
+First tag_first(indexed_pair<First, Second, Index> const &);
+
+template <typename First, typename Second, std::size_t Index>
+Second tag_second(indexed_pair<First, Second, Index> const &);
 
 struct not_found {};
 
