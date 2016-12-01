@@ -18,13 +18,11 @@ namespace fatal {
 
 template <typename T> struct tag {};
 
+template <typename First, typename Second>
+using tag_pair = tag<pair<First, Second>>;
+
 template <typename T, std::size_t Index>
-struct indexed:
-  tag<T>,
-  std::integral_constant<std::size_t, Index>
-{
-  constexpr inline operator tag<T>() const { return {}; };
-};
+struct indexed: tag<T>, std::integral_constant<std::size_t, Index> {};
 
 template <typename First, typename Second, std::size_t Index>
 using indexed_pair = indexed<pair<First, Second>, Index>;
@@ -35,11 +33,11 @@ T tag_type(tag<T> const &);
 template <typename T, std::size_t Index>
 constexpr std::size_t inline tag_index(indexed<T, Index>) { return Index; }
 
-template <typename First, typename Second, std::size_t Index>
-First tag_first(indexed_pair<First, Second, Index> const &);
+template <typename First, typename Second>
+First tag_first(tag_pair<First, Second> const &);
 
-template <typename First, typename Second, std::size_t Index>
-Second tag_second(indexed_pair<First, Second, Index> const &);
+template <typename First, typename Second>
+Second tag_second(tag_pair<First, Second> const &);
 
 struct not_found {};
 
