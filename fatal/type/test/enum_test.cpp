@@ -224,9 +224,9 @@ FATAL_TEST(enums, value_of) {
   }
 }
 
-FATAL_TEST(enums, array::names) {
+FATAL_TEST(enums, enum_names_array) {
   {
-    using actual = enum_traits<test_enum>::array::names;
+    using actual = enum_names_array<test_enum>;
     std::array<string_view, 4> expected{{
       string_view("state0", 6),
       string_view("state1", 6),
@@ -264,7 +264,7 @@ FATAL_TEST(enums, array::names) {
   }
 
   {
-    using actual = enum_traits<custom_enum>::array::names;
+    using actual = enum_names_array<custom_enum>;
     std::array<string_view, 3> expected{{
       string_view("field", 5),
       string_view("field10", 7),
@@ -298,7 +298,7 @@ FATAL_TEST(enums, array::names) {
   }
 
   {
-    using actual = enum_traits<big_enum>::array::names;
+    using actual = enum_names_array<big_enum>;
     std::vector<std::string> expected(100);
     for (std::size_t i = 0; i < expected.size(); ++i) {
       std::ostringstream ss;
@@ -321,9 +321,9 @@ FATAL_TEST(enums, array::names) {
   }
 }
 
-FATAL_TEST(enums, array::values) {
+FATAL_TEST(enums, enum_values_array) {
   {
-    using actual = enum_traits<test_enum>::array::values;
+    using actual = enum_values_array<test_enum>;
     std::array<test_enum, 4> expected{{
       test_enum::state0, test_enum::state1, test_enum::state2, test_enum::state3
     }};
@@ -342,7 +342,7 @@ FATAL_TEST(enums, array::values) {
   }
 
   {
-    using actual = enum_traits<custom_enum>::array::values;
+    using actual = enum_values_array<custom_enum>;
     std::array<custom_enum, 3> expected{{
       custom_enum::field, custom_enum::field10, custom_enum::field2
     }};
@@ -361,7 +361,7 @@ FATAL_TEST(enums, array::values) {
   }
 
   {
-    using actual = enum_traits<big_enum>::array::values;
+    using actual = enum_values_array<big_enum>;
     std::vector<big_enum> expected(100);
     for (std::size_t i = 0; i < expected.size(); ++i) {
       expected[i] = static_cast<big_enum>(i);

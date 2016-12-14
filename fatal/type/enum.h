@@ -258,60 +258,6 @@ public:
   template <typename Name>
   using value_of = typename get<fields, Name, get_type::name>::value;
 
-  struct array {
-    /**
-     * A statically allocated array containing the names of the enumeration
-     * fields as `fatal::string_view`.
-     *
-     * See `type/array.h` and `string/string_view.h` for more info.
-     *
-     * Example:
-     *
-     *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
-     *
-     *  using array = enum_traits<my_enum>::array::names;
-     *
-     *  // yields `3`
-     *  auto const size = array::size::value;
-     *
-     *  // prints "field0(6) field1(6) field2(6) "
-     *  for (auto s: array::data) {
-     *    std::cout << s << '[' << s.size() << "] ";
-     *  }
-     *
-     * @author: Marcelo Juchem <marcelo@fb.com>
-     */
-    using names = string_view_array<
-      fatal::transform<fields, get_type::name>,
-      string_view
-    >;
-
-    /**
-     * A statically allocated array containing the values of the enumeration
-     * fields.
-     *
-     * See `type/array.h` for more info.
-     *
-     * Example:
-     *
-     *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
-     *
-     *  using traits = enum_traits<my_enum>;
-     *  using array = traits::array::values;
-     *
-     *  // yields `3`
-     *  auto const size = array::size::value;
-     *
-     *  // prints "0 1 2 "
-     *  for (auto i: array::data) {
-     *    std::cout << static_cast<traits::int_type>(i) << ' ';
-     *  }
-     *
-     * @author: Marcelo Juchem <marcelo@fb.com>
-     */
-    using values = as_array<fatal::transform<fields, get_type::value>>;
-  };
-
 private:
   struct parser {
     template <typename Field>
@@ -534,6 +480,62 @@ static constexpr char const *enum_to_string(
 ) {
   return enum_traits<typename std::decay<Enum>::type>::to_string(e, fallback);
 }
+
+/**
+ * A statically allocated array containing the names of the enumeration
+ * fields as `fatal::string_view`.
+ *
+ * See `type/array.h` and `string/string_view.h` for more info.
+ *
+ * Example:
+ *
+ *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+ *
+ *  using array = enum_names_array<my_enum>;
+ *
+ *  // yields `3`
+ *  auto const size = array::size::value;
+ *
+ *  // prints "field0(6) field1(6) field2(6) "
+ *  for (auto s: array::data) {
+ *    std::cout << s << '[' << s.size() << "] ";
+ *  }
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using enum_names_array = string_view_array<
+  fatal::transform<typename enum_traits<T>::fields, get_type::name>,
+  string_view
+>;
+
+/**
+ * A statically allocated array containing the values of the enumeration
+ * fields.
+ *
+ * See `type/array.h` for more info.
+ *
+ * Example:
+ *
+ *  FATAL_RICH_ENUM_CLASS(my_enum, field0, field1, field2);
+ *
+ *  using traits = enum_traits<my_enum>;
+ *  using array = enum_values_array<my_enum>;
+ *
+ *  // yields `3`
+ *  auto const size = array::size::value;
+ *
+ *  // prints "0 1 2 "
+ *  for (auto i: array::data) {
+ *    std::cout << static_cast<traits::int_type>(i) << ' ';
+ *  }
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using enum_values_array = as_array<
+  fatal::transform<typename enum_traits<T>::fields, get_type::value>
+>;
 
 /**
  * Declares an `enum` named `Enum`, containing the given fields.
