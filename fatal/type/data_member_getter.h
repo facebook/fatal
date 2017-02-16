@@ -205,7 +205,7 @@ struct data_member_try_getter {
         Owner && \
       >; \
       \
-      static_assert(std::is_reference<ref_impl>::value, ""); \
+      static_assert(::std::is_reference<ref_impl>::value, ""); \
     }; \
     \
     FATAL_S(name, FATAL_TO_STR(__VA_ARGS__)); \
