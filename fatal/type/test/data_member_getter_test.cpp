@@ -97,6 +97,16 @@ struct getter_name {
 # undef TEST_IMPL
 };
 
+struct ns_tricky {
+  double std;
+  ::std::string desc;
+};
+
+struct ns_tricky_getter {
+  FATAL_DATA_MEMBER_GETTER(std, std);
+  FATAL_DATA_MEMBER_GETTER(desc, desc);
+};
+
 } // namespace data_member_getter_test {
 
 FATAL_TEST(data_member_getter, name) {
@@ -680,6 +690,16 @@ FATAL_TEST(data_member_getter, getter) {
 
 # undef TEST_IMPL
 # undef TEST_PREAMBLE_IMPL
+}
+
+FATAL_TEST(data_member_getter, namespace_std_collision) {
+  using type = data_member_getter_test::ns_tricky;
+  using getter = data_member_getter_test::ns_tricky_getter;
+  type obj;
+  getter::std::ref(obj) = 12.3;
+  getter::desc::ref(obj) = "hi";
+  FATAL_EXPECT_EQ(12.3, getter::std::ref(static_cast<type const&>(obj)));
+  FATAL_EXPECT_EQ("hi", getter::desc::ref(static_cast<type const&>(obj)));
 }
 
 ////////////////////////////////
