@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_foreach_h
 #define FATAL_INCLUDE_fatal_type_foreach_h
 
+#include <fatal/portability.h>
 #include <fatal/type/sequence.h>
 #include <fatal/type/size.h>
 
@@ -20,7 +21,8 @@
 namespace fatal {
 
 template <typename List, typename Visitor, typename... Args>
-static inline void foreach(Visitor&& visitor, Args&&... args) {
+FATAL_ATTR_ALWAYS_INLINE
+static void foreach(Visitor&& visitor, Args&&... args) {
   impl_fe::f<List, make_index_sequence<size<List>::value>>::g(
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...
