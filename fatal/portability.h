@@ -36,7 +36,7 @@
 
 #if _MSC_VER
 # define FATAL_ATTR_VISIBILITY_HIDDEN
-#elif __clang || __GNUC__
+#elif __clang__ || __GNUC__
 # define FATAL_ATTR_VISIBILITY_HIDDEN __attribute__((visibility("hidden")))
 #else
 # define FATAL_ATTR_VISIBILITY_HIDDEN
