@@ -47,7 +47,7 @@ FATAL_TEST(functional, identity) {
   FATAL_EXPECT_EQ("hello, world", z);
 }
 
-FATAL_TEST(functional, identity) {
+FATAL_TEST(functional, string) {
   default_constructed<std::string> f;
 
   int x = 10;
