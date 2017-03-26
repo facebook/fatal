@@ -26,6 +26,9 @@
 #include <fatal/type/unique.h>
 #include <fatal/type/zip.h>
 
+#include <fatal/test/driver.h>
+#include <fatal/test/type.h>
+
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -39,19 +42,10 @@
 #include <vector>
 
 #include <cstdint>
-#include <cxxabi.h>
 
-using namespace fatal;
+namespace fatal {
 
 // helpers /////////////////////////////////////////////////////////////////////
-
-#define VALUE(...) \
-  std::cout << #__VA_ARGS__ << ": " << std::boolalpha << __VA_ARGS__::value \
-    << std::endl
-
-#define TYPE(...) \
-  std::cout << #__VA_ARGS__ << ": " << type_str<__VA_ARGS__>() \
-    << std::endl
 
 namespace impl_detail {
 
@@ -71,52 +65,12 @@ struct equal_impl {
 
 #define EQUAL(Expected, ...) impl_detail::equal_impl<__VA_ARGS__, Expected>()
 
-template <typename LHS, typename RHS>
-bool eq_impl(LHS &&lhs, RHS &&rhs) { return lhs == rhs; }
-
-#define EQ(...) \
-  do { \
-    if (!impl_detail::eq_impl(__VA_ARGS__)) { \
-      std::cerr << "at " << __FILE__ << ':' << __LINE__ << " equality of (" \
-        << #__VA_ARGS__ << ") doesn't hold" << std::endl; \
-      exit_code = EXIT_FAILURE; \
-    } \
-  } while (false)
+#define EQ(...) FATAL_EXPECT_EQ(__VA_ARGS__)
 
 #define EQT(...) EQ(true, __VA_ARGS__)
 #define EQF(...) EQ(false, __VA_ARGS__)
 
 } // namespace impl_detail {
-
-// demangle ////////////////////////////////////////////////////////////////////
-
-std::string demangle(std::type_info const &t) {
-  int status;
-  auto name = abi::__cxa_demangle(t.name(), 0, 0, &status);
-  std::string s(name);
-  std::free(name);
-  return s;
-}
-
-template <typename T>
-std::string type_str() {
-  auto s = demangle(typeid(T));
-
-  using stripped = typename std::remove_reference<T>::type;
-
-  if (std::is_const<stripped>::value) {
-    s.append(" const");
-  }
-  if (std::is_volatile<stripped>::value) {
-    s.append(" volatile");
-  }
-  if (std::is_lvalue_reference<T>::value) {
-    s.append(" &");
-  } else if (std::is_rvalue_reference<T>::value) {
-    s.append(" &&");
-  }
-  return s;
-}
 
 // test types //////////////////////////////////////////////////////////////////
 
@@ -449,9 +403,7 @@ struct str {
   };
 };
 
-int main() {
-  auto exit_code = EXIT_SUCCESS;
-
+void run_sanity_check() {
   using sq1 = make_index_sequence<3>;
   using sq2 = make_index_sequence<4>;
   using seq = make_index_sequence<size<sq1>::value + size<sq2>::value>;
@@ -1518,7 +1470,10 @@ int main() {
     IST(logical_xnor<t, t, f>);
     ISF(logical_xnor<t, t, t>);
   }
+}
 
-  std::cout << "done" << std::endl;
-  return exit_code;
+}
+
+FATAL_TEST(type, sanity check) {
+  fatal::run_sanity_check();
 }
