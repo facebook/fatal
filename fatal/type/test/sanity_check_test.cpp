@@ -1,19 +1,13 @@
 #include <fatal/functional/no_op.h>
 #include <fatal/type/apply.h>
-#include <fatal/type/arithmetic.h>
 #include <fatal/type/array.h>
-#include <fatal/type/bitwise.h>
 #include <fatal/type/cat.h>
 #include <fatal/type/compare.h>
 #include <fatal/type/convert.h>
-#include <fatal/type/debug.h>
 #include <fatal/type/find.h>
 #include <fatal/type/foreach.h>
 #include <fatal/type/get.h>
-#include <fatal/type/get_type.h>
 #include <fatal/type/group_by.h>
-#include <fatal/type/identity.h>
-#include <fatal/type/is_complete.h>
 #include <fatal/type/list.h>
 #include <fatal/type/logical.h>
 #include <fatal/type/longest_common_prefix.h>
@@ -28,7 +22,6 @@
 #include <fatal/type/split.h>
 #include <fatal/type/tag.h>
 #include <fatal/type/transform.h>
-#include <fatal/type/trie.h>
 #include <fatal/type/type.h>
 #include <fatal/type/unique.h>
 #include <fatal/type/zip.h>
@@ -45,8 +38,6 @@
 #include <utility>
 #include <vector>
 
-#include <cassert>
-#include <climits>
 #include <cstdint>
 #include <cxxabi.h>
 
