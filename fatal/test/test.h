@@ -1039,7 +1039,7 @@ public:
 
       duration_t group_time(0);
 
-      printer.start_group(out, g->first, clock::now());
+      printer.start_group(out, g->first, group.size(), clock::now());
 
       for (auto const &i: group) {
         printer.start_test(out, i->name(), i->source(), clock::now());
@@ -1065,7 +1065,7 @@ public:
 
       running_time += group_time;
 
-      printer.end_group(out, g->first, group_time);
+      printer.end_group(out, g->first, group.size(), group_time);
     }
 
     printer.end_run(out, passed, total, running_time);
@@ -1102,7 +1102,9 @@ struct default_printer {
   }
 
   template <typename TOut, typename TGroup>
-  void start_group(TOut &out, TGroup const &group, timestamp_t start) {
+  void start_group(
+    TOut &out, TGroup const &group, std::size_t, timestamp_t start
+  ) {
     auto const time = start - run_start_;
 
     time::pretty_print(out << "\n== test case: '" << group << "' at [", time)
@@ -1156,7 +1158,7 @@ struct default_printer {
   }
 
   template <typename TOut, typename TGroup>
-  void end_group(TOut &, TGroup const &, duration_t) {
+  void end_group(TOut &, TGroup const &, std::size_t, duration_t) {
   }
 
   template <typename TOut>
