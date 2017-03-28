@@ -1042,7 +1042,7 @@ public:
       printer.start_group(out, g->first, group.size(), clock::now());
 
       for (auto const &i: group) {
-        printer.start_test(out, i->name(), i->source(), clock::now());
+        printer.start_test(out, g->first, i->name(), i->source(), clock::now());
 
         std::size_t issues = 0;
         auto result = i->run(
@@ -1051,7 +1051,7 @@ public:
           }
         );
 
-        printer.end_test(out, result, i->name(), i->source());
+        printer.end_test(out, result, g->first, i->name(), i->source());
 
         group_time += result.elapsed();
         ++total;
@@ -1113,9 +1113,10 @@ struct default_printer {
     group_start_ = start;
   }
 
-  template <typename TOut, typename TName>
+  template <typename TOut, typename TGroup, typename TName>
   void start_test(
-    TOut &out, TName const &name, source_info const &source, timestamp_t start
+    TOut &out, TGroup const &, TName const &name,
+    source_info const &source, timestamp_t start
   ) {
     auto const time = start - group_start_;
 
@@ -1146,10 +1147,10 @@ struct default_printer {
     ) << "]:\n  " << i.message() << '\n';
   }
 
-  template <typename TOut, typename TName>
+  template <typename TOut, typename TGroup, typename TName>
   void end_test(
     TOut &out, results const &result,
-    TName const &, source_info const &
+    TGroup const &, TName const &, source_info const &
   ) {
     time::pretty_print(
       out << "<< " << (result.passed() ? "succeeded" : "failed") << " after [",
