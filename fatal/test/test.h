@@ -1068,7 +1068,7 @@ public:
       printer.end_group(out, g->first, group_time);
     }
 
-    printer.end_run(out, passed, total, running_time);
+    printer.end_run(out, passed, total, groups_.size(), running_time);
 
     summary.second = passed == total;
 
@@ -1161,7 +1161,8 @@ struct default_printer {
 
   template <typename TOut>
   void end_run(
-    TOut &out, std::size_t passed, std::size_t total, duration_t time
+    TOut &out, std::size_t passed, std::size_t total, std::size_t,
+    duration_t time
   ) {
     time::pretty_print(
       out << '\n' << (passed == total ? "succeeded" : "FAILED") << ": passed "
