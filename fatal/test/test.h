@@ -934,11 +934,11 @@ class registry {
 
     virtual ~entry() {}
 
-    virtual results run(issue_sink sink) = 0;
+    virtual results run(issue_sink sink) const = 0;
 
-    virtual char const *group() = 0;
-    virtual char const *name() = 0;
-    virtual source_info const &source() = 0;
+    virtual char const *group() const = 0;
+    virtual char const *name() const = 0;
+    virtual source_info const &source() const = 0;
   };
 
   template <typename T>
@@ -947,7 +947,7 @@ class registry {
   {
     using type = T;
 
-    results run(issue_sink sink) override {
+    results run(issue_sink sink) const override {
       type subject;
 
       auto &result = (result_tag() << subject);
@@ -977,15 +977,15 @@ class registry {
       return result;
     }
 
-    char const *group() override {
+    char const *group() const override {
       return group_tag() << static_cast<type *>(nullptr);
     }
 
-    char const *name() override {
+    char const *name() const override {
       return name_tag() << static_cast<type *>(nullptr);
     }
 
-    source_info const &source() override {
+    source_info const &source() const override {
       return source_tag() << static_cast<type *>(nullptr);
     }
   };
