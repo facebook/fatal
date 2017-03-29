@@ -23,7 +23,7 @@
 ////////////
 
 int main() {
-  return fatal::test::run(std::cerr);
+  return fatal::test::run_all(std::cerr);
 }
 
 #endif // FATAL_INCLUDE_fatal_test_driver_h

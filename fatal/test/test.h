@@ -1019,8 +1019,8 @@ public:
     return ++size_;
   }
 
-  template <typename TPrinter, typename TOut>
-  run_result run(TOut &out) const {
+  template <typename TPrinter, typename TOut, typename Filter>
+  run_result run(TOut &out, Filter &&filter) const {
     run_result summary;
 
     TPrinter printer;
@@ -1042,6 +1042,10 @@ public:
       printer.start_group(out, g->first, group.size(), clock::now());
 
       for (auto const &i: group) {
+        if (!filter(*i)) {
+          continue;
+        }
+
         printer.start_test(out, g->first, i->name(), i->source(), clock::now());
 
         std::size_t issues = 0;
@@ -1073,6 +1077,11 @@ public:
     summary.second = passed == total;
 
     return summary;
+  }
+
+  template <typename TPrinter, typename TOut>
+  run_result run_all(TOut &out) const {
+    return run<TPrinter>(out, [](entry const &) { return true; });
   }
 
   size_type size() const { return size_; }
@@ -1181,8 +1190,9 @@ private:
 };
 
 template <typename TPrinter = default_printer, typename TOut>
-int run(TOut &out) {
-  auto const result = detail::test_impl::registry::get().run<TPrinter>(out);
+int run_all(TOut &out) {
+  auto& registry = detail::test_impl::registry::get();
+  auto const result = registry.run_all<TPrinter>(out);
 
   return result.second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
