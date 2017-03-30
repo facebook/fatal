@@ -1233,6 +1233,102 @@ private:
   timestamp_t test_start_;
 };
 
+// a minimal mimic of gtest test output
+struct gtest_printer {
+  template <typename TOut, typename TGroup>
+  void list_start_group(TOut &out, TGroup const &group) {
+    out << group << " - \n";
+  }
+
+  template <typename TOut, typename TGroup, typename TName>
+  void list_entry(TOut &out, TGroup const &, TName const &name) {
+    out << "  " << name << "\n";
+  }
+
+  template <typename TOut, typename TGroup>
+  void list_end_group(TOut &, TGroup const &) {}
+
+  template <typename TOut>
+  void start_run(
+    TOut &out, std::size_t total, std::size_t groups, timestamp_t
+  ) {
+    out << "[==========] Running " << total << " tests from " << groups
+        << " test case\n";
+    out << "[----------] Global test environment set-up.\n";
+  }
+
+  template <typename TOut, typename TGroup>
+  void start_group(
+    TOut &out, TGroup const &group, std::size_t size, timestamp_t
+  ) {
+    out << "[----------] " << size << " tests from " << group << "\n";
+  }
+
+  template <typename TOut, typename TGroup, typename TName>
+  void start_test(
+    TOut &out, TGroup const &group, TName const &name,
+    source_info const &, timestamp_t
+  ) {
+    out << "[ RUN      ] " << group << " - " << name << "\n";
+  }
+
+  template <typename TOut, typename TName>
+  void issue(
+    TOut &out, TName const &, source_info const &,
+    test_issue const &i, std::size_t index
+  ) {
+    if (index) {
+      out << '\n';
+    }
+
+    out << i.severity_signature() << " [" << i.source().file() << ':'
+        << i.source().line() << "]: " << i.message() << '\n';
+  }
+
+  template <typename TOut, typename TGroup, typename TName>
+  void end_test(
+    TOut &out, results const &result,
+    TGroup const &group, TName const &name,
+    source_info const &
+  ) {
+    auto const result_str = result.passed() ? "    OK" : "FAILED";
+    auto const elapsed_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+        result.elapsed()
+      );
+
+    out << "[   " << result_str << " ] " << group << " - " << name
+        << " (" << elapsed_ms.count() << " ms)\n";
+  }
+
+  template <typename TOut, typename TGroup>
+  void end_group(
+    TOut &out, TGroup const &group, std::size_t size, duration_t time
+  ) {
+    auto const elapsed_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(time);
+
+    out << "[----------] " << size << " tests from " << group << " ("
+        << elapsed_ms.count() << " ms total)\n";
+    out << "\n";
+  }
+
+  template <typename TOut>
+  void end_run(
+    TOut &out, std::size_t passed, std::size_t total,
+    std::size_t groups, duration_t time
+  ) {
+    auto const result_str = passed == total ? "PASSED" : "FAILED";
+    auto const elapsed_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(time);
+
+    out << "[----------] Global test environment tear-down\n";
+    out << "[==========] " << total << " tests from " << groups
+        << " test case ran. (" << elapsed_ms.count() << " ms total)\n";
+    out << "[  " << result_str << "  ] " << total << " tests.\n";
+  }
+};
+
 template <typename TPrinter = default_printer, typename TOut>
 int list(TOut &out) {
   auto& registry = detail::test_impl::registry::get();

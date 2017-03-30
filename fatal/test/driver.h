@@ -28,6 +28,9 @@
 int main(int const argc, char const *const *const argv) {
   auto const arg_list = std::string("--list");
   auto const arg_filter = std::string("--filter");
+  auto const arg_gtest = std::string("--gtest");
+  auto const arg_gtest_list = std::string("--gtest_list_tests");
+  auto const arg_gtest_filter = std::string("--gtest_filter");
 
   if (argc == 0) {
     return 1; // protect parse_args below
@@ -37,17 +40,33 @@ int main(int const argc, char const *const *const argv) {
   auto const opts = fatal::test_impl::args::parse_args<Opts>(argc, argv);
 
   if (opts.empty()) {
-    return fatal::test::run_all(std::cerr);
+    return fatal::test::run_all<fatal::test::default_printer>(std::cerr);
+  }
+  auto const iter_gtest = opts.find(arg_gtest);
+  if (iter_gtest != opts.end()) {
+    return fatal::test::run_all<fatal::test::gtest_printer>(std::cout);
   }
 
   auto const iter_list = opts.find(arg_list);
   if (iter_list != opts.end()) {
-    return fatal::test::list(std::cout);
+    return fatal::test::list<fatal::test::default_printer>(std::cout);
+  }
+  auto const iter_gtest_list = opts.find(arg_gtest_list);
+  if (iter_gtest_list != opts.end()) {
+    return fatal::test::list<fatal::test::gtest_printer>(std::cout);
   }
 
   auto const iter_filter = opts.find(arg_filter);
   if (iter_filter != opts.end()) {
-    return fatal::test::run_one(std::cerr, iter_filter->second);
+    return fatal::test::run_one<fatal::test::default_printer>(
+      std::cerr, iter_filter->second
+    );
+  }
+  auto const iter_gtest_filter = opts.find(arg_gtest_filter);
+  if (iter_gtest_filter != opts.end()) {
+    return fatal::test::run_one<fatal::test::gtest_printer>(
+      std::cout, iter_gtest_filter->second
+    );
   }
 
   return 1; // unrecognized input
