@@ -1084,11 +1084,24 @@ public:
     return run<TPrinter>(out, [](entry const &) { return true; });
   }
 
+  // only supports exact match
+  template <typename TPrinter, typename TOut>
+  run_result run_one(TOut &out, std::string const &full_name) const {
+    return run<TPrinter>(out, [&](entry const &e) {
+      return make_full_name(e.group(), e.name()) == full_name;
+    });
+  }
+
   size_type size() const { return size_; }
 
   static registry &get() {
     static registry instance;
     return instance;
+  }
+
+  // not entirely a robust way of generating full names, but it will work
+  static std::string make_full_name(char const *group, char const *name) {
+    return std::string() + group + " - " + name;
   }
 
 private:
@@ -1193,6 +1206,14 @@ template <typename TPrinter = default_printer, typename TOut>
 int run_all(TOut &out) {
   auto& registry = detail::test_impl::registry::get();
   auto const result = registry.run_all<TPrinter>(out);
+
+  return result.second ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+template <typename TPrinter = default_printer, typename TOut>
+int run_one(TOut &out, std::string const &full_name) {
+  auto& registry = detail::test_impl::registry::get();
+  auto const result = registry.run_one<TPrinter>(out, full_name);
 
   return result.second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
