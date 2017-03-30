@@ -1019,6 +1019,26 @@ public:
     return ++size_;
   }
 
+  template <typename TPrinter, typename TOut>
+  void list(TOut &out) const {
+    TPrinter printer;
+
+    for (auto const &order: groups_order_) {
+      auto g = groups_.find(order);
+      assert(g != groups_.end());
+      assert(g->second < entries_.size());
+      auto const &group = entries_[g->second];
+
+      printer.list_start_group(out, order);
+
+      for (auto const &i: group) {
+        printer.list_entry(out, g->first, i->name());
+      }
+
+      printer.list_end_group(out, order);
+    }
+  }
+
   template <typename TPrinter, typename TOut, typename Filter>
   run_result run(TOut &out, Filter &&filter) const {
     run_result summary;
@@ -1115,6 +1135,17 @@ private:
 } // namespace detail {
 
 struct default_printer {
+  template <typename TOut, typename TGroup>
+  void list_start_group(TOut &, TGroup const &) {}
+
+  template <typename TOut, typename TGroup, typename TName>
+  void list_entry(TOut &out, TGroup const &group, TName const &name) {
+    out << group << " - " << name << "\n";
+  }
+
+  template <typename TOut, typename TGroup>
+  void list_end_group(TOut &, TGroup const &) {}
+
   template <typename TOut>
   void start_run(
     TOut &out, std::size_t total, std::size_t groups, timestamp_t start
@@ -1203,8 +1234,16 @@ private:
 };
 
 template <typename TPrinter = default_printer, typename TOut>
-int run_all(TOut &out) {
+int list(TOut &out) {
   auto& registry = detail::test_impl::registry::get();
+  registry.list<TPrinter>(out);
+
+  return EXIT_SUCCESS;
+}
+
+template <typename TPrinter = default_printer, typename TOut>
+int run_all(TOut &out) {
+auto& registry = detail::test_impl::registry::get();
   auto const result = registry.run_all<TPrinter>(out);
 
   return result.second ? EXIT_SUCCESS : EXIT_FAILURE;
