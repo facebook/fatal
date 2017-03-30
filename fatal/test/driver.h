@@ -26,6 +26,7 @@
 ////////////
 
 int main(int const argc, char const *const *const argv) {
+  auto const arg_list = std::string("--list");
   auto const arg_filter = std::string("--filter");
 
   if (argc == 0) {
@@ -37,6 +38,11 @@ int main(int const argc, char const *const *const argv) {
 
   if (opts.empty()) {
     return fatal::test::run_all(std::cerr);
+  }
+
+  auto const iter_list = opts.find(arg_list);
+  if (iter_list != opts.end()) {
+    return fatal::test::list(std::cout);
   }
 
   auto const iter_filter = opts.find(arg_filter);
