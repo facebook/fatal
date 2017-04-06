@@ -163,123 +163,36 @@ void check_trie_find(std::string const &needle) {
 // match_exact //
 /////////////////
 
-FATAL_TEST(trie, find h_empty) {
+FATAL_TEST(trie, find variations) {
   check_trie_find<hs_tree>("");
-}
-
-FATAL_TEST(trie, find h_h) {
   check_trie_find<hs_tree, h>("h");
-}
-
-FATAL_TEST(trie, find h_H) {
   check_trie_find<hs_tree>("H");
-}
-
-FATAL_TEST(trie, find h_ha) {
   check_trie_find<hs_tree, ha>("ha");
-}
-
-FATAL_TEST(trie, find h_Ha) {
   check_trie_find<hs_tree>("Ha");
-}
-
-FATAL_TEST(trie, find h_hA) {
   check_trie_find<hs_tree>("hA");
-}
-
-FATAL_TEST(trie, find h_hat) {
   check_trie_find<hs_tree, hat>("hat");
-}
-
-FATAL_TEST(trie, find h_Hat) {
   check_trie_find<hs_tree>("Hat");
-}
-
-FATAL_TEST(trie, find h_hAt) {
   check_trie_find<hs_tree>("hAt");
-}
-
-FATAL_TEST(trie, find h_haT) {
   check_trie_find<hs_tree>("haT");
-}
-
-FATAL_TEST(trie, find h_hi) {
   check_trie_find<hs_tree, hi>("hi");
-}
-
-FATAL_TEST(trie, find h_Hi) {
   check_trie_find<hs_tree>("Hi");
-}
-
-FATAL_TEST(trie, find h_hI) {
   check_trie_find<hs_tree>("hI");
-}
-
-FATAL_TEST(trie, find h_hint) {
   check_trie_find<hs_tree, hint>("hint");
-}
-
-FATAL_TEST(trie, find h_Hint) {
   check_trie_find<hs_tree>("Hint");
-}
-
-FATAL_TEST(trie, find h_hInt) {
   check_trie_find<hs_tree>("hInt");
-}
-
-FATAL_TEST(trie, find h_hiNt) {
   check_trie_find<hs_tree>("hiNt");
-}
-
-FATAL_TEST(trie, find h_hinT) {
   check_trie_find<hs_tree>("hinT");
-}
-
-FATAL_TEST(trie, find h_hit) {
   check_trie_find<hs_tree, hit>("hit");
-}
-
-FATAL_TEST(trie, find h_Hit) {
   check_trie_find<hs_tree>("Hit");
-}
-
-FATAL_TEST(trie, find h_hIt) {
   check_trie_find<hs_tree>("hIt");
-}
-
-FATAL_TEST(trie, find h_hiT) {
   check_trie_find<hs_tree>("hiT");
-}
-
-FATAL_TEST(trie, find h_ho) {
   check_trie_find<hs_tree, ho>("ho");
-}
-
-FATAL_TEST(trie, find h_Ho) {
   check_trie_find<hs_tree>("Ho");
-}
-
-FATAL_TEST(trie, find h_hO) {
   check_trie_find<hs_tree>("hO");
-}
-
-FATAL_TEST(trie, find h_hot) {
   check_trie_find<hs_tree, hot>("hot");
-}
-
-FATAL_TEST(trie, find h_Hot) {
   check_trie_find<hs_tree>("Hot");
-}
-
-FATAL_TEST(trie, find h_hOt) {
   check_trie_find<hs_tree>("hOt");
-}
-
-FATAL_TEST(trie, find h_hoT) {
   check_trie_find<hs_tree>("hoT");
-}
-
-FATAL_TEST(trie, find h_hut) {
   check_trie_find<hs_tree>("hut");
 }
 
