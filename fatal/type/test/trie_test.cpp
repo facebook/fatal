@@ -21,18 +21,6 @@
 
 namespace fatal {
 
-FATAL_S(a, "a");
-FATAL_S(ab, "ab");
-FATAL_S(abc, "abc");
-FATAL_S(abcd, "abcd");
-FATAL_S(abcde, "abcde");
-FATAL_S(abcdef, "abcdef");
-FATAL_S(abcx, "abcx");
-FATAL_S(abcxy, "abcxy");
-FATAL_S(abcxyz, "abcxyz");
-
-using abc_tree = list<a, ab, abc, abcd, abcde, abcdef, abcx, abcxy, abcxyz>;
-
 FATAL_S(h, "h");
 FATAL_S(ha, "ha");
 FATAL_S(hat, "hat");
