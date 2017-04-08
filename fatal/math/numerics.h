@@ -82,9 +82,10 @@ struct integral_reverser {
   >;
 
   static constexpr T reverse(T value) noexcept {
-    return tail::reverse(
-      ((value >> Phase) & Mask) | ((value << Phase) & ~Mask)
-    );
+    return tail::reverse(static_cast<T>(
+      ((static_cast<U>(value) >> Phase) & Mask) |
+      ((static_cast<U>(value) << Phase) & ~Mask)
+    ));
   }
 };
 
