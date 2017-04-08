@@ -18,6 +18,9 @@
 #include <algorithm>
 #include <vector>
 
+#include <cstdint>
+#include <cstring>
+
 namespace fatal {
 namespace fn {
 
@@ -103,10 +106,17 @@ FATAL_TEST(functional, static_caster) {
 FATAL_TEST(functional, reinterpret_caster) {
   reinterpret_caster<char const *> f;
 
-  int x = 10;
+  char const str[8] = "fatal::";
+  FATAL_EXPECT_EQ(sizeof(str), std::strlen(str) + 1); // sanity
+
+  std::int64_t x;
+  static_assert(sizeof(x) == sizeof(str), "mismatched sizes");
+  std::memcpy(&x, str, sizeof(str));
   FATAL_EXPECT_EQ(reinterpret_cast<char const *>(&x), f(&x));
 
-  double y = 5.6;
+  double y;
+  static_assert(sizeof(y) == sizeof(str), "mismatched sizes");
+  std::memcpy(&y, str, sizeof(str));
   FATAL_EXPECT_EQ(reinterpret_cast<char const *>(&y), f(&y));
 }
 
