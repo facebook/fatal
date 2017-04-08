@@ -29,7 +29,7 @@ struct names {
   FATAL_S(field2, "field2");
 };
 
-FATAL_RICH_ENUM(
+FATAL_RICH_ENUM_CLASS(
   test_enum,
   state0,
   (state1, 97),
@@ -68,7 +68,7 @@ struct custom_metadata {};
 
 FATAL_REGISTER_ENUM_TRAITS(custom_enum_traits, custom_metadata);
 
-FATAL_RICH_ENUM(
+FATAL_RICH_ENUM_CLASS(
   big_enum,
   enum_field_0, enum_field_1, enum_field_2, enum_field_3, enum_field_4,
   enum_field_5, enum_field_6, enum_field_7, enum_field_8, enum_field_9,
