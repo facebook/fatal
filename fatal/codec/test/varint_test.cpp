@@ -131,7 +131,8 @@ struct signed_tester {
         << static_cast<std::intmax_t>(limit::min()) << ", "
         << static_cast<std::intmax_t>(i) << ')';
 
-      while (i-- > limit::min()) {
+      while (i > limit::min()) {
+        --i;
         FATAL_ASSERT_EQ(i, decoder(encoder(i)));
       }
     }
@@ -178,7 +179,8 @@ struct tester_impl {
       FATAL_VLOG(1) << "(count, max]: [" << static_cast<std::uintmax_t>(i)
         << ", " << max << ']';
 
-      while (i++ < limit::max()) {
+      while (i < limit::max()) {
+        ++i;
         FATAL_ASSERT_EQ(i, decoder(encoder(i)));
       }
     }
