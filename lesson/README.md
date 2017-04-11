@@ -26,7 +26,7 @@ Fundamentals of meta-programming:
 
 
 ## Try it online
-These lessons can be [tried online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell).
+These lessons can be [tried online](http://metashell.org/about/demo/index.html) using [Metashell](https://github.com/metashell/metashell).
 
 Metashell allows you to easily inspect the type of an alias. Whenever you encounter `TYPE(T)` in a lesson, you can simply type `T` instead to print the type represented by it:
 

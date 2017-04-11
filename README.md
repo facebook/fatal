@@ -29,7 +29,7 @@ There are no other external dependencies.
 ## Links
 [Discussions group](https://www.facebook.com/groups/libfatal/) on [Facebook](https://code.facebook.com/)
 
-[Try it online](http://abel.web.elte.hu/shell/metashell) using [Metashell](https://github.com/sabel83/metashell)
+[Try it online](http://metashell.org/about/demo/index.html) using [Metashell](https://github.com/metashell/metashell).
 
 
 ## Philosophy
