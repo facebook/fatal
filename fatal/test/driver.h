@@ -56,6 +56,11 @@ int main(int const argc, char const *const *const argv) {
     return fatal::test::list<fatal::test::gtest_printer>(std::cout);
   }
 
+  auto const iter_list = opts.find(arg_list);
+  if (iter_list != opts.end()) {
+    return fatal::test::list(std::cout);
+  }
+
   auto const iter_filter = opts.find(arg_filter);
   if (iter_filter != opts.end()) {
     return fatal::test::run_one<fatal::test::default_printer>(
