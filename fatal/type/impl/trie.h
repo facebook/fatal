@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_impl_trie_h
 
 #include <fatal/type/array.h>
+#include <fatal/type/conditional.h>
 #include <fatal/type/longest_common_prefix.h>
 #include <fatal/type/search.h>
 #include <fatal/type/select.h>
@@ -244,11 +245,11 @@ struct r<Depth, Filter, T, Args...> {
   >;
 
   using type = group_by<
-    typename std::conditional<
+    conditional<
       size<typename Filter::template apply<T>>::value == common::value,
       list<Args...>,
       list<T, Args...>
-    >::type,
+    >,
     a<common::value, Filter>,
     R<common::value, Filter>::template apply,
     N<
@@ -281,11 +282,11 @@ struct h<false, Common, Filter, T, Args...> {
     0,
     Filter,
     group_by<
-      typename std::conditional<
+      conditional<
         size<typename Filter::template apply<T>>::value == Common,
         list<Args...>,
         list<T, Args...>
-      >::type,
+      >,
       a<Common, Filter>,
       R<Common, Filter>::template apply,
       N<

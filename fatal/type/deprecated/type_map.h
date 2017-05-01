@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_type_map_h
 #define FATAL_INCLUDE_fatal_type_deprecated_type_map_h
 
+#include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/transform.h>
 #include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/deprecated/type_pair.h>
@@ -1080,7 +1081,7 @@ using clustered_index = typename detail::clustered_index_impl<
  */
 template <typename... T, std::size_t Depth>
 struct recursive_type_sort_impl<type_map<T...>, Depth> {
-  using type = typename std::conditional<
+  using type = conditional<
     (Depth > 0),
     typename type_map<T...>
       ::template sort<>
@@ -1088,7 +1089,7 @@ struct recursive_type_sort_impl<type_map<T...>, Depth> {
         recursive_type_sort<Depth - 1>::template apply
       >,
     type_map<T...>
-  >::type;
+  >;
 };
 
 namespace detail {
@@ -1147,11 +1148,11 @@ template <
   template <typename...> class TMappedTransform
 >
 struct transform_at {
-  using type = typename std::conditional<
+  using type = conditional<
     std::is_same<TKey, type_get_first<TPair>>::value,
     typename TPair::template transform<TKeyTransform, TMappedTransform>,
     TPair
-  >::type;
+  >;
 };
 
 ////////////
@@ -1239,14 +1240,14 @@ struct cluster<T, Args...> {
   using key = type_get_first<T>;
   using mapped = type_get_second<T>;
 
-  using type = typename std::conditional<
+  using type = conditional<
     tail::template contains<key>::value,
     typename tail::template transform_at<
       key,
       cluster_transform<mapped>::template add
     >,
     typename tail::template push_back<key, type_list<mapped>>
-  >::type;
+  >;
 };
 
 ///////////

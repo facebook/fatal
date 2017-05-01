@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_transform_h
 #define FATAL_INCLUDE_fatal_type_deprecated_transform_h
 
+#include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/apply.h>
 #include <fatal/type/deprecated/type_tag.h>
 #include <fatal/type/identity.h>
@@ -496,17 +497,17 @@ struct bitwise {
    */
   template <typename T>
   using complement = std::integral_constant<
-    typename std::conditional<
+    conditional<
       std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
       typename std::decay<decltype(T::value)>::type,
       typename std::decay<decltype(~T::value)>::type
-    >::type,
+    >,
     static_cast<
-      typename std::conditional<
+      conditional<
         std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
         typename std::decay<decltype(T::value)>::type,
         typename std::decay<decltype(~T::value)>::type
-      >::type
+      >
     >(~T::value)
   >;
 };

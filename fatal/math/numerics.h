@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_math_numerics_h
 #define FATAL_INCLUDE_fatal_math_numerics_h
 
+#include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/traits.h>
 
@@ -746,11 +747,11 @@ template <
   std::size_t nth = last_known_mersenne_prime_index
 >
 struct largest_mersenne_prime_under_impl {
-  typedef typename std::conditional<
+  typedef conditional<
     bits_size >= mersenne_prime<nth>::exponent::value,
     mersenne_prime<nth>,
     typename largest_mersenne_prime_under_impl<bits_size, nth - 1>::type
-  >::type type;
+  > type;
 };
 
 template <std::size_t bits_size>

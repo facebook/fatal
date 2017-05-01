@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_deprecated_constant_sequence_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/type_list.h>
 
 #include <memory>
@@ -1348,11 +1349,11 @@ template <
 >
 struct to_sequence_impl<Negative, TChar, TSequence, T, Value, true> {
   template <TChar... Chars>
-  using apply = typename std::conditional<
+  using apply = conditional<
     Negative,
     TSequence<TChar, static_cast<TChar>('-'), Chars...>,
     TSequence<TChar, Chars...>
-  >::type;
+  >;
 };
 
 template <
@@ -1360,13 +1361,13 @@ template <
   typename T, T Value
 >
 struct to_sequence {
-  using type = typename std::conditional<
+  using type = conditional<
     Value == 0,
     TSequence<TChar, static_cast<TChar>('0')>,
     typename to_sequence_impl<
       (Value < 0), TChar, TSequence, T, Value
     >::template apply<>
-  >::type;
+  >;
 };
 
 ///////////////

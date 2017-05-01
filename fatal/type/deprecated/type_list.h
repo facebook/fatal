@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_list_h
 #define FATAL_INCLUDE_fatal_type_deprecated_list_h
 
+#include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/flatten.h>
 #include <fatal/type/deprecated/transform.h>
 #include <fatal/type/deprecated/type_pair.h>
@@ -2095,7 +2096,7 @@ struct choose<BinaryPredicate, Transform, Chosen, Candidate, Args...> {
   using type = typename choose<
     BinaryPredicate,
     Transform,
-    typename std::conditional<
+    conditional<
       fatal::apply<
         BinaryPredicate,
         fatal::apply<Transform, Candidate>,
@@ -2103,7 +2104,7 @@ struct choose<BinaryPredicate, Transform, Chosen, Candidate, Args...> {
       >::value,
       Candidate,
       Chosen
-    >::type,
+    >,
     Args...
   >::type;
 };
@@ -2124,9 +2125,9 @@ struct choose<BinaryPredicate, Transform, Chosen> {
 template <typename TFrom, typename TTo>
 struct replace_transform {
   template <typename U>
-  using apply = typename std::conditional<
+  using apply = conditional<
     std::is_same<U, TFrom>::value, TTo, U
-  >::type;
+  >;
 };
 
 //////////
@@ -2181,7 +2182,7 @@ template <
 struct separate<Predicate, U, UArgs...> {
   using tail = typename separate<Predicate, UArgs...>::type;
 
-  using type = typename std::conditional<
+  using type = conditional<
     fatal::apply<Predicate, U>::value,
     type_pair<
       typename tail::first::template push_front<U>,
@@ -2191,7 +2192,7 @@ struct separate<Predicate, U, UArgs...> {
       typename tail::first,
       typename tail::second::template push_front<U>
     >
-  >::type;
+  >;
 };
 
 /////////
@@ -2260,11 +2261,11 @@ template <
   typename Default, typename U, typename... UArgs
 >
 struct search<Predicate, Default, U, UArgs...> {
-  using type = typename std::conditional<
+  using type = conditional<
     fatal::apply<Predicate, U>::value,
     U,
     typename search<Predicate, Default, UArgs...>::type
-  >::type;
+  >;
 };
 
 //////////////////
@@ -2358,13 +2359,13 @@ template <
   typename... TTail
 >
 struct insert_sorted<LessComparer, T, THead, TTail...> {
-  using type = typename std::conditional<
+  using type = conditional<
     LessComparer<T, THead>::value,
     type_list<T, THead, TTail...>,
     typename insert_sorted<
       LessComparer, T, TTail...
     >::type::template push_front<THead>
-  >::type;
+  >;
 };
 
 //////////////
@@ -2470,14 +2471,14 @@ template <
 struct merge<LessComparer, TRHSList, LHS, TLHSArgs...> {
   using rhs = typename TRHSList::template at<0>;
   using right_merge = LessComparer<rhs, LHS>;
-  using head = typename std::conditional<right_merge::value, rhs, LHS>::type;
-  using tail = typename std::conditional<
+  using head = conditional<right_merge::value, rhs, LHS>;
+  using tail = typename conditional<
     right_merge::value,
     merge<
       LessComparer, typename TRHSList::template tail<1>, LHS, TLHSArgs...
     >,
     merge<LessComparer, TRHSList, TLHSArgs...>
-  >::type::type;
+  >::type;
 
   using type = typename tail::template push_front<head>;
 };
@@ -2536,11 +2537,11 @@ template <typename TResult> struct unique<TResult> { using type = TResult; };
 template <typename TResult, typename T, typename... Args>
 struct unique<TResult, T, Args...> {
   using type = typename unique<
-    typename std::conditional<
+    conditional<
       TResult::template contains<T>::value,
       TResult,
       typename TResult::template push_back<T>
-    >::type,
+    >,
     Args...
   >::type;
 };
@@ -2586,11 +2587,11 @@ struct binary_search_prepare<
 
   using type = typename binary_search_prepare<
     type_value_comparer,
-    typename std::conditional<
+    conditional<
       previous::value == Head::value,
       list,
       typename list::template push_back<Head>
-    >::type,
+    >,
     Tail...
   >::type;
 };

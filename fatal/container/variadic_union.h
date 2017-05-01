@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_container_variadic_union_h
 
 #include <fatal/math/numerics.h>
+#include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/deprecated/transform.h>
 
@@ -335,11 +336,11 @@ struct variadic_union_impl<T, Args...> {
       || right::list::template contains<U>::value, \
     U \
   >::type Modifier get(union_type Modifier container) noexcept { \
-    using getter = typename std::conditional< \
+    using getter = conditional< \
       left::list::template contains<U>::value, \
       left_getter_##Suffix, \
       right_getter_##Suffix \
-    >::type; \
+    >; \
     return getter::template get<U>(container); \
   }
 

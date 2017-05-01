@@ -14,6 +14,7 @@
 #include <fatal/container/unitary_union.h>
 #include <fatal/functional/functional.h>
 #include <fatal/math/numerics.h>
+#include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/traits.h>
 
@@ -216,10 +217,10 @@ struct legacy_storage_policy {
     // A naked pointer is used for dynamically allocated types. No smart
     // pointers are used since we aim for the smallest possible footprint
     // (having a copy of the deleter for every pointer is undesired).
-    using type = typename std::conditional<
-        dynamic::value,
-        T *, unitary_union<T, false>
-      >::type;
+    using type = conditional<
+      dynamic::value,
+      T *, unitary_union<T, false>
+    >;
   };
 
   // Methods for when T is stored using DYNAMIC ALLOCATION.

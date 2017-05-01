@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_container_flag_set_h
 
 #include <fatal/math/numerics.h>
+#include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/traits.h>
 
@@ -626,11 +627,11 @@ public:
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename UFlag>
-  using expanded = typename std::conditional<
+  using expanded = conditional<
     tag_list::template contains<UFlag>::value,
     flag_set,
     typename tag_list::template apply_back<fatal::flag_set, UFlag>
-  >::type;
+  >;
 
   /**
    * Expands the list of supported flags with `UFlag` and sets is in addition

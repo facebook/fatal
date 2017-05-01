@@ -8,6 +8,7 @@
  */
 
 #include <fatal/type/cat.h>
+#include <fatal/type/conditional.h>
 #include <fatal/type/tag.h>
 
 // TODO: REMOVE THESE HEADERS WHEN A PROPER SORT FOR SEQUENCES IS IN
@@ -429,11 +430,11 @@ template <
 struct f<Predicate, Variadic<Result...>, T, Args...>:
   f<
     Predicate,
-    typename std::conditional<
+    conditional<
       Predicate::template apply<T>::value,
       Variadic<Result..., T>,
       Variadic<Result...>
-    >::type,
+    >,
     Args...
   >
 {};
@@ -460,7 +461,7 @@ template <
   typename... Args
 >
 struct m<Variadic<L, LHS...>, Variadic<R, RHS...>, Variadic<Args...>> {
-  using type = typename std::conditional<
+  using type = conditional<
     (R::value < L::value),
     typename m<
       Variadic<L, LHS...>, Variadic<RHS...>, Variadic<Args..., R>
@@ -468,7 +469,7 @@ struct m<Variadic<L, LHS...>, Variadic<R, RHS...>, Variadic<Args...>> {
     typename m<
       Variadic<LHS...>, Variadic<R, RHS...>, Variadic<Args..., L>
     >::type
-  >::type;
+  >;
 };
 
 template <
@@ -504,7 +505,7 @@ struct m<
   Variadic<T, R, RHS...>,
   Variadic<T, Values...>
 > {
-  using type = typename std::conditional<
+  using type = conditional<
     (R < L),
     typename m<
       Variadic<T, L, LHS...>,
@@ -516,7 +517,7 @@ struct m<
       Variadic<T, R, RHS...>,
       Variadic<T, Values..., L>
     >::type
-  >::type;
+  >;
 };
 
 template <
@@ -629,13 +630,13 @@ template <
   typename RHS,
   typename Less
 >
-struct q<Variadic<LHS, RHS>, Less>:
-  std::conditional<
+struct q<Variadic<LHS, RHS>, Less> {
+  using type = conditional<
     Less::template apply<RHS, LHS>::value,
     Variadic<RHS, LHS>,
     Variadic<LHS, RHS>
-  >
-{};
+  >;
+};
 
 // TODO: MAKE IT FOUR WAY QUICK SORT??
 template <
@@ -676,13 +677,13 @@ template <
   typename T, T LHS, T RHS,
   typename Less
 >
-struct q<Variadic<T, LHS, RHS>, Less>:
-  std::conditional<
+struct q<Variadic<T, LHS, RHS>, Less> {
+  using type = conditional<
     Less::template vapply<T, RHS, LHS>::value,
     Variadic<T, RHS, LHS>,
     Variadic<T, LHS, RHS>
-  >
-{};
+  >;
+};
 
 // curried comparer for sequences
 template <typename Less, typename T, T LHS>

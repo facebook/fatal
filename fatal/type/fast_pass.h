@@ -12,6 +12,8 @@
 
 #include <type_traits>
 
+#include <fatal/type/conditional.h>
+
 namespace fatal {
 
 //////////////////
@@ -45,7 +47,7 @@ using is_fast_pass = std::integral_constant<
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using fast_pass = typename std::conditional<
+using fast_pass = conditional<
   is_fast_pass<
     typename std::decay<T>::type
   >::value,
@@ -57,7 +59,7 @@ using fast_pass = typename std::conditional<
       typename std::decay<T>::type
     >::type
   >::type
->::type;
+>;
 
 } // namespace fatal
 

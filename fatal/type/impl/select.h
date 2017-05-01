@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_select_h
 #define FATAL_INCLUDE_fatal_type_impl_select_h
 
+#include <fatal/type/conditional.h>
 #include <fatal/type/compare.h>
 
 #include <type_traits>
@@ -18,18 +19,18 @@ namespace fatal {
 namespace impl_sl {
 
 template <typename LHS, typename RHS, typename Less = less>
-using min = typename std::conditional<
+using min = conditional<
   Less::template apply<RHS, LHS>::value,
   RHS,
   LHS
->::type;
+>;
 
 template <typename LHS, typename RHS, typename Less = less>
-using max = typename std::conditional<
+using max = conditional<
   Less::template apply<LHS, RHS>::value,
   RHS,
   LHS
->::type;
+>;
 
 // variadic min //
 template <typename...> struct vn;
