@@ -113,8 +113,8 @@ template <typename... Values>
 using logical_and = std::integral_constant<
   bool,
   std::is_same<
-    sequence<bool, Values::value...>,
-    sequence<bool, impl_logical::b_true<Values>()...>
+    sequence<bool, true, Values::value...>,
+    sequence<bool, Values::value..., true>
   >::value
 >;
 
@@ -142,8 +142,8 @@ template <typename... Values>
 using logical_nor = std::integral_constant<
   bool,
   std::is_same<
-    sequence<bool, Values::value...>,
-    sequence<bool, impl_logical::b_false<Values>()...>
+    sequence<bool, false, Values::value...>,
+    sequence<bool, Values::value..., false>
   >::value
 >;
 
