@@ -10,8 +10,6 @@
 #ifndef FATAL_INCLUDE_fatal_type_identity_h
 #define FATAL_INCLUDE_fatal_type_identity_h
 
-#include <fatal/type/impl/identity.h>
-
 namespace fatal {
 
 /**
@@ -32,7 +30,7 @@ namespace fatal {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using identity = typename i_i::i<T>::type;
+using identity = T;
 
 struct get_identity {
   template <typename T>
