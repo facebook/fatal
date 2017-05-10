@@ -654,7 +654,7 @@ public:
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
     );
-  };
+  }
 
   template <typename V, typename... VArgs>
   static constexpr bool foreach(V &&visitor, VArgs &&...args) {
@@ -662,7 +662,7 @@ public:
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
     );
-  };
+  }
 
   template <typename TKey, typename TVisitor, typename... VArgs>
   static constexpr bool visit(TVisitor &&visitor, VArgs &&...args) {

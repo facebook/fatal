@@ -206,7 +206,7 @@ struct tuple_tags {
       std::forward<V>(visitor),
       std::forward<VArgs>(args)...
     ), !empty<list>::value;
-  };
+  }
 };
 
 /**

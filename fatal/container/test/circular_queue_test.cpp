@@ -326,7 +326,7 @@ struct getter {
     }
 
     return i->second;
-  };
+  }
 
 private:
   Data &data_;
@@ -339,7 +339,7 @@ struct creator {
 
   typename Getter::type operator ()() {
     return get_(ith++);
-  };
+  }
 
   std::size_t ith = 0;
 

@@ -481,9 +481,9 @@ FATAL_TEST(variant, move_ctor) {
 }
 
 struct throw_foo {
-  throw_foo() { throw nullptr; }
-  throw_foo(throw_foo const &) { throw nullptr; }
-  throw_foo(throw_foo &&) { throw nullptr; }
+  [[noreturn]] throw_foo() { throw nullptr; }
+  [[noreturn]] throw_foo(throw_foo const &) { throw nullptr; }
+  [[noreturn]] throw_foo(throw_foo &&) { throw nullptr; }
   throw_foo &operator =(throw_foo const &) { throw nullptr; }
   throw_foo &operator =(throw_foo &&) { throw nullptr; }
 };
@@ -495,9 +495,9 @@ static_assert(!std::is_nothrow_copy_assignable<throw_foo>::value, "");
 static_assert(!std::is_nothrow_move_assignable<throw_foo>::value, "");
 
 struct throw_large {
-  throw_large() { throw nullptr; }
-  throw_large(throw_large const &) { throw nullptr; }
-  throw_large(throw_large &&) { throw nullptr; }
+  [[noreturn]] throw_large() { throw nullptr; }
+  [[noreturn]] throw_large(throw_large const &) { throw nullptr; }
+  [[noreturn]] throw_large(throw_large &&) { throw nullptr; }
   throw_large &operator =(throw_large const &) { throw nullptr; }
   throw_large &operator =(throw_large &&) { throw nullptr; }
   std::array<char, 8192> payload;

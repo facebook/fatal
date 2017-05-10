@@ -610,7 +610,7 @@ struct type_list {
     return detail::type_list_impl::foreach_if<Predicate, 0, Args...>::visit(
       0, std::forward<V>(visitor), std::forward<VArgs>(args)...
     );
-  };
+  }
 
   /**
    * Calls the given visitor for each type in the list.
@@ -659,7 +659,7 @@ struct type_list {
     return detail::type_list_impl::foreach<0, Args...>::visit(
       std::forward<V>(visitor), std::forward<VArgs>(args)...
     ), sizeof...(Args) != 0;
-  };
+  }
 
   /**
    * Calls the given visitor for the type at position `index` in the list.

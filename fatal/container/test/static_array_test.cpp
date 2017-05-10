@@ -99,7 +99,7 @@ struct check_sequence_list {
     FATAL_EXPECT_TRUE(
       std::equal(expected.begin(), expected.end(), actual::data)
     );
-  };
+  }
 
   static void check() {
     impl<>();

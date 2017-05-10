@@ -31,7 +31,7 @@ public:
   using const_pointer = typename data::const_pointer;
   using pointer = typename data::pointer;
 
-  optional() noexcept: empty_(true){};
+  optional() noexcept: empty_(true){}
 
   template <typename... Args, typename = safe_overload<optional, Args...>>
   explicit optional(Args &&...args)

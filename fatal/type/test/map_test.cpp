@@ -1040,7 +1040,7 @@ struct bs_visitor {
     key = Key;
     mapped = Mapped;
     index = Index;
-  };
+  }
 };
 
 template <

@@ -1705,7 +1705,7 @@ struct bs_visitor {
   ) {
     out = Value;
     index = Index;
-  };
+  }
 };
 
 FATAL_TEST(binary_search, exact) {
@@ -1785,7 +1785,7 @@ FATAL_TEST(binary_search, exact) {
 
 # define CHECK_PW2_EXACT(P) \
   CHECK_BS_EXACT( \
-    std::int64_t, (P < pw2::size), std::int64_t(1 << P), \
+    std::int64_t, (P < pw2::size), std::int64_t(std::uint64_t(1) << P), \
     (P < pw2::size ? P : pw2::size), pw2, -1 \
   )
 

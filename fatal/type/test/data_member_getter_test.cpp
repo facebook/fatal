@@ -725,7 +725,7 @@ struct chained_getter {
   using Outer##_##Inner = chained_data_member_getter< \
     data_member_getter_test::getter::Outer, \
     data_member_getter_test::getter::Inner \
-  >;
+  >
 
   TEST_IMPL(d, i);
   TEST_IMPL(d, scl);

@@ -325,9 +325,9 @@ FATAL_TEST(comparison, not_equal) {
           auto &r2 = rhs;
           string_view ref(rstr);
           auto cstr = rstr.c_str();
-          std::vector<char> v(rstr.cbegin(), rstr.cend());
-          v.push_back('\0');
-          auto c = v.data();
+          std::vector<char> vc(rstr.cbegin(), rstr.cend());
+          vc.push_back('\0');
+          auto c = vc.data();
           std::string s(rstr);
 
           TEST_IMPL_COMPARE(r1, r2, expected_less);
@@ -341,9 +341,9 @@ FATAL_TEST(comparison, not_equal) {
           auto const &r2 = rhs;
           string_view const ref(rstr);
           auto const cstr = rstr.c_str();
-          std::vector<char> v(rstr.cbegin(), rstr.cend());
-          v.push_back('\0');
-          auto const c = v.data();
+          std::vector<char> vc(rstr.cbegin(), rstr.cend());
+          vc.push_back('\0');
+          auto const c = vc.data();
           std::string const s(rstr);
 
           TEST_IMPL_COMPARE(r1, r2, expected_less);
@@ -357,9 +357,9 @@ FATAL_TEST(comparison, not_equal) {
           auto &r2 = rhs;
           string_view ref(rstr);
           auto cstr = rstr.c_str();
-          std::vector<char> v(rstr.cbegin(), rstr.cend());
-          v.push_back('\0');
-          auto c = v.data();
+          std::vector<char> vc(rstr.cbegin(), rstr.cend());
+          vc.push_back('\0');
+          auto c = vc.data();
           std::string s(rstr);
 
           TEST_IMPL_COMPARE(std::move(r1), std::move(r2), expected_less);
@@ -370,12 +370,12 @@ FATAL_TEST(comparison, not_equal) {
         }
         {
           auto &r1 = lhs;
-          std::vector<char> v(rstr.cbegin(), rstr.cend());
-          v.push_back('\0');
+          std::vector<char> vc(rstr.cbegin(), rstr.cend());
+          vc.push_back('\0');
 
           TEST_IMPL_COMPARE(r1, string_view(rstr), expected_less);
           TEST_IMPL_COMPARE(r1, rstr.c_str(), expected_less);
-          TEST_IMPL_COMPARE(r1, v.data(), expected_less);
+          TEST_IMPL_COMPARE(r1, vc.data(), expected_less);
           TEST_IMPL_COMPARE(r1, std::string(rstr), expected_less);
         }
 

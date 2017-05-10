@@ -45,7 +45,7 @@ FATAL_CALL_TRAITS(no_fn_traits, no_fn);
 struct member_fn {
   constexpr member_fn(): d_(3.1415926) {}
 
-  void test_fn(long, double, int, char const *) const {
+  [[noreturn]] void test_fn(long, double, int, char const *) const {
     throw std::exception();
   }
 
@@ -290,7 +290,7 @@ FATAL_TEST(member_function, supports) {
 ///////////////////
 
 struct static_fn {
-  static void test_fn(long, double, int, char const *) {
+  [[noreturn]] static void test_fn(long, double, int, char const *) {
     throw std::exception();
   }
 
@@ -440,7 +440,9 @@ FATAL_TEST(static_member, supports) {
 // free function //
 ///////////////////
 
-void test_fn(long, double, int, char const *) { throw std::exception(); }
+[[noreturn]] void test_fn(long, double, int, char const *) {
+  throw std::exception();
+}
 
 int test_fn(int x) { return x; }
 
@@ -535,7 +537,7 @@ FATAL_TEST(free_function, function_object_free_function) {
 struct member_op {
   constexpr member_op(): d_(3.1415926) {}
 
-  void operator ()(long, double, int, char const *) const {
+  [[noreturn]] void operator ()(long, double, int, char const *) const {
     throw std::exception();
   }
 
