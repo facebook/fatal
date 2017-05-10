@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_find_h
 
 #include <fatal/type/identity.h>
+#include <fatal/type/constant.h>
 
 #include <fatal/type/impl/find.h>
 
@@ -28,7 +29,9 @@ using find = typename impl_fnd::f<T>::template apply<
 >;
 
 template <typename T, typename Key, typename KeyFilter = get_identity>
-using contains = typename impl_fnd::c<T>::template apply<Key, KeyFilter>;
+using contains = find<
+  T, Key, std::false_type, KeyFilter, get_constant<std::true_type>
+>;
 
 } // namespace fatal {
 

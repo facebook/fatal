@@ -46,21 +46,6 @@ struct f<List<Args...>> {
   );
 };
 
-// contains //
-template <typename> struct c;
-
-template <template <typename...> class List, typename... Args>
-struct c<List<Args...>> {
-  template <typename Key, typename KeyFilter>
-  using apply = decltype(
-    sfinae<std::false_type, Key>(
-      inherit<
-        pair<typename KeyFilter::template apply<Args>, std::true_type>...
-      >()
-    )
-  );
-};
-
 } // namespace impl_fnd {
 } // namespace fatal {
 
