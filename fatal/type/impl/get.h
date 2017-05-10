@@ -12,34 +12,26 @@
 
 #include <fatal/type/inherit.h>
 #include <fatal/type/pair.h>
-#include <fatal/type/slice.h>
 
 namespace fatal {
 namespace impl_gt {
 
-template <typename...> struct g;
-
 template <typename Key, typename Value>
 static Value f(pair<Key, Value>);
 
-template <typename T, typename Key>
-struct g<T, Key>: g<T, Key, get_first> {};
+template <typename...> struct g;
 
 template <
-  template <typename...> class List, typename... Args,
-  typename Key, typename KeyFilter
+  template <typename...> class List,
+  typename... Args,
+  typename Key,
+  typename KeyFilter,
+  typename PostFilter
 >
-struct g<List<Args...>, Key, KeyFilter> {
-  using type = decltype(f<Key>(
+struct g<List<Args...>, Key, KeyFilter, PostFilter> {
+  using type = typename PostFilter::template apply<decltype(f<Key>(
     inherit<pair<typename KeyFilter::template apply<Args>, Args>...>())
-  );
-};
-
-template <typename T, typename Key, typename KeyFilter, typename PostFilter>
-struct g<T, Key, KeyFilter, PostFilter> {
-  using type = typename PostFilter::template apply<
-    typename g<T, Key, KeyFilter>::type
-  >;
+  )>;
 };
 
 } // namespace impl_gt {

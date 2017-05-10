@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_find_h
 #define FATAL_INCLUDE_fatal_type_find_h
 
+#include <fatal/type/identity.h>
+
 #include <fatal/type/impl/find.h>
 
 namespace fatal {
@@ -18,12 +20,13 @@ template <
   typename T,
   typename Key,
   typename Default,
-  typename... Filters
+  typename KeyFilter = get_identity,
+  typename PostFilter = get_identity
 >
-using find = typename impl_fnd::f<T, Key, Default, Filters...>::type;
+using find = typename impl_fnd::f<T, Key, Default, KeyFilter, PostFilter>::type;
 
-template <typename T, typename Key, typename... Filters>
-using contains = typename impl_fnd::c<T, Key, Filters...>::type;
+template <typename T, typename Key, typename KeyFilter = get_identity>
+using contains = typename impl_fnd::c<T, Key, KeyFilter>::type;
 
 } // namespace fatal {
 

@@ -12,18 +12,11 @@
 
 #include <fatal/type/inherit.h>
 #include <fatal/type/pair.h>
-#include <fatal/type/tag.h>
 
 namespace fatal {
 namespace impl_fnd {
 
-// not found //
-struct n {};
-
 // find sfinae //
-template <typename, typename T>
-static T sfinae(tag<T>);
-
 template <typename, typename Key, typename Value>
 static Value sfinae(pair<Key, Value>);
 
@@ -34,31 +27,12 @@ static Default sfinae(...);
 template <typename...> struct f;
 
 template <
-  template <typename...> class List, typename... Args,
-  typename Key, typename Default
->
-struct f<List<Args...>, Key, Default> {
-  using type = decltype(
-    sfinae<Default, Key>(inherit<tag<Args>...>())
-  );
-};
-
-template <
-  template <typename...> class List, typename... Args,
-  typename Key, typename Default, typename KeyFilter
->
-struct f<List<Args...>, Key, Default, KeyFilter> {
-  using type = decltype(
-    sfinae<Default, Key>(
-      inherit<pair<typename KeyFilter::template apply<Args>, Args>...>()
-    )
-  );
-};
-
-template <
-  template <typename...> class List, typename... Args,
-  typename Key, typename Default,
-  typename KeyFilter, typename PostFilter
+  template <typename...> class List,
+  typename... Args,
+  typename Key,
+  typename Default,
+  typename KeyFilter,
+  typename PostFilter
 >
 struct f<List<Args...>, Key, Default, KeyFilter, PostFilter> {
   using type = decltype(
@@ -73,20 +47,14 @@ struct f<List<Args...>, Key, Default, KeyFilter, PostFilter> {
   );
 };
 
+// contains //
 template <typename...> struct c;
 
-template <template <typename...> class List, typename... Args, typename Key>
-struct c<List<Args...>, Key> {
-  using type = decltype(
-    sfinae<std::false_type, Key>(
-      inherit<pair<Args, std::true_type>...>()
-    )
-  );
-};
-
 template <
-  template <typename...> class List, typename... Args,
-  typename Key, typename KeyFilter
+  template <typename...> class List,
+  typename... Args,
+  typename Key,
+  typename KeyFilter
 >
 struct c<List<Args...>, Key, KeyFilter> {
   using type = decltype(
