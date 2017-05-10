@@ -487,7 +487,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
 
   template <template <typename> class... TTransforms>
   static std::type_info const &type(size_type const depth) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     return typeid(
       typename fatal::try_transform<
         fatal::compose<TTransforms...>::template apply
@@ -500,7 +500,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
     size_type const depth, union_type const &u, TVisitor &&visitor,
     UArgs &&...args
   ) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     visitor(
       storage_policy::template get<value_type>(u.storage),
       std::forward<UArgs>(args)...
@@ -512,7 +512,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
     size_type const depth, union_type &u, TVisitor &&visitor,
     UArgs &&...args
   ) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     visitor(
       storage_policy::template get<value_type>(u.storage),
       std::forward<UArgs>(args)...
@@ -522,14 +522,14 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
   static void allocate(
     allocator_type *allocator, size_type const depth, union_type &u
   ) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     storage_policy::template allocate<value_type>(allocator, u.storage);
   }
 
   static void deallocate(
     allocator_type *allocator, size_type const depth, union_type &u
   ) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     storage_policy::template deallocate<value_type>(allocator, u.storage);
   }
 
@@ -537,7 +537,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
     allocator_type *allocator, size_type const depth,
     union_type const &from, union_type &to
   ) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     storage_policy::template construct<value_type>(
       allocator, to.storage,
       storage_policy::template get<value_type>(from.storage)
@@ -547,14 +547,14 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
   static void destroy(
     allocator_type *allocator, size_type const depth, union_type &u
   ) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     storage_policy::template destroy<value_type>(allocator, u.storage);
   }
 
   static void move_over(
     size_type const depth, union_type &from, union_type &to
   ) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     storage_policy::template move_over<value_type>(from.storage, to.storage);
   }
 
@@ -618,7 +618,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
     union_type &u,
     UArgs &&...args
   ) {
-    assert(depth == Depth);
+    assert(depth == Depth), (void) depth;
     return storage_policy::template construct<value_type>(
       allocator, u.storage, std::forward<UArgs>(args)...
     );
@@ -877,7 +877,7 @@ public:
     indexed_type_tag<U, Index>, UTag &&tag, UVariant &&variant, bool &result,
     UVisitor &&visitor, UArgs &&...args
   ) {
-    assert(tag == variant.tag());
+    assert(tag == variant.tag()), (void) tag;
     assert(Index == variant.tag());
 
     using variant_type = typename std::decay<UVariant>::type;
