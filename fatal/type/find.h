@@ -23,10 +23,12 @@ template <
   typename KeyFilter = get_identity,
   typename PostFilter = get_identity
 >
-using find = typename impl_fnd::f<T, Key, Default, KeyFilter, PostFilter>::type;
+using find = typename impl_fnd::f<T>::template apply<
+  Key, Default, KeyFilter, PostFilter
+>;
 
 template <typename T, typename Key, typename KeyFilter = get_identity>
-using contains = typename impl_fnd::c<T, Key, KeyFilter>::type;
+using contains = typename impl_fnd::c<T>::template apply<Key, KeyFilter>;
 
 } // namespace fatal {
 

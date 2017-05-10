@@ -24,18 +24,17 @@ template <typename Default, typename...>
 static Default sfinae(...);
 
 // find //
-template <typename...> struct f;
+template <typename> struct f;
 
-template <
-  template <typename...> class List,
-  typename... Args,
-  typename Key,
-  typename Default,
-  typename KeyFilter,
-  typename PostFilter
->
-struct f<List<Args...>, Key, Default, KeyFilter, PostFilter> {
-  using type = decltype(
+template <template <typename...> class List, typename... Args>
+struct f<List<Args...>> {
+  template <
+    typename Key,
+    typename Default,
+    typename KeyFilter,
+    typename PostFilter
+  >
+  using apply = decltype(
     sfinae<Default, Key>(
       inherit<
         pair<
@@ -48,16 +47,12 @@ struct f<List<Args...>, Key, Default, KeyFilter, PostFilter> {
 };
 
 // contains //
-template <typename...> struct c;
+template <typename> struct c;
 
-template <
-  template <typename...> class List,
-  typename... Args,
-  typename Key,
-  typename KeyFilter
->
-struct c<List<Args...>, Key, KeyFilter> {
-  using type = decltype(
+template <template <typename...> class List, typename... Args>
+struct c<List<Args...>> {
+  template <typename Key, typename KeyFilter>
+  using apply = decltype(
     sfinae<std::false_type, Key>(
       inherit<
         pair<typename KeyFilter::template apply<Args>, std::true_type>...

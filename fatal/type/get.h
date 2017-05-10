@@ -23,7 +23,7 @@ template <
   typename KeyFilter = get_first,
   typename PostFilter = get_identity
 >
-using get = typename impl_gt::g<T, Key, KeyFilter, PostFilter>::type;
+using get = typename impl_gt::g<T>::template apply<Key, KeyFilter, PostFilter>;
 
 } // namespace fatal {
 

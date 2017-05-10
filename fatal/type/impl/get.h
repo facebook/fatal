@@ -19,17 +19,12 @@ namespace impl_gt {
 template <typename Key, typename Value>
 static Value f(pair<Key, Value>);
 
-template <typename...> struct g;
+template <typename> struct g;
 
-template <
-  template <typename...> class List,
-  typename... Args,
-  typename Key,
-  typename KeyFilter,
-  typename PostFilter
->
-struct g<List<Args...>, Key, KeyFilter, PostFilter> {
-  using type = typename PostFilter::template apply<decltype(f<Key>(
+template <template <typename...> class List, typename... Args>
+struct g<List<Args...>> {
+  template <typename Key, typename KeyFilter, typename PostFilter>
+  using apply = typename PostFilter::template apply<decltype(f<Key>(
     inherit<pair<typename KeyFilter::template apply<Args>, Args>...>())
   )>;
 };
