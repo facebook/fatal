@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_string_string_view_h
 
 #include <fatal/math/hash.h>
+#include <fatal/portability.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/traits.h>
 
@@ -19,6 +20,9 @@
 
 #include <cassert>
 #include <cstring>
+
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
 
 namespace fatal {
 namespace detail {
@@ -405,5 +409,7 @@ std::ostream &operator <<(std::basic_ostream<C, T> &out, string_view rhs) {
 }
 
 } // namespace fatal {
+
+FATAL_DIAGNOSTIC_POP
 
 #endif // FATAL_INCLUDE_fatal_string_string_view_h

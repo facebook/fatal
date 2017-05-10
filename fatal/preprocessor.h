@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_preprocessor_h
 #define FATAL_INCLUDE_fatal_preprocessor_h
 
+#include <fatal/portability.h>
+
 namespace fatal {
 
 /////////////////
@@ -20,10 +22,16 @@ namespace fatal {
   ::fatal::source_info(__FILE__, __LINE__)
 
 struct source_info {
+
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+
   source_info(char const *file, unsigned long line):
     file_(basename(file)),
     line_(line)
   {}
+
+FATAL_DIAGNOSTIC_POP
 
   char const *file() const { return file_; }
   unsigned long line() const { return line_; }

@@ -15,6 +15,8 @@
 
 #include <cmath>
 
+#include <fatal/portability.h>
+
 namespace fatal {
 
 /**
@@ -306,6 +308,9 @@ struct statistical_moments {
     );
   }
 
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+
   /**
    * Constructs an instance by restoring the given internal state.
    *
@@ -320,6 +325,8 @@ struct statistical_moments {
     moment_3_(std::get<3>(state)),
     moment_4_(std::get<4>(state))
   {}
+
+FATAL_DIAGNOSTIC_POP
 
 private:
   size_type samples_ = 0;

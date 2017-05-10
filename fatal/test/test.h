@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_test_test_h
 #define FATAL_INCLUDE_fatal_test_test_h
 
+#include <fatal/portability.h>
 #include <fatal/preprocessor.h>
 #include <fatal/test/string.h>
 #include <fatal/test/type.h>
@@ -266,6 +267,9 @@ using timestamp_t = clock::time_point;
 struct test_issue {
   enum class severity_t { warning, error, fatal };
 
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+
   template <typename... Args>
   test_issue(
     severity_t severity,
@@ -279,6 +283,8 @@ struct test_issue {
   {
     append_to_string(message_, std::forward<Args>(args)...);
   }
+
+FATAL_DIAGNOSTIC_POP
 
   template <typename... Args>
   std::string const &append(Args &&...args) {
@@ -332,7 +338,12 @@ public:
 
   duration_t elapsed() const { return elapsed_; }
 
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+
   void set_elapsed(duration_t elapsed) { elapsed_ = elapsed; }
+
+FATAL_DIAGNOSTIC_POP
 
 private:
   issue_list issues_;

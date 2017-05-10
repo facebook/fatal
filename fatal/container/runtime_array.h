@@ -12,6 +12,8 @@
 
 #include <fatal/container/variadic_union.h>
 
+#include <fatal/portability.h>
+
 #include <array>
 #include <iterator>
 #include <limits>
@@ -66,6 +68,10 @@ private:
   using container_type = variadic_union<static_type, dynamic_type>;
 
 public:
+
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+
   explicit runtime_array(size_type size):
     size_(size)
   {
@@ -95,6 +101,8 @@ public:
       assert(std::next(data_, size_) == end);
     }
   }
+
+FATAL_DIAGNOSTIC_POP
 
   runtime_array(runtime_array &&rhs):
     size_(rhs.size_)

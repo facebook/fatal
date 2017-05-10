@@ -172,7 +172,7 @@ FATAL_TEST(pointer_selector, managed) {
 }
 
 struct pointer_selector_tester {
-  pointer_selector_tester(int &v): v(v) { v = 99; }
+  pointer_selector_tester(int &v_): v(v_) { v = 99; }
   ~pointer_selector_tester() { v = 55; }
 
 private:

@@ -12,6 +12,7 @@
 
 #include <fatal/container/uninitialized.h>
 #include <fatal/math/hash.h>
+#include <fatal/portability.h>
 #include <fatal/string/string_view.h>
 #include <fatal/type/deprecated/type_map.h>
 #include <fatal/type/deprecated/type_tag.h>
@@ -31,6 +32,9 @@
 #include <vector>
 
 #include <cassert>
+
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
 
 namespace fatal {
 namespace detail {
@@ -198,9 +202,9 @@ private:
     union_t(union_t const &) = delete;
     union_t(union_t &&) = delete;
 
-    explicit union_t(std::string &&s): s(std::move(s)) {}
-    explicit union_t(string_view s): ref(s) {}
-    explicit union_t(char c): c(c) {}
+    explicit union_t(std::string &&s_): s(std::move(s_)) {}
+    explicit union_t(string_view s_): ref(s_) {}
+    explicit union_t(char c_): c(c_) {}
 
     ~union_t() {}
 
@@ -1634,15 +1638,15 @@ public:
     using result_type = std::size_t;
 
     result_type operator ()(rope const &r) const {
-      bytes_hasher<result_type> hasher;
+      bytes_hasher<result_type> inner_hasher;
 
       for (piece_index i = 0, pieces = r.pieces(); i < pieces; ++i) {
         auto piece = r.piece(i);
 
-        hasher(piece.begin(), piece.end());
+        inner_hasher(piece.begin(), piece.end());
       }
 
-      return *hasher;
+      return *inner_hasher;
     }
   };
 
@@ -1821,5 +1825,7 @@ std::ostream &operator <<(
 }
 
 } // namespace fatal {
+
+FATAL_DIAGNOSTIC_POP
 
 #endif // FATAL_INCLUDE_fatal_string_rope_h

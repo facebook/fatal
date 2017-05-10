@@ -14,6 +14,7 @@
 
 #include <fatal/debug/assume.h>
 #include <fatal/functional/functional.h>
+#include <fatal/portability.h>
 
 #include <algorithm>
 #include <array>
@@ -24,6 +25,9 @@
 #include <vector>
 
 #include <cassert>
+
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
 
 namespace fatal {
 
@@ -523,5 +527,7 @@ private:
 };
 
 } // namespace fatal {
+
+FATAL_DIAGNOSTIC_POP
 
 #endif // FATAL_INCLUDE_fatal_container_circular_queue_h

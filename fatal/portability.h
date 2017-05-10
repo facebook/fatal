@@ -10,6 +10,27 @@
 #ifndef FATAL_INCLUDE_fatal_portability_h
 #define FATAL_INCLUDE_fatal_portability_h
 
+// Generalize warning push/pop.
+#if defined(__clang__) || defined(__GNUC__)
+# define FATAL_DIAGNOSTIC_PUSH _Pragma("GCC diagnostic push")
+# define FATAL_DIAGNOSTIC_POP _Pragma("GCC diagnostic pop")
+# define FATAL_GCC_DIAGNOSTIC_IGNORED_INTERNAL2(warningName) #warningName
+# define FATAL_GCC_DIAGNOSTIC_IGNORED(warningName) \
+  _Pragma(                                      \
+  FATAL_GCC_DIAGNOSTIC_IGNORED_INTERNAL2(GCC diagnostic ignored warningName))
+#else
+# define FATAL_DIAGNOSTIC_PUSH
+# define FATAL_DIAGNOSTIC_POP
+# define FATAL_GCC_DIAGNOSTIC_IGNORED(warningName)
+#endif
+
+#if __GNUC__ && __GNUC__ < 5
+# define FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN \
+  FATAL_GCC_DIAGNOSTIC_IGNORED("-Wshadow")
+#else
+# define FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+#endif
+
 //////////////////////////////
 // FATAL_ATTR_ALWAYS_INLINE //
 //////////////////////////////

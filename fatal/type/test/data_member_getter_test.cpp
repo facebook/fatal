@@ -29,10 +29,11 @@ namespace data_member_getter_test {
 
 struct data {
   data(
-    int i, std::string const &scl, long &&lr, double const dc,
-    bool &bl, std::vector<short> v, float const &&fcr
+    int i_, std::string const &scl_, long &&lr_, double const dc_,
+    bool &bl_, std::vector<short> v_, float const &&fcr_
   ):
-    i(i), scl(scl), lr(std::move(lr)), dc(dc), bl(bl), v(v), fcr(std::move(fcr))
+    i(i_), scl(scl_), lr(std::move(lr_)), dc(dc_),
+    bl(bl_), v(v_), fcr(std::move(fcr_))
   {}
 
   data(data const &rhs):
@@ -709,8 +710,8 @@ FATAL_TEST(data_member_getter, namespace_std_collision) {
 namespace data_member_getter_test {
 
 struct chained_data {
-  chained_data(data d, data &l, data &&r, data const &cl, data const &&cr):
-    d(d), l(l), r(std::move(r)), cl(cl), cr(std::move(cr))
+  chained_data(data d_, data &l_, data &&r_, data const &cl_, data const &&cr_):
+    d(d_), l(l_), r(std::move(r_)), cl(cl_), cr(std::move(cr_))
   {}
 
   data d;

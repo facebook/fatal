@@ -44,14 +44,14 @@ using equality_precision = std::ratio<1, 10000000>;
 
 template <typename T, typename TRNG, typename TDistribution>
 std::vector<T> random_samples(
-  std::size_t samples,
+  std::size_t case_samples,
   TRNG &&rng,
   TDistribution &&distribution
 ) {
   std::vector<T> result;
-  result.reserve(samples);
+  result.reserve(case_samples);
 
-  while (samples--) {
+  while (case_samples--) {
     result.push_back(distribution(rng));
   }
 
@@ -60,25 +60,27 @@ std::vector<T> random_samples(
 
 template <typename T, typename TRNG, typename TDistribution>
 void statistical_moments_test_round(
-  std::size_t const samples,
+  std::size_t const case_samples,
   TRNG &&rng,
   TDistribution &&distribution
 ) {
-  using value_type = T;
+  using case_value_type = T;
 
-  FATAL_ASSERT_GT(samples, 0);
+  FATAL_ASSERT_GT(case_samples, 0);
 
-  auto const v1 = random_samples<value_type>(samples / 2, rng, distribution);
-  auto const v2 = random_samples<value_type>(
-    samples / 2 + (samples & 1),
+  auto const v1 = random_samples<case_value_type>(
+    case_samples / 2, rng, distribution
+  );
+  auto const v2 = random_samples<case_value_type>(
+    case_samples / 2 + (case_samples & 1),
     rng,
     distribution
   );
-  FATAL_ASSERT_EQ(samples, v1.size() + v2.size());
+  FATAL_ASSERT_EQ(case_samples, v1.size() + v2.size());
 
-  statistical_moments<value_type> moments; // all samples
-  statistical_moments<value_type> moments1; // samples in v1
-  statistical_moments<value_type> moments2; // samples in v2
+  statistical_moments<case_value_type> moments; // all samples
+  statistical_moments<case_value_type> moments1; // samples in v1
+  statistical_moments<case_value_type> moments2; // samples in v2
 
   FATAL_EXPECT_TRUE(moments.empty());
   FATAL_EXPECT_TRUE(moments1.empty());
@@ -86,7 +88,7 @@ void statistical_moments_test_round(
 
   // calculates the moments using the streaming algorithm
 
-  value_type sum = 0;
+  case_value_type sum = 0;
 
   for (auto i: v1) {
     sum += i;
@@ -104,17 +106,17 @@ void statistical_moments_test_round(
   FATAL_EXPECT_FALSE(moments1.empty());
   FATAL_EXPECT_FALSE(moments2.empty());
 
-  FATAL_EXPECT_EQ(samples, moments.size());
+  FATAL_EXPECT_EQ(case_samples, moments.size());
   FATAL_EXPECT_EQ(v1.size(), moments1.size());
   FATAL_EXPECT_EQ(v2.size(), moments2.size());
 
   // calculates the moments using the traditional approach, for later comparison
 
-  auto const mean = sum / samples;
+  auto const mean = sum / case_samples;
 
-  value_type cumulant_1 = 0;
-  value_type cumulant_3 = 0;
-  value_type cumulant_4 = 0;
+  case_value_type cumulant_1 = 0;
+  case_value_type cumulant_3 = 0;
+  case_value_type cumulant_4 = 0;
 
   for (auto i: v1) {
     auto const x = i - mean;
@@ -130,10 +132,11 @@ void statistical_moments_test_round(
     cumulant_4 += x * x * x * x;
   }
 
-  auto const variance = cumulant_1 / samples;
+  auto const variance = cumulant_1 / case_samples;
   auto const standard_deviation = std::sqrt(variance);
-  auto const kurtosis = cumulant_4 / samples / (variance * variance) - 3;
-  auto const skewness = cumulant_3 / samples / (variance * standard_deviation);
+  auto const standard_deviation_3 = variance * standard_deviation;
+  auto const kurtosis = cumulant_4 / case_samples / (variance * variance) - 3;
+  auto const skewness = cumulant_3 / case_samples / standard_deviation_3;
 
   // checks the results
 
@@ -205,7 +208,7 @@ void statistical_moments_test_round(
   )
 
   // tests merging into an empty instance
-  statistical_moments<value_type> merge_into_empty;
+  statistical_moments<case_value_type> merge_into_empty;
   merge_into_empty.merge(moments);
   TEST_ALL_IMPL(TEST_IMPL, moments, merge_into_empty);
 
@@ -220,12 +223,12 @@ void statistical_moments_test_round(
 
 template <typename T, typename TRNG, typename TDistribution>
 void test_statistical_moments(
-  std::size_t const samples,
+  std::size_t const case_samples,
   TRNG &&rng,
   TDistribution &&distribution
 ) {
   for (auto i = rounds::value; i--; ) {
-    statistical_moments_test_round<T>(samples, rng, distribution);
+    statistical_moments_test_round<T>(case_samples, rng, distribution);
   }
 }
 

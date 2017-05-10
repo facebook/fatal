@@ -12,6 +12,7 @@
 #include <fatal/test/driver.h>
 
 #include <fatal/container/optional.h>
+#include <fatal/portability.h>
 
 #include <algorithm>
 #include <initializer_list>
@@ -146,7 +147,12 @@ struct checked_allocator {
 
   checked_allocator() = default;
 
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+
   explicit checked_allocator(allocator_type allocator): allocator_(allocator) {}
+
+FATAL_DIAGNOSTIC_POP
 
   template <typename UAllocator, typename U>
   checked_allocator(checked_allocator<UAllocator, U> const &other):

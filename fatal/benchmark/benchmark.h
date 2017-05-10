@@ -12,6 +12,7 @@
 
 #include <fatal/benchmark/prevent_optimization.h>
 #include <fatal/container/optional.h>
+#include <fatal/portability.h>
 #include <fatal/preprocessor.h>
 #include <fatal/time/time.h>
 
@@ -101,6 +102,10 @@ using duration = clock::duration;
 using iterations = std::uint_fast32_t;
 
 struct result_entry {
+
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+
   result_entry(
     duration net_duration,
     duration gross_duration,
@@ -113,6 +118,8 @@ struct result_entry {
     period_(net_duration_ / n_),
     name_(std::move(name))
   {}
+
+FATAL_DIAGNOSTIC_POP
 
   duration net_duration() const { return net_duration_; }
   duration gross_duration() const { return gross_duration_; }

@@ -14,6 +14,7 @@
 #include <fatal/container/unitary_union.h>
 #include <fatal/functional/functional.h>
 #include <fatal/math/numerics.h>
+#include <fatal/portability.h>
 #include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/traits.h>
@@ -23,6 +24,9 @@
 #include <utility>
 
 #include <cassert>
+
+FATAL_DIAGNOSTIC_PUSH
+FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
 
 /**
  * #################
@@ -2143,5 +2147,7 @@ private:
 };
 
 } // namespace std {
+
+FATAL_DIAGNOSTIC_POP
 
 #endif // FATAL_INCLUDE_fatal_container_legacy_variant_h
