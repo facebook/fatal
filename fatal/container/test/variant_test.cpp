@@ -271,6 +271,22 @@ FATAL_TEST(variant, default_ctor) {
   FATAL_EXPECT_TRUE(v.empty());
 }
 
+FATAL_TEST(variant, value_ctor) {
+  test_variant<int, test_string, double> v(10);
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_TRUE(v.is_of<int>());
+  FATAL_EXPECT_EQ(10, (v.get<int>()));
+  v = test_variant<int, test_string, double>(5.5);
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_TRUE(v.is_of<double>());
+  FATAL_EXPECT_EQ(5.5, (v.get<double>()));
+  int i = 50;
+  v = test_variant<int, test_string, double>(i);
+  FATAL_EXPECT_FALSE(v.empty());
+  FATAL_EXPECT_TRUE(v.is_of<int>());
+  FATAL_EXPECT_EQ(50, (v.get<int>()));
+}
+
 test_variant<int, test_string, double> make_variant() {
   return test_variant<int, test_string, double>(allocator, 10);
 }

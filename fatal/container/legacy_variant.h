@@ -1091,6 +1091,11 @@ public:
     legacy_variant(std::addressof(allocator), std::forward<U>(value))
   {}
 
+  template <typename U, typename = safe_overload<legacy_variant, U>>
+  explicit legacy_variant(U&& value) : control_(nullptr, no_tag()) {
+    set(std::forward<U>(value));
+  }
+
   template <typename... UArgs>
   legacy_variant(legacy_variant<storage_policy, UArgs...> const &other):
     legacy_variant(other.allocator())
