@@ -226,7 +226,7 @@ using test_string = basic_test_string<char>;
 template <typename T>
 using test_vector = std::vector<
   T,
-  typename decltype(allocator)::template rebind<char>::other
+  typename decltype(allocator)::template rebind<T>::other
 >;
 
 ////////////////
