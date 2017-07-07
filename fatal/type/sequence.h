@@ -10,11 +10,23 @@
 #ifndef FATAL_INCLUDE_fatal_type_sequence_h
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
+#include <utility>
+
 #include <fatal/type/debug.h>
 
 namespace fatal {
 
-template <typename T, T...> struct sequence;
+#if __cpp_lib_integer_sequence || _MSC_VER
+
+template <typename T, T... Ts>
+using sequence = std::integer_sequence<T, Ts...>;
+
+#else
+
+template <typename T, T...>
+struct sequence;
+
+#endif
 
 } // namespace fatal {
 
@@ -24,6 +36,23 @@ template <typename T, T...> struct sequence;
 
 namespace fatal {
 
+#if __cpp_lib_integer_sequence || _MSC_VER
+
+#if __GNUC__ && __GNUC__ < 6 && !__clang__
+
+// GCC < 6 has inefficient, linearly recursive std::make_integer_sequence; avoid
+template <typename T, std::size_t Size>
+using make_sequence = typename impl_seq::make<T, Size>::type;
+
+#else
+
+template <typename T, std::size_t Size>
+using make_sequence = std::make_integer_sequence<T, Size>;
+
+#endif
+
+#else
+
 template <typename T, T... Values>
 struct sequence {
   using value_type = T;
@@ -31,6 +60,8 @@ struct sequence {
 
 template <typename T, std::size_t Size>
 using make_sequence = typename impl_seq::make<T, Size>::type;
+
+#endif
 
 template <typename T, T Begin, T End>
 using make_interval = typename impl_seq::offset<
