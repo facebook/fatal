@@ -53,19 +53,6 @@ struct gaz {
   int fn(bool, T const &, double *) const;
 };
 
-#ifdef FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
-# define CHECK_REFLECT(Class, Fn, Result, CV, CVQ, Ref, RefQ, ...) \
-    do { \
-      using reflected = reflect_member_function<decltype(&Class::Fn)>; \
-      using expected = Result(Class::*)(__VA_ARGS__) CVQ; \
-      FATAL_EXPECT_SAME<Class, reflected::owner>(); \
-      FATAL_EXPECT_SAME<Result, reflected::result>(); \
-      FATAL_EXPECT_SAME<expected, reflected::pointer>(); \
-      FATAL_EXPECT_EQ(ref_qualifier::none, reflected::ref::value); \
-      FATAL_EXPECT_EQ(cv_qualifier::CV, reflected::cv::value); \
-      FATAL_EXPECT_SAME<type_list<__VA_ARGS__>, reflected::args>(); \
-    } while (false)
-#else // FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
 # define CHECK_REFLECT(Class, Fn, Result, CV, CVQ, Ref, RefQ, ...) \
     do { \
       using reflected = reflect_member_function<decltype(&Class::Fn)>; \
@@ -77,7 +64,6 @@ struct gaz {
       FATAL_EXPECT_EQ(cv_qualifier::CV, reflected::cv::value); \
       FATAL_EXPECT_SAME<type_list<__VA_ARGS__>, reflected::args>(); \
     } while (false)
-#endif // FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
 
 FATAL_TEST(reflect_member_function, reflect_member_function) {
   CHECK_REFLECT(foo, noncv, void, none, , none, );
@@ -96,7 +82,6 @@ FATAL_TEST(reflect_member_function, reflect_member_function) {
     bar, fn_vc, R<5>, cv, const volatile, none, , A<50>, A<51> const *const &
   );
 
-#ifndef FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
   CHECK_REFLECT(bar, fn_lr, R<1>, none, , lvalue, &, A<10>, A<11> &&);
   CHECK_REFLECT(
     bar, fn_c_lr, R<2>, c, const, lvalue, &, A<20> const &, A<21> &
@@ -122,7 +107,6 @@ FATAL_TEST(reflect_member_function, reflect_member_function) {
     bar, fn_vc_rr, R<5>,
     cv, const volatile, rvalue, &&, A<50>, A<51> const *const &
   );
-#endif // FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
 
   CHECK_REFLECT(bar, fn_foo, foo &, none, , none, );
   CHECK_REFLECT(bar, operator ==, bool, c, const, none, , bar const &);
