@@ -12,16 +12,6 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.8']
-      env:
-        COMPILER=g++-4.8
-        CPP_STD=c++0x
-
-    - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
           packages: ['g++-4.9']
       env:
         COMPILER=g++-4.9

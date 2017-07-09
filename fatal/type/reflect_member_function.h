@@ -216,21 +216,10 @@ namespace detail {
     >; \
   }
 
-#ifndef __clang__
-# ifdef __GNUC__
-#   if __GNUC__ == 4 && __GNUC_MINOR__ == 8 && __GNUC_PATCHLEVEL__ < 5
-#     define FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
-#   endif // gcc < 4.8.5
-# endif // __GNUC__
-#endif // __clang__
-
 REFLECTED_MEMBER_FUNCTION_IMPL(none, none, );
 REFLECTED_MEMBER_FUNCTION_IMPL(c, none, const);
 REFLECTED_MEMBER_FUNCTION_IMPL(v, none, volatile);
 REFLECTED_MEMBER_FUNCTION_IMPL(cv, none, const volatile);
-
-#ifndef FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
-
 REFLECTED_MEMBER_FUNCTION_IMPL(none, lvalue, &);
 REFLECTED_MEMBER_FUNCTION_IMPL(c, lvalue, const &);
 REFLECTED_MEMBER_FUNCTION_IMPL(v, lvalue, volatile &);
@@ -239,8 +228,6 @@ REFLECTED_MEMBER_FUNCTION_IMPL(none, rvalue, &&);
 REFLECTED_MEMBER_FUNCTION_IMPL(c, rvalue, const &&);
 REFLECTED_MEMBER_FUNCTION_IMPL(v, rvalue, volatile &&);
 REFLECTED_MEMBER_FUNCTION_IMPL(cv, rvalue, const volatile &&);
-
-#endif // FATAL_SKIP_REFLECT_MEMBER_FN_REF_QUALIFIERS
 
 #undef REFLECTED_MEMBER_FUNCTION_IMPL
 
