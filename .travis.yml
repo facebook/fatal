@@ -247,6 +247,36 @@ matrix:
         COMPILER=clang++-3.9
         CPP_STD=c++1z
 
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-4.0']
+          packages: ['clang-4.0']
+      env:
+        COMPILER=clang++-4.0
+        CPP_STD=c++11
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-4.0']
+          packages: ['clang-4.0']
+      env:
+        COMPILER=clang++-4.0
+        CPP_STD=c++14
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-4.0']
+          packages: ['clang-4.0']
+      env:
+        COMPILER=clang++-4.0
+        CPP_STD=c++1z
+
 # Activate when we are allowed to use MacOS X
 #    - os: osx
 #      compiler: clang
