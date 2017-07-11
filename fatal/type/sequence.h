@@ -10,11 +10,39 @@
 #ifndef FATAL_INCLUDE_fatal_type_sequence_h
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
+#include <utility>
+
 #include <fatal/type/debug.h>
+
+#if __cpp_lib_integer_sequence >= 201304 || _MSC_VER
+#define FATAL_SEQUENCE_HAS_STD_INTEGER_SEQUENCE 1
+#else
+#define FATAL_SEQUENCE_HAS_STD_INTEGER_SEQUENCE 0
+#endif
+
+#if FATAL_SEQUENCE_HAS_STD_INTEGER_SEQUENCE && ( \
+      (__clang_major__ >= 3 && __clang_minor__ >= 8) || \
+      _MSC_FULL_VER >= 190023918 || \
+      0 \
+    )
+#define FATAL_SEQUENCE_HAS_INTRINSIC_MAKE_INTEGER_SEQ 1
+#else
+#define FATAL_SEQUENCE_HAS_INTRINSIC_MAKE_INTEGER_SEQ 0
+#endif
 
 namespace fatal {
 
-template <typename T, T...> struct sequence;
+#if FATAL_SEQUENCE_HAS_STD_INTEGER_SEQUENCE
+
+template <typename T, T... Ts>
+using sequence = std::integer_sequence<T, Ts...>;
+
+#else
+
+template <typename T, T...>
+struct sequence;
+
+#endif
 
 } // namespace fatal {
 
@@ -24,6 +52,22 @@ template <typename T, T...> struct sequence;
 
 namespace fatal {
 
+#if FATAL_SEQUENCE_HAS_STD_INTEGER_SEQUENCE
+
+#if FATAL_SEQUENCE_HAS_INTRINSIC_MAKE_INTEGER_SEQ
+
+template <typename T, std::size_t Size>
+using make_sequence = __make_integer_seq<sequence, T, Size>;
+
+#else
+
+template <typename T, std::size_t Size>
+using make_sequence = typename impl_seq::make<T, Size>::type;
+
+#endif
+
+#else
+
 template <typename T, T... Values>
 struct sequence {
   using value_type = T;
@@ -31,6 +75,8 @@ struct sequence {
 
 template <typename T, std::size_t Size>
 using make_sequence = typename impl_seq::make<T, Size>::type;
+
+#endif
 
 template <typename T, T Begin, T End>
 using make_interval = typename impl_seq::offset<
