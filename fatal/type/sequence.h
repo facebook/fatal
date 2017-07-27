@@ -10,17 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_sequence_h
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
+#include <fatal/portability.h>
 #include <fatal/type/debug.h>
-
-#if ( \
-      (__clang_major__ >= 3 && __clang_minor__ >= 8) || \
-      _MSC_FULL_VER >= 190023918 || \
-      0 \
-    )
-#define FATAL_SEQUENCE_HAS_INTRINSIC_MAKE_INTEGER_SEQ 1
-#else
-#define FATAL_SEQUENCE_HAS_INTRINSIC_MAKE_INTEGER_SEQ 0
-#endif
 
 namespace fatal {
 
@@ -40,7 +31,7 @@ struct sequence {
   using value_type = T;
 };
 
-#if FATAL_SEQUENCE_HAS_INTRINSIC_MAKE_INTEGER_SEQ
+#if FATAL_HAS_BUILTIN(__make_integer_seq) || _MSC_FULL_VER >= 190023918
 
 template <typename T, std::size_t Size>
 using make_sequence = __make_integer_seq<sequence, T, Size>;

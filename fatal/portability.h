@@ -10,6 +10,20 @@
 #ifndef FATAL_INCLUDE_fatal_portability_h
 #define FATAL_INCLUDE_fatal_portability_h
 
+///////////////////////
+// FATAL_HAS_BUILTIN //
+///////////////////////
+
+/**
+ * TODO: DOCUMENT
+ */
+
+#if defined(__has_builtin)
+# define FATAL_HAS_BUILTIN(...) __has_builtin(__VA_ARGS__)
+#else
+# define FATAL_HAS_BUILTIN(...) 0
+#endif
+
 // Generalize warning push/pop.
 #if defined(__clang__) || defined(__GNUC__)
 # define FATAL_DIAGNOSTIC_PUSH _Pragma("GCC diagnostic push")
