@@ -13,13 +13,6 @@
 #include <fatal/portability.h>
 #include <fatal/type/debug.h>
 
-namespace fatal {
-
-template <typename T, T...>
-struct sequence;
-
-} // namespace fatal {
-
 #include <cstdlib>
 
 #include <fatal/type/impl/sequence.h>
@@ -39,7 +32,8 @@ using make_sequence = __make_integer_seq<sequence, T, Size>;
 #else
 
 template <typename T, std::size_t Size>
-using make_sequence = typename impl_seq::make<T, Size>::type;
+using make_sequence =
+  typename impl_seq::make<Size>::template apply<sequence<T>, sequence<T, 0>>;
 
 #endif
 
@@ -68,6 +62,7 @@ using int_sequence = sequence<int, Values...>;
 
 #define FATAL_S(Id, String) \
   FATAL_IMPL_BUILD_STRING( \
+    ::fatal::sequence, \
     Id, \
     FATAL_UID(FATAL_CAT(fatal_str_, Id)), \
     FATAL_UID(Indexes), \

@@ -1266,4 +1266,18 @@ FATAL_TEST(indexes_sequence, sanity_check) {
   check_indexes_sequence<0, 1, 2, 3, 4, 5>();
 }
 
+FATAL_TEST(make_sequence, pub) {
+  FATAL_EXPECT_SAME<
+    make_sequence<std::uint16_t, 5>,
+    sequence<std::uint16_t, 0, 1, 2, 3, 4>
+  >();
+}
+
+FATAL_TEST(make_sequence, impl) {
+  FATAL_EXPECT_SAME<
+    impl_seq::make_sequence<sequence, std::uint16_t, 5>,
+    sequence<std::uint16_t, 0, 1, 2, 3, 4>
+  >();
+}
+
 } // namespace fatal {

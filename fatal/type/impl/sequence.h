@@ -15,9 +15,12 @@ namespace impl_seq {
 
 template <typename...> struct cat;
 
-template <typename T, T... V0, T... V1, T... Tail>
-struct cat<T, sequence<T, V0...>, sequence<T, V1...>, sequence<T, Tail...>> {
-  using type = sequence<
+template <
+  template <typename T, T...> class Sequence,
+  typename T, T... V0, T... V1, T... Tail
+>
+struct cat<Sequence<T, V0...>, Sequence<T, V1...>, Sequence<T, Tail...>> {
+  using type = Sequence<
     T,
     V0...,
     (sizeof...(V0) + V1)...,
@@ -25,24 +28,40 @@ struct cat<T, sequence<T, V0...>, sequence<T, V1...>, sequence<T, Tail...>> {
   >;
 };
 
-template <typename T, std::size_t Size>
+template <std::size_t Size>
 struct make {
-  using type = typename cat<
-    T,
-    typename make<T, Size / 2>::type,
-    typename make<T, Size / 2>::type,
-    typename make<T, Size % 2>::type
+  template <typename S0, typename S1>
+  using apply = typename cat<
+    typename make<Size / 2>::template apply<S0, S1>,
+    typename make<Size / 2>::template apply<S0, S1>,
+    typename make<Size % 2>::template apply<S0, S1>
   >::type;
 };
 
-template <typename T> struct make<T, 1> { using type = sequence<T, 0>; };
-template <typename T> struct make<T, 0> { using type = sequence<T>; };
+template <> struct make<1> {
+  template <typename S0, typename S1>
+  using apply = S1;
+};
+template <> struct make<0> {
+  template <typename S0, typename S1>
+  using apply = S0;
+};
+
+template <
+  template <typename T, T...> class Sequence, typename T, std::size_t Size
+>
+using make_sequence = typename make<Size>::template apply<
+  Sequence<T>, Sequence<T, 0>
+>;
 
 template <typename T, T Offset, typename> struct offset;
 
-template <typename T, T Offset, T... Values>
-struct offset<T, Offset, sequence<T, Values...>> {
-  using type = sequence<T, (Offset + Values)...>;
+template <
+  template <typename T, T...> class Sequence,
+  typename T, T Offset, T... Values
+>
+struct offset<T, Offset, Sequence<T, Values...>> {
+  using type = Sequence<T, (Offset + Values)...>;
 };
 
 template <typename T, std::size_t Size>
@@ -54,15 +73,17 @@ static constexpr std::size_t size(T const (&)[Size]) {
   return Size - 1;
 }
 
-#define FATAL_IMPL_BUILD_STRING(Id, Helper, Indexes, ...) \
+#define FATAL_IMPL_BUILD_STRING(Sequence, Id, Helper, Indexes, ...) \
   template <::std::size_t... Indexes> \
-  static ::fatal::sequence< \
+  static Sequence< \
     typename ::std::decay<decltype(*(__VA_ARGS__))>::type, \
     (__VA_ARGS__)[Indexes]... \
-  > Helper(::fatal::index_sequence<Indexes...>); \
+  > Helper(Sequence<::std::size_t, Indexes...>); \
   \
   using Id = decltype(Helper( \
-    ::fatal::make_index_sequence<::fatal::impl_seq::size(__VA_ARGS__)>() \
+    typename ::fatal::impl_seq::make_sequence< \
+      Sequence, ::std::size_t, ::fatal::impl_seq::size(__VA_ARGS__) \
+    >() \
   ))
 
 } // namespace impl_seq {
