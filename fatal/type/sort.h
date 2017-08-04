@@ -34,9 +34,11 @@ using reject = filter<T, negation<Predicate>>;
 template  <typename LHS, typename RHS>
 using merge = typename i_s::M<LHS, RHS>::type;
 
-// TODO: INVERT COMPARER AND FILTER
 template <typename T, typename Less = less, typename... By>
 using sort = typename i_s::Q<T, Less, By...>::type;
+
+template <typename T, typename... By>
+using sort_by = sort<T, less, By...>;
 
 // TODO: REVIEW / MOVE SOMEWHERE ELSE / GENERALIZE / ...
 template <typename T>
