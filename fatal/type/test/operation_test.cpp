@@ -13,6 +13,7 @@
 
 #include <fatal/preprocessor.h>
 #include <fatal/type/deprecated/type_map.h>
+#include <fatal/type/deprecated/constant_sequence.h>
 #include <fatal/type/sequence.h>
 #include <fatal/type/test/parse_sequence_input.h>
 

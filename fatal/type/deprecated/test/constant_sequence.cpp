@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/type/sequence.h>
+#include <fatal/type/deprecated/constant_sequence.h>
 
 #include <fatal/test/driver.h>
 
