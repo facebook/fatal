@@ -529,7 +529,7 @@ FATAL_TEST(numerics, most_significant_bit) {
 /////////////////////////////////
 
 #define SEL_TEST(expected, selector, n) \
-  FATAL_EXPECT_TRUE((std::is_same<expected, selector<n>>::value))
+  FATAL_EXPECT_SAME<expected, selector<n>>()
 
 FATAL_TEST(numerics, smallest_signed_integral) {
   SEL_TEST(int8_t, smallest_signed_integral, 0);
@@ -638,7 +638,7 @@ FATAL_TEST(numerics, smallest_least_unsigned_integral) {
 #define SMALLEST_FOR_VALUE_TEST(n, expected) \
   FATAL_VLOG(1) << "expected = " << #expected << ", actual = " \
     << ::fatal::type_str<smallest_uint_for_value<n>>(); \
-  FATAL_EXPECT_TRUE((std::is_same<expected, smallest_uint_for_value<n>>::value))
+  FATAL_EXPECT_SAME<expected, smallest_uint_for_value<n>>()
 
 FATAL_TEST(numerics, smallest_uint_for_value) {
   SMALLEST_FOR_VALUE_TEST(0u, bool);
