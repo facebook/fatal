@@ -51,9 +51,9 @@ struct member_fn {
 
   void test_fn() { d_ = 5.6; }
 
-  double test_fn() const { return d_; }
+  constexpr double test_fn() const { return d_; }
 
-  int test_fn(int x) const { return x; }
+  constexpr int test_fn(int x) const { return x; }
 
   std::size_t test_fn(
     std::string s1,
@@ -69,7 +69,7 @@ struct member_fn {
     return out.size();
   }
 
-  long test_fn(int x, bool b) const { return b ? x : -x; }
+  constexpr long test_fn(int x, bool b) const { return b ? x : -x; }
 
   constexpr int test_fn(int a, int b, int c) const { return a + b + c; }
 
@@ -1243,8 +1243,8 @@ FATAL_TEST(call_if_supported, static_member_unbound) {
 //////////
 
 struct str {
-  FATAL_STR(test_fn, "test_fn");
-  FATAL_STR(no_fn, "no_fn");
+  FATAL_S(test_fn, "test_fn");
+  FATAL_S(no_fn, "no_fn");
 };
 
 FATAL_TEST(name, member_traits) {
