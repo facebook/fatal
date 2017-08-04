@@ -8,6 +8,7 @@
  */
 
 #include <fatal/container/tuple.h>
+#include <fatal/type/deprecated/type_map.h>
 
 #include <fatal/test/driver.h>
 

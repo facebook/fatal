@@ -73,9 +73,11 @@ void data_as_literal(Out &out, Buffer const &v) {
           hex = false;
           switch (c) {
             case '\\': case '"':
-              out << '\\';
+              out << '\\' << c;
+              break;
             default:
               out << c;
+              break;
           }
         } else {
           hex = false;
