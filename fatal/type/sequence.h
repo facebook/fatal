@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
 #include <fatal/portability.h>
+#include <fatal/preprocessor.h>
 #include <fatal/type/debug.h>
 
 #include <cstdlib>
@@ -70,7 +71,5 @@ using int_sequence = sequence<int, Values...>;
   )
 
 } // namespace fatal {
-
-#include <fatal/type/deprecated/constant_sequence.h>
 
 #endif // FATAL_INCLUDE_fatal_type_sequence_h

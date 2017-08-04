@@ -69,7 +69,7 @@ FATAL_TEST(foreach_test, very_long_type_list) {
 
   const auto expected = [] {
     std::vector<std::string> ret{};
-    for (auto i = size_t(0); i < size; ++i) {
+    for (std::size_t i = 0; i < size; ++i) {
       ret.push_back(to_string("foo_", i, "_s"));
     };
     return ret;

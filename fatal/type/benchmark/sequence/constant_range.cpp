@@ -8,7 +8,7 @@
  */
 
 #include <fatal/benchmark/cases.h>
-#include <fatal/type/sequence.h>
+#include <fatal/type/deprecated/constant_sequence.h>
 
 int main() {
   using namespace fatal;
