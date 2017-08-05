@@ -15,9 +15,7 @@ system_gcc="g++"
 
 lclear() {
   if [ "$NO_CLEAR" != "true" ]; then
-    for f in `seq 0 5000`; do
-      echo >&2
-    done
+    tmux clear-history || true
     clear >&2
   fi
 }
