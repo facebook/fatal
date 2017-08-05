@@ -276,11 +276,6 @@ before_script:
 script:
   - ./contbuild.sh "$COMPILER" "$CPP_STD"
 
-branches:
-  only:
-    - master
-    - dev
-
 notifications:
   email:
     on_success: change
