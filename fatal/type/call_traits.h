@@ -11,8 +11,8 @@
 #define FATAL_INCLUDE_fatal_type_call_traits_h
 
 #include <fatal/preprocessor.h>
+#include <fatal/type/apply.h>
 #include <fatal/type/sequence.h>
-#include <fatal/type/deprecated/transform.h>
 
 #include <utility>
 
@@ -208,7 +208,7 @@ public:
       static ::std::false_type sfinae(...); \
     }; \
     \
-    FATAL_STR(name_str, FATAL_TO_STR(__VA_ARGS__)); \
+    FATAL_S(name_str, FATAL_TO_STR(__VA_ARGS__)); \
     \
   public: \
     using name = name_str; \
@@ -556,7 +556,7 @@ struct call_traits {
 
 #define FATAL_IMPL_FREE_FUNCTION_CALL_TRAITS(Name, Impl, ...) \
   struct Impl { \
-    FATAL_STR(name, FATAL_TO_STR(__VA_ARGS__)); \
+    FATAL_S(name, FATAL_TO_STR(__VA_ARGS__)); \
     \
     constexpr inline Impl() {} \
     \
