@@ -35,6 +35,4 @@ using int_list = list<std::integral_constant<int, Values>...>;
 
 } // namespace fatal {
 
-#include <fatal/type/deprecated/type_list.h>
-
 #endif // FATAL_INCLUDE_fatal_type_list_h
