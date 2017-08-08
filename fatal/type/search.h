@@ -22,7 +22,6 @@
 
 namespace fatal {
 
-
 // TODO: DOCUMENT THE NEED FOR A SORTED LIST
 template <
   typename T,
