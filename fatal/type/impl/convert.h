@@ -14,7 +14,7 @@ namespace fatal {
 namespace impl_cv {
 
 // as_sequence //
-template <template <typename V, V...> class, typename...> struct s;
+template <typename...> struct s;
 
 template <
   template <typename V, V...> class Sequence,
@@ -22,7 +22,7 @@ template <
   typename... Args,
   typename T
 >
-struct s<Sequence, Variadics<Args...>, T> {
+struct s<Sequence<int>, Variadics<Args...>, T> {
   using type = Sequence<T, Args::value...>;
 };
 
@@ -32,7 +32,7 @@ template <
   typename Head,
   typename... Tail
 >
-struct s<Sequence, Variadics<Head, Tail...>> {
+struct s<Sequence<int>, Variadics<Head, Tail...>> {
   using type = Sequence<typename std::decay<decltype(Head::value)>::type, Head::value, Tail::value...>;
 };
 
@@ -43,7 +43,7 @@ template <
   V... Args,
   typename T
 >
-struct s<Sequence, Variadics<V, Args...>, T> {
+struct s<Sequence<int>, Variadics<V, Args...>, T> {
   using type = Sequence<T, static_cast<T>(Args)...>;
 };
 
@@ -53,7 +53,7 @@ template <
   typename T,
   T... Args
 >
-struct s<Sequence, Variadics<T, Args...>> {
+struct s<Sequence<int>, Variadics<T, Args...>> {
   using type = Sequence<T, Args...>;
 };
 

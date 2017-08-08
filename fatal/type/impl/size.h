@@ -21,7 +21,7 @@ struct s<T<Args...>> {
   using type = std::integral_constant<std::size_t, sizeof...(Args)>;
 };
 
-template <typename T, template <typename, T...> class Sequence, T... Values>
+template <typename T, template <typename V, V...> class Sequence, T... Values>
 struct s<Sequence<T, Values...>> {
   using type = std::integral_constant<std::size_t, sizeof...(Values)>;
 };
