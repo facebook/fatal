@@ -528,8 +528,11 @@ FATAL_TEST(numerics, most_significant_bit) {
 // smallest integral & friends //
 /////////////////////////////////
 
-#define SEL_TEST(expected, selector, n) \
-  FATAL_EXPECT_TRUE((std::is_same<expected, selector<n>>::value))
+#define SEL_TEST(Expected, Selector, N) \
+  FATAL_EXPECT_EQ(data_bits<Expected>::value, data_bits<Selector<N>>::value)
+
+#define LEAST_TEST(Expected, Selector, N) \
+  FATAL_EXPECT_LE(sizeof(Expected), sizeof(Selector<N>))
 
 FATAL_TEST(numerics, smallest_signed_integral) {
   SEL_TEST(int8_t, smallest_signed_integral, 0);
@@ -549,37 +552,37 @@ FATAL_TEST(numerics, smallest_signed_integral) {
 }
 
 FATAL_TEST(numerics, smallest_fast_signed_integral) {
-  SEL_TEST(int_fast8_t, smallest_fast_signed_integral, 0);
-  SEL_TEST(int_fast8_t, smallest_fast_signed_integral, 1);
-  SEL_TEST(int_fast8_t, smallest_fast_signed_integral, 2);
-  SEL_TEST(int_fast8_t, smallest_fast_signed_integral, 7);
-  SEL_TEST(int_fast8_t, smallest_fast_signed_integral, 8);
-  SEL_TEST(int_fast16_t, smallest_fast_signed_integral, 9);
-  SEL_TEST(int_fast16_t, smallest_fast_signed_integral, 15);
-  SEL_TEST(int_fast16_t, smallest_fast_signed_integral, 16);
-  SEL_TEST(int_fast32_t, smallest_fast_signed_integral, 17);
-  SEL_TEST(int_fast32_t, smallest_fast_signed_integral, 31);
-  SEL_TEST(int_fast32_t, smallest_fast_signed_integral, 32);
-  SEL_TEST(int_fast64_t, smallest_fast_signed_integral, 33);
-  SEL_TEST(int_fast64_t, smallest_fast_signed_integral, 63);
-  SEL_TEST(int_fast64_t, smallest_fast_signed_integral, 64);
+  LEAST_TEST(int_fast8_t, smallest_fast_signed_integral, 0);
+  LEAST_TEST(int_fast8_t, smallest_fast_signed_integral, 1);
+  LEAST_TEST(int_fast8_t, smallest_fast_signed_integral, 2);
+  LEAST_TEST(int_fast8_t, smallest_fast_signed_integral, 7);
+  LEAST_TEST(int_fast8_t, smallest_fast_signed_integral, 8);
+  LEAST_TEST(int_fast16_t, smallest_fast_signed_integral, 9);
+  LEAST_TEST(int_fast16_t, smallest_fast_signed_integral, 15);
+  LEAST_TEST(int_fast16_t, smallest_fast_signed_integral, 16);
+  LEAST_TEST(int_fast32_t, smallest_fast_signed_integral, 17);
+  LEAST_TEST(int_fast32_t, smallest_fast_signed_integral, 31);
+  LEAST_TEST(int_fast32_t, smallest_fast_signed_integral, 32);
+  LEAST_TEST(int_fast64_t, smallest_fast_signed_integral, 33);
+  LEAST_TEST(int_fast64_t, smallest_fast_signed_integral, 63);
+  LEAST_TEST(int_fast64_t, smallest_fast_signed_integral, 64);
 }
 
 FATAL_TEST(numerics, smallest_least_signed_integral) {
-  SEL_TEST(int_least8_t, smallest_least_signed_integral, 0);
-  SEL_TEST(int_least8_t, smallest_least_signed_integral, 1);
-  SEL_TEST(int_least8_t, smallest_least_signed_integral, 2);
-  SEL_TEST(int_least8_t, smallest_least_signed_integral, 7);
-  SEL_TEST(int_least8_t, smallest_least_signed_integral, 8);
-  SEL_TEST(int_least16_t, smallest_least_signed_integral, 9);
-  SEL_TEST(int_least16_t, smallest_least_signed_integral, 15);
-  SEL_TEST(int_least16_t, smallest_least_signed_integral, 16);
-  SEL_TEST(int_least32_t, smallest_least_signed_integral, 17);
-  SEL_TEST(int_least32_t, smallest_least_signed_integral, 31);
-  SEL_TEST(int_least32_t, smallest_least_signed_integral, 32);
-  SEL_TEST(int_least64_t, smallest_least_signed_integral, 33);
-  SEL_TEST(int_least64_t, smallest_least_signed_integral, 63);
-  SEL_TEST(int_least64_t, smallest_least_signed_integral, 64);
+  LEAST_TEST(int_least8_t, smallest_least_signed_integral, 0);
+  LEAST_TEST(int_least8_t, smallest_least_signed_integral, 1);
+  LEAST_TEST(int_least8_t, smallest_least_signed_integral, 2);
+  LEAST_TEST(int_least8_t, smallest_least_signed_integral, 7);
+  LEAST_TEST(int_least8_t, smallest_least_signed_integral, 8);
+  LEAST_TEST(int_least16_t, smallest_least_signed_integral, 9);
+  LEAST_TEST(int_least16_t, smallest_least_signed_integral, 15);
+  LEAST_TEST(int_least16_t, smallest_least_signed_integral, 16);
+  LEAST_TEST(int_least32_t, smallest_least_signed_integral, 17);
+  LEAST_TEST(int_least32_t, smallest_least_signed_integral, 31);
+  LEAST_TEST(int_least32_t, smallest_least_signed_integral, 32);
+  LEAST_TEST(int_least64_t, smallest_least_signed_integral, 33);
+  LEAST_TEST(int_least64_t, smallest_least_signed_integral, 63);
+  LEAST_TEST(int_least64_t, smallest_least_signed_integral, 64);
 }
 
 FATAL_TEST(numerics, smallest_unsigned_integral) {
@@ -600,45 +603,45 @@ FATAL_TEST(numerics, smallest_unsigned_integral) {
 }
 
 FATAL_TEST(numerics, smallest_fast_unsigned_integral) {
-  SEL_TEST(bool, smallest_fast_unsigned_integral, 0);
-  SEL_TEST(bool, smallest_fast_unsigned_integral, 1);
-  SEL_TEST(uint_fast8_t, smallest_fast_unsigned_integral, 2);
-  SEL_TEST(uint_fast8_t, smallest_fast_unsigned_integral, 7);
-  SEL_TEST(uint_fast8_t, smallest_fast_unsigned_integral, 8);
-  SEL_TEST(uint_fast16_t, smallest_fast_unsigned_integral, 9);
-  SEL_TEST(uint_fast16_t, smallest_fast_unsigned_integral, 15);
-  SEL_TEST(uint_fast16_t, smallest_fast_unsigned_integral, 16);
-  SEL_TEST(uint_fast32_t, smallest_fast_unsigned_integral, 17);
-  SEL_TEST(uint_fast32_t, smallest_fast_unsigned_integral, 31);
-  SEL_TEST(uint_fast32_t, smallest_fast_unsigned_integral, 32);
-  SEL_TEST(uint_fast64_t, smallest_fast_unsigned_integral, 33);
-  SEL_TEST(uint_fast64_t, smallest_fast_unsigned_integral, 63);
-  SEL_TEST(uint_fast64_t, smallest_fast_unsigned_integral, 64);
+  LEAST_TEST(bool, smallest_fast_unsigned_integral, 0);
+  LEAST_TEST(bool, smallest_fast_unsigned_integral, 1);
+  LEAST_TEST(uint_fast8_t, smallest_fast_unsigned_integral, 2);
+  LEAST_TEST(uint_fast8_t, smallest_fast_unsigned_integral, 7);
+  LEAST_TEST(uint_fast8_t, smallest_fast_unsigned_integral, 8);
+  LEAST_TEST(uint_fast16_t, smallest_fast_unsigned_integral, 9);
+  LEAST_TEST(uint_fast16_t, smallest_fast_unsigned_integral, 15);
+  LEAST_TEST(uint_fast16_t, smallest_fast_unsigned_integral, 16);
+  LEAST_TEST(uint_fast32_t, smallest_fast_unsigned_integral, 17);
+  LEAST_TEST(uint_fast32_t, smallest_fast_unsigned_integral, 31);
+  LEAST_TEST(uint_fast32_t, smallest_fast_unsigned_integral, 32);
+  LEAST_TEST(uint_fast64_t, smallest_fast_unsigned_integral, 33);
+  LEAST_TEST(uint_fast64_t, smallest_fast_unsigned_integral, 63);
+  LEAST_TEST(uint_fast64_t, smallest_fast_unsigned_integral, 64);
 }
 
 FATAL_TEST(numerics, smallest_least_unsigned_integral) {
-  SEL_TEST(bool, smallest_least_unsigned_integral, 0);
-  SEL_TEST(bool, smallest_least_unsigned_integral, 1);
-  SEL_TEST(uint_least8_t, smallest_least_unsigned_integral, 2);
-  SEL_TEST(uint_least8_t, smallest_least_unsigned_integral, 7);
-  SEL_TEST(uint_least8_t, smallest_least_unsigned_integral, 8);
-  SEL_TEST(uint_least16_t, smallest_least_unsigned_integral, 9);
-  SEL_TEST(uint_least16_t, smallest_least_unsigned_integral, 15);
-  SEL_TEST(uint_least16_t, smallest_least_unsigned_integral, 16);
-  SEL_TEST(uint_least32_t, smallest_least_unsigned_integral, 17);
-  SEL_TEST(uint_least32_t, smallest_least_unsigned_integral, 31);
-  SEL_TEST(uint_least32_t, smallest_least_unsigned_integral, 32);
-  SEL_TEST(uint_least64_t, smallest_least_unsigned_integral, 33);
-  SEL_TEST(uint_least64_t, smallest_least_unsigned_integral, 63);
-  SEL_TEST(uint_least64_t, smallest_least_unsigned_integral, 64);
+  LEAST_TEST(bool, smallest_least_unsigned_integral, 0);
+  LEAST_TEST(bool, smallest_least_unsigned_integral, 1);
+  LEAST_TEST(uint_least8_t, smallest_least_unsigned_integral, 2);
+  LEAST_TEST(uint_least8_t, smallest_least_unsigned_integral, 7);
+  LEAST_TEST(uint_least8_t, smallest_least_unsigned_integral, 8);
+  LEAST_TEST(uint_least16_t, smallest_least_unsigned_integral, 9);
+  LEAST_TEST(uint_least16_t, smallest_least_unsigned_integral, 15);
+  LEAST_TEST(uint_least16_t, smallest_least_unsigned_integral, 16);
+  LEAST_TEST(uint_least32_t, smallest_least_unsigned_integral, 17);
+  LEAST_TEST(uint_least32_t, smallest_least_unsigned_integral, 31);
+  LEAST_TEST(uint_least32_t, smallest_least_unsigned_integral, 32);
+  LEAST_TEST(uint_least64_t, smallest_least_unsigned_integral, 33);
+  LEAST_TEST(uint_least64_t, smallest_least_unsigned_integral, 63);
+  LEAST_TEST(uint_least64_t, smallest_least_unsigned_integral, 64);
 }
 
 #undef SEL_TEST
 
-#define SMALLEST_FOR_VALUE_TEST(n, expected) \
-  FATAL_VLOG(1) << "expected = " << #expected << ", actual = " \
-    << ::fatal::type_str<smallest_uint_for_value<n>>(); \
-  FATAL_EXPECT_TRUE((std::is_same<expected, smallest_uint_for_value<n>>::value))
+#define SMALLEST_FOR_VALUE_TEST(N, Expected) \
+  FATAL_VLOG(1) << "expected = " << #Expected << ", actual = " \
+    << ::fatal::type_str<smallest_uint_for_value<N>>(); \
+  FATAL_EXPECT_EQ(data_bits<Expected>::value, data_bits<smallest_uint_for_value<N>>::value)
 
 FATAL_TEST(numerics, smallest_uint_for_value) {
   SMALLEST_FOR_VALUE_TEST(0u, bool);
