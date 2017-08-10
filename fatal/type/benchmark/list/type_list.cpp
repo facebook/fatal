@@ -8,7 +8,7 @@
  */
 
 #include <fatal/benchmark/cases.h>
-#include <fatal/type/list.h>
+#include <fatal/type/deprecated/type_list.h>
 
 template <int> struct foo {};
 

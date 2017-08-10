@@ -17,101 +17,85 @@
 #include <type_traits>
 
 namespace fatal {
-namespace impl_at {
+namespace i_at {
 
-template <std::size_t, typename> struct at;
+template <std::size_t, typename> struct a;
 
 template <template <typename> class Single, typename T>
-struct at<0, Single<T>> {
+struct a<0, Single<T>> {
   using type = T;
 };
 
 template <
   template <typename, typename> class Pair,
-  typename First,
-  typename Second
+  typename First, typename Second
 >
-struct at<0, Pair<First, Second>> {
+struct a<0, Pair<First, Second>> {
   using type = First;
 };
 
 template <
   template <typename, typename> class Pair,
-  typename First,
-  typename Second
+  typename First, typename Second
 >
-struct at<1, Pair<First, Second>> {
+struct a<1, Pair<First, Second>> {
   using type = Second;
 };
 
 template <template <typename...> class List, typename T, typename... Args>
-struct at<0, List<T, Args...>> {
+struct a<0, List<T, Args...>> {
   using type = T;
 };
 
 template <
   template <typename...> class List,
-  typename First,
-  typename Second,
-  typename... Args
+  typename First, typename Second, typename... Args
 >
-struct at<1, List<First, Second, Args...>> {
+struct a<1, List<First, Second, Args...>> {
   using type = Second;
 };
 
 template <
   template <typename...> class List,
-  typename First,
-  typename Second,
-  typename Third,
-  typename... Args
+  typename First, typename Second, typename Third, typename... Args
 >
-struct at<2, List<First, Second, Third, Args...>> {
+struct a<2, List<First, Second, Third, Args...>> {
   using type = Third;
 };
 
 template <
   template <typename V, V...> class Sequence,
-  typename T,
-  T Value,
-  T... Values
+  typename T, T Value, T... Values
 >
-struct at<0, Sequence<T, Value, Values...>> {
+struct a<0, Sequence<T, Value, Values...>> {
   using type = std::integral_constant<T, Value>;
 };
 
 template <
   template <typename V, V...> class Sequence,
-  typename T,
-  T First,
-  T Second,
-  T... Values
+  typename T, T First, T Second, T... Values
 >
-struct at<1, Sequence<T, First, Second, Values...>> {
+struct a<1, Sequence<T, First, Second, Values...>> {
   using type = std::integral_constant<T, Second>;
 };
 
 template <
   template <typename V, V...> class Sequence,
-  typename T,
-  T First,
-  T Second,
-  T Third,
-  T... Values
+  typename T, T First, T Second, T Third, T... Values
 >
-struct at<2, Sequence<T, First, Second, Third, Values...>> {
+struct a<2, Sequence<T, First, Second, Third, Values...>> {
   using type = std::integral_constant<T, Third>;
 };
 
 template <bool, std::size_t, typename, typename Default>
-struct tat {
+struct A {
   using type = Default;
 };
 
 template <std::size_t Index, typename T, typename Default>
-struct tat<true, Index, T, Default>: at<Index, T> {};
+struct A<true, Index, T, Default>: a<Index, T> {};
 
-template <typename, std::size_t...> struct pick;
+template <typename, std::size_t...> struct p;
 
 #ifndef FATAL_AT_USE_VOID_POINTER_TRICK
 
@@ -137,7 +121,7 @@ template <
   template <typename...> class List,
   typename... Args
 >
-struct at<Index, List<Args...>> {
+struct a<Index, List<Args...>> {
   using type = decltype(
     find<Index>(
       tindex<make_index_sequence<sizeof...(Args)>, Args...>()
@@ -148,10 +132,9 @@ struct at<Index, List<Args...>> {
 template <
   std::size_t Index,
   template <typename V, V...> class Sequence,
-  typename T,
-  T... Values
+  typename T, typename std::enable_if<(Index > 2), T>::type... Values
 >
-struct at<Index, Sequence<T, Values...>> {
+struct a<Index, Sequence<T, Values...>> {
   using type = decltype(
     find<Index>(
       vindex<make_index_sequence<sizeof...(Values)>, T, Values...>()
@@ -161,10 +144,9 @@ struct at<Index, Sequence<T, Values...>> {
 
 template <
   template <typename...> class List,
-  typename... Args,
-  std::size_t... Indexes
+  typename... Args, std::size_t... Indexes
 >
-struct pick<List<Args...>, Indexes...> {
+struct p<List<Args...>, Indexes...> {
   using type = List<
     decltype(
       find<Indexes>(
@@ -180,7 +162,7 @@ template <
   T... Values,
   std::size_t... Indexes
 >
-struct pick<Sequence<T, Values...>, Indexes...> {
+struct p<Sequence<T, Values...>, Indexes...> {
   using type = Sequence<
     T,
     decltype(
@@ -219,7 +201,7 @@ template <
   template <typename...> class List,
   typename... Args
 >
-struct at<Index, List<Args...>> {
+struct a<Index, List<Args...>> {
   using type = decltype(
     tindex<make_index_sequence<Index>>::find(
       static_cast<tag<Args> *>(nullptr)...
@@ -233,7 +215,7 @@ template <
   typename T,
   T... Values
 >
-struct at<Index, Sequence<T, Values...>> {
+struct a<Index, Sequence<T, Values...>> {
   using type = decltype(
     vindex<make_index_sequence<Index>>::find(
       static_cast<std::integral_constant<T, Values> *>(nullptr)...
@@ -246,7 +228,7 @@ template <
   typename... Args,
   std::size_t... Indexes
 >
-struct pick<List<Args...>, Indexes...> {
+struct p<List<Args...>, Indexes...> {
   using type = List<
     decltype(
       tindex<make_index_sequence<Indexes>>::find(
@@ -262,7 +244,7 @@ template <
   T... Values,
   std::size_t... Indexes
 >
-struct pick<Sequence<T, Values...>, Indexes...> {
+struct p<Sequence<T, Values...>, Indexes...> {
   using type = Sequence<
     T,
     decltype(
@@ -316,14 +298,14 @@ struct tvindex<Size, Size, Indexes...> {
   static Sequence<T> seq(...);
 };
 
-template <typename...> struct tail;
+template <typename...> struct t;
 
 template <
   template <typename...> class List,
   typename... Args,
   std::size_t... Indexes
 >
-struct tail<List<Args...>, index_sequence<Indexes...>> {
+struct t<List<Args...>, index_sequence<Indexes...>> {
   using type = decltype(
     ttindex<sizeof...(Args), sizeof...(Indexes), Indexes...>
       ::template list<List>(static_cast<tag<Args> *>(nullptr)...)
@@ -336,7 +318,7 @@ template <
   T... Values,
   std::size_t... Indexes
 >
-struct tail<Sequence<T, Values...>, index_sequence<Indexes...>> {
+struct t<Sequence<T, Values...>, index_sequence<Indexes...>> {
   using type = decltype(
     tvindex<sizeof...(Values), sizeof...(Indexes), Indexes...>
       ::template seq<Sequence, T>(
@@ -462,18 +444,15 @@ struct th<
   >;
 };
 
-template <
-  std::size_t, std::size_t, template <typename V, V...> class, typename T, T...
->
-struct vh;
+template <std::size_t, std::size_t, typename, typename T, T...> struct vh;
 
 template <template <typename V, V...> class Variadics, typename T, T... Tail>
-struct vh<0, 0, Variadics, T, Tail...> {
+struct vh<0, 0, Variadics<int>, T, Tail...> {
   using type = Variadics<T>;
 };
 
 template <template <typename V, V...> class Variadics, typename T, T V01, T... Tail>
-struct vh<1, 1, Variadics, T, V01, Tail...> {
+struct vh<1, 1, Variadics<int>, T, V01, Tail...> {
   using type = Variadics<T, V01>;
 };
 
@@ -483,7 +462,7 @@ template <
   T V01, T V02,
   T... Tail
 >
-struct vh<2, 2, Variadics, T, V01, V02, Tail...> {
+struct vh<2, 2, Variadics<int>, T, V01, V02, Tail...> {
   using type = Variadics<T, V01, V02>;
 };
 
@@ -493,7 +472,7 @@ template <
   T V01, T V02, T V03,
   T... Tail
 >
-struct vh<3, 3, Variadics, T, V01, V02, V03, Tail...> {
+struct vh<3, 3, Variadics<int>, T, V01, V02, V03, Tail...> {
   using type = Variadics<T, V01, V02, V03>;
 };
 
@@ -504,10 +483,10 @@ template <
   T V01, T V02, T V03, T V04,
   T... Tail
 >
-struct vh<4, Size, Variadics, T, V01, V02, V03, V04, Tail...> {
+struct vh<4, Size, Variadics<int>, T, V01, V02, V03, V04, Tail...> {
   using type = cat<
     Variadics<T, V01, V02, V03, V04>,
-    typename vh<hd_chunk<Size - 4>(), Size - 4, Variadics, T, Tail...>::type
+    typename vh<hd_chunk<Size - 4>(), Size - 4, Variadics<int>, T, Tail...>::type
   >;
 };
 
@@ -519,10 +498,10 @@ template <
   T V06, T V07, T V08,
   T... Tail
 >
-struct vh<8, Size, Variadics, T, V01, V02, V03, V04, V05, V06, V07, V08, Tail...> {
+struct vh<8, Size, Variadics<int>, T, V01, V02, V03, V04, V05, V06, V07, V08, Tail...> {
   using type = cat<
     Variadics<T, V01, V02, V03, V04, V05, V06, V07, V08>,
-    typename vh<hd_chunk<Size - 8>(), Size - 8, Variadics, T, Tail...>::type
+    typename vh<hd_chunk<Size - 8>(), Size - 8, Variadics<int>, T, Tail...>::type
   >;
 };
 
@@ -537,7 +516,7 @@ template <
   T... Tail
 >
 struct vh<
-  16, Size, Variadics, T,
+  16, Size, Variadics<int>, T,
   V01, V02, V03, V04, V05, V06, V07, V08, V09, V10, V11, V12, V13, V14, V15,
   V16,
   Tail...
@@ -548,7 +527,7 @@ struct vh<
       V01, V02, V03, V04, V05, V06, V07, V08, V09, V10, V11, V12, V13, V14, V15,
       V16
     >,
-    typename vh<hd_chunk<Size - 16>(), Size - 16, Variadics, T, Tail...>::type
+    typename vh<hd_chunk<Size - 16>(), Size - 16, Variadics<int>, T, Tail...>::type
   >;
 };
 
@@ -566,7 +545,7 @@ template <
   T... Tail
 >
 struct vh<
-  32, Size, Variadics, T,
+  32, Size, Variadics<int>, T,
   V01, V02, V03, V04, V05, V06, V07, V08, V09, V10, V11, V12, V13, V14, V15,
   V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30,
   V31, V32,
@@ -579,18 +558,18 @@ struct vh<
       V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30,
       V31, V32
     >,
-    typename vh<hd_chunk<Size - 32>(), Size - 32, Variadics, T, Tail...>::type
+    typename vh<hd_chunk<Size - 32>(), Size - 32, Variadics<int>, T, Tail...>::type
   >;
 };
 
-template <std::size_t, typename> struct head;
+template <std::size_t, typename> struct h;
 
 template <
   template <typename...> class List,
   typename... Args,
   std::size_t Offset
 >
-struct head<Offset, List<Args...>>:
+struct h<Offset, List<Args...>>:
   th<hd_chunk<Offset>(), Offset, List, Args...>
 {
   static_assert(Offset <= sizeof...(Args), "index out of bounds");
@@ -602,8 +581,8 @@ template <
   T... Values,
   std::size_t Offset
 >
-struct head<Offset, Sequence<T, Values...>>:
-  vh<hd_chunk<Offset>(), Offset, Sequence, T, Values...>
+struct h<Offset, Sequence<T, Values...>>:
+  vh<hd_chunk<Offset>(), Offset, Sequence<int>, T, Values...>
 {
   static_assert(Offset <= sizeof...(Values), "index out of bounds");
 };
@@ -618,14 +597,14 @@ static std::integral_constant<std::size_t, Index> ivfind(
   vindexed<T, Value, Index>
 );
 
-template <typename...> struct idx;
+template <typename...> struct i;
 
 template <
   template <typename...> class List,
   typename... Args,
   std::size_t... Indexes
 >
-struct idx<List<Args...>, index_sequence<Indexes...>> {
+struct i<List<Args...>, index_sequence<Indexes...>> {
   template <typename T>
   using of = decltype(itfind<T>(inherit<indexed<Args, Indexes>...>()));
 };
@@ -636,14 +615,14 @@ template <
   T... Values,
   std::size_t... Indexes
 >
-struct idx<Sequence<T, Values...>, index_sequence<Indexes...>> {
+struct i<Sequence<T, Values...>, index_sequence<Indexes...>> {
   template <T Value>
   using of = decltype(
     ivfind<T, Value>(inherit<vindexed<T, Values, Indexes>...>())
   );
 };
 
-} // namespace impl_at {
+} // namespace i_at {
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_impl_slice_h

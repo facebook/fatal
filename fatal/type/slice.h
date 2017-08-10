@@ -20,14 +20,12 @@
 namespace fatal {
 
 template <typename T, std::size_t Index>
-using at = typename impl_at::at<Index, T>::type;
+using at = typename i_at::a<Index, T>::type;
 
 template <typename T, std::size_t Index, typename Default = not_found>
-using try_at = typename impl_at::tat<
+using try_at = typename i_at::A<
   (Index < size<T>::value),
-  Index,
-  T,
-  Default
+  Index, T, Default
 >::type;
 
 template <typename T>
@@ -55,19 +53,19 @@ struct get_third {
 };
 
 template <typename T, std::size_t... Indexes>
-using pick = typename impl_at::pick<T, Indexes...>::type;
+using pick = typename i_at::p<T, Indexes...>::type;
 
 template <typename T, std::size_t Offset>
-using tail = typename impl_at::tail<T, make_index_sequence<Offset>>::type;
+using tail = typename i_at::t<T, make_index_sequence<Offset>>::type;
 
 template <typename T, std::size_t Offset>
-using head = typename impl_at::head<Offset, T>::type;
+using head = typename i_at::h<Offset, T>::type;
 
 template <typename T, std::size_t Begin, std::size_t End>
 using slice = head<tail<T, Begin>, End - Begin>;
 
 template <typename Container>
-using index = typename impl_at::idx<
+using index = typename i_at::i<
   Container,
   make_index_sequence<size<Container>::value>
 >;
@@ -105,31 +103,34 @@ namespace bound {
 template <std::size_t Index>
 struct at {
   template <typename T>
-  using apply = fatal::at<T, Index>;
+  using apply = typename i_at::a<Index, T>::type;
 };
 
 template <std::size_t Index, typename Default = not_found>
 struct try_at {
   template <typename T>
-  using apply = fatal::try_at<T, Index, Default>;
+  using apply = typename i_at::A<
+    (Index < size<T>::value),
+    Index, T, Default
+  >::type;
 };
 
 template <std::size_t... Indexes>
 struct pick {
   template <typename T>
-  using apply = fatal::pick<T, Indexes...>;
+  using apply = typename i_at::p<T, Indexes...>::type;
 };
 
 template <std::size_t Offset>
 struct tail {
   template <typename T>
-  using apply = fatal::tail<T, Offset>;
+  using apply = typename i_at::t<T, make_index_sequence<Offset>>::type;
 };
 
 template <std::size_t Offset>
 struct head {
   template <typename T>
-  using apply = fatal::head<T, Offset>;
+  using apply = typename i_at::h<Offset, T>::type;
 };
 
 template <std::size_t Begin, std::size_t End>
