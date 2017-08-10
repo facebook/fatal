@@ -27,7 +27,7 @@ template <int... values> using ilstt = lst<T<values>...>;
 template <int... values> using ilsts = lst<S<values>...>;
 
 template <typename T, T... values> struct seq {
-  typedef constant_sequence<T, values...> cseq;
+  typedef sequence<T, values...> cseq;
 };
 template <typename T, T... values> struct seq2 {};
 
@@ -147,7 +147,7 @@ FATAL_TEST(reflect_template_typed_value_list, rebind) {
 
 FATAL_TEST(reflect_template_typed_value_list, values) {
   FATAL_EXPECT_SAME<
-    constant_sequence<int, 0, 1, 2>,
+    sequence<int, 0, 1, 2>,
     reflect_template<iseq<0, 1, 2>>::values
   >();
 }

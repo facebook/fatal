@@ -10,9 +10,12 @@
 #ifndef FATAL_INCLUDE_fatal_time_time_h
 #define FATAL_INCLUDE_fatal_time_time_h
 
-#include <fatal/type/deprecated/transform.h>
-#include <fatal/type/deprecated/type_map.h>
+#include <fatal/type/apply.h>
+#include <fatal/type/array.h>
+#include <fatal/type/get.h>
+#include <fatal/type/list.h>
 #include <fatal/type/sequence.h>
+#include <fatal/type/sort.h>
 
 #include <chrono>
 #include <ratio>
@@ -29,61 +32,48 @@ namespace time {
 
 namespace detail {
 
-// TODO: MOVE TO MATH
-using ratio_suffixes = build_type_map<
-  //std::yotta, constant_sequence<char, 'Y'>,
-  //std::zetta, constant_sequence<char, 'Z'>,
-  std::exa, constant_sequence<char, 'E'>,
-  std::peta, constant_sequence<char, 'P'>,
-  std::tera, constant_sequence<char, 'T'>,
-  std::giga, constant_sequence<char, 'G'>,
-  std::mega, constant_sequence<char, 'M'>,
-  std::kilo, constant_sequence<char, 'k'>,
-  std::hecto, constant_sequence<char, 'h'>,
-  std::deca, constant_sequence<char, 'd', 'a'>,
-  std::deci, constant_sequence<char, 'd'>,
-  std::centi, constant_sequence<char, 'c'>,
-  std::milli, constant_sequence<char, 'm'>,
-  std::micro, constant_sequence<char, 'u'>,
-  std::nano, constant_sequence<char, 'n'>,
-  std::pico, constant_sequence<char, 'p'>,
-  std::femto, constant_sequence<char, 'f'>,
-  std::atto, constant_sequence<char, 'a'>
-  //std::zepto, constant_sequence<char, 'z'>,
-  //std::yocto, constant_sequence<char, 'y'>
->::sort<std::ratio_less>;
-
-template <typename T>
-using suffixes_impl_append_s = typename T::template push_back<'s'>;
-
-using day_ratio = std::ratio_multiply<
-  std::chrono::hours::period,
-  std::ratio<24, 1>
->;
-
-using week_ratio = std::ratio_multiply<day_ratio, std::ratio<7, 1>>;
+template <typename Ratio, char... Suffix>
+using t_s = pair<Ratio, char_sequence<Suffix...>>;
 
 } // namespace detail {
 
-// TODO: DOCUMENT AND TEST
-using suffixes = detail::ratio_suffixes::transform<
-  detail::suffixes_impl_append_s
->::push_back<
-  detail::week_ratio, constant_sequence<char, 'w', 'k'>,
-  detail::day_ratio, constant_sequence<char, 'd'>,
-  std::chrono::hours::period, constant_sequence<char, 'h'>,
-  std::chrono::minutes::period, constant_sequence<char, 'm', 'i', 'n'>,
-  std::chrono::seconds::period, constant_sequence<char, 's'>
->::sort<std::ratio_less>;
+// TODO: MOVE TO MATH
+using suffixes = list<
+  //detail::t_s<std::yocto, 'y', 's'>,
+  //detail::t_s<std::zepto, 'z', 's'>,
+  detail::t_s<std::atto, 'a', 's'>,
+  detail::t_s<std::femto, 'f', 's'>,
+  detail::t_s<std::pico, 'p', 's'>,
+  detail::t_s<std::nano, 'n', 's'>,
+  detail::t_s<std::micro, 'u', 's'>,
+  detail::t_s<std::milli, 'm', 's'>,
+  detail::t_s<std::centi, 'c', 's'>,
+  detail::t_s<std::deci, 'd', 's'>,
+  detail::t_s<std::chrono::seconds::period, 's'>,
+  detail::t_s<std::deca, 'd', 'a', 's'>,
+  detail::t_s<std::chrono::minutes::period, 'm', 'i', 'n'>,
+  detail::t_s<std::hecto, 'h', 's'>,
+  detail::t_s<std::kilo, 'k', 's'>,
+  detail::t_s<std::chrono::hours::period, 'h'>,
+  detail::t_s<std::ratio_multiply<std::chrono::hours::period, std::ratio<24, 1>>, 'd'>,
+  detail::t_s<std::ratio_multiply<std::chrono::hours::period, std::ratio<24 * 7, 1>>, 'w', 'k'>,
+  detail::t_s<std::mega, 'M', 's'>,
+  detail::t_s<std::giga, 'G', 's'>,
+  detail::t_s<std::tera, 'T', 's'>,
+  detail::t_s<std::peta, 'P', 's'>,
+  detail::t_s<std::exa, 'E', 's'>
+  //detail::t_s<std::zetta, 'Z', 's'>,
+  //detail::t_s<std::yotta, 'Y', 's'>
+>;
 
 // TODO: DOCUMENT AND TEST
 template <typename TPeriod>
-using suffix_t = typename suffixes::template get<TPeriod>;
+using suffix_t = second<get<suffixes, TPeriod>>;
 
 // TODO: DOCUMENT AND TEST
 template <typename T>
 inline char const *suffix() {
-  return suffix_t<typename T::period>::z_data();
+  return z_data<suffix_t<typename T::period>>();
 }
 
 // TODO: DOCUMENT AND TEST
@@ -107,7 +97,7 @@ struct pretty<T, Args...> {
     auto const remaining = time - local;
 
     if (local.count()) {
-      out << local.count() << suffix_t<T>::z_data();
+      out << local.count() << z_data<suffix_t<T>>();
 
       if (sizeof...(Args) && remaining.count()) {
         out << ' ';
@@ -124,27 +114,25 @@ struct pretty<> {
   static void print(Out &, D) {}
 };
 
-using pretty_print_ratios = type_list<
-  week_ratio,
-  day_ratio,
+using pretty_print_ratios = list<
+  std::ratio_multiply<std::chrono::hours::period, std::ratio<24 * 7, 1>>,
+  std::ratio_multiply<std::chrono::hours::period, std::ratio<24, 1>>,
   std::chrono::hours::period,
   std::chrono::minutes::period,
   std::chrono::seconds::period,
   std::chrono::milliseconds::period,
   std::chrono::microseconds::period,
   std::chrono::nanoseconds::period
->::sort<std::ratio_greater>;
+>;
 
 } // namespace detail {
 
 template <typename Out, typename R, typename P>
 Out &&pretty_print(Out &&out, std::chrono::duration<R, P> time) {
-  using ratios = typename detail::pretty_print_ratios::reject<
-    transform_alias<std::ratio_greater, P>::template apply
-  >;
-  static_assert(!ratios::empty, "unsupported duration");
+  using ratios = reject<typename detail::pretty_print_ratios, curry<applier<std::ratio_greater>, P>>;
+  static_assert(!empty<ratios>::value, "unsupported duration");
 
-  using impl = typename ratios::template apply<detail::pretty>;
+  using impl = apply_to<ratios, detail::pretty>;
   impl::print(out, time);
 
   return std::forward<Out>(out);
