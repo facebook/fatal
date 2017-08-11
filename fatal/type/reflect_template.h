@@ -56,7 +56,7 @@ enum class reflect_template_category {
  *  // yields `type_list<int>`
  *  typedef foo_r::list result1;
  *
- *  // yields `constant_sequence<int, 1, 2, 3>`
+ *  // yields `sequence<int, 1, 2, 3>`
  *  typedef is_r::values result2;
  *
  *  // yields `foo<short, bool>`
@@ -230,11 +230,11 @@ struct reflect_template<T<V, Values...>> {
   };
 
   /**
-   * A `constant_sequence` of all values.
+   * A `sequence` of all values.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef constant_sequence<V, Values...> values;
+  typedef sequence<V, Values...> values;
 
   /**
    * A `type_list` of `std::integral_constant`s for all values.

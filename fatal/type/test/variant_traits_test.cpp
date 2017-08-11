@@ -67,7 +67,7 @@ private:
   storage storage_;
 };
 
-FATAL_STR(poor_mans_variant_name, "poor_mans_variant");
+FATAL_S(poor_mans_variant_name, "poor_mans_variant");
 
 class poor_mans_variant_traits {
   struct get {
