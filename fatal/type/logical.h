@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_logical_h
 #define FATAL_INCLUDE_fatal_type_logical_h
 
+#include <fatal/type/apply.h>
 #include <fatal/type/sequence.h>
 
 #include <fatal/type/impl/logical.h>
@@ -118,6 +119,10 @@ using logical_and = std::integral_constant<
   >::value
 >;
 
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using logical_and_of = apply_to<T, logical_and>;
+
 /**
  * Yields an std::integral_constant whose value is the logical NOR of the value
  * of each argument.
@@ -147,6 +152,10 @@ using logical_nor = std::integral_constant<
   >::value
 >;
 
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using logical_nor_of = apply_to<T, logical_nor>;
+
 /**
  * Yields an std::integral_constant whose value is the logical OR of the value
  * of each argument.
@@ -172,6 +181,10 @@ using logical_nor = std::integral_constant<
 template <typename... Args>
 using logical_or = negate<logical_nor<Args...>>;
 
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using logical_or_of = apply_to<T, logical_or>;
+
 /**
  * Yields an std::integral_constant whose value is the logical XOR of the value
  * of each argument.
@@ -194,6 +207,10 @@ using logical_or = negate<logical_nor<Args...>>;
  */
 template <typename... Args>
 using logical_xor = typename impl_logical::l_xor<Args...>::type;
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using logical_xor_of = apply_to<T, logical_xor>;
 
 /**
  * Yields an std::integral_constant whose value is the logical NAND of the value
@@ -218,6 +235,10 @@ using logical_xor = typename impl_logical::l_xor<Args...>::type;
 template <typename... Args>
 using logical_nand = negate<logical_and<Args...>>;
 
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using logical_nand_of = apply_to<T, logical_nand>;
+
 /**
  * Yields an std::integral_constant whose value is the logical XNOR of the value
  * of each argument.
@@ -240,6 +261,10 @@ using logical_nand = negate<logical_and<Args...>>;
  */
 template <typename... Args>
 using logical_xnor = negate<logical_xor<Args...>>;
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using logical_xnor_of = apply_to<T, logical_xnor>;
 
 } // namespace fatal {
 
