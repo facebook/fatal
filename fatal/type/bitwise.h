@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_bitwise_h
 #define FATAL_INCLUDE_fatal_type_bitwise_h
 
+#include <fatal/type/apply.h>
 #include <fatal/type/impl/bitwise.h>
 
 namespace fatal {
@@ -36,6 +37,10 @@ namespace fatal {
 template <typename... Args>
 using bitwise_and = typename impl_bitwise::b_and<Args...>::type;
 
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using bitwise_and_of = apply_to<T, bitwise_and>;
+
 /**
  * Yields an std::integral_constant whose value is the bitwise OR of the value
  * of each argument.
@@ -54,6 +59,10 @@ using bitwise_and = typename impl_bitwise::b_and<Args...>::type;
  */
 template <typename... Args>
 using bitwise_or = typename impl_bitwise::b_or<Args...>::type;
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using bitwise_or_of = apply_to<T, bitwise_or>;
 
 /**
  * Yields an std::integral_constant whose value is the bitwise XOR of the value
@@ -76,6 +85,10 @@ using bitwise_or = typename impl_bitwise::b_or<Args...>::type;
  */
 template <typename... Args>
 using bitwise_xor = typename impl_bitwise::b_xor<Args...>::type;
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using bitwise_xor_of = apply_to<T, bitwise_xor>;
 
 /**
  * Yields an std::integral_constant whose value is the bitwise complement of T's
@@ -127,6 +140,10 @@ using complement = std::integral_constant<decltype(~T::value), ~T::value>;
 template <typename... Args>
 using bitwise_nand = complement<bitwise_and<Args...>>;
 
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using bitwise_nand_of = apply_to<T, bitwise_nand>;
+
 /**
  * Yields an std::integral_constant whose value is the bitwise OR of the value
  * of each argument.
@@ -146,6 +163,10 @@ using bitwise_nand = complement<bitwise_and<Args...>>;
 template <typename... Args>
 using bitwise_nor = complement<bitwise_or<Args...>>;
 
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using bitwise_nor_of = apply_to<T, bitwise_nor>;
+
 /**
  * Yields an std::integral_constant whose value is the bitwise XOR of the value
  * of each argument.
@@ -164,6 +185,10 @@ using bitwise_nor = complement<bitwise_or<Args...>>;
  */
 template <typename... Args>
 using bitwise_xnor = complement<bitwise_xor<Args...>>;
+
+// TODO: DOCUMENT AND TEST
+template <typename T>
+using bitwise_xnor_of = apply_to<T, bitwise_xnor>;
 
 } // namespace fatal {
 
