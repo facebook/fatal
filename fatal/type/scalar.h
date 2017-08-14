@@ -75,8 +75,6 @@ static constexpr T to_scalar() noexcept {
   return detail::scalar_impl::to_scalar<From>::template to<T>();
 }
 
-#include <type_traits>
-
 namespace detail {
 namespace scalar_impl {
 template <typename T, bool = std::is_enum<T>::value> struct to_integral_impl;
