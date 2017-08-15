@@ -145,6 +145,13 @@ struct string_view {
     return result;
   }
 
+  string_view advance(size_type size) {
+    assert(size <= size());
+    string_view result(begin_, size);
+    *this += size;
+    return result;
+  }
+
   void reset(const_iterator begin) {
     assert(begin_ <= begin);
     begin_ = begin;
@@ -172,6 +179,14 @@ struct string_view {
     }
 
     assert(begin_ <= end_);
+  }
+
+  constexpr value_type front() const { return *begin_; }
+  constexpr value_type back() const {
+#   if __cplusplus > 201400
+    assert(begin_ < end_);
+#   endif // __cplusplus > 201400
+    return *(end_ - 1);
   }
 
   constexpr const_iterator data() const { return begin_; }
