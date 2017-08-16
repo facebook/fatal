@@ -17,6 +17,9 @@ namespace fatal {
 template <typename T>
 using adjacent_unique = typename impl_uq::au<T>::type;
 
+template <typename T, typename Comparer>
+using adjacent_unique_by = typename impl_uq::au<T, Comparer>::type;
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_unique_h
