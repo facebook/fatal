@@ -422,30 +422,30 @@ struct abort_test_run_exception {};
     __VA_ARGS__ \
   )
 
-template <
-  typename T,
-  // TODO: don't use detail from another header
-  typename TImpl = fatal::detail::string_impl::parse_impl_conversion_pair<
-    std::string, T
-  >,
-  bool = fatal::is_complete<TImpl>::value
->
+struct can_append_to_string {
+  template <
+    typename T,
+    typename = decltype(
+      append(std::declval<std::string &>(), std::declval<T>())
+    )
+  >
+  static std::true_type sfinae(T *);
+
+  static std::false_type sfinae(...);
+
+  template <typename T>
+  using apply = decltype(sfinae(static_cast<T *>(nullptr)));
+};
+
+template <typename T, bool = can_append_to_string::apply<T>::value>
 struct any_to_string_impl {
   static void append(std::string &out, T const &value) {
-    if (TImpl::quote::value) {
-      out.push_back(TImpl::quote::value);
-    }
-
-    TImpl::append(out, value);
-
-    if (TImpl::quote::value) {
-      out.push_back(TImpl::quote::value);
-    }
+    append(out, value);
   }
 };
 
-template <typename T, typename TImpl>
-struct any_to_string_impl<T, TImpl, false> {
+template <typename T>
+struct any_to_string_impl<T, false> {
   static void append(std::string &out, T const &) {
     out.append("<instance:");
     out.append(type_str<T>());

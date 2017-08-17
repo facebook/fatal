@@ -10,6 +10,10 @@
 #ifndef FATAL_INCLUDE_fatal_test_string_h
 #define FATAL_INCLUDE_fatal_test_string_h
 
+#include <fatal/time/time.h>
+#include <fatal/type/tag.h>
+
+#include <chrono>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -17,182 +21,97 @@
 #include <cstring>
 
 namespace fatal {
+
+inline void append(std::string &out, bool from) {
+  out.append(from ? "true" : "false");
+}
+
+template <typename T>
+void append(std::string &out, T from) {
+  out.append(std::to_string(from));
+}
+
+template <typename R, typename P>
+void append(std::string &out, std::chrono::duration<R, P> from) {
+  append(out, from.count());
+  out.append(suffix(from));
+}
+
+inline void append(std::string &out, std::string const &from) {
+  out.append(from);
+}
+
+inline void append(std::string &out, char from) {
+  out.push_back(from);
+}
+
+inline void append(std::string &out, char const *from) {
+  out.append(from);
+}
+
 namespace detail {
 namespace string_impl {
 
-template <typename, typename> struct parse_impl_conversion_pair;
-
-template <>
-struct parse_impl_conversion_pair<std::string, bool> {
-  using quote = std::integral_constant<char, '\0'>;
-
-  static std::string convert(bool value) { return value ? "true" : "false"; }
- 
-  static void append(std::string &out, bool value) {
-    out.append(value ? "true" : "false");
-  }
-};
-
-template <>
-struct parse_impl_conversion_pair<bool, std::string> {
-  static bool convert(std::string const &value) {
-    // TODO: use a compile-time trie??
-    if (value == "true") {
-      return true;
-    }
-    
-    if (value == "false") {
-      return false;
-    }
-
-    throw std::invalid_argument("unrecognized boolean");
-  }
-};
-
-#define FATAL_IMPL_PARSE_CONVERSION_PAIR(From) \
-  template <> \
-  struct parse_impl_conversion_pair<std::string, From> { \
-    using quote = std::integral_constant<char, '\0'>; \
-    \
-    static std::string convert(From value) { return std::to_string(value); } \
-    \
-    static void append(std::string &out, From value) { \
-      out.append(std::to_string(value)); \
-    } \
+inline bool parse(tag<bool>, std::string const &from) {
+  // TODO: use a compile-time trie??
+  if (from == "true") {
+    return true;
   }
 
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int8_t);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int16_t);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int32_t);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int64_t);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint8_t);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint16_t);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint32_t);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint64_t);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(float);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(double);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(long double);
-
-#undef FATAL_IMPL_PARSE_CONVERSION_PAIR
-
-template <typename T>
-struct stoi {
-  static T parse(std::string const &s) { return std::stoi(s); }
-};
-
-template <>
-struct stoi<long> {
-  static long parse(std::string const &s) { return std::stol(s); }
-};
-
-template <>
-struct stoi<long long> {
-  static long long parse(std::string const &s) { return std::stoll(s); }
-};
-
-template <typename T>
-struct stou {
-  static T parse(std::string const &s) { return std::stoul(s); }
-};
-
-template <>
-struct stou<unsigned long long> {
-  static unsigned long long parse(std::string const &s) {
-    return std::stoull(s);
-  }
-};
-
-template <typename T>
-struct stofp {
-  static T parse(std::string const &s) { return std::stof(s); }
-};
-
-template <>
-struct stofp<double> {
-  static double parse(std::string const &s) { return std::stod(s); }
-};
-
-template <>
-struct stofp<long double> {
-  static long double parse(std::string const &s) { return std::stold(s); }
-};
-
-#define FATAL_IMPL_PARSE_CONVERSION_PAIR(To, From, Converter) \
-  template <> \
-  struct parse_impl_conversion_pair<To, From> { \
-    static To convert(From const &value) { return Converter<To>::parse(value); } \
+  if (from == "false") {
+    return false;
   }
 
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int8_t, std::string, stoi);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int16_t, std::string, stoi);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int32_t, std::string, stoi);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::int64_t, std::string, stoi);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint8_t, std::string, stou);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint16_t, std::string, stou);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint32_t, std::string, stou);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(std::uint64_t, std::string, stou);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(float, std::string, stofp);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(double, std::string, stofp);
-FATAL_IMPL_PARSE_CONVERSION_PAIR(long double, std::string, stofp);
+  throw std::invalid_argument("unrecognized boolean");
+}
 
-#undef FATAL_IMPL_PARSE_CONVERSION_PAIR
+inline short parse(tag<short>, std::string const &from) {
+  return static_cast<short>(std::stoi(from));
+}
 
-template <>
-struct parse_impl_conversion_pair<std::string, std::string> {
-  using quote = std::integral_constant<char, '"'>;
+inline int parse(tag<int>, std::string const &from) {
+  return std::stoi(from);
+}
 
-  static std::string const &convert(std::string const &s) { return s; }
-  static std::string convert(std::string &&s) { return std::move(s); }
+inline long parse(tag<long>, std::string const &from) {
+  return std::stol(from);
+}
 
-  static void append(std::string &out, std::string const &s) { out.append(s); }
-  static void append(std::string &out, std::string &&s) {
-    out.append(std::move(s));
-  }
-};
+inline long long parse(tag<long long>, std::string const &from) {
+  return std::stoll(from);
+}
 
-template <>
-struct parse_impl_conversion_pair<std::string, char const *> {
-  using quote = std::integral_constant<char, '"'>;
+inline unsigned long parse(tag<unsigned long>, std::string const &from) {
+  return std::stoul(from);
+}
 
-  static std::string convert(char const *s) { return s; }
+inline unsigned long long parse(
+  tag<unsigned long long>, std::string const &from
+) {
+  return std::stoull(from);
+}
 
-  static void append(std::string &out, char const *s) { out.append(s); }
-};
+inline float parse(tag<float>, std::string const &from) {
+  return std::stof(from);
+}
 
-template <>
-struct parse_impl_conversion_pair<std::string, char *>:
-  public parse_impl_conversion_pair<std::string, char const *>
-{};
+inline double parse(tag<double>, std::string const &from) {
+  return std::stod(from);
+}
 
-template <std::size_t N>
-struct parse_impl_conversion_pair<std::string, char const [N]>:
-  public parse_impl_conversion_pair<std::string, char const *>
-{};
+inline long double parse(tag<long double>, std::string const &from) {
+  return std::stold(from);
+}
 
-template <std::size_t N>
-struct parse_impl_conversion_pair<std::string, char [N]>:
-  public parse_impl_conversion_pair<std::string, char const *>
-{};
-
-// TODO: UNSIGNED CHAR
-template <>
-struct parse_impl_conversion_pair<std::string, char> {
-  using quote = std::integral_constant<char, '\''>;
-
-  static std::string convert(char c) { return std::string(1, c); }
-
-  static void append(std::string &out, char c) { out.push_back(c); }
-};
+inline std::string parse(tag<std::string>, std::string const &from) {
+  return from;
+}
 
 void to_string_impl(std::string &) {}
 
 template <typename T, typename... Args>
 void to_string_impl(std::string &out, T &&value, Args &&...args) {
-  using converter = detail::string_impl::parse_impl_conversion_pair<
-    std::string, typename std::decay<T>::type
-  >;
-
-  converter::append(out, std::forward<T>(value));
+  append(out, std::forward<T>(value));
 
   to_string_impl(out, std::forward<Args>(args)...);
 }
@@ -202,13 +121,9 @@ void to_string_impl(std::string &out, T &&value, Args &&...args) {
 
 // for internal tests only - no guaranteed efficiency
 // TODO: TEST
-template <typename TTo, typename TFrom>
-TTo parse(TFrom &&from) {
-  using converter = detail::string_impl::parse_impl_conversion_pair<
-    TTo, typename std::decay<TFrom>::type
-  >;
-
-  return converter::convert(std::forward<TFrom>(from));
+template <typename To>
+To parse(std::string const &from) {
+  return detail::string_impl::parse(tag<To>(), from);
 }
 
 // for internal tests only - no guaranteed efficiency
