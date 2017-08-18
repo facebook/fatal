@@ -12,6 +12,7 @@
 
 #include <fatal/math/numerics.h>
 
+#include <iterator>
 #include <limits>
 #include <type_traits>
 
