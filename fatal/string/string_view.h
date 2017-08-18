@@ -137,11 +137,169 @@ struct string_view {
     return std::find(offset, end_, needle);
   }
 
+  /**
+   * Removes the initial `size` characters of the view and returns a reference
+   * to the view itself.
+   *
+   * No bounds check are performed.
+   *
+   * Example:
+   *
+   *  string_view v("hello, world");
+   *  auto &c = v.skip(4);
+   *
+   *  assert(&c == &v);
+   *
+   *  // prints "o, world"
+   *  std::cout << c;
+   *
+   *  // prints "o, world"
+   *  std::cout << v;
+   *
+   * See also: `seek*`, `skip*`, `operator +=`, `operator +`
+   *
+   * @author: Marcelo Juchem <juchem@gmail.com>
+   */
+  string_view &skip(size_type size) {
+    return *this += size;
+  }
+
+  /**
+   * Finds the first occurence of `delimiter`, removes all characters up to (and
+   * including) such occurence and returns a reference to the view itself.
+   *
+   * Example:
+   *
+   *  string_view v("hello, world");
+   *  auto &c = v.skip_past(' ');
+   *
+   *  assert(&c == &v);
+   *
+   *  // prints "world"
+   *  std::cout << c;
+   *
+   *  // prints "world"
+   *  std::cout << v;
+   *
+   * See also: `seek*`, `skip*`, `operator +=`, `operator +`
+   *
+   * @author: Marcelo Juchem <juchem@gmail.com>
+   */
   template <typename U>
-  string_view split_step(U &&delimiter) {
+  string_view &skip_past(U &&delimiter) {
+    begin_ = find(std::forward<U>(delimiter));
+    assert(begin_ <= end_);
+    if (begin_ != end_) { ++begin_; }
+    return *this;
+  }
+
+  /**
+   * Finds the first occurence of `delimiter`, removes all characters before
+   * (not including) such occurence and returns a reference to the view itself.
+   *
+   * Example:
+   *
+   *  string_view v("hello, world");
+   *  auto &c = v.skip_to(',');
+   *
+   *  assert(&c == &v);
+   *
+   *  // prints ", world"
+   *  std::cout << c;
+   *
+   *  // prints ", world"
+   *  std::cout << v;
+   *
+   * See also: `seek*`, `skip*`, `operator +=`, `operator +`
+   *
+   * @author: Marcelo Juchem <juchem@gmail.com>
+   */
+  template <typename U>
+  string_view &skip_to(U &&delimiter) {
+    begin_ = find(std::forward<U>(delimiter));
+    assert(begin_ <= end_);
+    return *this;
+  }
+
+  /**
+   * Finds the first occurence of `delimiter`, removes all characters up to (and
+   * including) such occurence and returns the removed part (not including the
+   * delimiter) as a separate view.
+   *
+   * Example:
+   *
+   *  string_view v("hello, world");
+   *  auto c = v.seek_past(' ');
+   *
+   *  // prints "hello,"
+   *  std::cout << c;
+   *
+   *  // prints "world"
+   *  std::cout << v;
+   *
+   * See also: `seek*`, `skip*`, `operator +=`, `operator +`
+   *
+   * @author: Marcelo Juchem <juchem@gmail.com>
+   */
+  template <typename U>
+  string_view seek_past(U &&delimiter) {
     string_view result(begin_, find(std::forward<U>(delimiter)));
     begin_ = result.end() == end_ ? end_ : std::next(result.end());
     assert(begin_ <= end_);
+    return result;
+  }
+
+  /**
+   * Finds the first occurence of `delimiter`, removes all characters before
+   * (not including) such occurence and returns the removed part as a separate
+   * view.
+   *
+   * Example:
+   *
+   *  string_view v("hello, world");
+   *  auto c = v.seek_for(',');
+   *
+   *  // prints "hello"
+   *  std::cout << c;
+   *
+   *  // prints ", world"
+   *  std::cout << v;
+   *
+   * See also: `seek*`, `skip*`, `operator +=`, `operator +`
+   *
+   * @author: Marcelo Juchem <juchem@gmail.com>
+   */
+  template <typename U>
+  string_view seek_for(U &&delimiter) {
+    auto begin = begin_;
+    skip_to(std::forward<U>(delimiter));
+    return string_view(begin, begin_);
+  }
+
+  /**
+   * Removes the initial `size` characters of the view and returns the removed
+   * part as a separate view.
+   *
+   * No bounds check are performed.
+   *
+   * Example:
+   *
+   *  string_view v("hello, world");
+   *  auto c = v.seek(4);
+   *
+   *  // prints "hell"
+   *  std::cout << c;
+   *
+   *  // prints "o, world"
+   *  std::cout << v;
+   *
+   * See also: `seek*`, `skip*`, `operator +=`, `operator +`
+   *
+   * @author: Marcelo Juchem <juchem@gmail.com>
+   */
+  string_view seek(size_type size) {
+    string_view result(begin_, size);
+    *this += size;
     return result;
   }
 
@@ -172,6 +330,14 @@ struct string_view {
     }
 
     assert(begin_ <= end_);
+  }
+
+  constexpr value_type front() const { return *begin_; }
+  constexpr value_type back() const {
+#   if __cplusplus > 201400
+    assert(begin_ < end_);
+#   endif // __cplusplus > 201400
+    return *(end_ - 1);
   }
 
   constexpr const_iterator data() const { return begin_; }
