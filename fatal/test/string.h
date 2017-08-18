@@ -26,7 +26,7 @@ inline void append(std::string &out, bool from) {
   out.append(from ? "true" : "false");
 }
 
-template <typename T>
+template <typename T, typename = decltype(std::to_string(std::declval<T>()))>
 void append(std::string &out, T from) {
   out.append(std::to_string(from));
 }
@@ -34,7 +34,7 @@ void append(std::string &out, T from) {
 template <typename R, typename P>
 void append(std::string &out, std::chrono::duration<R, P> from) {
   append(out, from.count());
-  out.append(suffix(from));
+  out.append(time::suffix(from));
 }
 
 inline void append(std::string &out, std::string const &from) {

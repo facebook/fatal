@@ -439,14 +439,14 @@ struct can_append_to_string {
 
 template <typename T, bool = can_append_to_string::apply<T>::value>
 struct any_to_string_impl {
-  static void append(std::string &out, T const &value) {
+  static void do_append(std::string &out, T const &value) {
     append(out, value);
   }
 };
 
 template <typename T>
 struct any_to_string_impl<T, false> {
-  static void append(std::string &out, T const &) {
+  static void do_append(std::string &out, T const &) {
     out.append("<instance:");
     out.append(type_str<T>());
     out.push_back('>');
@@ -455,7 +455,7 @@ struct any_to_string_impl<T, false> {
 
 template <typename T>
 std::string &any_to_string(std::string &out, T const &value) {
-  any_to_string_impl<T>::append(out, value);
+  any_to_string_impl<T>::do_append(out, value);
   return out;
 }
 
