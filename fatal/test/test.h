@@ -460,6 +460,15 @@ std::string &any_to_string(std::string &out, T const &value) {
 }
 
 template <typename T>
+std::string &any_to_string(std::string &out, T *value) {
+  if (value) {
+    return any_to_string(out, *value);
+  }
+  out.append("<null>");
+  return out;
+}
+
+template <typename T>
 std::string any_to_string(T const &value) {
   std::string result;
   any_to_string(result, value);
