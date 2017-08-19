@@ -43,12 +43,12 @@ struct tokenizer {
     explicit const_iterator(string_view data):
       data_(data)
     {
-      token_.construct(data_.split_step(delimiter::value));
+      token_.construct(data_.seek_past(delimiter::value));
     }
 
     const_iterator &operator ++() {
       token_.destroy();
-      token_.construct(data_.split_step(delimiter::value));
+      token_.construct(data_.seek_past(delimiter::value));
       return *this;
     }
 
