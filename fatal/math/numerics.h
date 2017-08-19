@@ -10,9 +10,13 @@
 #ifndef FATAL_INCLUDE_fatal_math_numerics_h
 #define FATAL_INCLUDE_fatal_math_numerics_h
 
+#include <fatal/type/apply.h>
 #include <fatal/type/conditional.h>
-#include <fatal/type/deprecated/type_list.h>
+#include <fatal/type/logical.h>
+#include <fatal/type/sort.h>
 #include <fatal/type/traits.h>
+#include <fatal/type/transform.h>
+#include <fatal/type/unique.h>
 
 #include <type_traits>
 #include <limits>
@@ -48,6 +52,41 @@ using data_bits = std::integral_constant<
     : sizeof(typename std::decay<T>::type) * CHAR_BIT
 >;
 
+struct get_data_bits {
+  template <typename T>
+  using apply = data_bits<T>;
+};
+
+struct data_bits_eq {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (data_bits<LHS>::value == data_bits<RHS>::value)>;
+};
+
+struct data_bits_ne {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (data_bits<LHS>::value != data_bits<RHS>::value)>;
+};
+
+struct data_bits_lt {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (data_bits<LHS>::value < data_bits<RHS>::value)>;
+};
+
+struct data_bits_le {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (data_bits<LHS>::value <= data_bits<RHS>::value)>;
+};
+
+struct data_bits_gt {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (data_bits<LHS>::value > data_bits<RHS>::value)>;
+};
+
+struct data_bits_ge {
+  template <typename LHS, typename RHS>
+  using apply = std::integral_constant<bool, (data_bits<LHS>::value >= data_bits<RHS>::value)>;
+};
+
 // TODO: DOCUMENT AND TEST
 template <typename T>
 typename std::make_signed<T>::type signed_cast(T value) {
@@ -62,38 +101,37 @@ typename std::make_unsigned<T>::type unsigned_cast(T value) {
 
 namespace detail {
 
+template <typename T>
+inline constexpr T integral_reverse(
+  T value,
+  std::size_t end_phase,
+  std::size_t phase,
+  T mask
+) noexcept {
+  return phase == end_phase
+    ? value
+    : integral_reverse<T>(
+      ((value >> phase) & mask) | ((value << phase) & ~mask),
+      end_phase,
+      phase >> 1,
+      mask ^ (mask << (phase >> 1))
+    );
+}
+
 template <
   typename T,
-  std::size_t EndPhase = 0,
   typename U = typename std::make_unsigned<T>::type,
-  std::size_t Phase = ((sizeof(T) * CHAR_BIT) >> 1),
-  U Mask = U(~U(0)) ^ U(U(~U(0)) << Phase)
+  std::size_t Phase = ((sizeof(T) * CHAR_BIT) >> 1)
 >
-struct integral_reverser {
+inline constexpr T integral_reverse(T value, std::size_t end_phase) noexcept {
   static_assert(sizeof(T) == sizeof(U), "internal error");
-  static_assert(!(Phase & (Phase - 1)), "Phase must be a power of two");
+  static_assert(!(Phase & (Phase - 1)), "phase must be a power of two");
   static_assert(std::is_integral<T>::value, "only integrals can be reversed");
 
-  using tail = integral_reverser<
-    T,
-    EndPhase,
-    U,
-    (Phase >> 1),
-    (Mask ^ (Mask << (Phase >> 1)))
-  >;
-
-  static constexpr T reverse(T value) noexcept {
-    return tail::reverse(static_cast<T>(
-      ((static_cast<U>(value) >> Phase) & Mask) |
-      ((static_cast<U>(value) << Phase) & ~Mask)
-    ));
-  }
-};
-
-template <typename T, std::size_t EndPhase, typename U, U Mask>
-struct integral_reverser<T, EndPhase, U, EndPhase, Mask> {
-  static constexpr T reverse(T value) noexcept { return value; }
-};
+  return static_cast<T>(
+    integral_reverse<U>(value, end_phase, Phase, U(~U(0)) ^ U(U(~U(0)) << Phase))
+  );
+}
 
 } // namespace detail {
 
@@ -112,8 +150,8 @@ struct integral_reverser<T, EndPhase, U, EndPhase, Mask> {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-T reverse_integral_bytes(T value) {
-  return detail::integral_reverser<T, 4>::reverse(value);
+inline constexpr T reverse_integral_bytes(T value) noexcept {
+  return detail::integral_reverse(value, 4);
 }
 
 /**
@@ -131,8 +169,8 @@ T reverse_integral_bytes(T value) {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-T reverse_integral_bits(T value) {
-  return detail::integral_reverser<T, 0>::reverse(value);
+inline constexpr T reverse_integral_bits(T value) noexcept {
+  return detail::integral_reverse(value, 0);
 }
 
 /**
@@ -183,9 +221,7 @@ struct shift_left_count_upperbound_impl {
 
 template <typename T, std::size_t Size = 1>
 using shift_left_count_upperbound
-  = typename detail::shift_left_count_upperbound_impl<
-    T, Size
-  >::type;
+  = typename detail::shift_left_count_upperbound_impl<T, Size>::type;
 
 /**
  * The upper bound on values of type `T` that can be shifted left by `Shift`
@@ -230,23 +266,19 @@ using shift_left_upperbound = std::integral_constant<
  */
 namespace detail {
 
-template <std::uintmax_t Value>
-struct msb_mp_impl {
-  using type = std::integral_constant<
-    std::size_t,
-    1 + msb_mp_impl<(Value >> 1)>::type::value
-  >;
-};
-
-template <>
-struct msb_mp_impl<0> {
-  using type = std::integral_constant<std::size_t, 0>;
-};
+constexpr std::size_t msb_mp_impl(std::uintmax_t Value) noexcept {
+  return Value
+    ? 1 + msb_mp_impl(Value >> 1)
+    : 0;
+}
 
 } // namespace detail {
 
 template <std::uintmax_t Value>
-using most_significant_bit = typename detail::msb_mp_impl<Value>::type;
+using most_significant_bit = std::integral_constant<
+  std::size_t,
+  detail::msb_mp_impl(Value)
+>;
 
 ///////////////
 // pop_count //
@@ -255,23 +287,19 @@ using most_significant_bit = typename detail::msb_mp_impl<Value>::type;
 // TODO: DOCUMENT AND TEST
 namespace detail {
 
-template <std::uintmax_t Value>
-struct pop_count_impl {
-  using type = std::integral_constant<
-    std::size_t,
-    pop_count_impl<Value & (Value - 1)>::type::value + 1
-  >;
-};
-
-template <>
-struct pop_count_impl<0> {
-  using type = std::integral_constant<std::size_t, 0>;
-};
+constexpr std::size_t pop_count_impl(std::uintmax_t Value) noexcept {
+  return Value
+    ? pop_count_impl(Value & (Value - 1)) + 1
+    : 0;
+}
 
 } // namespace detail {
 
 template <std::uintmax_t Value>
-using pop_count = typename detail::pop_count_impl<Value>::type;
+using pop_count = std::integral_constant<
+  std::size_t,
+  detail::pop_count_impl(Value)
+>;
 
 ////////////////////
 // known integers //
@@ -279,100 +307,101 @@ using pop_count = typename detail::pop_count_impl<Value>::type;
 
 namespace detail {
 
-template <typename TList>
-using uniquify_list_by_bit_size_impl = typename TList::template unique<>
-  ::template sort<
-    variadic_transform<
-      comparison_transform::less_than,
-      data_bits,
-      data_bits
-    >::apply
-  >;
-
-template <typename... Args>
-using uniquify_args_by_bit_size_impl = uniquify_list_by_bit_size_impl<
-  type_list<Args...>
+template <typename List>
+using uniquify_list_by_bit_size_impl = adjacent_unique_by<
+  sort_by<List, get_data_bits>,
+  data_bits_eq
 >;
 
 } // namespace detail {
 
 // TODO: DOCUMENT AND TEST
 
-using known_signed_integers = detail::uniquify_args_by_bit_size_impl<
-  short, int, long, long long,
-  std::int8_t, std::int16_t, std::int32_t, std::int64_t
+using known_signed_integers = detail::uniquify_list_by_bit_size_impl<
+  list<
+    short, int, long, long long,
+    std::int8_t, std::int16_t, std::int32_t, std::int64_t,
+    std::intptr_t, std::intmax_t, std::ptrdiff_t
+  >
 >;
 
 static_assert(
-  known_signed_integers
-    ::transform<type_member_transform<std::is_signed>::apply>
-    ::apply<logical::all>
-    ::value,
+  logical_and_of<
+    transform<known_signed_integers, type_member_transform<std::is_signed>>
+  >::value,
   "invalid signed integer"
 );
 
-using known_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
-  bool, unsigned short, unsigned int, unsigned long, unsigned long long,
-  std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t
+using known_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
+  list<
+    bool, unsigned short, unsigned int, unsigned long, unsigned long long,
+    std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t, std::size_t,
+    std::uintptr_t, std::uintmax_t
+  >
 >;
 
 static_assert(
-  known_unsigned_integers
-    ::transform<type_member_transform<std::is_unsigned>::apply>
-    ::apply<logical::all>
-    ::value,
+  logical_and_of<
+    transform<known_unsigned_integers, type_member_transform<std::is_unsigned>>
+  >::value,
   "invalid unsigned integer"
 );
 
-using known_fast_signed_integers = detail::uniquify_args_by_bit_size_impl<
-  std::int_fast8_t, std::int_fast16_t, std::int_fast32_t,
-  std::int_fast64_t, long long
+using known_fast_signed_integers = detail::uniquify_list_by_bit_size_impl<
+  list<
+    std::int_fast8_t, std::int_fast16_t, std::int_fast32_t, std::int_fast64_t
+  >
 >;
 
 static_assert(
-  known_fast_signed_integers
-    ::transform<type_member_transform<std::is_signed>::apply>
-    ::apply<logical::all>
-    ::value,
+  logical_and_of<
+    transform<known_fast_signed_integers, type_member_transform<std::is_signed>>
+  >::value,
   "invalid fast signed integer"
 );
 
-using known_fast_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
-  bool, std::uint_fast8_t, std::uint_fast16_t, std::uint_fast32_t,
-  std::uint_fast64_t, unsigned long long
+using known_fast_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
+  list<
+    bool, std::uint_fast8_t, std::uint_fast16_t, std::uint_fast32_t,
+    std::uint_fast64_t
+  >
 >;
 
 static_assert(
-  known_fast_unsigned_integers
-    ::transform<type_member_transform<std::is_unsigned>::apply>
-    ::apply<logical::all>
-    ::value,
+  logical_and_of<
+    transform<
+      known_fast_unsigned_integers,
+      type_member_transform<std::is_unsigned>
+    >
+  >::value,
   "invalid fast unsigned integer"
 );
 
-using known_least_signed_integers = detail::uniquify_args_by_bit_size_impl<
-  std::int_least8_t, std::int_least16_t, std::int_least32_t,
-  std::int_least64_t, long long
+using known_least_signed_integers = detail::uniquify_list_by_bit_size_impl<
+  list<
+    std::int_least8_t, std::int_least16_t, std::int_least32_t,
+    std::int_least64_t
+  >
 >;
 
 static_assert(
-  known_least_signed_integers
-    ::transform<type_member_transform<std::is_signed>::apply>
-    ::apply<logical::all>
-    ::value,
+  logical_and_of<
+    transform<known_least_signed_integers, type_member_transform<std::is_signed>>
+  >::value,
   "invalid least signed integer"
 );
 
-using known_least_unsigned_integers = detail::uniquify_args_by_bit_size_impl<
-  bool, std::uint_least8_t, std::uint_least16_t, std::uint_least32_t,
-  std::uint_least64_t, unsigned long long
+using known_least_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
+  list<
+    bool, std::uint_least8_t, std::uint_least16_t, std::uint_least32_t,
+    std::uint_least64_t
+  >
 >;
 
 static_assert(
-  known_least_unsigned_integers
-    ::transform<type_member_transform<std::is_unsigned>::apply>
-    ::apply<logical::all>
-    ::value,
+  logical_and_of<
+    transform<known_least_unsigned_integers, type_member_transform<std::is_unsigned>>
+  >::value,
   "invalid least unsigned integer"
 );
 
@@ -382,15 +411,15 @@ static_assert(
 
 // TODO: DOCUMENT AND TEST
 
-using known_floating_points = detail::uniquify_args_by_bit_size_impl<
-  float, double, long double
+using known_floating_points = detail::uniquify_list_by_bit_size_impl<
+  list<float, double, long double>
 >;
 
 static_assert(
-  known_floating_points
-    ::transform<type_member_transform<std::is_floating_point>::apply>
-    ::apply<logical::all>
-    ::value,
+  logical_and_of<
+    // TODO: IS THRERE A MODERN VERSION OF type_member_transform?? IF SO, PROPAGATE TO OTHER PARTS OF THIS FILE
+    transform<known_floating_points, type_member_transform<std::is_floating_point>>
+  >::value,
   "invalid floating point"
 );
 
@@ -402,16 +431,19 @@ static_assert(
 
 namespace detail {
 
-template <typename TList, std::size_t BitCount>
+template <typename List, std::size_t BitCount>
 struct smallest_for_impl {
-  using type = typename detail::uniquify_list_by_bit_size_impl<TList>
-    ::template search<
+  using type = first<
+    filter<
+      detail::uniquify_list_by_bit_size_impl<List>,
+      // TODO: FIND THE MODERN VERSION OF THIS FILTER
       transform_aggregator<
         comparison_transform::less_than_equal,
         constant_transform<std::size_t, BitCount>::template apply,
         data_bits
-      >::template apply
-    >;
+      >
+    >
+  >;
 
   static_assert(
     !std::is_same<type_not_found_tag, type>::value
@@ -422,9 +454,9 @@ struct smallest_for_impl {
 
 } // namespace detail
 
-template <typename TList, std::size_t BitCount>
+template <typename List, std::size_t BitCount>
 using smallest_type_for_bit_count = typename detail::smallest_for_impl<
-  TList, BitCount
+  List, BitCount
 >::type;
 
 /**
@@ -611,7 +643,7 @@ struct unchecked_pow_mp<0, 0>:
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-inline constexpr bool is_power_of_two(T n) {
+inline constexpr bool is_power_of_two(T n) noexcept {
   return n != 0 && !(n & (n - 1));
 }
 
@@ -624,7 +656,7 @@ inline constexpr bool is_power_of_two(T n) {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-inline constexpr bool is_mersenne_number(T n) {
+inline constexpr bool is_mersenne_number(T n) noexcept {
   return n == std::numeric_limits<T>::max()
     ? (n & 1) && (
       n == 1 || is_mersenne_number(n >> 1)
