@@ -25,6 +25,12 @@ template <
 >
 using get = typename impl_gt::g<T>::template apply<Key, KeyFilter, PostFilter>;
 
+template <typename T, typename Key>
+using pair_get = get<T, Key, get_first, get_second>;
+
+template <typename T, typename Key>
+using reverse_pair_get = get<T, Key, get_second, get_first>;
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_get_h
