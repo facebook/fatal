@@ -14,8 +14,9 @@
 #include <fatal/type/constify.h>
 #include <fatal/type/constify_from.h>
 #include <fatal/type/data_member_getter.h>
-#include <fatal/type/deprecated/transform.h>
 #include <fatal/type/fast_pass.h> // TODO: REMOVE AND FIX DEPENDENCIES
+#include <fatal/type/is_complete.h>
+#include <fatal/type/logical.h>
 #include <fatal/type/qualifier.h>
 #include <fatal/type/remove_rvalue_reference.h>
 #include <fatal/type/same_reference_as.h>
@@ -73,10 +74,10 @@ class is_template {
 
 public:
   template <typename T>
-  using apply = logical::any<impl<TTemplates, T>...>;
+  using apply = logical_or<impl<TTemplates, T>...>;
 
   template <typename T>
-  using type = logical::any<impl<TTemplates, T>...>;
+  using type = logical_or<impl<TTemplates, T>...>;
 };
 
 /////////////////
@@ -282,7 +283,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using all_true = typename std::enable_if<
-    logical::all<Predicates...>::value
+    logical_and<Predicates...>::value
   >::type;
 
   /**
@@ -324,7 +325,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using any_true = typename std::enable_if<
-    logical::any<Predicates...>::value
+    logical_or<Predicates...>::value
   >::type;
 
   /**
@@ -391,7 +392,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using all_false = typename std::enable_if<
-    !logical::any<Predicates...>::value
+    !logical_or<Predicates...>::value
   >::type;
 
   /**
@@ -429,7 +430,7 @@ struct enable_when {
    */
   template <typename... Predicates>
   using any_false = typename std::enable_if<
-    !logical::all<Predicates...>::value
+    !logical_and<Predicates...>::value
   >::type;
 
   /**
@@ -558,11 +559,7 @@ struct enable_when {
   template <typename T>
   using movable = all_true<
     std::is_rvalue_reference<T &&>,
-    logical::negate<
-      std::is_const<
-        typename std::remove_reference<T>::type
-      >
-    >
+    negate<std::is_const<typename std::remove_reference<T>::type>>
   >;
 
   /**
