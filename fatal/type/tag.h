@@ -43,6 +43,4 @@ struct not_found {};
 
 } // namespace fatal {
 
-#include <fatal/type/deprecated/type_tag.h>
-
 #endif // FATAL_INCLUDE_fatal_type_tag_h

@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_array_h
 #define FATAL_INCLUDE_fatal_type_impl_array_h
 
+#include <fatal/type/identity.h>
 #include <fatal/type/list.h>
 #include <fatal/type/slice.h>
 
