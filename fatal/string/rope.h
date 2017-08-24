@@ -14,8 +14,8 @@
 #include <fatal/math/hash.h>
 #include <fatal/portability.h>
 #include <fatal/string/string_view.h>
-#include <fatal/type/deprecated/type_map.h>
-#include <fatal/type/deprecated/type_tag.h>
+#include <fatal/type/get.h>
+#include <fatal/type/list.h>
 #include <fatal/type/traits.h>
 
 #include <algorithm>
@@ -54,11 +54,14 @@ public:
   using payload_type = TData;
 
   template <typename T>
-  using id = typename build_type_map<
-    std::string, std::integral_constant<id_type, id_type::string>,
-    string_view, std::integral_constant<id_type, id_type::reference>,
-    char, std::integral_constant<id_type, id_type::character>
-  >::template get<T>;
+  using id = fatal::pair_get<
+    fatal::list<
+      fatal::pair<std::string, std::integral_constant<id_type, id_type::string>>,
+      fatal::pair<string_view, std::integral_constant<id_type, id_type::reference>>,
+      fatal::pair<char, std::integral_constant<id_type, id_type::character>>
+    >,
+    T
+  >;
 
   variant(variant const &rhs) = delete;
 
