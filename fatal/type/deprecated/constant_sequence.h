@@ -32,8 +32,7 @@ template <typename, typename> struct reverse;
 template <typename T, typename, T, T, T> struct polynomial;
 template <typename, typename TChar, TChar, TChar...> struct parse_sequence;
 template <typename, typename> struct from_sequence;
-template <typename T, template <typename, T...> class, typename U, U>
-struct to_sequence;
+template <typename, typename, typename U, U> struct to_sequence;
 template <typename T, T...> struct array;
 
 } // namespace constant_sequence_impl {
@@ -160,13 +159,13 @@ struct to_sequence {
   struct bind {
     template <T Value>
     using apply = typename detail::constant_sequence_impl::to_sequence<
-      TChar, TSequence, T, Value
+      TChar, TSequence<int>, T, Value
     >::type;
   };
 
   template <typename T, T Value>
   using apply = typename detail::constant_sequence_impl::to_sequence<
-    TChar, TSequence, T, Value
+    TChar, TSequence<int>, T, Value
   >::type;
 };
 
@@ -605,7 +604,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename, type> class Transform>
+  template <template <typename U, U> class Transform>
   using typed_transform = constant_sequence<
     type,
     Transform<type, Values>::value...
@@ -659,7 +658,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename, type> class Transform>
+  template <template <typename U, U> class Transform>
   using typed_list_transform = type_list<Transform<type, Values>...>;
 
   /**
@@ -691,7 +690,7 @@ public:
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  template <template <typename, type...> class U>
+  template <template <typename U, U...> class U>
   using typed_apply = U<type, Values...>;
 
   /**
@@ -1331,23 +1330,29 @@ struct from_sequence<T, U<TChar, Chars...>> {
 /////////////////
 
 template <
-  bool Negative, typename TChar, template <typename, TChar...> class TSequence,
+  bool Negative, typename TChar, typename TSequence,
   typename T, T Value, bool Done = (Value == 0)
 >
-struct to_sequence_impl {
+struct to_sequence_impl;
+
+template <
+  bool Negative, typename TChar, template <typename U, U...> class TSequence,
+  typename T, T Value
+>
+struct to_sequence_impl<Negative, TChar, TSequence<int>, T, Value, false> {
   template <TChar... Suffix>
   using apply = typename to_sequence_impl<
-    Negative, TChar, TSequence, T, Value / 10
+    Negative, TChar, TSequence<int>, T, Value / 10
   >::template apply<
     static_cast<TChar>("9876543210123456789"[(Value % 10) + 9]), Suffix...
   >;
 };
 
 template <
-  bool Negative, typename TChar, template <typename, TChar...> class TSequence,
+  bool Negative, typename TChar, template <typename U, U...> class TSequence,
   typename T, T Value
 >
-struct to_sequence_impl<Negative, TChar, TSequence, T, Value, true> {
+struct to_sequence_impl<Negative, TChar, TSequence<int>, T, Value, true> {
   template <TChar... Chars>
   using apply = conditional<
     Negative,
@@ -1356,16 +1361,19 @@ struct to_sequence_impl<Negative, TChar, TSequence, T, Value, true> {
   >;
 };
 
+template <typename TChar, typename TSequence, typename T, T Value>
+struct to_sequence;
+
 template <
-  typename TChar, template <typename, TChar...> class TSequence,
+  typename TChar, template <typename U, U...> class TSequence,
   typename T, T Value
 >
-struct to_sequence {
+struct to_sequence<TChar, TSequence<int>, T, Value> {
   using type = conditional<
     Value == 0,
     TSequence<TChar, static_cast<TChar>('0')>,
     typename to_sequence_impl<
-      (Value < 0), TChar, TSequence, T, Value
+      (Value < 0), TChar, TSequence<int>, T, Value
     >::template apply<>
   >;
 };
