@@ -676,33 +676,6 @@ void run_sanity_check() {
   );
   SAME(pair<seq, index_sequence<>>, split<seq, size<seq>::value>);
 
-  EQUAL(0, index_of<lst, int>);
-  EQUAL(1, index_of<lst, double>);
-  EQUAL(2, index_of<lst, bool>);
-  EQUAL(3, index_of<lst, void>);
-  EQUAL(4, index_of<lst, float>);
-  EQUAL(5, index_of<lst, char>);
-  EQUAL(6, index_of<lst, unsigned>);
-
-  EQUAL(0, index<lst>::of<int>);
-  EQUAL(1, index<lst>::of<double>);
-  EQUAL(2, index<lst>::of<bool>);
-  EQUAL(3, index<lst>::of<void>);
-  EQUAL(4, index<lst>::of<float>);
-  EQUAL(5, index<lst>::of<char>);
-  EQUAL(6, index<lst>::of<unsigned>);
-
-  EQUAL(0, index<shuf_sq>::of<0>);
-  EQUAL(1, index<shuf_sq>::of<8>);
-  EQUAL(2, index<shuf_sq>::of<9>);
-  EQUAL(3, index<shuf_sq>::of<6>);
-  EQUAL(4, index<shuf_sq>::of<7>);
-  EQUAL(5, index<shuf_sq>::of<5>);
-  EQUAL(6, index<shuf_sq>::of<4>);
-  EQUAL(7, index<shuf_sq>::of<1>);
-  EQUAL(8, index<shuf_sq>::of<3>);
-  EQUAL(9, index<shuf_sq>::of<2>);
-
   SAME(
     list<void *, double, bool, void, float, char, unsigned>,
     replace<lst>::at<0, void *>
