@@ -52,6 +52,14 @@ struct get_third {
   using apply = third<T>;
 };
 
+template <typename T>
+using last = at<T, size<T>::value - 1>;
+
+struct get_last {
+  template <typename T>
+  using apply = last<T>;
+};
+
 template <typename T, std::size_t... Indexes>
 using pick = typename i_at::p<T, Indexes...>::type;
 
