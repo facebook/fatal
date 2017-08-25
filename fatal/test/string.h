@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_test_string_h
 #define FATAL_INCLUDE_fatal_test_string_h
 
+#include <fatal/string/string_view.h>
 #include <fatal/time/time.h>
 #include <fatal/type/tag.h>
 
@@ -39,6 +40,10 @@ void append(std::string &out, std::chrono::duration<R, P> from) {
 
 inline void append(std::string &out, std::string const &from) {
   out.append(from);
+}
+
+inline void append(std::string &out, string_view from) {
+  out.append(from.data(), from.size());
 }
 
 inline void append(std::string &out, char from) {
