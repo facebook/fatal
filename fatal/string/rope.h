@@ -14,8 +14,8 @@
 #include <fatal/math/hash.h>
 #include <fatal/portability.h>
 #include <fatal/string/string_view.h>
-#include <fatal/type/deprecated/type_map.h>
-#include <fatal/type/deprecated/type_tag.h>
+#include <fatal/type/get.h>
+#include <fatal/type/list.h>
 #include <fatal/type/traits.h>
 
 #include <algorithm>
@@ -53,12 +53,18 @@ public:
   using size_type = std::size_t;
   using payload_type = TData;
 
+  template <id_type V>
+  using id_constant = std::integral_constant<id_type, V>;
+
   template <typename T>
-  using id = typename build_type_map<
-    std::string, std::integral_constant<id_type, id_type::string>,
-    string_view, std::integral_constant<id_type, id_type::reference>,
-    char, std::integral_constant<id_type, id_type::character>
-  >::template get<T>;
+  using id = fatal::pair_get<
+    fatal::list<
+      fatal::pair<std::string, id_constant<id_type::string>>,
+      fatal::pair<string_view, id_constant<id_type::reference>>,
+      fatal::pair<char, id_constant<id_type::character>>
+    >,
+    T
+  >;
 
   variant(variant const &rhs) = delete;
 
@@ -120,12 +126,12 @@ public:
   template <typename T>
   T const &get() const {
     assert(which_ == id<T>::value);
-    return get(type_tag<T>());
+    return get(tag<T>());
   }
 
   template <typename T>
   T const *try_get() const {
-    return which_ == id<T>::value ? try_get(type_tag<T>()) : nullptr;
+    return which_ == id<T>::value ? try_get(tag<T>()) : nullptr;
   }
 
   string_view ref() const {
@@ -213,18 +219,18 @@ private:
     char c;
   };
 
-  std::string const &get(type_tag<std::string>) const { return value_.s; }
-  std::string const *try_get(type_tag<std::string>) const {
+  std::string const &get(tag<std::string>) const { return value_.s; }
+  std::string const *try_get(tag<std::string>) const {
     return std::addressof(value_.s);
   }
 
-  string_view const &get(type_tag<string_view>) const { return value_.ref; }
-  string_view const *try_get(type_tag<string_view>) const {
+  string_view const &get(tag<string_view>) const { return value_.ref; }
+  string_view const *try_get(tag<string_view>) const {
     return std::addressof(value_.ref);
   }
 
-  char const &get(type_tag<char>) const { return value_.c; }
-  char const *try_get(type_tag<char>) const { return std::addressof(value_.c); }
+  char const &get(tag<char>) const { return value_.c; }
+  char const *try_get(tag<char>) const { return std::addressof(value_.c); }
 
   payload_type payload_;
   union_t value_;
