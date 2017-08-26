@@ -73,7 +73,13 @@ template <typename T, std::size_t Begin, std::size_t End>
 using slice = head<tail<T, Begin>, End - Begin>;
 
 template <typename Container>
-using index = typename i_at::i<
+using index = i_at::i<
+  Container,
+  make_index_sequence<size<Container>::value>
+>;
+
+template <typename Container>
+using try_index = i_at::ti<
   Container,
   make_index_sequence<size<Container>::value>
 >;
@@ -104,7 +110,10 @@ struct get_third_argument {
 
 // TODO: REDUCE TEMPLATE INSTANTIATIONS
 template <typename T, typename Of>
-using index_of = typename index<T>::template of<Of>;
+using index_of = typename index<T>::template apply<Of>;
+
+template <typename T, typename Of>
+using try_index_of = typename try_index<T>::template apply<Of>;
 
 namespace bound {
 

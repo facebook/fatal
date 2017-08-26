@@ -588,14 +588,24 @@ struct h<Offset, Sequence<T, Values...>>:
 };
 
 template <typename T, std::size_t Index>
-static std::integral_constant<std::size_t, Index> itfind(indexed<T, Index>);
+static std::integral_constant<std::size_t, Index> I(indexed<T, Index>);
 
-template <typename T, T, std::size_t> struct vindexed {};
+template <std::size_t, typename T, std::size_t Index>
+static std::integral_constant<std::size_t, Index> TI(indexed<T, Index>);
+
+template <std::size_t Size, typename>
+static std::integral_constant<std::size_t, Size> TI(...);
+
+template <typename T, T, std::size_t> struct vi {};
 
 template <typename T, T Value, std::size_t Index>
-static std::integral_constant<std::size_t, Index> ivfind(
-  vindexed<T, Value, Index>
-);
+static std::integral_constant<std::size_t, Index> IV(vi<T, Value, Index>);
+
+template <std::size_t, typename T, T Value, std::size_t Index>
+static std::integral_constant<std::size_t, Index> IV(vi<T, Value, Index>);
+
+template <std::size_t Size, typename T, T>
+static std::integral_constant<std::size_t, Size> IV(...);
 
 template <typename...> struct i;
 
@@ -606,7 +616,7 @@ template <
 >
 struct i<List<Args...>, index_sequence<Indexes...>> {
   template <typename T>
-  using of = decltype(itfind<T>(inherit<indexed<Args, Indexes>...>()));
+  using apply = decltype(I<T>(inherit<indexed<Args, Indexes>...>()));
 };
 
 template <
@@ -617,8 +627,33 @@ template <
 >
 struct i<Sequence<T, Values...>, index_sequence<Indexes...>> {
   template <T Value>
-  using of = decltype(
-    ivfind<T, Value>(inherit<vindexed<T, Values, Indexes>...>())
+  using apply = decltype(IV<T, Value>(inherit<vi<T, Values, Indexes>...>()));
+};
+
+template <typename...> struct ti;
+
+template <
+  template <typename...> class List,
+  typename... Args,
+  std::size_t... Indexes
+>
+struct ti<List<Args...>, index_sequence<Indexes...>> {
+  template <typename T>
+  using apply = decltype(
+    TI<sizeof...(Args), T>(inherit<indexed<Args, Indexes>...>())
+  );
+};
+
+template <
+  template <typename V, V...> class Sequence,
+  typename T,
+  T... Values,
+  std::size_t... Indexes
+>
+struct ti<Sequence<T, Values...>, index_sequence<Indexes...>> {
+  template <T Value>
+  using apply = decltype(
+    IV<sizeof...(Values), T, Value>(inherit<vi<T, Values, Indexes>...>())
   );
 };
 

@@ -93,6 +93,19 @@ static inline constexpr bool scalar_search(Needle &&needle) {
   );
 }
 
+template <typename T, typename Visitor, typename... Args>
+static inline constexpr bool index_search(
+  std::size_t needle,
+  Visitor &&visitor,
+  Args &&...args
+) {
+  return sorted_search<T, index<T>::template apply>(
+    needle,
+    std::forward<Visitor>(visitor),
+    std::forward<Args>(args)...
+  );
+}
+
 } // namespace fatal {
 
 #endif // FATAL_INCLUDE_fatal_type_search_h
