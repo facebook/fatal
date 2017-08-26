@@ -29,6 +29,4 @@ using transform_if = transform<T, i_t::c<Predicate, WhenTrue, WhenFalse>>;
 
 } // namespace fatal {
 
-#include <fatal/type/deprecated/transform.h>
-
 #endif // FATAL_INCLUDE_fatal_type_transform_h

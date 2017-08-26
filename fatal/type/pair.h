@@ -28,6 +28,4 @@ struct to_pair {
 
 } // namespace fatal {
 
-#include <fatal/type/deprecated/type_pair.h>
-
 #endif // FATAL_INCLUDE_fatal_type_pair_h
