@@ -534,7 +534,7 @@ struct type_list {
    * TODO: TEST
    */
   template <
-    typename T, template <typename, T...> class TTo,
+    typename T, template <typename U, U...> class TTo,
     template <typename...> class TGetter = identity
   >
   using apply_typed_values = TTo<T, TGetter<Args>::value...>;
