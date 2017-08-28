@@ -26,6 +26,8 @@
 #include <cstdint>
 #include <climits>
 
+#include <fatal/math/impl/numerics.h>
+
 namespace fatal {
 
 /**
@@ -46,12 +48,7 @@ namespace fatal {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <typename T>
-using data_bits = std::integral_constant<
-  std::size_t,
-  std::is_same<bool, typename std::decay<T>::type>::value
-    ? 1
-    : sizeof(typename std::decay<T>::type) * CHAR_BIT
->;
+using data_bits = i_num::data_bits<T>;
 
 struct get_data_bits {
   template <typename T>
@@ -100,44 +97,6 @@ typename std::make_unsigned<T>::type unsigned_cast(T value) {
   return static_cast<typename std::make_unsigned<T>::type>(value);
 }
 
-namespace detail {
-
-template <typename T>
-inline constexpr T integral_reverse(
-  T value,
-  std::size_t end_phase,
-  std::size_t phase,
-  T mask
-) noexcept {
-  return phase == end_phase
-    ? value
-    : integral_reverse<T>(
-      ((value >> phase) & mask) | ((value << phase) & ~mask),
-      end_phase,
-      phase >> 1,
-      mask ^ (mask << (phase >> 1))
-    );
-}
-
-template <
-  typename T,
-  typename U = typename std::make_unsigned<T>::type,
-  std::size_t Phase = ((sizeof(T) * CHAR_BIT) >> 1)
->
-inline constexpr T integral_reverse(T value, std::size_t end_phase) noexcept {
-  static_assert(sizeof(T) == sizeof(U), "internal error");
-  static_assert(!(Phase & (Phase - 1)), "phase must be a power of two");
-  static_assert(std::is_integral<T>::value, "only integrals can be reversed");
-
-  return static_cast<T>(
-    integral_reverse<U>(
-      value, end_phase, Phase, U(~U(0)) ^ U(U(~U(0)) << Phase)
-    )
-  );
-}
-
-} // namespace detail {
-
 /**
  * Reverses the bytes of an integral in Big Theta(lg k), where k is the size of
  * the integral in bytes.
@@ -154,7 +113,7 @@ inline constexpr T integral_reverse(T value, std::size_t end_phase) noexcept {
  */
 template <typename T>
 inline constexpr T reverse_integral_bytes(T value) noexcept {
-  return detail::integral_reverse(value, 4);
+  return i_num::integral_reverse(value, 4);
 }
 
 /**
@@ -173,7 +132,7 @@ inline constexpr T reverse_integral_bytes(T value) noexcept {
  */
 template <typename T>
 inline constexpr T reverse_integral_bits(T value) noexcept {
-  return detail::integral_reverse(value, 0);
+  return i_num::integral_reverse(value, 0);
 }
 
 /**
@@ -206,25 +165,8 @@ inline constexpr T reverse_integral_bits(T value) noexcept {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace detail {
-
-template <typename T, std::size_t Size>
-struct shift_left_count_upperbound_impl {
-  static_assert(
-    Size + std::is_signed<T>::value <= data_bits<T>::value,
-    "value already uses up all the bits available"
-  );
-
-  typedef std::integral_constant<
-    std::size_t, (data_bits<T>::value - Size - std::is_signed<T>::value)
-  > type;
-};
-
-} // namespace detail {
-
 template <typename T, std::size_t Size = 1>
-using shift_left_count_upperbound
-  = typename detail::shift_left_count_upperbound_impl<T, Size>::type;
+using shift_left_count_upperbound = size_constant<i_num::slcu<T, Size>()>;
 
 /**
  * The upper bound on values of type `T` that can be shifted left by `Shift`
@@ -267,60 +209,27 @@ using shift_left_upperbound = std::integral_constant<
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace detail {
-
-constexpr std::size_t msb_mp_impl(std::uintmax_t Value) noexcept {
-  return Value
-    ? 1 + msb_mp_impl(Value >> 1)
-    : 0;
-}
-
-} // namespace detail {
-
 template <std::uintmax_t Value>
-using most_significant_bit = std::integral_constant<
-  std::size_t,
-  detail::msb_mp_impl(Value)
->;
+using most_significant_bit = i_num::most_significant_bit<Value>;
 
 ///////////////
 // pop_count //
 ///////////////
 
 // TODO: DOCUMENT AND TEST
-namespace detail {
-
-constexpr std::size_t pop_count_impl(std::uintmax_t Value) noexcept {
-  return Value
-    ? pop_count_impl(Value & (Value - 1)) + 1
-    : 0;
-}
-
-} // namespace detail {
-
 template <std::uintmax_t Value>
 using pop_count = std::integral_constant<
   std::size_t,
-  detail::pop_count_impl(Value)
+  i_num::pop_count_impl(Value)
 >;
 
 ////////////////////
 // known integers //
 ////////////////////
 
-namespace detail {
-
-template <typename List>
-using uniquify_list_by_bit_size_impl = adjacent_unique_by<
-  sort_by<List, get_data_bits>,
-  data_bits_eq
->;
-
-} // namespace detail {
-
 // TODO: DOCUMENT AND TEST
 
-using known_signed_integers = detail::uniquify_list_by_bit_size_impl<
+using known_signed_integers = i_num::uniquify_list_by_bit_size_impl<
   list<
     short, int, long, long long,
     std::int8_t, std::int16_t, std::int32_t, std::int64_t,
@@ -330,12 +239,12 @@ using known_signed_integers = detail::uniquify_list_by_bit_size_impl<
 
 static_assert(
   logical_and_of<
-    transform<known_signed_integers, type_member_transform<std::is_signed>>
+    transform<known_signed_integers, applier<std::is_signed>>
   >::value,
   "invalid signed integer"
 );
 
-using known_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
+using known_unsigned_integers = i_num::uniquify_list_by_bit_size_impl<
   list<
     bool, unsigned short, unsigned int, unsigned long, unsigned long long,
     std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t, std::size_t,
@@ -345,12 +254,12 @@ using known_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
 
 static_assert(
   logical_and_of<
-    transform<known_unsigned_integers, type_member_transform<std::is_unsigned>>
+    transform<known_unsigned_integers, applier<std::is_unsigned>>
   >::value,
   "invalid unsigned integer"
 );
 
-using known_fast_signed_integers = detail::uniquify_list_by_bit_size_impl<
+using known_fast_signed_integers = i_num::uniquify_list_by_bit_size_impl<
   list<
     std::int_fast8_t, std::int_fast16_t, std::int_fast32_t, std::int_fast64_t
   >
@@ -358,12 +267,12 @@ using known_fast_signed_integers = detail::uniquify_list_by_bit_size_impl<
 
 static_assert(
   logical_and_of<
-    transform<known_fast_signed_integers, type_member_transform<std::is_signed>>
+    transform<known_fast_signed_integers, applier<std::is_signed>>
   >::value,
   "invalid fast signed integer"
 );
 
-using known_fast_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
+using known_fast_unsigned_integers = i_num::uniquify_list_by_bit_size_impl<
   list<
     bool, std::uint_fast8_t, std::uint_fast16_t, std::uint_fast32_t,
     std::uint_fast64_t
@@ -372,15 +281,12 @@ using known_fast_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
 
 static_assert(
   logical_and_of<
-    transform<
-      known_fast_unsigned_integers,
-      type_member_transform<std::is_unsigned>
-    >
+    transform<known_fast_unsigned_integers, applier<std::is_unsigned>>
   >::value,
   "invalid fast unsigned integer"
 );
 
-using known_least_signed_integers = detail::uniquify_list_by_bit_size_impl<
+using known_least_signed_integers = i_num::uniquify_list_by_bit_size_impl<
   list<
     std::int_least8_t, std::int_least16_t, std::int_least32_t,
     std::int_least64_t
@@ -389,14 +295,12 @@ using known_least_signed_integers = detail::uniquify_list_by_bit_size_impl<
 
 static_assert(
   logical_and_of<
-    transform<
-      known_least_signed_integers, type_member_transform<std::is_signed>
-    >
+    transform<known_least_signed_integers, applier<std::is_signed>>
   >::value,
   "invalid least signed integer"
 );
 
-using known_least_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
+using known_least_unsigned_integers = i_num::uniquify_list_by_bit_size_impl<
   list<
     bool, std::uint_least8_t, std::uint_least16_t, std::uint_least32_t,
     std::uint_least64_t
@@ -405,9 +309,7 @@ using known_least_unsigned_integers = detail::uniquify_list_by_bit_size_impl<
 
 static_assert(
   logical_and_of<
-    transform<
-      known_least_unsigned_integers, type_member_transform<std::is_unsigned>
-    >
+    transform<known_least_unsigned_integers, applier<std::is_unsigned>>
   >::value,
   "invalid least unsigned integer"
 );
@@ -418,17 +320,13 @@ static_assert(
 
 // TODO: DOCUMENT AND TEST
 
-using known_floating_points = detail::uniquify_list_by_bit_size_impl<
+using known_floating_points = i_num::uniquify_list_by_bit_size_impl<
   list<float, double, long double>
 >;
 
 static_assert(
   logical_and_of<
-    // TODO: IS THRERE A MODERN VERSION OF type_member_transform?? IF SO,
-    // PROPAGATE TO OTHER PARTS OF THIS FILE
-    transform<
-      known_floating_points, type_member_transform<std::is_floating_point>
-    >
+    transform<known_floating_points, applier<std::is_floating_point>>
   >::value,
   "invalid floating point"
 );
@@ -439,33 +337,8 @@ static_assert(
 
 // TODO: DOCUMENT AND TEST
 
-namespace detail {
-
 template <typename List, std::size_t BitCount>
-struct smallest_for_impl {
-  using type = first<
-    filter<
-      detail::uniquify_list_by_bit_size_impl<List>,
-      // TODO: FIND THE MODERN VERSION OF THIS FILTER
-      transform_aggregator<
-        comparison_transform::less_than_equal,
-        constant_transform<std::size_t, BitCount>::template apply,
-        data_bits
-      >
-    >
-  >;
-
-  static_assert(
-    !std::is_same<type_not_found_tag, type>::value
-      && BitCount <= data_bits<type>::value,
-    "there's no known type to hold that many bits"
-  );
-};
-
-} // namespace detail
-
-template <typename List, std::size_t BitCount>
-using smallest_type_for_bit_count = typename detail::smallest_for_impl<
+using smallest_type_for_bit_count = typename i_num::smallest_for_impl<
   List, BitCount
 >::type;
 
@@ -528,11 +401,11 @@ using smallest_least_unsigned_integral = smallest_type_for_bit_count<
  *
  * Example:
  *
- * typename smallest_uint_for<255>::type data = 255;
+ *  smallest_uint_for_value<255> data = 255;
  *
  * template <typename ...Args>
  * struct Foo {
- *   typedef typename smallest_uint_for<sizeof...(Args)>::type type_id;
+ *   using type_id = smallest_uint_for_value<sizeof...(Args)>;
  *   ...
  * };
  *
@@ -675,7 +548,10 @@ inline constexpr bool is_mersenne_number(T n) noexcept {
 }
 
 /**
- * A Mersenne Number is a natural number of the form 2^p - 1. They are
+ * An integral constant representing the Mersenne Number with the given
+ * `Exponent`.
+ *
+ * A Mersenne Number is a natural number of the form `2^p - 1`. They are
  * particularly interesting because:
  *
  * - they are closely related to powers of two
@@ -684,138 +560,61 @@ inline constexpr bool is_mersenne_number(T n) noexcept {
  * - its exponent equals the amount of bits needed to represent the number
  * - some of these numbers are primes
  *
- * This class is a compile-time representation of the Mersenne Numbers that can
- * be expressed with standard integer types. They expose these properties:
- *
- * - value - the Mersenne Number itself
- * - exponent::value - the exponent p such that the value of this Mersenne
- *   Number is 2^p - 1
- *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 template <std::size_t Exponent>
-struct mersenne_number:
-  public std::integral_constant<
-    smallest_fast_unsigned_integral<Exponent + 1>,
-    (static_cast<smallest_fast_unsigned_integral<Exponent + 1>>(1) << Exponent)
-      - 1
-  >
-{
-  typedef std::integral_constant<
-    smallest_fast_unsigned_integral<
-      most_significant_bit<Exponent>::value
-    >,
-    Exponent
-  > exponent;
-};
-
-namespace detail {
-
-template <std::size_t Nth, std::size_t Exponent>
-struct mersenne_prime_impl:
-  public mersenne_number<Exponent>
-{
-  typedef std::integral_constant<
-    smallest_fast_unsigned_integral<
-      most_significant_bit<Nth>::value
-    >,
-    Nth
-  > nth;
-};
-
-} // namespace detail
+using mersenne_number = std::integral_constant<
+  smallest_unsigned_integral<Exponent + 1>,
+  (static_cast<smallest_unsigned_integral<Exponent + 1>>(1) << Exponent) - 1
+>;
 
 /**
- * This class is a compile-time representation of the Mersenne primes that can
- * be expressed with standard integer types. They extend the `mersenne_number`
- * class with this property:
+ * An integral constant representing the exponent `p` for the given Mersenne
+ * Number expressed by `2^p - 1`.
  *
- * - nth::value - the one-based index  of the Mersenne prime (first known
- *   Mersenne prime has index 1, second one has index 2 and so on)
+ * See also: `mersenne_number`
+ *
+ * @author: Marcelo Juchem <marcelo@fb.com>
+ */
+template <typename T>
+using mersenne_number_exponent = std::integral_constant<
+  smallest_uint_for_value<most_significant_bit<T::value>::value>,
+  most_significant_bit<T::value>::value
+>;
+
+/**
+ * A sorted list of all Mersenne Numbers that can be expressed with standard
+ * integer types.
  *
  * http://en.wikipedia.org/wiki/Mersenne_prime
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <std::size_t nth> struct mersenne_prime;
+using mersenne_primes = fatal::list<
+  mersenne_number<2>, // 3
+  mersenne_number<3>, // 7
+  mersenne_number<5>, // 31
+  mersenne_number<7>, // 127
+  mersenne_number<13>, // 8191
+  mersenne_number<17>, // 131071
+  mersenne_number<19>, // 524287
+  mersenne_number<31>, // 2147483647
+  mersenne_number<61> // 2305843009213693951
+>;
 
-template <> // 3
-struct mersenne_prime<1>: public detail::mersenne_prime_impl<1, 2> {};
-
-template <> // 7
-struct mersenne_prime<2>: public detail::mersenne_prime_impl<2, 3> {};
-
-template <> // 31
-struct mersenne_prime<3>: public detail::mersenne_prime_impl<3, 5> {};
-
-template <> // 127
-struct mersenne_prime<4>: public detail::mersenne_prime_impl<4, 7> {};
-
-template <> // 8191
-struct mersenne_prime<5>: public detail::mersenne_prime_impl<5, 13> {};
-
-template <> // 131071
-struct mersenne_prime<6>: public detail::mersenne_prime_impl<6, 17> {};
-
-template <> // 524287
-struct mersenne_prime<7>: public detail::mersenne_prime_impl<7, 19> {};
-
-template <> // 2147483647
-struct mersenne_prime<8>: public detail::mersenne_prime_impl<8, 31> {};
-
-template <> // 2305843009213693951
-struct mersenne_prime<9>: public detail::mersenne_prime_impl<9, 61> {};
-
-constexpr std::size_t first_known_mersenne_prime_index = 1;
-constexpr std::size_t last_known_mersenne_prime_index = 9;
-
-typedef mersenne_prime<
-  first_known_mersenne_prime_index
-> first_known_mersenne_prime;
-typedef mersenne_prime<
-  last_known_mersenne_prime_index
-> last_known_mersenne_prime;
+template <std::size_t Nth>
+using nth_mersenne_prime = at<mersenne_primes, Nth>;
 
 /**
  * largest_mersenne_prime_under: at compile-time, gets the largets mersenne
- * prime which can be stored in bits_size bits, up to the Nth mersenne prime.
+ * prime which can be stored in bits_size bits.
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-namespace detail {
-
-template <
-  std::size_t bits_size,
-  std::size_t nth = last_known_mersenne_prime_index
->
-struct largest_mersenne_prime_under_impl {
-  typedef conditional<
-    bits_size >= mersenne_prime<nth>::exponent::value,
-    mersenne_prime<nth>,
-    typename largest_mersenne_prime_under_impl<bits_size, nth - 1>::type
-  > type;
-};
-
 template <std::size_t bits_size>
-struct largest_mersenne_prime_under_impl<
-  bits_size, first_known_mersenne_prime_index
-> {
-  typedef typename std::enable_if<
-    bits_size >= mersenne_prime<
-      first_known_mersenne_prime_index
-    >::exponent::value,
-    mersenne_prime<first_known_mersenne_prime_index>
-  >::type type;
-};
-
-} // namespace detail {
-
-template <
-  std::size_t bits_size,
-  std::size_t nth = last_known_mersenne_prime_index
->
-using largest_mersenne_prime_under
-= typename detail::largest_mersenne_prime_under_impl<bits_size, nth>::type;
+using largest_mersenne_prime_under = last<
+  filter<mersenne_primes, i_num::data_bits_filter<bits_size>>
+>;
 
 /**
  * largest_mersenne_prime_for: at compile-time, gets the largets mersenne
@@ -827,15 +626,12 @@ using largest_mersenne_prime_under
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <
-  typename T, std::size_t diff = 0,
-  std::size_t nth = last_known_mersenne_prime_index
->
+template <typename T, std::size_t diff = 0>
 using largest_mersenne_prime_for_type = typename std::enable_if<
   std::is_integral<T>::value
     && (data_bits<T>::value - std::is_signed<T>::value > diff),
   largest_mersenne_prime_under<
-    data_bits<T>::value - std::is_signed<T>::value - diff, nth
+    data_bits<T>::value - std::is_signed<T>::value - diff
   >
 >::type;
 

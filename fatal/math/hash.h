@@ -94,14 +94,14 @@ public:
 template <typename T>
 struct bytes_hasher_impl<T, 4> {
   static T hash(T state, char const *data, std::size_t size) {
-    // TODO: IMPLEMENT USING folly::hash::fnv32_buf
+    // TODO: IMPLEMENT USING fnv32
   }
 };
 
 template <typename T>
 struct bytes_hasher_impl<T, 8> {
   static T hash(T state, char const *data, std::size_t size) {
-    // TODO: IMPLEMENT USING folly::hash::fnv64_buf
+    // TODO: IMPLEMENT USING fnv64
   }
 };
 */
