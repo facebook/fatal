@@ -602,10 +602,10 @@ template <typename T, T Value, std::size_t Index>
 static std::integral_constant<std::size_t, Index> IV(vi<T, Value, Index>);
 
 template <std::size_t, typename T, T Value, std::size_t Index>
-static std::integral_constant<std::size_t, Index> IV(vi<T, Value, Index>);
+static std::integral_constant<std::size_t, Index> TIV(vi<T, Value, Index>);
 
 template <std::size_t Size, typename T, T>
-static std::integral_constant<std::size_t, Size> IV(...);
+static std::integral_constant<std::size_t, Size> TIV(...);
 
 template <typename...> struct i;
 
@@ -653,7 +653,7 @@ template <
 struct ti<Sequence<T, Values...>, index_sequence<Indexes...>> {
   template <T Value>
   using apply = decltype(
-    IV<sizeof...(Values), T, Value>(inherit<vi<T, Values, Indexes>...>())
+    TIV<sizeof...(Values), T, Value>(inherit<vi<T, Values, Indexes>...>())
   );
 };
 
