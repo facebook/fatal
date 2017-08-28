@@ -11,8 +11,12 @@
 #define FATAL_INCLUDE_fatal_container_flag_set_h
 
 #include <fatal/math/numerics.h>
+#include <fatal/type/bitwise.h>
 #include <fatal/type/conditional.h>
-#include <fatal/type/deprecated/type_list.h>
+#include <fatal/type/find.h>
+#include <fatal/type/foreach.h>
+#include <fatal/type/list.h>
+#include <fatal/type/logical.h>
 #include <fatal/type/traits.h>
 
 #include <type_traits>
@@ -40,41 +44,40 @@ struct flag_set {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using tag_list = type_list<Flags...>;
+  using tag_list = list<Flags...>;
 
   /**
    * The integral representation of the flag_set.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  using flags_type = smallest_fast_unsigned_integral<tag_list::size>;
+  using flags_type = smallest_fast_unsigned_integral<size<tag_list>::value>;
 
   static_assert(
-    tag_list::size <= data_bits<flags_type>::value,
+    size<tag_list>::value <= data_bits<flags_type>::value,
     "too many flags"
   );
 
   static_assert(
-    logical::all<
-      std::true_type,
+    logical_and<
       std::is_same<Flags, typename std::decay<Flags>::type>...
     >::value,
     "unsupported tag"
   );
 
 private:
-  using range_mask = mersenne_number<tag_list::size>;
+  using range_mask = mersenne_number<size<tag_list>::value>;
 
   template <bool IgnoreUnsupported, typename... UFlags>
-  using mask_for = bitwise::any<
+  using mask_for = bitwise_or<
     std::integral_constant<flags_type, 0>,
     std::integral_constant<
       typename std::enable_if<
-        IgnoreUnsupported || tag_list::template contains<UFlags>::value,
+        IgnoreUnsupported || contains<tag_list, UFlags>::value,
         flags_type
       >::type,
-      (tag_list::template index_of<UFlags>::value < tag_list::size
-        ? (flags_type(1) << tag_list::template index_of<UFlags>::value)
+      (try_index_of<tag_list, UFlags>::value < size<tag_list>::value
+        ? (flags_type(1) << try_index_of<tag_list, UFlags>::value)
         : 0
       )
     >...
@@ -87,7 +90,7 @@ private:
     struct visitor {
       template <typename UFlag, std::size_t Index>
       void operator ()(
-        indexed_type_tag<UFlag, Index>,
+        indexed<UFlag, Index>,
         foreign_set const &foreign,
         flags_type &out
       ) {
@@ -99,7 +102,7 @@ private:
 
     static flags_type import(foreign_set const &foreign) {
       flags_type flags(0);
-      foreign_set::tag_list::foreach(visitor(), foreign, flags);
+      foreach<typename foreign_set::tag_list>(visitor(), foreign, flags);
       assert((flags & range_mask::value) == flags);
       return flags;
     }
@@ -628,9 +631,9 @@ public:
    */
   template <typename UFlag>
   using expanded = conditional<
-    tag_list::template contains<UFlag>::value,
+    contains<tag_list, UFlag>::value,
     flag_set,
-    typename tag_list::template apply_back<fatal::flag_set, UFlag>
+    apply_to<tag_list, fatal::flag_set, UFlag>
   >;
 
   /**
