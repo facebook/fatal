@@ -20,11 +20,6 @@ struct to {
   using type = typename T::type;
 };
 
-template <typename T, T Value>
-struct to<std::integral_constant<T, Value>> {
-  using type = typename std::integral_constant<T, Value>::type;
-};
-
 template <template <typename V, V...> class Variadics, typename T, T... Values>
 struct to<Variadics<T, Values...>> {
   using type = T;
