@@ -12,7 +12,6 @@
 
 #include <fatal/type/apply.h>
 #include <fatal/type/conditional.h>
-#include <fatal/type/deprecated/transform.h>
 #include <fatal/type/logical.h>
 #include <fatal/type/scalar.h>
 #include <fatal/type/sort.h>
