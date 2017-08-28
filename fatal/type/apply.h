@@ -14,26 +14,29 @@
 
 namespace fatal {
 
+template <template <typename...> class To, typename... Args>
+using apply_args = typename i_ap::a<To, Args...>::type;
+
 template <typename T, template <typename...> class To, typename... Suffix>
-using apply_to = typename i_A::ls<To, T, Suffix...>::type;
+using apply_to = typename i_ap::LS<To, T, Suffix...>::type;
 
 template <typename T, template <typename...> class To, typename... Prefix>
-using apply_to_front = typename i_A::lsf<To, T, Prefix...>::type;
+using apply_to_front = typename i_ap::lsf<To, T, Prefix...>::type;
 
 template <typename T>
-using sequence_apply = i_A::sq<T>;
+using sequence_apply = i_ap::sq<T>;
 
 template <template <typename...> class T>
 struct applier {
   template <typename... Args>
-  using apply = typename i_A::app<T, Args...>::type;
+  using apply = typename i_ap::app<T, Args...>::type;
 };
 
 // TODO: ADD FILTERED VARIANT
 template <typename T, typename... Bound>
 struct curry {
   template <typename... Args>
-  using apply = typename i_A::app<
+  using apply = typename i_ap::app<
     T::template apply, Bound..., Args...
   >::type;
 };
@@ -42,13 +45,11 @@ struct curry {
 template <typename T, typename... Bound>
 struct curry_back {
   template <typename... Args>
-  using apply = typename i_A::app<
+  using apply = typename i_ap::app<
     T::template apply, Args..., Bound...
   >::type;
 };
 
 } // namespace fatal {
-
-#include <fatal/type/deprecated/apply.h>
 
 #endif // FATAL_INCLUDE_fatal_type_apply_h
