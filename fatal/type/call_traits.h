@@ -675,14 +675,14 @@ template <
 constexpr inline auto call_if(UArgs &&...args)
   -> decltype(
     detail::call_traits_impl::call_if<
-      fatal::apply<Predicate, Args..., UArgs...>::value
+      apply_args<Predicate, Args..., UArgs...>::value
     >::template call<CallTraits, Fallback, Args...>(
       std::forward<UArgs>(args)...
     )
   )
 {
   return detail::call_traits_impl::call_if<
-    fatal::apply<Predicate, Args..., UArgs...>::value
+    apply_args<Predicate, Args..., UArgs...>::value
   >::template call<CallTraits, Fallback, Args...>(
     std::forward<UArgs>(args)...
   );
