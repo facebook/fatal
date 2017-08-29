@@ -7,6 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
+#ifndef FATAL_INCLUDE_fatal_type_impl_sort_h
+#define FATAL_INCLUDE_fatal_type_impl_sort_h
+
 #include <fatal/type/cat.h>
 #include <fatal/type/conditional.h>
 #include <fatal/type/tag.h>
@@ -16,9 +19,6 @@
 #include <fatal/type/list.h>
 
 #include <type_traits>
-
-#ifndef FATAL_INCLUDE_fatal_type_impl_sort_h
-#define FATAL_INCLUDE_fatal_type_impl_sort_h
 
 namespace fatal {
 namespace i_s {
