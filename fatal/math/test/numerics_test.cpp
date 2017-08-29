@@ -251,13 +251,19 @@ FATAL_TEST(numerics, reverse_integral_bits unsigned 8 bits) {
   FATAL_EXPECT_EQ(std::uint8_t(0x00), reverse_integral_bits<std::uint8_t>(0));
   FATAL_EXPECT_EQ(std::uint8_t(0x80), reverse_integral_bits<std::uint8_t>(1));
   FATAL_EXPECT_EQ(std::uint8_t(0x50), reverse_integral_bits<std::uint8_t>(10));
-  FATAL_EXPECT_EQ(std::uint8_t(0x43), reverse_integral_bits<std::uint8_t>(0xc2));
+  FATAL_EXPECT_EQ(
+    std::uint8_t(0x43),
+    reverse_integral_bits<std::uint8_t>(0xc2)
+  );
 }
 
 FATAL_TEST(numerics, reverse_integral_bits signed 16 bits) {
   FATAL_EXPECT_EQ(std::int16_t(0x0000), reverse_integral_bits<std::int16_t>(0));
   FATAL_EXPECT_EQ(std::int16_t(0x8000), reverse_integral_bits<std::int16_t>(1));
-  FATAL_EXPECT_EQ(std::int16_t(0x5000), reverse_integral_bits<std::int16_t>(10));
+  FATAL_EXPECT_EQ(
+    std::int16_t(0x5000),
+    reverse_integral_bits<std::int16_t>(10)
+  );
   FATAL_EXPECT_EQ(
     std::int16_t(0x4300),
     reverse_integral_bits<std::int16_t>(0xc2)

@@ -451,7 +451,9 @@ struct vh<0, 0, Variadics<int>, T, Tail...> {
   using type = Variadics<T>;
 };
 
-template <template <typename V, V...> class Variadics, typename T, T V01, T... Tail>
+template <
+  template <typename V, V...> class Variadics, typename T, T V01, T... Tail
+>
 struct vh<1, 1, Variadics<int>, T, V01, Tail...> {
   using type = Variadics<T, V01>;
 };
@@ -486,7 +488,9 @@ template <
 struct vh<4, Size, Variadics<int>, T, V01, V02, V03, V04, Tail...> {
   using type = cat<
     Variadics<T, V01, V02, V03, V04>,
-    typename vh<hd_chunk<Size - 4>(), Size - 4, Variadics<int>, T, Tail...>::type
+    typename vh<
+      hd_chunk<Size - 4>(), Size - 4, Variadics<int>, T, Tail...
+    >::type
   >;
 };
 
@@ -498,10 +502,14 @@ template <
   T V06, T V07, T V08,
   T... Tail
 >
-struct vh<8, Size, Variadics<int>, T, V01, V02, V03, V04, V05, V06, V07, V08, Tail...> {
+struct vh<
+  8, Size, Variadics<int>, T, V01, V02, V03, V04, V05, V06, V07, V08, Tail...
+> {
   using type = cat<
     Variadics<T, V01, V02, V03, V04, V05, V06, V07, V08>,
-    typename vh<hd_chunk<Size - 8>(), Size - 8, Variadics<int>, T, Tail...>::type
+    typename vh<
+      hd_chunk<Size - 8>(), Size - 8, Variadics<int>, T, Tail...
+    >::type
   >;
 };
 
@@ -527,7 +535,9 @@ struct vh<
       V01, V02, V03, V04, V05, V06, V07, V08, V09, V10, V11, V12, V13, V14, V15,
       V16
     >,
-    typename vh<hd_chunk<Size - 16>(), Size - 16, Variadics<int>, T, Tail...>::type
+    typename vh<
+      hd_chunk<Size - 16>(), Size - 16, Variadics<int>, T, Tail...
+    >::type
   >;
 };
 
@@ -558,7 +568,9 @@ struct vh<
       V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30,
       V31, V32
     >,
-    typename vh<hd_chunk<Size - 32>(), Size - 32, Variadics<int>, T, Tail...>::type
+    typename vh<
+      hd_chunk<Size - 32>(), Size - 32, Variadics<int>, T, Tail...
+    >::type
   >;
 };
 

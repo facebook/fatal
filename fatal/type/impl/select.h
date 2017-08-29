@@ -51,7 +51,8 @@ struct vn<Less, T0, T1, T2> {
 };
 
 template <
-  typename Less, typename T0, typename T1, typename T2, typename T3, typename... T
+  typename Less, typename T0, typename T1, typename T2, typename T3,
+  typename... T
 >
 struct vn<Less, T0, T1, T2, T3, T...>:
   vn<Less, min<T0, T1, Less>, min<T2, T3, Less>, T...>
@@ -115,7 +116,8 @@ struct vx<Less, T0, T1, T2> {
 };
 
 template <
-  typename Less, typename T0, typename T1, typename T2, typename T3, typename... T
+  typename Less, typename T0, typename T1, typename T2, typename T3,
+  typename... T
 >
 struct vx<Less, T0, T1, T2, T3, T...>:
   vx<Less, max<T0, T1, Less>, max<T2, T3, Less>, T...>

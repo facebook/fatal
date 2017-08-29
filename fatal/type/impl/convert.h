@@ -33,7 +33,10 @@ template <
   typename... Tail
 >
 struct s<Sequence<int>, Variadics<Head, Tail...>> {
-  using type = Sequence<typename std::decay<decltype(Head::value)>::type, Head::value, Tail::value...>;
+  using type = Sequence<
+    typename std::decay<decltype(Head::value)>::type,
+    Head::value, Tail::value...
+  >;
 };
 
 template <

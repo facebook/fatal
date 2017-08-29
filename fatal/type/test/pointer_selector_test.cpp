@@ -149,11 +149,15 @@ FATAL_TEST(pointer_selector, type) {
 }
 
 FATAL_TEST(pointer_selector, managed) {
-  FATAL_EXPECT_FALSE((pointer_selector<pointer_class::raw, int>::managed::value));
+  FATAL_EXPECT_FALSE((
+    pointer_selector<pointer_class::raw, int>::managed::value
+  ));
   FATAL_EXPECT_FALSE((
     pointer_selector<pointer_class::raw, int const>::managed::value
   ));
-  FATAL_EXPECT_TRUE((pointer_selector<pointer_class::unique, int>::managed::value));
+  FATAL_EXPECT_TRUE((
+    pointer_selector<pointer_class::unique, int>::managed::value
+  ));
   FATAL_EXPECT_TRUE((
     pointer_selector<pointer_class::unique, int const>::managed::value
   ));
@@ -165,7 +169,9 @@ FATAL_TEST(pointer_selector, managed) {
       pointer_class::unique, int const, test_deleter
     >::managed::value
   ));
-  FATAL_EXPECT_TRUE((pointer_selector<pointer_class::shared, int>::managed::value));
+  FATAL_EXPECT_TRUE((
+    pointer_selector<pointer_class::shared, int>::managed::value
+  ));
   FATAL_EXPECT_TRUE((
     pointer_selector<pointer_class::shared, int const>::managed::value
   ));

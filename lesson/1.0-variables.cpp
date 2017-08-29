@@ -57,9 +57,10 @@ LESSON(
     "Note that we must use a helper function called `type_str()` to properly "
     "convert types into their actual string representation."
     "\n\n"
-    "The type `std::integral_constant`, in particular, can be used to represent "
-    "a constant value. Keep in mind, though, that types are immutable, therefore "
-    "we cannot change the value represented by the integral constant `y`."
+    "The type `std::integral_constant`, in particular, can be used to "
+    "represent a constant value. Keep in mind, though, that types are "
+    "immutable, therefore we cannot change the value represented by the "
+    "integral constant `y`."
     "\n\n"
     "We don't need to use `type_str()` here because the value itself is a "
     "constant, not a type:"
@@ -77,8 +78,8 @@ LESSON(
     "manipulate values. We manipulate types."
     "\n\n"
     "Types only exist during compilation, so one could say metaprograms run "
-    "inside the compiler, at  compile time, as opposed to regular programs which "
-    "run at runtime, after compilation is done."
+    "inside the compiler, at  compile time, as opposed to regular programs "
+    "which run at runtime, after compilation is done."
     "\n\n"
     "There are some types that can represent values, like "
     "`std::integral_constant`, but that's not necessarily true for every type."
@@ -94,10 +95,10 @@ LESSON(
   );
 
   COMMENT(
-    "A `int` or `std::string` runtime variable is able to store values, yes, but "
-    "as for the types themselves, `int` and `std::string`, they don't really "
-    "represent any values at compile time. Assigning values to them only make "
-    "sense at runtime."
+    "A `int` or `std::string` runtime variable is able to store values, yes, "
+    "but as for the types themselves, `int` and `std::string`, they don't "
+    "really represent any values at compile time. Assigning values to them "
+    "only make sense at runtime."
   );
 
   TYPE(z);
@@ -105,8 +106,8 @@ LESSON(
   TYPE(k);
 
   COMMENT(
-    "The last thing to notice is that types are immutable. Once we assign a type "
-    "to an alias, that alias will always represent the same type."
+    "The last thing to notice is that types are immutable. Once we assign a "
+    "type to an alias, that alias will always represent the same type."
     "\n\n"
     "That's a hint that metaprogramming in C++ works similarly to pure "
     "functional programming."

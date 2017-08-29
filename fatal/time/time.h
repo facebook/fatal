@@ -55,8 +55,13 @@ using suffixes = list<
   detail::t_s<std::hecto, 'h', 's'>,
   detail::t_s<std::kilo, 'k', 's'>,
   detail::t_s<std::chrono::hours::period, 'h'>,
-  detail::t_s<std::ratio_multiply<std::chrono::hours::period, std::ratio<24, 1>>, 'd'>,
-  detail::t_s<std::ratio_multiply<std::chrono::hours::period, std::ratio<24 * 7, 1>>, 'w', 'k'>,
+  detail::t_s<
+    std::ratio_multiply<std::chrono::hours::period, std::ratio<24, 1>>, 'd'
+  >,
+  detail::t_s<
+    std::ratio_multiply<std::chrono::hours::period, std::ratio<24 * 7, 1>>,
+    'w', 'k'
+  >,
   detail::t_s<std::mega, 'M', 's'>,
   detail::t_s<std::giga, 'G', 's'>,
   detail::t_s<std::tera, 'T', 's'>,
@@ -129,7 +134,9 @@ using pretty_print_ratios = list<
 
 template <typename Out, typename R, typename P>
 Out &&pretty_print(Out &&out, std::chrono::duration<R, P> time) {
-  using ratios = reject<typename detail::pretty_print_ratios, curry<applier<std::ratio_greater>, P>>;
+  using ratios = reject<
+    typename detail::pretty_print_ratios, curry<applier<std::ratio_greater>, P>
+  >;
   static_assert(!empty<ratios>::value, "unsupported duration");
 
   using impl = apply_to<ratios, detail::pretty>;
