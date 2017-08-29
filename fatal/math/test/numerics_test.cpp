@@ -898,172 +898,158 @@ FATAL_TEST(numerics, is_mersenne_number) {
 
 template <std::size_t nth, std::size_t exponent, std::size_t value>
 void check_mersenne_prime() {
-  typedef mersenne_prime<nth> mp;
-  FATAL_EXPECT_EQ(nth, mp::nth::value);
-  FATAL_EXPECT_EQ(exponent, mp::exponent::value);
+  using mp = nth_mersenne_prime<nth>;
+  FATAL_EXPECT_EQ(exponent, mersenne_number_exponent<mp>::value);
   FATAL_EXPECT_EQ(value, mp::value);
 }
 
 FATAL_TEST(numerics, mersenne_prime) {
-  check_mersenne_prime<1, 2, 3>();
-  check_mersenne_prime<2, 3, 7>();
-  check_mersenne_prime<3, 5, 31>();
-  check_mersenne_prime<4, 7, 127>();
-  check_mersenne_prime<5, 13, 8191>();
-  check_mersenne_prime<6, 17, 131071>();
-  check_mersenne_prime<7, 19, 524287>();
-  check_mersenne_prime<8, 31, 2147483647>();
-  check_mersenne_prime<9, 61, 2305843009213693951ull>();
+  check_mersenne_prime<0, 2, 3>();
+  check_mersenne_prime<1, 3, 7>();
+  check_mersenne_prime<2, 5, 31>();
+  check_mersenne_prime<3, 7, 127>();
+  check_mersenne_prime<4, 13, 8191>();
+  check_mersenne_prime<5, 17, 131071>();
+  check_mersenne_prime<6, 19, 524287>();
+  check_mersenne_prime<7, 31, 2147483647>();
+  check_mersenne_prime<8, 61, 2305843009213693951ull>();
+  FATAL_EXPECT_EQ(9, size<mersenne_primes>::value);
 }
 
 template <std::size_t bits_size, std::size_t nth_mersenne>
 void check_largest_mersenne_prime_under() {
-  typedef mersenne_prime<nth_mersenne> expected;
-  typedef largest_mersenne_prime_under<bits_size> actual;
+  using expected = nth_mersenne_prime<nth_mersenne>;
+  using actual = largest_mersenne_prime_under<bits_size>;
 
-  FATAL_VLOG(1) << "bits_size = " << bits_size
-    << ", nth_mersenne = " << nth_mersenne;
-
-  FATAL_EXPECT_EQ(
-    static_cast<unsigned long long>(expected::value),
-    static_cast<unsigned long long>(actual::value)
-  );
+  FATAL_EXPECT_EQ(expected::value, actual::value);
 }
 
 FATAL_TEST(numerics, largest_mersenne_prime_under) {
-  check_largest_mersenne_prime_under<2, 1>();
-  check_largest_mersenne_prime_under<3, 2>();
-  check_largest_mersenne_prime_under<4, 2>();
-  check_largest_mersenne_prime_under<5, 3>();
-  check_largest_mersenne_prime_under<6, 3>();
-  check_largest_mersenne_prime_under<7, 4>();
-  check_largest_mersenne_prime_under<8, 4>();
-  check_largest_mersenne_prime_under<9, 4>();
-  check_largest_mersenne_prime_under<10, 4>();
-  check_largest_mersenne_prime_under<11, 4>();
-  check_largest_mersenne_prime_under<12, 4>();
-  check_largest_mersenne_prime_under<13, 5>();
-  check_largest_mersenne_prime_under<14, 5>();
-  check_largest_mersenne_prime_under<15, 5>();
-  check_largest_mersenne_prime_under<16, 5>();
-  check_largest_mersenne_prime_under<17, 6>();
-  check_largest_mersenne_prime_under<18, 6>();
-  check_largest_mersenne_prime_under<19, 7>();
-  check_largest_mersenne_prime_under<20, 7>();
-  check_largest_mersenne_prime_under<21, 7>();
-  check_largest_mersenne_prime_under<22, 7>();
-  check_largest_mersenne_prime_under<23, 7>();
-  check_largest_mersenne_prime_under<24, 7>();
-  check_largest_mersenne_prime_under<25, 7>();
-  check_largest_mersenne_prime_under<26, 7>();
-  check_largest_mersenne_prime_under<27, 7>();
-  check_largest_mersenne_prime_under<28, 7>();
-  check_largest_mersenne_prime_under<29, 7>();
-  check_largest_mersenne_prime_under<30, 7>();
-  check_largest_mersenne_prime_under<31, 8>();
-  check_largest_mersenne_prime_under<32, 8>();
-  check_largest_mersenne_prime_under<33, 8>();
-  check_largest_mersenne_prime_under<34, 8>();
-  check_largest_mersenne_prime_under<35, 8>();
-  check_largest_mersenne_prime_under<36, 8>();
-  check_largest_mersenne_prime_under<37, 8>();
-  check_largest_mersenne_prime_under<38, 8>();
-  check_largest_mersenne_prime_under<39, 8>();
-  check_largest_mersenne_prime_under<40, 8>();
-  check_largest_mersenne_prime_under<41, 8>();
-  check_largest_mersenne_prime_under<42, 8>();
-  check_largest_mersenne_prime_under<43, 8>();
-  check_largest_mersenne_prime_under<44, 8>();
-  check_largest_mersenne_prime_under<45, 8>();
-  check_largest_mersenne_prime_under<46, 8>();
-  check_largest_mersenne_prime_under<47, 8>();
-  check_largest_mersenne_prime_under<48, 8>();
-  check_largest_mersenne_prime_under<49, 8>();
-  check_largest_mersenne_prime_under<50, 8>();
-  check_largest_mersenne_prime_under<51, 8>();
-  check_largest_mersenne_prime_under<52, 8>();
-  check_largest_mersenne_prime_under<53, 8>();
-  check_largest_mersenne_prime_under<54, 8>();
-  check_largest_mersenne_prime_under<55, 8>();
-  check_largest_mersenne_prime_under<56, 8>();
-  check_largest_mersenne_prime_under<57, 8>();
-  check_largest_mersenne_prime_under<58, 8>();
-  check_largest_mersenne_prime_under<59, 8>();
-  check_largest_mersenne_prime_under<60, 8>();
-  check_largest_mersenne_prime_under<61, 9>();
-  check_largest_mersenne_prime_under<62, 9>();
-  check_largest_mersenne_prime_under<63, 9>();
-  check_largest_mersenne_prime_under<64, 9>();
+  check_largest_mersenne_prime_under<2, 0>();
+  check_largest_mersenne_prime_under<3, 1>();
+  check_largest_mersenne_prime_under<4, 1>();
+  check_largest_mersenne_prime_under<5, 2>();
+  check_largest_mersenne_prime_under<6, 2>();
+  check_largest_mersenne_prime_under<7, 3>();
+  check_largest_mersenne_prime_under<8, 3>();
+  check_largest_mersenne_prime_under<9, 3>();
+  check_largest_mersenne_prime_under<10, 3>();
+  check_largest_mersenne_prime_under<11, 3>();
+  check_largest_mersenne_prime_under<12, 3>();
+  check_largest_mersenne_prime_under<13, 4>();
+  check_largest_mersenne_prime_under<14, 4>();
+  check_largest_mersenne_prime_under<15, 4>();
+  check_largest_mersenne_prime_under<16, 4>();
+  check_largest_mersenne_prime_under<17, 5>();
+  check_largest_mersenne_prime_under<18, 5>();
+  check_largest_mersenne_prime_under<19, 6>();
+  check_largest_mersenne_prime_under<20, 6>();
+  check_largest_mersenne_prime_under<21, 6>();
+  check_largest_mersenne_prime_under<22, 6>();
+  check_largest_mersenne_prime_under<23, 6>();
+  check_largest_mersenne_prime_under<24, 6>();
+  check_largest_mersenne_prime_under<25, 6>();
+  check_largest_mersenne_prime_under<26, 6>();
+  check_largest_mersenne_prime_under<27, 6>();
+  check_largest_mersenne_prime_under<28, 6>();
+  check_largest_mersenne_prime_under<29, 6>();
+  check_largest_mersenne_prime_under<30, 6>();
+  check_largest_mersenne_prime_under<31, 7>();
+  check_largest_mersenne_prime_under<32, 7>();
+  check_largest_mersenne_prime_under<33, 7>();
+  check_largest_mersenne_prime_under<34, 7>();
+  check_largest_mersenne_prime_under<35, 7>();
+  check_largest_mersenne_prime_under<36, 7>();
+  check_largest_mersenne_prime_under<37, 7>();
+  check_largest_mersenne_prime_under<38, 7>();
+  check_largest_mersenne_prime_under<39, 7>();
+  check_largest_mersenne_prime_under<40, 7>();
+  check_largest_mersenne_prime_under<41, 7>();
+  check_largest_mersenne_prime_under<42, 7>();
+  check_largest_mersenne_prime_under<43, 7>();
+  check_largest_mersenne_prime_under<44, 7>();
+  check_largest_mersenne_prime_under<45, 7>();
+  check_largest_mersenne_prime_under<46, 7>();
+  check_largest_mersenne_prime_under<47, 7>();
+  check_largest_mersenne_prime_under<48, 7>();
+  check_largest_mersenne_prime_under<49, 7>();
+  check_largest_mersenne_prime_under<50, 7>();
+  check_largest_mersenne_prime_under<51, 7>();
+  check_largest_mersenne_prime_under<52, 7>();
+  check_largest_mersenne_prime_under<53, 7>();
+  check_largest_mersenne_prime_under<54, 7>();
+  check_largest_mersenne_prime_under<55, 7>();
+  check_largest_mersenne_prime_under<56, 7>();
+  check_largest_mersenne_prime_under<57, 7>();
+  check_largest_mersenne_prime_under<58, 7>();
+  check_largest_mersenne_prime_under<59, 7>();
+  check_largest_mersenne_prime_under<60, 7>();
+  check_largest_mersenne_prime_under<61, 8>();
+  check_largest_mersenne_prime_under<62, 8>();
+  check_largest_mersenne_prime_under<63, 8>();
+  check_largest_mersenne_prime_under<64, 8>();
 }
 
 template <typename T, std::size_t diff, std::size_t nth_mersenne>
 void check_largest_mersenne_prime_for_type() {
-  typedef mersenne_prime<nth_mersenne> expected;
-  typedef largest_mersenne_prime_for_type<T, diff> actual;
+  using expected = nth_mersenne_prime<nth_mersenne>;
+  using actual = largest_mersenne_prime_for_type<T, diff>;
 
-  FATAL_VLOG(1) << "T = " << type_str<T>()
-    << ", unsigned_bits_size = "
-    << (data_bits<T>::value - std::is_signed<T>::value)
-    << ", diff = " << diff << ", nth_mersenne = " << nth_mersenne;
-
-  FATAL_EXPECT_EQ(
-    static_cast<unsigned long long>(expected::value),
-    static_cast<unsigned long long>(actual::value)
-  );
+  FATAL_EXPECT_EQ(expected::value, actual::value);
 }
 
 FATAL_TEST(numerics, largest_mersenne_prime_for_type) {
-  check_largest_mersenne_prime_for_type<int8_t, 0, 4>();
-  check_largest_mersenne_prime_for_type<int8_t, 1, 3>();
-  check_largest_mersenne_prime_for_type<int8_t, 2, 3>();
-  check_largest_mersenne_prime_for_type<int8_t, 3, 2>();
-  check_largest_mersenne_prime_for_type<int8_t, 4, 2>();
-  check_largest_mersenne_prime_for_type<int8_t, 5, 1>();
+  check_largest_mersenne_prime_for_type<std::int8_t, 0, 3>();
+  check_largest_mersenne_prime_for_type<std::int8_t, 1, 2>();
+  check_largest_mersenne_prime_for_type<std::int8_t, 2, 2>();
+  check_largest_mersenne_prime_for_type<std::int8_t, 3, 1>();
+  check_largest_mersenne_prime_for_type<std::int8_t, 4, 1>();
+  check_largest_mersenne_prime_for_type<std::int8_t, 5, 0>();
 
-  check_largest_mersenne_prime_for_type<uint8_t, 0, 4>();
-  check_largest_mersenne_prime_for_type<uint8_t, 1, 4>();
-  check_largest_mersenne_prime_for_type<uint8_t, 2, 3>();
-  check_largest_mersenne_prime_for_type<uint8_t, 3, 3>();
-  check_largest_mersenne_prime_for_type<uint8_t, 4, 2>();
-  check_largest_mersenne_prime_for_type<uint8_t, 5, 2>();
-  check_largest_mersenne_prime_for_type<uint8_t, 6, 1>();
+  check_largest_mersenne_prime_for_type<std::uint8_t, 0, 3>();
+  check_largest_mersenne_prime_for_type<std::uint8_t, 1, 3>();
+  check_largest_mersenne_prime_for_type<std::uint8_t, 2, 2>();
+  check_largest_mersenne_prime_for_type<std::uint8_t, 3, 2>();
+  check_largest_mersenne_prime_for_type<std::uint8_t, 4, 1>();
+  check_largest_mersenne_prime_for_type<std::uint8_t, 5, 1>();
+  check_largest_mersenne_prime_for_type<std::uint8_t, 6, 0>();
 
-  check_largest_mersenne_prime_for_type<int16_t, 0, 5>();
-  check_largest_mersenne_prime_for_type<int16_t, 1, 5>();
-  check_largest_mersenne_prime_for_type<int16_t, 2, 5>();
-  check_largest_mersenne_prime_for_type<int16_t, 3, 4>();
-  check_largest_mersenne_prime_for_type<int16_t, 4, 4>();
-  check_largest_mersenne_prime_for_type<int16_t, 5, 4>();
-  check_largest_mersenne_prime_for_type<int16_t, 6, 4>();
-  check_largest_mersenne_prime_for_type<int16_t, 7, 4>();
-  check_largest_mersenne_prime_for_type<int16_t, 8, 4>();
-  check_largest_mersenne_prime_for_type<int16_t, 9, 3>();
-  check_largest_mersenne_prime_for_type<int16_t, 10, 3>();
-  check_largest_mersenne_prime_for_type<int16_t, 11, 2>();
-  check_largest_mersenne_prime_for_type<int16_t, 12, 2>();
-  check_largest_mersenne_prime_for_type<int16_t, 13, 1>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 0, 4>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 1, 4>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 2, 4>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 3, 3>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 4, 3>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 5, 3>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 6, 3>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 7, 3>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 8, 3>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 9, 2>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 10, 2>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 11, 1>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 12, 1>();
+  check_largest_mersenne_prime_for_type<std::int16_t, 13, 0>();
 
-  check_largest_mersenne_prime_for_type<uint16_t, 0, 5>();
-  check_largest_mersenne_prime_for_type<uint16_t, 1, 5>();
-  check_largest_mersenne_prime_for_type<uint16_t, 2, 5>();
-  check_largest_mersenne_prime_for_type<uint16_t, 3, 5>();
-  check_largest_mersenne_prime_for_type<uint16_t, 4, 4>();
-  check_largest_mersenne_prime_for_type<uint16_t, 5, 4>();
-  check_largest_mersenne_prime_for_type<uint16_t, 6, 4>();
-  check_largest_mersenne_prime_for_type<uint16_t, 7, 4>();
-  check_largest_mersenne_prime_for_type<uint16_t, 8, 4>();
-  check_largest_mersenne_prime_for_type<uint16_t, 9, 4>();
-  check_largest_mersenne_prime_for_type<uint16_t, 10, 3>();
-  check_largest_mersenne_prime_for_type<uint16_t, 11, 3>();
-  check_largest_mersenne_prime_for_type<uint16_t, 12, 2>();
-  check_largest_mersenne_prime_for_type<uint16_t, 13, 2>();
-  check_largest_mersenne_prime_for_type<uint16_t, 14, 1>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 0, 4>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 1, 4>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 2, 4>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 3, 4>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 4, 3>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 5, 3>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 6, 3>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 7, 3>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 8, 3>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 9, 3>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 10, 2>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 11, 2>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 12, 1>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 13, 1>();
+  check_largest_mersenne_prime_for_type<std::uint16_t, 14, 0>();
 
-  check_largest_mersenne_prime_for_type<int32_t, 0, 8>();
-  check_largest_mersenne_prime_for_type<uint32_t, 0, 8>();
+  check_largest_mersenne_prime_for_type<std::int32_t, 0, 7>();
+  check_largest_mersenne_prime_for_type<std::uint32_t, 0, 7>();
 
-  check_largest_mersenne_prime_for_type<int64_t, 0, 9>();
-  check_largest_mersenne_prime_for_type<uint64_t, 0, 9>();
+  check_largest_mersenne_prime_for_type<std::int64_t, 0, 8>();
+  check_largest_mersenne_prime_for_type<std::uint64_t, 0, 8>();
 }
 
 ////////////////////////////
