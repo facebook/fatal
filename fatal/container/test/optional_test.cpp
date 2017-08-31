@@ -33,6 +33,8 @@ namespace fatal {
 #define FATAL_IMPL_DEFAULT_CTOR(Type, ...) \
   do { \
     optional<Type> o; \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
   } while (false)
 
@@ -62,6 +64,8 @@ FATAL_TEST(optional, default_ctor) {
 #define FATAL_IMPL_EMPLACE_CTOR(Type, Value1, ...) \
   do { \
     optional<Type> o(Value1); \
+    FATAL_EXPECT_FALSE(!o); \
+    FATAL_EXPECT_TRUE(o); \
     FATAL_EXPECT_FALSE(o.empty()); \
   } while (false)
 
@@ -325,9 +329,15 @@ FATAL_TEST(optional, try_get) {
 #define FATAL_IMPL_EMPTY_COPY_CTOR(Type, Value1, Value2, ...) \
   do { \
     optional<Type> o; \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     optional<Type> copy(o); \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
+    FATAL_EXPECT_TRUE(!copy); \
+    FATAL_EXPECT_FALSE(copy); \
     FATAL_EXPECT_TRUE(copy.empty()); \
   } while (false)
 
@@ -392,9 +402,15 @@ FATAL_TEST(optional, copy_ctor) {
 #define FATAL_IMPL_EMPTY_MOVE_CTOR(Type, Value1, Value2, ...) \
   do { \
     optional<Type> o; \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     optional<Type> thief(std::move(o)); \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
+    FATAL_EXPECT_TRUE(!thief); \
+    FATAL_EXPECT_FALSE(thief); \
     FATAL_EXPECT_TRUE(thief.empty()); \
   } while (false)
 
@@ -427,6 +443,8 @@ FATAL_TEST(optional, empty_move_ctor) {
     FATAL_ASSERT_FALSE(o.empty()); \
     FATAL_EXPECT_EQ(Value1, *o); \
     optional<Type> thief(std::move(o)); \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     FATAL_ASSERT_FALSE(thief.empty()); \
     FATAL_EXPECT_EQ(Value1, *thief); \
@@ -521,6 +539,8 @@ FATAL_TEST(optional, move_emplace_ctor) {
   do { \
     Type value(Value1); \
     optional<Type> o; \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     o.emplace(value); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -556,6 +576,8 @@ FATAL_TEST(optional, copy_emplace) {
   do { \
     Type value(Value1); \
     optional<Type> o; \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     o.emplace(std::move(value)); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -592,6 +614,8 @@ FATAL_TEST(optional, move_emplace) {
 #define FATAL_IMPL_EMPLACE(Type, Value1, Value2, ...) \
   do { \
     optional<Type> o; \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     o.emplace(Value1); \
     FATAL_ASSERT_FALSE(o.empty()); \
@@ -624,8 +648,12 @@ FATAL_TEST(optional, emplace) {
 #define FATAL_IMPL_EMPTY_CLEAR(Type, Value1, Value2, ...) \
   do { \
     optional<Type> o; \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     o.clear(); \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
   } while (false)
 
@@ -655,10 +683,16 @@ FATAL_TEST(optional, empty_clear) {
 #define FATAL_IMPL_CLEAR(Type, Value1, Value2, ...) \
   do { \
     optional<Type> o(Value1); \
+    FATAL_EXPECT_FALSE(!o); \
+    FATAL_EXPECT_TRUE(o); \
     FATAL_EXPECT_FALSE(o.empty()); \
     o.clear(); \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     o.clear(); \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
   } while (false)
 
@@ -688,12 +722,20 @@ FATAL_TEST(optional, clear) {
 #define FATAL_IMPL_EMPTY_COPY_ASSIGNMENT(Type, Value1, Value2, ...) \
   do { \
     optional<Type> o; \
+    FATAL_EXPECT_TRUE(!o); \
+    FATAL_EXPECT_FALSE(o); \
     FATAL_EXPECT_TRUE(o.empty()); \
     { \
       optional<Type> copy; \
+      FATAL_EXPECT_TRUE(!copy); \
+      FATAL_EXPECT_FALSE(copy); \
       FATAL_EXPECT_TRUE(copy.empty()); \
       copy = o; \
+      FATAL_EXPECT_TRUE(!copy); \
+      FATAL_EXPECT_FALSE(copy); \
       FATAL_EXPECT_TRUE(copy.empty()); \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
     } \
     { \
@@ -701,7 +743,11 @@ FATAL_TEST(optional, clear) {
       FATAL_ASSERT_FALSE(copy.empty()); \
       FATAL_EXPECT_EQ(Value2, *copy); \
       copy = o; \
+      FATAL_EXPECT_TRUE(!copy); \
+      FATAL_EXPECT_FALSE(copy); \
       FATAL_EXPECT_TRUE(copy.empty()); \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
     } \
   } while (false)
@@ -759,6 +805,8 @@ FATAL_TEST(optional, empty_copy_assignment) {
     FATAL_EXPECT_EQ(Value1, *o); \
     { \
       optional<Type> copy; \
+      FATAL_EXPECT_TRUE(!copy); \
+      FATAL_EXPECT_FALSE(copy); \
       FATAL_EXPECT_TRUE(copy.empty()); \
       copy = o; \
       FATAL_ASSERT_FALSE(copy.empty()); \
@@ -828,21 +876,35 @@ FATAL_TEST(optional, copy_assignment) {
   do { \
     { \
       optional<Type> o; \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
       optional<Type> thief; \
+      FATAL_EXPECT_TRUE(!thief); \
+      FATAL_EXPECT_FALSE(thief); \
       FATAL_EXPECT_TRUE(thief.empty()); \
       thief = std::move(o); \
+      FATAL_EXPECT_TRUE(!thief); \
+      FATAL_EXPECT_FALSE(thief); \
       FATAL_EXPECT_TRUE(thief.empty()); \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
     } \
     { \
       optional<Type> o; \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
       optional<Type> thief(Value2); \
       FATAL_ASSERT_FALSE(thief.empty()); \
       FATAL_EXPECT_EQ(Value2, *thief); \
       thief = std::move(o); \
+      FATAL_EXPECT_TRUE(!thief); \
+      FATAL_EXPECT_FALSE(thief); \
       FATAL_EXPECT_TRUE(thief.empty()); \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
     } \
   } while (false)
@@ -895,10 +957,14 @@ FATAL_TEST(optional, empty_move_assignment) {
       FATAL_ASSERT_FALSE(o.empty()); \
       FATAL_EXPECT_EQ(Value1, *o); \
       optional<Type> thief; \
+      FATAL_EXPECT_TRUE(!thief); \
+      FATAL_EXPECT_FALSE(thief); \
       FATAL_EXPECT_TRUE(thief.empty()); \
       thief = std::move(o); \
       FATAL_ASSERT_FALSE(thief.empty()); \
       FATAL_EXPECT_EQ(Value1, *thief); \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
     } \
     { \
@@ -911,6 +977,8 @@ FATAL_TEST(optional, empty_move_assignment) {
       thief = std::move(o); \
       FATAL_ASSERT_FALSE(thief.empty()); \
       FATAL_EXPECT_EQ(Value1, *thief); \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
     } \
   } while (false)
@@ -959,6 +1027,8 @@ FATAL_TEST(optional, move_assignment) {
   do { \
     { \
       optional<Type> o; \
+      FATAL_EXPECT_TRUE(!o); \
+      FATAL_EXPECT_FALSE(o); \
       FATAL_EXPECT_TRUE(o.empty()); \
       o = Value1; \
       FATAL_ASSERT_FALSE(o.empty()); \
@@ -1015,17 +1085,23 @@ FATAL_TEST(optional, value_assignment) {
 #define FATAL_IMPL_OPERATOR_EQUALS(Type, Value1, Value2, ...) \
   do { \
     optional<Type> empty; \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     \
     optional<Type> o1(Value1); \
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
     \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
     \
     FATAL_EXPECT_FALSE(o1 == empty); \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
@@ -1034,11 +1110,15 @@ FATAL_TEST(optional, value_assignment) {
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
     \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
     \
     FATAL_EXPECT_FALSE(o2 == empty); \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
@@ -1099,6 +1179,8 @@ FATAL_TEST(optional, operator_equals) {
 #define FATAL_IMPL_OPERATOR_EQUALS_VALUE(Type, Value1, Value2, ...) \
   do { \
     optional<Type> empty; \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     \
     optional<Type> o(Value1); \
@@ -1119,17 +1201,23 @@ FATAL_TEST(optional, operator_equals_value) {
 #define FATAL_IMPL_OPERATOR_NOT_EQUALS(Type, Value1, Value2, ...) \
   do { \
     optional<Type> empty; \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     \
     optional<Type> o1(Value1); \
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
     \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
     \
     FATAL_EXPECT_TRUE(o1 != empty); \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o1.empty()); \
     FATAL_EXPECT_EQ(Value1, *o1); \
@@ -1138,11 +1226,15 @@ FATAL_TEST(optional, operator_equals_value) {
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
     \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
     \
     FATAL_EXPECT_TRUE(o2 != empty); \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     FATAL_ASSERT_FALSE(o2.empty()); \
     FATAL_EXPECT_EQ(Value2, *o2); \
@@ -1203,6 +1295,8 @@ FATAL_TEST(optional, operator_not_equals) {
 #define FATAL_IMPL_OPERATOR_NOT_EQUALS_VALUE(Type, Value1, Value2, ...) \
   do { \
     optional<Type> empty; \
+    FATAL_EXPECT_TRUE(!empty); \
+    FATAL_EXPECT_FALSE(empty); \
     FATAL_EXPECT_TRUE(empty.empty()); \
     \
     optional<Type> o(Value1); \
