@@ -228,6 +228,9 @@ public:
 
   bool operator !=(optional const &rhs) const { return !(*this == rhs); }
 
+  explicit operator bool() const noexcept { return !empty_; }
+  bool operator !() const noexcept { return empty_; }
+
 private:
   data data_;
   bool empty_;
