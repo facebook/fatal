@@ -22,8 +22,8 @@ template <typename T>
 struct has_type<T, void_t<typename T::type>> : std::true_type {};
 
 FATAL_TEST(void_t, example) {
-  FATAL_EXPECT_EQ(false, has_type<int>::value);
-  FATAL_EXPECT_EQ(true, has_type<std::decay<int>>::value);
+  FATAL_EXPECT_FALSE(has_type<int>::value);
+  FATAL_EXPECT_TRUE(has_type<std::decay<int>>::value);
 }
 
 } // namespace fatal {

@@ -32,8 +32,8 @@ namespace fatal {
  *  static_assert(!has_type<int>::value);
  *  static_assert(has_type<std::decay<int>>::value);
  */
-template <typename T>
-using void_t = typename detail::void_impl::void_t_<T>::type;
+template <typename... Ts>
+using void_t = typename detail::void_impl::void_t_<Ts...>::type;
 
 } // namespace fatal {
 

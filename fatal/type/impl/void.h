@@ -14,7 +14,7 @@ namespace fatal {
 namespace detail {
 namespace void_impl {
 
-template <typename... Ts>
+template <typename...>
 struct void_t_ {
   using type = void;
 };
