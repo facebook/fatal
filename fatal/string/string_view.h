@@ -74,14 +74,14 @@ struct string_view {
 #   endif // __cplusplus > 201400
   }
 
-  explicit string_view(value_type *s):
+  /* implicit */ string_view(value_type *s):
     begin_(s),
     end_(std::next(s, std::strlen(s)))
   {
     assert(begin_ <= end_);
   }
 
-  explicit string_view(value_type const *s):
+  /* implicit */ string_view(value_type const *s):
     begin_(s),
     end_(std::next(s, std::strlen(s)))
   {
