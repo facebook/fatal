@@ -45,6 +45,9 @@ struct remove_rvalue_reference<T &&> {
   using type = T;
 };
 
+template <typename T>
+using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
+
 } // namespace fatal
 
 #endif // FATAL_INCLUDE_fatal_type_remove_rvalue_reference_h
