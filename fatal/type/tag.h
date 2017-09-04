@@ -12,17 +12,24 @@
 
 #include <fatal/type/pair.h>
 
-#include <type_traits>
+#include <cstddef>
 
 namespace fatal {
 
-template <typename T> struct tag {};
+template <typename T> struct tag {
+  using type = T;
+};
 
 template <typename First, typename Second>
 using tag_pair = tag<pair<First, Second>>;
 
 template <typename T, std::size_t Index>
-struct indexed: tag<T>, std::integral_constant<std::size_t, Index> {};
+struct indexed: tag<T> {
+  static constexpr std::size_t value = Index;
+};
+
+template <typename T, std::size_t Index>
+constexpr std::size_t indexed<T, Index>::value;
 
 template <typename First, typename Second, std::size_t Index>
 using indexed_pair = indexed<pair<First, Second>, Index>;

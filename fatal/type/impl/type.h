@@ -10,62 +10,44 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_type_h
 #define FATAL_INCLUDE_fatal_type_impl_type_h
 
+#include <fatal/type/tag.h>
+
 #include <type_traits>
 
 namespace fatal {
 namespace impl_t {
 
+template <typename T, typename = typename T::type>
+std::true_type s(T *);
+std::false_type s(...);
+
+template <typename T, bool = decltype(s(static_cast<T *>(nullptr)))::value>
+struct to;
+
 template <typename T>
-struct to {
+struct to<T, true> {
   using type = typename T::type;
 };
 
-template <typename T, T Value>
-struct to<std::integral_constant<T, Value>> {
-  using type = typename std::integral_constant<T, Value>::type;
-};
-
 template <template <typename V, V...> class Variadics, typename T, T... Values>
-struct to<Variadics<T, Values...>> {
+struct to<Variadics<T, Values...>, false> {
   using type = T;
 };
 
-template <
-  template <typename, std::size_t> class Template,
-  typename T,
-  typename std::enable_if<
-    !std::is_same<T, std::size_t>::value,
-    std::size_t
-  >::type Value
->
-struct to<Template<T, Value>> {
-  using type = T;
-};
+template <typename T, typename = typename T::value_type>
+std::true_type S(T *);
+std::false_type S(...);
+
+template <typename T, bool = decltype(S(static_cast<T *>(nullptr)))::value>
+struct vto;
 
 template <typename T>
-struct vto {
+struct vto<T, true> {
   using type = typename T::value_type;
 };
 
-template <template <typename...> class Variadics, typename T, T... Values>
-struct vto<Variadics<std::integral_constant<T, Values>...>> {
-  using type = T;
-};
-
 template <template <typename V, V...> class Variadics, typename T, T... Values>
-struct vto<Variadics<T, Values...>> {
-  using type = T;
-};
-
-template <
-  template <typename, std::size_t> class Template,
-  typename T,
-  typename std::enable_if<
-    !std::is_same<T, std::size_t>::value,
-    std::size_t
-  >::type Value
->
-struct vto<Template<T, Value>> {
+struct vto<Variadics<T, Values...>, false> {
   using type = T;
 };
 

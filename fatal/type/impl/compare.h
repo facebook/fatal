@@ -55,18 +55,16 @@ struct sc<Less, Variadic<T>, Variadic<T>, 0>: std::false_type {};
 template <
   typename Less,
   template <typename V, V...> class Variadic,
-  typename T,
-  T... LHS
+  typename T, T L, T... LHS
 >
-struct sc<Less, Variadic<T, LHS...>, Variadic<T>, 0>: std::false_type {};
+struct sc<Less, Variadic<T, L, LHS...>, Variadic<T>, 0>: std::false_type {};
 
 template <
   typename Less,
   template <typename V, V...> class Variadic,
-  typename T,
-  T... RHS
+  typename T, T R, T... RHS
 >
-struct sc<Less, Variadic<T>, Variadic<T, RHS...>, 0>: std::true_type {};
+struct sc<Less, Variadic<T>, Variadic<T, R, RHS...>, 0>: std::true_type {};
 
 template <
   typename Less,
