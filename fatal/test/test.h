@@ -17,7 +17,6 @@
 #include <fatal/time/time.h>
 #include <fatal/type/call_traits.h>
 #include <fatal/type/traits.h>
-#include <fatal/type/deprecated/transform.h>
 
 #include <chrono>
 #include <exception>
