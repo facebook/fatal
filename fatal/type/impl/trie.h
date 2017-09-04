@@ -167,7 +167,7 @@ struct l<
     bool found = false;
     sorted_search<
       list<n<Haystack, IsTerminal, Begin, End, Children...>, Node, Siblings...>,
-      F<Begin, Filter>::template apply
+      F<Begin, Filter>
     >(
       *begin,
       l(),
