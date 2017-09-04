@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_transform_h
 #define FATAL_INCLUDE_fatal_type_deprecated_transform_h
 
+#include <fatal/type/compilability.h>
 #include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/apply.h>
 #include <fatal/type/deprecated/type_tag.h>
@@ -1952,63 +1953,6 @@ struct type_get_traits<std::tuple<Args...>> {
     std::tuple<Args...>
   >::type;
 };
-
-namespace detail {
-namespace check_compilability_impl {
-
-template <typename...> struct args;
-
-template <template <typename...> class T, std::size_t Arity>
-struct checker {
-  static_assert(Arity > 0, "");
-
-  template <typename U, typename... Args, typename = T<U, Args...>>
-  static std::true_type sfinae(args<U, Args...> *);
-
-  template <typename... Args, typename = T<Args...>>
-  static std::true_type sfinae(args<Args...> *);
-
-  template <typename...>
-  static std::false_type sfinae(...);
-};
-
-template <template <typename...> class T>
-struct checker<T, 1> {
-  template <typename U, typename = T<U>>
-  static std::true_type sfinae(args<U> *);
-
-  template <typename...>
-  static std::false_type sfinae(...);
-};
-
-template <template <typename...> class T>
-struct checker<T, 2> {
-  template <typename U0, typename U1, typename = T<U0, U1>>
-  static std::true_type sfinae(args<U0, U1> *);
-
-  template <typename...>
-  static std::false_type sfinae(...);
-};
-
-template <template <typename...> class T>
-struct checker<T, 3> {
-  template <typename U0, typename U1, typename U2, typename = T<U0, U1, U2>>
-  static std::true_type sfinae(args<U0, U1, U2> *);
-
-  template <typename...>
-  static std::false_type sfinae(...);
-};
-
-} // namespace check_compilability_impl {
-} // namespace detail {
-
-// TODO: DOCUMENT AND TEST
-template <template <typename...> class T, typename... Args>
-using check_compilability = decltype(
-  detail::check_compilability_impl::checker<T, sizeof...(Args)>::sfinae(
-    static_cast<detail::check_compilability_impl::args<Args...> *>(nullptr)
-  )
-);
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
