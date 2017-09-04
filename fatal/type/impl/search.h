@@ -24,7 +24,7 @@ template <typename T, std::size_t Offset = 0, std::size_t Size = size<T>::value>
 struct s {
   template <
     typename Comparer,
-    template <typename...> class Filter,
+    typename Filter,
     typename Needle,
     typename Visitor,
     typename... Args
@@ -36,13 +36,14 @@ struct s {
   ) {
     static_assert(Offset + (Size / 2) < size<T>::value, "");
     using pivot = at<T, Offset + (Size / 2)>;
-    return Comparer::template greater<Filter<pivot>>(needle)
+    using filtered = typename Filter::template apply<pivot>;
+    return Comparer::template greater<filtered>(needle)
       ? s<T, Offset, Size / 2>::template S<Comparer, Filter>(
         std::forward<Needle>(needle),
         std::forward<Visitor>(visitor),
         std::forward<Args>(args)...
       )
-      : Comparer::template less<Filter<pivot>>(needle)
+      : Comparer::template less<filtered>(needle)
         ? s<T, (Offset + Size / 2) + 1, Size / 2 - !(Size & 1)>
           ::template S<Comparer, Filter>(
             std::forward<Needle>(needle),
@@ -60,7 +61,7 @@ struct s {
 
 template <typename T, std::size_t Offset>
 struct s<T, Offset, 0> {
-  template <typename, template <typename...> class, typename... Args>
+  template <typename, typename, typename... Args>
   static constexpr inline bool S(Args &&...) {
     return false;
   }
@@ -70,7 +71,7 @@ template <typename T, std::size_t Offset>
 struct s<T, Offset, 1> {
   template <
     typename Comparer,
-    template <typename...> class Filter,
+    typename Filter,
     typename Needle,
     typename Visitor,
     typename... Args
@@ -81,7 +82,8 @@ struct s<T, Offset, 1> {
     Args &&...args
   ) {
     static_assert(Offset < size<T>::value,  "");
-    return Comparer::template equal<Filter<at<T, Offset>>>(needle) && (
+    using filtered = typename Filter::template apply<at<T, Offset>>;
+    return Comparer::template equal<filtered>(needle) && (
       visitor(
         indexed<at<T, Offset>, Offset>(),
         std::forward<Args>(args)...
@@ -95,7 +97,7 @@ template <typename T, std::size_t Offset>
 struct s<T, Offset, 2> {
   template <
     typename Comparer,
-    template <typename...> class Filter,
+    typename Filter,
     typename Needle,
     typename Visitor,
     typename... Args
@@ -106,15 +108,17 @@ struct s<T, Offset, 2> {
     Args &&...args
   ) {
     static_assert(Offset + 1 < size<T>::value,  "");
+    using filtered = typename Filter::template apply<at<T, Offset>>;
+    using filtered_next = typename Filter::template apply<at<T, Offset + 1>>;
     return (
-      Comparer::template equal<Filter<at<T, Offset>>>(needle) && (
+      Comparer::template equal<filtered>(needle) && (
         visitor(
           indexed<at<T, Offset>, Offset>(),
           std::forward<Args>(args)...
         ), true
       )
     ) || (
-      Comparer::template equal<Filter<at<T, Offset + 1>>>(needle) && (
+      Comparer::template equal<filtered_next>(needle) && (
         visitor(
           indexed<at<T, Offset + 1>, Offset + 1>(),
           std::forward<Args>(args)...

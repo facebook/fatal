@@ -18,6 +18,8 @@
 
 #include <utility>
 
+#include <cassert>
+
 #include <fatal/type/impl/search.h>
 
 namespace fatal {
@@ -25,7 +27,7 @@ namespace fatal {
 // TODO: DOCUMENT THE NEED FOR A SORTED LIST
 template <
   typename T,
-  template <typename...> class Filter = identity,
+  typename Filter = get_identity,
   typename Comparer = value_comparer,
   typename Needle,
   typename Visitor,
@@ -45,7 +47,7 @@ static inline constexpr bool sorted_search(
 
 template <
   typename T,
-  template <typename...> class Filter = identity,
+  typename Filter = get_identity,
   typename Comparer = value_comparer,
   typename Needle
 >
@@ -69,11 +71,7 @@ static inline constexpr bool scalar_search(
   Visitor &&visitor,
   Args &&...args
 ) {
-  return sorted_search<
-    sort<T, Comparer, Filter>,
-    Filter::template apply,
-    Comparer
-  >(
+  return sorted_search<sort<T, Comparer, Filter>, Filter, Comparer>(
     std::forward<Needle>(needle),
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...
@@ -99,7 +97,7 @@ static inline constexpr bool index_search(
   Visitor &&visitor,
   Args &&...args
 ) {
-  return sorted_search<T, index<T>::template apply>(
+  return sorted_search<T, index<T>>(
     needle,
     std::forward<Visitor>(visitor),
     std::forward<Args>(args)...
