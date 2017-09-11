@@ -1,13 +1,15 @@
 language: cpp
 
-sudo: false
-
 # toolchains from:
 # * https://github.com/travis-ci/apt-source-whitelist
 #   - https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+# gcc: https://wiki.ubuntu.com/ToolChain#PPA_packages
+# clang: http://apt.llvm.org/
 matrix:
   include:
     - os: linux
+      dist: precise
+      sudo: false
       compiler: gcc
       addons:
         apt:
@@ -18,6 +20,8 @@ matrix:
         CPP_STD=c++11
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: gcc
       addons:
         apt:
@@ -28,6 +32,8 @@ matrix:
         CPP_STD=c++14
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: gcc
       addons:
         apt:
@@ -38,6 +44,8 @@ matrix:
         CPP_STD=c++11
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: gcc
       addons:
         apt:
@@ -48,6 +56,8 @@ matrix:
         CPP_STD=c++14
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: gcc
       addons:
         apt:
@@ -58,6 +68,8 @@ matrix:
         CPP_STD=c++1z
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: gcc
       addons:
         apt:
@@ -68,6 +80,8 @@ matrix:
         CPP_STD=c++11
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: gcc
       addons:
         apt:
@@ -78,6 +92,8 @@ matrix:
         CPP_STD=c++14
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: gcc
       addons:
         apt:
@@ -88,154 +104,319 @@ matrix:
         CPP_STD=c++1z
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
-          packages: ['clang-3.5']
+          packages: ['clang-3.5', 'g++-6']
       env:
         COMPILER=clang++-3.5
         CPP_STD=c++11
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
-          packages: ['clang-3.5']
+          packages: ['clang-3.5', 'g++-6']
       env:
         COMPILER=clang++-3.5
         CPP_STD=c++14
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
-          packages: ['clang-3.5']
+          packages: ['clang-3.5', 'g++-6']
       env:
         COMPILER=clang++-3.5
         CPP_STD=c++1z
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
-          packages: ['clang-3.6']
+          packages: ['clang-3.6', 'g++-6']
       env:
         COMPILER=clang++-3.6
         CPP_STD=c++11
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
-          packages: ['clang-3.6']
+          packages: ['clang-3.6', 'g++-6']
       env:
         COMPILER=clang++-3.6
         CPP_STD=c++14
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
-          packages: ['clang-3.6']
+          packages: ['clang-3.6', 'g++-6']
       env:
         COMPILER=clang++-3.6
         CPP_STD=c++1z
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-          packages: ['clang-3.7']
+          packages: ['clang-3.7', 'g++-6']
       env:
         COMPILER=clang++-3.7
         CPP_STD=c++11
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-          packages: ['clang-3.7']
+          packages: ['clang-3.7', 'g++-6']
       env:
         COMPILER=clang++-3.7
         CPP_STD=c++14
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-          packages: ['clang-3.7']
+          packages: ['clang-3.7', 'g++-6']
       env:
         COMPILER=clang++-3.7
         CPP_STD=c++1z
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8']
-          packages: ['clang-3.8']
+          packages: ['clang-3.8', 'g++-6']
       env:
         COMPILER=clang++-3.8
         CPP_STD=c++11
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8']
-          packages: ['clang-3.8']
+          packages: ['clang-3.8', 'g++-6']
       env:
         COMPILER=clang++-3.8
         CPP_STD=c++14
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8']
-          packages: ['clang-3.8']
+          packages: ['clang-3.8', 'g++-6']
       env:
         COMPILER=clang++-3.8
         CPP_STD=c++1z
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.9']
-          packages: ['clang-3.9']
+          packages: ['clang-3.9', 'g++-6']
       env:
         COMPILER=clang++-3.9
         CPP_STD=c++11
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.9']
-          packages: ['clang-3.9']
+          packages: ['clang-3.9', 'g++-6']
       env:
         COMPILER=clang++-3.9
         CPP_STD=c++14
+        #USE_STDLIB=libc++
 
     - os: linux
+      dist: precise
+      sudo: false
       compiler: clang
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.9']
-          packages: ['clang-3.9']
+          packages: ['clang-3.9', 'g++-6']
       env:
         COMPILER=clang++-3.9
         CPP_STD=c++1z
+        #USE_STDLIB=libc++
+
+    # clang 4.0 is currently unsupported
+    #- os: linux
+    #  dist: trusty
+    #  sudo: false
+    #  compiler: clang
+    #  addons:
+    #    apt:
+    #      sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-4.0']
+    #      packages: ['clang-4.0', 'g++-6']
+    #  env:
+    #    COMPILER=clang++-4.0
+    #    CPP_STD=c++11
+    #    USE_STDLIB=libc++
+
+    # clang 4.0 is currently unsupported
+    #- os: linux
+    #  dist: trusty
+    #  sudo: false
+    #  compiler: clang
+    #  addons:
+    #    apt:
+    #      sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-4.0']
+    #      packages: ['clang-4.0', 'g++-6']
+    #  env:
+    #    COMPILER=clang++-4.0
+    #    CPP_STD=c++14
+    #    USE_STDLIB=libc++
+
+    # clang 4.0 is currently unsupported
+    #- os: linux
+    #  dist: trusty
+    #  sudo: false
+    #  compiler: clang
+    #  addons:
+    #    apt:
+    #      sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-4.0']
+    #      packages: ['clang-4.0', 'g++-6']
+    #  env:
+    #    COMPILER=clang++-4.0
+    #    CPP_STD=c++1z
+    #    USE_STDLIB=libc++
+
+    - os: linux
+      dist: trusty
+      sudo: false
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-5.0']
+          packages: ['clang-5.0', 'g++-6']
+      env:
+        COMPILER=clang++-5.0
+        CPP_STD=c++11
+        #USE_STDLIB=libc++
+
+    - os: linux
+      dist: trusty
+      sudo: false
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-5.0']
+          packages: ['clang-5.0', 'g++-6']
+      env:
+        COMPILER=clang++-5.0
+        CPP_STD=c++14
+        #USE_STDLIB=libc++
+
+    - os: linux
+      dist: trusty
+      sudo: false
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-5.0']
+          packages: ['clang-5.0', 'g++-6']
+      env:
+        COMPILER=clang++-5.0
+        CPP_STD=c++1z
+        #USE_STDLIB=libc++
+
+    #- os: linux
+    #  dist: trusty
+    #  sudo: false
+    #  compiler: clang
+    #  addons:
+    #    apt:
+    #      sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-6.0']
+    #      packages: ['clang-6.0', 'g++-6']
+    #  env:
+    #    COMPILER=clang++-6.0
+    #    CPP_STD=c++11
+    #    USE_STDLIB=libc++
+
+    #- os: linux
+    #  dist: trusty
+    #  sudo: false
+    #  compiler: clang
+    #  addons:
+    #    apt:
+    #      sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-6.0']
+    #      packages: ['clang-6.0', 'g++-6']
+    #  env:
+    #    COMPILER=clang++-6.0
+    #    CPP_STD=c++14
+    #    USE_STDLIB=libc++
+
+    #- os: linux
+    #  dist: trusty
+    #  sudo: false
+    #  compiler: clang
+    #  addons:
+    #    apt:
+    #      sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-6.0']
+    #      packages: ['clang-6.0', 'g++-6']
+    #  env:
+    #    COMPILER=clang++-6.0
+    #    CPP_STD=c++1z
+    #    USE_STDLIB=libc++
 
 # Activate when we are allowed to use MacOS X
 #    - os: osx
@@ -243,6 +424,7 @@ matrix:
 #      env:
 #        COMPILER=clang++
 #        CPP_STD=c++11
+#        USE_STDLIB=libc++
 
 # Activate when we are allowed to use MacOS X
 #    - os: osx
@@ -250,6 +432,7 @@ matrix:
 #      env:
 #        COMPILER=clang++
 #        CPP_STD=c++14
+#        USE_STDLIB=libc++
 
 # Activate when we are allowed to use MacOS X
 #    - os: osx
@@ -257,6 +440,7 @@ matrix:
 #      env:
 #        COMPILER=clang++
 #        CPP_STD=c++1z
+#        USE_STDLIB=libc++
 
 addons:
   apt:
