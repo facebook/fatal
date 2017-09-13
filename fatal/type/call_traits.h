@@ -112,11 +112,15 @@ public:
 
   template <typename T, typename... UArgs>
   static constexpr inline auto call(T &&subject, UArgs &&...args)
+    noexcept(noexcept(subject(std::forward<UArgs>(args)...)))
     -> decltype(subject(std::forward<UArgs>(args)...))
   { return subject(std::forward<UArgs>(args)...); }
 
   template <typename T, typename... UArgs>
   constexpr inline auto operator ()(T &&subject, UArgs &&...args) const
+    noexcept(
+      noexcept(call(std::forward<T>(subject), std::forward<UArgs>(args)...))
+    )
     -> decltype(call(std::forward<T>(subject), std::forward<UArgs>(args)...))
   { return call(std::forward<T>(subject), std::forward<UArgs>(args)...); }
 
@@ -232,9 +236,22 @@ public:
       using supports = typename bind<U>::template supports<UArgs...>; \
       \
       template <typename U, typename... UArgs> \
+      using result = decltype( \
+        ::std::declval<U>().__VA_ARGS__(::std::declval<UArgs>()...) \
+      ); \
+      \
+      template <typename U, typename... UArgs> \
       static constexpr inline auto call(U &&subject, UArgs &&...args) \
-        -> decltype(subject.__VA_ARGS__(::std::forward<UArgs>(args)...)) \
-      { return subject.__VA_ARGS__(::std::forward<UArgs>(args)...); } \
+        -> decltype( \
+          ::std::forward<U>(subject).__VA_ARGS__( \
+            ::std::forward<UArgs>(args)... \
+          ) \
+        ) \
+      { \
+        return ::std::forward<U>(subject).__VA_ARGS__( \
+          ::std::forward<UArgs>(args)... \
+        ); \
+      } \
       \
       template <typename U, typename... UArgs> \
       constexpr inline auto operator ()(U &&subject, UArgs &&...args) const \
@@ -272,6 +289,9 @@ public:
         ); \
         \
         template <typename... UArgs> \
+        using result = decltype(call_impl<type>(::std::declval<UArgs>()...)); \
+        \
+        template <typename... UArgs> \
         static constexpr inline auto call(UArgs &&...args) \
           -> decltype(call_impl<type>(::std::forward<UArgs>(args)...)) \
         { return call_impl<type>(::std::forward<UArgs>(args)...); } \
@@ -288,11 +308,10 @@ public:
       { return bind<U>::call(::std::forward<UArgs>(args)...); } \
       \
       template <typename U, typename... UArgs> \
-      using supports = decltype( \
-        static_member_supports_impl<UArgs...>::sfinae( \
-          static_cast<U *>(nullptr) \
-        ) \
-      ); \
+      using supports = typename bind<U>::template supports<UArgs...>; \
+      \
+      template <typename U, typename... UArgs> \
+      using result = typename bind<U>::template result<UArgs...>; \
     }; \
   }; \
   \
@@ -314,12 +333,18 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(append_to);
   FATAL_CALL_TRAITS_IMPL(apply);
   FATAL_CALL_TRAITS_IMPL(args);
+  FATAL_CALL_TRAITS_IMPL(argument);
+  FATAL_CALL_TRAITS_IMPL(arguments);
   FATAL_CALL_TRAITS_IMPL(assign);
   FATAL_CALL_TRAITS_IMPL(at);
   FATAL_CALL_TRAITS_IMPL(back);
   FATAL_CALL_TRAITS_IMPL(begin);
   FATAL_CALL_TRAITS_IMPL(binary_search);
   FATAL_CALL_TRAITS_IMPL(bind);
+  FATAL_CALL_TRAITS_IMPL(bootstrap);
+  FATAL_CALL_TRAITS_IMPL(byte);
+  FATAL_CALL_TRAITS_IMPL(bytes);
+  FATAL_CALL_TRAITS_IMPL(c_str);
   FATAL_CALL_TRAITS_IMPL(call);
   FATAL_CALL_TRAITS_IMPL(cancel);
   FATAL_CALL_TRAITS_IMPL(capacity);
@@ -351,10 +376,10 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(crbegin);
   FATAL_CALL_TRAITS_IMPL(cref);
   FATAL_CALL_TRAITS_IMPL(crend);
-  FATAL_CALL_TRAITS_IMPL(c_str);
   FATAL_CALL_TRAITS_IMPL(data);
   FATAL_CALL_TRAITS_IMPL(decode);
   FATAL_CALL_TRAITS_IMPL(dequeue);
+  FATAL_CALL_TRAITS_IMPL(descriptor);
   FATAL_CALL_TRAITS_IMPL(deserialize);
   FATAL_CALL_TRAITS_IMPL(destroy);
   FATAL_CALL_TRAITS_IMPL(emplace);
@@ -368,6 +393,7 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(equal_range);
   FATAL_CALL_TRAITS_IMPL(erase);
   FATAL_CALL_TRAITS_IMPL(exact);
+  FATAL_CALL_TRAITS_IMPL(exception);
   FATAL_CALL_TRAITS_IMPL(exit);
   FATAL_CALL_TRAITS_IMPL(extension);
   FATAL_CALL_TRAITS_IMPL(find);
@@ -388,9 +414,9 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(from);
   FATAL_CALL_TRAITS_IMPL(front);
   FATAL_CALL_TRAITS_IMPL(get);
-  FATAL_CALL_TRAITS_IMPL(getline);
   FATAL_CALL_TRAITS_IMPL(get_pointer);
   FATAL_CALL_TRAITS_IMPL(get_reference);
+  FATAL_CALL_TRAITS_IMPL(getline);
   FATAL_CALL_TRAITS_IMPL(go);
   FATAL_CALL_TRAITS_IMPL(halt);
   FATAL_CALL_TRAITS_IMPL(hash);
@@ -401,9 +427,11 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(init);
   FATAL_CALL_TRAITS_IMPL(initialize);
   FATAL_CALL_TRAITS_IMPL(inject);
+  FATAL_CALL_TRAITS_IMPL(inner);
   FATAL_CALL_TRAITS_IMPL(insert);
   FATAL_CALL_TRAITS_IMPL(join);
   FATAL_CALL_TRAITS_IMPL(joinable);
+  FATAL_CALL_TRAITS_IMPL(kind);
   FATAL_CALL_TRAITS_IMPL(last);
   FATAL_CALL_TRAITS_IMPL(left);
   FATAL_CALL_TRAITS_IMPL(length);
@@ -435,6 +463,10 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(off);
   FATAL_CALL_TRAITS_IMPL(offset);
   FATAL_CALL_TRAITS_IMPL(on);
+  FATAL_CALL_TRAITS_IMPL(outer);
+  FATAL_CALL_TRAITS_IMPL(owner);
+  FATAL_CALL_TRAITS_IMPL(parameter);
+  FATAL_CALL_TRAITS_IMPL(parameters);
   FATAL_CALL_TRAITS_IMPL(partial);
   FATAL_CALL_TRAITS_IMPL(partial_sort);
   FATAL_CALL_TRAITS_IMPL(partition);
@@ -494,9 +526,11 @@ struct call_traits {
   FATAL_CALL_TRAITS_IMPL(shrink_to_fit);
   FATAL_CALL_TRAITS_IMPL(shuffle);
   FATAL_CALL_TRAITS_IMPL(shutdown);
+  FATAL_CALL_TRAITS_IMPL(signature);
   FATAL_CALL_TRAITS_IMPL(size);
   FATAL_CALL_TRAITS_IMPL(slice);
   FATAL_CALL_TRAITS_IMPL(sort);
+  FATAL_CALL_TRAITS_IMPL(source);
   FATAL_CALL_TRAITS_IMPL(spawn);
   FATAL_CALL_TRAITS_IMPL(split);
   FATAL_CALL_TRAITS_IMPL(split_step);
