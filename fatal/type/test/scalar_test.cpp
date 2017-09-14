@@ -21,10 +21,37 @@ namespace fatal {
 using i10 = std::integral_constant<int, 10>;
 using d5_6 = std::ratio<56, 10>;
 
-enum E: unsigned { Ea = 1, Eb = 2, Ec = 4 };
-enum class EC: unsigned { a = 1, b = 2, c = 4 };
-enum Ei: std::int16_t { Eia = 1, Eib = 2, Eic = 4 };
-enum class ECi: std::int16_t { a = 1, b = 2, c = 4 };
+enum E: unsigned {
+  Ez = 0, Ea = 1, Eb = 2, Eab = 3,
+  Ec = 4, Eac = 5, Ebc = 6, Eabc = 7,
+  Ed = 8, Ead = 9, Ebd = 10, Eabd = 11,
+  Ecd = 12, Eacd = 13, Ebcd = 14, Eabcd = 15,
+  Ee = 16
+};
+
+enum class EC: unsigned {
+  z = 0, a = 1, b = 2, ab = 3,
+  c = 4, ac = 5, bc = 6, abc = 7,
+  d = 8, ad = 9, bd = 10, abd = 11,
+  cd = 12, acd = 13, bcd = 14, abcd = 15,
+  e = 16
+};
+
+enum Ei: std::int16_t {
+  Eiz = 0, Eia = 1, Eib = 2, Eiab = 3,
+  Eic = 4, Eiac = 5, Eibc = 6, Eiabc = 7,
+  Eid = 8, Eiad = 9, Eibd = 10, Eiabd = 11,
+  Eicd = 12, Eiacd = 13, Eibcd = 14, Eiabcd = 15,
+  Eie = 16
+};
+
+enum class ECi: std::int16_t {
+  z = 0, a = 1, b = 2, ab = 3,
+  c = 4, ac = 5, bc = 6, abc = 7,
+  d = 8, ad = 9, bd = 10, abd = 11,
+  cd = 12, acd = 13, bcd = 14, abcd = 15,
+  e = 16
+};
 
 FATAL_TEST(to_scalar, integral) {
   FATAL_EXPECT_EQ_SAME(int, 10, to_scalar<i10>());
@@ -84,60 +111,36 @@ FATAL_TEST(bitwise_merge, enum) {
   FATAL_EXPECT_EQ_SAME(E, Ea, bitwise_merge(Ea));
   FATAL_EXPECT_EQ_SAME(E, Eb, bitwise_merge(Eb));
   FATAL_EXPECT_EQ_SAME(E, Ec, bitwise_merge(Ec));
-  FATAL_EXPECT_EQ_SAME(E, static_cast<E>(7), bitwise_merge(static_cast<E>(7)));
-  FATAL_EXPECT_EQ_SAME(E, static_cast<E>(7), bitwise_merge(Ea, Eb, Ec));
-  FATAL_EXPECT_EQ_SAME(
-    E, static_cast<E>(7), bitwise_merge(Ea, static_cast<E>(6))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    E, static_cast<E>(7), bitwise_merge(Ea, static_cast<E>(7))
-  );
+  FATAL_EXPECT_EQ_SAME(E, Eabc, bitwise_merge(Eabc));
+  FATAL_EXPECT_EQ_SAME(E, Eabc, bitwise_merge(Ea, Eb, Ec));
+  FATAL_EXPECT_EQ_SAME(E, Eabc, bitwise_merge(Ea, Ebc));
+  FATAL_EXPECT_EQ_SAME(E, Eabc, bitwise_merge(Ea, Eabc));
 
   FATAL_EXPECT_EQ_SAME(Ei, Eia, bitwise_merge(Eia));
   FATAL_EXPECT_EQ_SAME(Ei, Eib, bitwise_merge(Eib));
   FATAL_EXPECT_EQ_SAME(Ei, Eic, bitwise_merge(Eic));
-  FATAL_EXPECT_EQ_SAME(Ei, static_cast<Ei>(7), bitwise_merge(static_cast<Ei>(7)));
-  FATAL_EXPECT_EQ_SAME(Ei, static_cast<Ei>(7), bitwise_merge(Eia, Eib, Eic));
-  FATAL_EXPECT_EQ_SAME(
-    Ei, static_cast<Ei>(7), bitwise_merge(Eia, static_cast<Ei>(6))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    Ei, static_cast<Ei>(7), bitwise_merge(Eia, static_cast<Ei>(7))
-  );
+  FATAL_EXPECT_EQ_SAME(Ei, Eiabc, bitwise_merge(Eiabc));
+  FATAL_EXPECT_EQ_SAME(Ei, Eiabc, bitwise_merge(Eia, Eib, Eic));
+  FATAL_EXPECT_EQ_SAME(Ei, Eiabc, bitwise_merge(Eia, Eibc));
+  FATAL_EXPECT_EQ_SAME(Ei, Eiabc, bitwise_merge(Eia, Eiabc));
 }
 
 FATAL_TEST(bitwise_merge, enum class) {
   FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_merge(EC::a));
   FATAL_EXPECT_EQ_SAME(EC, EC::b, bitwise_merge(EC::b));
   FATAL_EXPECT_EQ_SAME(EC, EC::c, bitwise_merge(EC::c));
-  FATAL_EXPECT_EQ_SAME(
-    EC, static_cast<EC>(7), bitwise_merge(static_cast<EC>(7))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    EC, static_cast<EC>(7), bitwise_merge(EC::a, EC::b, EC::c)
-  );
-  FATAL_EXPECT_EQ_SAME(
-    EC, static_cast<EC>(7), bitwise_merge(EC::a, static_cast<EC>(6))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    EC, static_cast<EC>(7), bitwise_merge(EC::a, static_cast<EC>(7))
-  );
+  FATAL_EXPECT_EQ_SAME(EC, EC::abc, bitwise_merge(EC::abc));
+  FATAL_EXPECT_EQ_SAME(EC, EC::abc, bitwise_merge(EC::a, EC::b, EC::c));
+  FATAL_EXPECT_EQ_SAME(EC, EC::abc, bitwise_merge(EC::a, EC::bc));
+  FATAL_EXPECT_EQ_SAME(EC, EC::abc, bitwise_merge(EC::a, EC::abc));
 
   FATAL_EXPECT_EQ_SAME(ECi, ECi::a, bitwise_merge(ECi::a));
   FATAL_EXPECT_EQ_SAME(ECi, ECi::b, bitwise_merge(ECi::b));
   FATAL_EXPECT_EQ_SAME(ECi, ECi::c, bitwise_merge(ECi::c));
-  FATAL_EXPECT_EQ_SAME(
-    ECi, static_cast<ECi>(7), bitwise_merge(static_cast<ECi>(7))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    ECi, static_cast<ECi>(7), bitwise_merge(ECi::a, ECi::b, ECi::c)
-  );
-  FATAL_EXPECT_EQ_SAME(
-    ECi, static_cast<ECi>(7), bitwise_merge(ECi::a, static_cast<ECi>(6))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    ECi, static_cast<ECi>(7), bitwise_merge(ECi::a, static_cast<ECi>(7))
-  );
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::abc, bitwise_merge(ECi::abc));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::abc, bitwise_merge(ECi::a, ECi::b, ECi::c));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::abc, bitwise_merge(ECi::a, ECi::bc));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::abc, bitwise_merge(ECi::a, ECi::abc));
 }
 
 FATAL_TEST(bitwise_filter, integer) {
@@ -164,82 +167,104 @@ FATAL_TEST(bitwise_filter, enum) {
   FATAL_EXPECT_EQ_SAME(E, Ea, bitwise_filter(Ea));
   FATAL_EXPECT_EQ_SAME(E, Eb, bitwise_filter(Eb));
   FATAL_EXPECT_EQ_SAME(E, Ec, bitwise_filter(Ec));
-  FATAL_EXPECT_EQ_SAME(E, static_cast<E>(7), bitwise_filter(static_cast<E>(7)));
-  FATAL_EXPECT_EQ_SAME(E, static_cast<E>(0), bitwise_filter(Ea, Eb, Ec));
-  FATAL_EXPECT_EQ_SAME(
-    E, static_cast<E>(5), bitwise_filter(
-      static_cast<E>(13), static_cast<E>(5), static_cast<E>(7)
-    )
-  );
-  FATAL_EXPECT_EQ_SAME(
-    E, static_cast<E>(0), bitwise_filter(Ea, static_cast<E>(6))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    E, Ea, bitwise_filter(Ea, static_cast<E>(7))
-  );
+  FATAL_EXPECT_EQ_SAME(E, Eabc, bitwise_filter(Eabc));
+  FATAL_EXPECT_EQ_SAME(E, Ez, bitwise_filter(Ea, Eb, Ec));
+  FATAL_EXPECT_EQ_SAME(E, Eac, bitwise_filter(Eacd, Eac, Eabc));
+  FATAL_EXPECT_EQ_SAME(E, Ez, bitwise_filter(Ea, Ebc));
+  FATAL_EXPECT_EQ_SAME(E, Ea, bitwise_filter(Ea, Eabc));
 
   FATAL_EXPECT_EQ_SAME(Ei, Eia, bitwise_filter(Eia));
   FATAL_EXPECT_EQ_SAME(Ei, Eib, bitwise_filter(Eib));
   FATAL_EXPECT_EQ_SAME(Ei, Eic, bitwise_filter(Eic));
-  FATAL_EXPECT_EQ_SAME(
-    Ei, static_cast<Ei>(7), bitwise_filter(static_cast<Ei>(7))
-  );
-  FATAL_EXPECT_EQ_SAME(Ei, static_cast<Ei>(0), bitwise_filter(Eia, Eib, Eic));
-  FATAL_EXPECT_EQ_SAME(
-    Ei, static_cast<Ei>(5), bitwise_filter(
-      static_cast<Ei>(13), static_cast<Ei>(5), static_cast<Ei>(7)
-    )
-  );
-  FATAL_EXPECT_EQ_SAME(
-    Ei, static_cast<Ei>(0), bitwise_filter(Eia, static_cast<Ei>(6))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    Ei, Eia, bitwise_filter(Eia, static_cast<Ei>(7))
-  );
+  FATAL_EXPECT_EQ_SAME(Ei, Eiabc, bitwise_filter(Eiabc));
+  FATAL_EXPECT_EQ_SAME(Ei, Eiz, bitwise_filter(Eia, Eib, Eic));
+  FATAL_EXPECT_EQ_SAME(Ei, Eiac, bitwise_filter(Eiacd, Eiac, Eiabc));
+  FATAL_EXPECT_EQ_SAME(Ei, Eiz, bitwise_filter(Eia, Eibc));
+  FATAL_EXPECT_EQ_SAME(Ei, Eia, bitwise_filter(Eia, Eiabc));
 }
 
 FATAL_TEST(bitwise_filter, enum class) {
   FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_filter(EC::a));
   FATAL_EXPECT_EQ_SAME(EC, EC::b, bitwise_filter(EC::b));
   FATAL_EXPECT_EQ_SAME(EC, EC::c, bitwise_filter(EC::c));
-  FATAL_EXPECT_EQ_SAME(
-    EC, static_cast<EC>(7), bitwise_filter(static_cast<EC>(7))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    EC, static_cast<EC>(0), bitwise_filter(EC::a, EC::b, EC::c)
-  );
-  FATAL_EXPECT_EQ_SAME(
-    EC, static_cast<EC>(5), bitwise_filter(
-      static_cast<EC>(13), static_cast<EC>(5), static_cast<EC>(7)
-    )
-  );
-  FATAL_EXPECT_EQ_SAME(
-    EC, static_cast<EC>(0), bitwise_filter(EC::a, static_cast<EC>(6))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    EC, EC::a, bitwise_filter(EC::a, static_cast<EC>(7))
-  );
+  FATAL_EXPECT_EQ_SAME(EC, EC::abc, bitwise_filter(EC::abc));
+  FATAL_EXPECT_EQ_SAME(EC, EC::z, bitwise_filter(EC::a, EC::b, EC::c));
+  FATAL_EXPECT_EQ_SAME(EC, EC::ac, bitwise_filter(EC::acd, EC::ac, EC::abc));
+  FATAL_EXPECT_EQ_SAME(EC, EC::z, bitwise_filter(EC::a, EC::bc));
+  FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_filter(EC::a, EC::abc));
 
   FATAL_EXPECT_EQ_SAME(ECi, ECi::a, bitwise_filter(ECi::a));
   FATAL_EXPECT_EQ_SAME(ECi, ECi::b, bitwise_filter(ECi::b));
   FATAL_EXPECT_EQ_SAME(ECi, ECi::c, bitwise_filter(ECi::c));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::abc, bitwise_filter(ECi::abc));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::z, bitwise_filter(ECi::a, ECi::b, ECi::c));
   FATAL_EXPECT_EQ_SAME(
-    ECi, static_cast<ECi>(7), bitwise_filter(static_cast<ECi>(7))
+    ECi, ECi::ac, bitwise_filter(ECi::acd, ECi::ac, ECi::abc)
   );
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::z, bitwise_filter(ECi::a, ECi::bc));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::a, bitwise_filter(ECi::a, ECi::abc));
+}
+
+FATAL_TEST(bitwise_disable, integer) {
+  FATAL_EXPECT_EQ_SAME(int, 1, bitwise_disable(1));
+  FATAL_EXPECT_EQ_SAME(int, 2, bitwise_disable(2));
+  FATAL_EXPECT_EQ_SAME(int, 4, bitwise_disable(4));
+  FATAL_EXPECT_EQ_SAME(int, 7, bitwise_disable(7));
+  FATAL_EXPECT_EQ_SAME(int, 1, bitwise_disable(1, 2, 4));
+  FATAL_EXPECT_EQ_SAME(int, 8, bitwise_disable(13, 5, 7));
+  FATAL_EXPECT_EQ_SAME(int, 1, bitwise_disable(1, 6));
+  FATAL_EXPECT_EQ_SAME(int, 0, bitwise_disable(1, 7));
+
+  FATAL_EXPECT_EQ_SAME(unsigned, 1u, bitwise_disable(1u));
+  FATAL_EXPECT_EQ_SAME(unsigned, 2u, bitwise_disable(2u));
+  FATAL_EXPECT_EQ_SAME(unsigned, 4u, bitwise_disable(4u));
+  FATAL_EXPECT_EQ_SAME(unsigned, 7u, bitwise_disable(7u));
+  FATAL_EXPECT_EQ_SAME(unsigned, 1u, bitwise_disable(1u, 2u, 4u));
+  FATAL_EXPECT_EQ_SAME(unsigned, 8u, bitwise_disable(13u, 5u, 7u));
+  FATAL_EXPECT_EQ_SAME(unsigned, 1u, bitwise_disable(1u, 6u));
+  FATAL_EXPECT_EQ_SAME(unsigned, 0u, bitwise_disable(1u, 7u));
+}
+
+FATAL_TEST(bitwise_disable, enum) {
+  FATAL_EXPECT_EQ_SAME(E, Ea, bitwise_disable(Ea));
+  FATAL_EXPECT_EQ_SAME(E, Eb, bitwise_disable(Eb));
+  FATAL_EXPECT_EQ_SAME(E, Ec, bitwise_disable(Ec));
+  FATAL_EXPECT_EQ_SAME(E, Eabc, bitwise_disable(Eabc));
+  FATAL_EXPECT_EQ_SAME(E, Ea, bitwise_disable(Ea, Eb, Ec));
+  FATAL_EXPECT_EQ_SAME(E, Ed, bitwise_disable(Eacd, Eac, Eabc));
+  FATAL_EXPECT_EQ_SAME(E, Ea, bitwise_disable(Ea, Ebc));
+  FATAL_EXPECT_EQ_SAME(E, Ez, bitwise_disable(Ea, Eabc));
+
+  FATAL_EXPECT_EQ_SAME(Ei, Eia, bitwise_disable(Eia));
+  FATAL_EXPECT_EQ_SAME(Ei, Eib, bitwise_disable(Eib));
+  FATAL_EXPECT_EQ_SAME(Ei, Eic, bitwise_disable(Eic));
+  FATAL_EXPECT_EQ_SAME(Ei, Eiabc, bitwise_disable(Eiabc));
+  FATAL_EXPECT_EQ_SAME(Ei, Eia, bitwise_disable(Eia, Eib, Eic));
+  FATAL_EXPECT_EQ_SAME(Ei, Eid, bitwise_disable(Eiacd, Eiac, Eiabc));
+  FATAL_EXPECT_EQ_SAME(Ei, Eia, bitwise_disable(Eia, Eibc));
+  FATAL_EXPECT_EQ_SAME(Ei, Eiz, bitwise_disable(Eia, Eiabc));
+}
+
+FATAL_TEST(bitwise_disable, enum class) {
+  FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_disable(EC::a));
+  FATAL_EXPECT_EQ_SAME(EC, EC::b, bitwise_disable(EC::b));
+  FATAL_EXPECT_EQ_SAME(EC, EC::c, bitwise_disable(EC::c));
+  FATAL_EXPECT_EQ_SAME(EC, EC::abc, bitwise_disable(EC::abc));
+  FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_disable(EC::a, EC::b, EC::c));
+  FATAL_EXPECT_EQ_SAME(EC, EC::d, bitwise_disable(EC::acd, EC::ac, EC::abc));
+  FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_disable(EC::a, EC::bc));
+  FATAL_EXPECT_EQ_SAME(EC, EC::z, bitwise_disable(EC::a, EC::abc));
+
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::a, bitwise_disable(ECi::a));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::b, bitwise_disable(ECi::b));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::c, bitwise_disable(ECi::c));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::abc, bitwise_disable(ECi::abc));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::a, bitwise_disable(ECi::a, ECi::b, ECi::c));
   FATAL_EXPECT_EQ_SAME(
-    ECi, static_cast<ECi>(0), bitwise_filter(ECi::a, ECi::b, ECi::c)
+    ECi, ECi::d, bitwise_disable(ECi::acd, ECi::ac, ECi::abc)
   );
-  FATAL_EXPECT_EQ_SAME(
-    ECi, static_cast<ECi>(5), bitwise_filter(
-      static_cast<ECi>(13), static_cast<ECi>(5), static_cast<ECi>(7)
-    )
-  );
-  FATAL_EXPECT_EQ_SAME(
-    ECi, static_cast<ECi>(0), bitwise_filter(ECi::a, static_cast<ECi>(6))
-  );
-  FATAL_EXPECT_EQ_SAME(
-    ECi, ECi::a, bitwise_filter(ECi::a, static_cast<ECi>(7))
-  );
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::a, bitwise_disable(ECi::a, ECi::bc));
+  FATAL_EXPECT_EQ_SAME(ECi, ECi::z, bitwise_disable(ECi::a, ECi::abc));
 }
 
 FATAL_TEST(bitwise_has_all, integer) {
@@ -255,32 +280,26 @@ FATAL_TEST(bitwise_has_all, integer) {
 }
 
 FATAL_TEST(bitwise_has_all, enum) {
-  FATAL_EXPECT_FALSE(bitwise_has_all(static_cast<E>(8), Ea, Eb, Ec));
-  FATAL_EXPECT_TRUE(bitwise_has_all(static_cast<E>(7), Ea, Eb, Ec));
-  FATAL_EXPECT_FALSE(bitwise_has_all(static_cast<E>(6), Ea, Eb, Ec));
+  FATAL_EXPECT_FALSE(bitwise_has_all(Ed, Ea, Eb, Ec));
+  FATAL_EXPECT_TRUE(bitwise_has_all(Eabc, Ea, Eb, Ec));
+  FATAL_EXPECT_FALSE(bitwise_has_all(Ebc, Ea, Eb, Ec));
   FATAL_EXPECT_FALSE(bitwise_has_all(Ea, Ea, Eb, Ec));
 
-  FATAL_EXPECT_FALSE(bitwise_has_all(static_cast<Ei>(8), Eia, Eib, Eic));
-  FATAL_EXPECT_TRUE(bitwise_has_all(static_cast<Ei>(7), Eia, Eib, Eic));
-  FATAL_EXPECT_FALSE(bitwise_has_all(static_cast<Ei>(6), Eia, Eib, Eic));
+  FATAL_EXPECT_FALSE(bitwise_has_all(Eid, Eia, Eib, Eic));
+  FATAL_EXPECT_TRUE(bitwise_has_all(Eiabc, Eia, Eib, Eic));
+  FATAL_EXPECT_FALSE(bitwise_has_all(Eibc, Eia, Eib, Eic));
   FATAL_EXPECT_FALSE(bitwise_has_all(Eia, Eia, Eib, Eic));
 }
 
 FATAL_TEST(bitwise_has_all, enum class) {
-  FATAL_EXPECT_FALSE(bitwise_has_all(static_cast<EC>(8), EC::a, EC::b, EC::c));
-  FATAL_EXPECT_TRUE(bitwise_has_all(static_cast<EC>(7), EC::a, EC::b, EC::c));
-  FATAL_EXPECT_FALSE(bitwise_has_all(static_cast<EC>(6), EC::a, EC::b, EC::c));
+  FATAL_EXPECT_FALSE(bitwise_has_all(EC::d, EC::a, EC::b, EC::c));
+  FATAL_EXPECT_TRUE(bitwise_has_all(EC::abc, EC::a, EC::b, EC::c));
+  FATAL_EXPECT_FALSE(bitwise_has_all(EC::bc, EC::a, EC::b, EC::c));
   FATAL_EXPECT_FALSE(bitwise_has_all(EC::a, EC::a, EC::b, EC::c));
 
-  FATAL_EXPECT_FALSE(
-    bitwise_has_all(static_cast<ECi>(8), ECi::a, ECi::b, ECi::c)
-  );
-  FATAL_EXPECT_TRUE(
-    bitwise_has_all(static_cast<ECi>(7), ECi::a, ECi::b, ECi::c)
-  );
-  FATAL_EXPECT_FALSE(
-    bitwise_has_all(static_cast<ECi>(6), ECi::a, ECi::b, ECi::c)
-  );
+  FATAL_EXPECT_FALSE(bitwise_has_all(ECi::d, ECi::a, ECi::b, ECi::c));
+  FATAL_EXPECT_TRUE(bitwise_has_all(ECi::abc, ECi::a, ECi::b, ECi::c));
+  FATAL_EXPECT_FALSE(bitwise_has_all(ECi::bc, ECi::a, ECi::b, ECi::c));
   FATAL_EXPECT_FALSE(bitwise_has_all(ECi::a, ECi::a, ECi::b, ECi::c));
 }
 
@@ -297,32 +316,26 @@ FATAL_TEST(bitwise_has_any, integer) {
 }
 
 FATAL_TEST(bitwise_has_any, enum) {
-  FATAL_EXPECT_FALSE(bitwise_has_any(static_cast<E>(8), Ea, Eb, Ec));
-  FATAL_EXPECT_TRUE(bitwise_has_any(static_cast<E>(7), Ea, Eb, Ec));
-  FATAL_EXPECT_TRUE(bitwise_has_any(static_cast<E>(6), Ea, Eb, Ec));
+  FATAL_EXPECT_FALSE(bitwise_has_any(Ed, Ea, Eb, Ec));
+  FATAL_EXPECT_TRUE(bitwise_has_any(Eabc, Ea, Eb, Ec));
+  FATAL_EXPECT_TRUE(bitwise_has_any(Ebc, Ea, Eb, Ec));
   FATAL_EXPECT_TRUE(bitwise_has_any(Ea, Ea, Eb, Ec));
 
-  FATAL_EXPECT_FALSE(bitwise_has_any(static_cast<Ei>(8), Eia, Eib, Eic));
-  FATAL_EXPECT_TRUE(bitwise_has_any(static_cast<Ei>(7), Eia, Eib, Eic));
-  FATAL_EXPECT_TRUE(bitwise_has_any(static_cast<Ei>(6), Eia, Eib, Eic));
+  FATAL_EXPECT_FALSE(bitwise_has_any(Eid, Eia, Eib, Eic));
+  FATAL_EXPECT_TRUE(bitwise_has_any(Eiabc, Eia, Eib, Eic));
+  FATAL_EXPECT_TRUE(bitwise_has_any(Eibc, Eia, Eib, Eic));
   FATAL_EXPECT_TRUE(bitwise_has_any(Eia, Eia, Eib, Eic));
 }
 
 FATAL_TEST(bitwise_has_any, enum class) {
-  FATAL_EXPECT_FALSE(bitwise_has_any(static_cast<EC>(8), EC::a, EC::b, EC::c));
-  FATAL_EXPECT_TRUE(bitwise_has_any(static_cast<EC>(7), EC::a, EC::b, EC::c));
-  FATAL_EXPECT_TRUE(bitwise_has_any(static_cast<EC>(6), EC::a, EC::b, EC::c));
+  FATAL_EXPECT_FALSE(bitwise_has_any(EC::d, EC::a, EC::b, EC::c));
+  FATAL_EXPECT_TRUE(bitwise_has_any(EC::abc, EC::a, EC::b, EC::c));
+  FATAL_EXPECT_TRUE(bitwise_has_any(EC::bc, EC::a, EC::b, EC::c));
   FATAL_EXPECT_TRUE(bitwise_has_any(EC::a, EC::a, EC::b, EC::c));
 
-  FATAL_EXPECT_FALSE(
-    bitwise_has_any(static_cast<ECi>(8), ECi::a, ECi::b, ECi::c)
-  );
-  FATAL_EXPECT_TRUE(
-    bitwise_has_any(static_cast<ECi>(7), ECi::a, ECi::b, ECi::c)
-  );
-  FATAL_EXPECT_TRUE(
-    bitwise_has_any(static_cast<ECi>(6), ECi::a, ECi::b, ECi::c)
-  );
+  FATAL_EXPECT_FALSE(bitwise_has_any(ECi::d, ECi::a, ECi::b, ECi::c));
+  FATAL_EXPECT_TRUE(bitwise_has_any(ECi::abc, ECi::a, ECi::b, ECi::c));
+  FATAL_EXPECT_TRUE(bitwise_has_any(ECi::bc, ECi::a, ECi::b, ECi::c));
   FATAL_EXPECT_TRUE(bitwise_has_any(ECi::a, ECi::a, ECi::b, ECi::c));
 }
 
