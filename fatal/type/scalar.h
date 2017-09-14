@@ -130,11 +130,11 @@ template <typename T>
 static constexpr T bitwise_merge(T const value) { return value; }
 
 // TODO: Implement in logarithmic time
-template <typename T, typename... Args>
-static constexpr T bitwise_merge(T const lhs, T const rhs, Args... args) {
+template <typename T, typename U, typename... Args>
+static constexpr T bitwise_merge(T const lhs, U const rhs, Args... args) {
   return bitwise_merge(
     static_cast<T>(to_integral(lhs) | to_integral(rhs)),
-    args...
+    static_cast<T>(args)...
   );
 }
 
@@ -159,11 +159,52 @@ static constexpr T bitwise_merge(T const lhs, T const rhs, Args... args) {
 template <typename T>
 static constexpr T bitwise_filter(T const value) { return value; }
 
-template <typename T, typename... Args>
-static constexpr T bitwise_filter(T const lhs, T const rhs, Args... args) {
+template <typename T, typename U,typename... Args>
+static constexpr T bitwise_filter(T const lhs, U const rhs, Args... args) {
   return bitwise_filter(
     static_cast<T>(to_integral(lhs) & to_integral(rhs)),
-    args...
+    static_cast<T>(args)...
+  );
+}
+
+/**
+ * Disables all bits the value has in common with the given arguments, then
+ * returns the result.
+ *
+ * This is particularly useful when dealing with bit sets, specially of
+ * type-safe enumerations.
+ *
+ * Example:
+ *
+ *  enum E: char { a = 1, b = 2, c = 4 };
+ *
+ *  // returns `E::a`
+ *  bitwise_disable(a | b | c, 16);
+ *
+ *  // returns `E::a`
+ *  bitwise_disable(a | b | c, b, c);
+ *
+ *  // returns `E::a | E::b | E::c`
+ *  bitwise_disable(a | b | c);
+ *
+ * @author: Marcelo Juchem <juchem@gmail.com>
+ */
+template <typename T>
+static constexpr T bitwise_disable(T const value) { return value; }
+
+template <typename T, typename U, typename... Args>
+static constexpr T bitwise_disable(
+  T const lhs,
+  U const rhs,
+  Args const... args
+) {
+  return bitwise_filter(
+    lhs,
+    static_cast<T>(
+      ~to_integral(
+        bitwise_merge<T>(static_cast<T>(rhs), static_cast<T>(args)...)
+      )
+    )
   );
 }
 
@@ -186,14 +227,18 @@ static constexpr T bitwise_filter(T const lhs, T const rhs, Args... args) {
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
 namespace scalar_impl {
-template <typename T>
-static constexpr bool bitwise_has_all_impl(T const value, T const merged) {
-  return static_cast<T>(bitwise_filter(value, merged)) == merged;
+template <typename T, typename U>
+static constexpr bool bitwise_has_all_impl(T const value, U const merged) {
+  return bitwise_filter(value, static_cast<T>(merged))
+    == static_cast<T>(merged);
 }
 } // namespace scalar_impl {
 template <typename T, typename... Args>
 static constexpr bool bitwise_has_all(T const value, Args... args) {
-  return scalar_impl::bitwise_has_all_impl(value, bitwise_merge(args...));
+  return scalar_impl::bitwise_has_all_impl(
+    value,
+    bitwise_merge(static_cast<T>(args)...)
+  );
 }
 
 /**
@@ -217,7 +262,9 @@ static constexpr bool bitwise_has_all(T const value, Args... args) {
  */
 template <typename T, typename... Args>
 static constexpr bool bitwise_has_any(T const value, Args... args) {
-  return to_integral(bitwise_filter(value, bitwise_merge(args...))) != 0;
+  return to_integral(
+    bitwise_filter(value, bitwise_merge(static_cast<T>(args)...))
+  ) != 0;
 }
 
 ////////////////////////////
