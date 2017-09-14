@@ -12,7 +12,9 @@
 
 #include <fatal/math/hash.h>
 #include <fatal/portability.h>
+#include <fatal/type/array.h>
 #include <fatal/type/call_traits.h>
+#include <fatal/type/size.h>
 #include <fatal/type/traits.h>
 
 #include <algorithm>
@@ -90,6 +92,16 @@ struct string_view {
 
   template <std::size_t N>
   constexpr string_view(value_type const (&s)[N]):
+    begin_(s),
+    end_(s + (N - (s[N - 1] == 0)))
+  {
+#   if __cplusplus > 201400
+    assert(begin_ <= end_);
+#   endif // __cplusplus > 201400
+  }
+
+  template <std::size_t N>
+  constexpr string_view(value_type (&s)[N]):
     begin_(s),
     end_(s + (N - (s[N - 1] == 0)))
   {
@@ -513,6 +525,11 @@ struct string_view_from_type {
     return string_view(String::data(), String::size);
   }
 };
+
+template <typename String>
+string_view as_string_view() noexcept {
+  return string_view(z_data<String>(), size<String>::value);
+}
 
 /////////////////
 // operator == //
