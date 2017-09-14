@@ -13,6 +13,7 @@
 #include <fatal/preprocessor.h>
 #include <fatal/type/constify.h>
 #include <fatal/type/constify_from.h>
+#include <fatal/type/compilability.h>
 #include <fatal/type/data_member_getter.h>
 #include <fatal/type/fast_pass.h> // TODO: REMOVE AND FIX DEPENDENCIES
 #include <fatal/type/is_complete.h>
@@ -20,6 +21,7 @@
 #include <fatal/type/qualifier.h>
 #include <fatal/type/remove_rvalue_reference.h>
 #include <fatal/type/same_reference_as.h>
+#include <fatal/type/safe_overload.h>
 #include <fatal/type/scalar.h>
 #include <fatal/type/sequence.h>
 
@@ -599,94 +601,6 @@ struct enable_when {
   using callable = is_true<is_callable<T, Args...>>;
 };
 
-///////////////////
-// safe_overload //
-///////////////////
-
-/**
- * Type traits to prevent the universal constructor from overloading
- * the copy/move constructor.
- *
- * For more information, see
- *   ericniebler.com/2013/08/07/universal-references-and-the-copy-constructo
- *
- * Usage:
- *
- * // before
- * struct Foo {
- *   template <typename T>
- *   Foo(T &&value) { ... }
- * };
- *
- * // after
- * struct Foo {
- *   template <
- *     typename T,
- *     typename X = typename std::enable_if<
- *       is_safe_overload<Foo, T>::value, void
- *     >::type
- *   >
- *   Foo(T &&value) { ... }
- * };
- *
- * It also works with variadic templates:
- *
- * // before
- * struct Foo {
- *   template <typename... Args>
- *   Foo(Args &&...args) { ... }
- * };
- *
- * // after
- * struct Foo {
- *   template <
- *     typename... Args,
- *     typename X = typename std::enable_if<
- *       is_safe_overload<Foo, Args...>::value, void
- *     >::type
- *   >
- *   Foo(Args &&...args) { ... }
- * };
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-namespace detail {
-namespace traits_impl {
-template <typename, typename...>
-struct is_safe_overload { using type = std::true_type; };
-} // namespace traits_impl {
-} // namespace detail {
-
-template <typename Class, typename... Args>
-using is_safe_overload = typename detail::traits_impl::is_safe_overload<
-  Class, Args...
->::type;
-
-/**
- * Template alias for is_safe_overload above.
- *
- * Usage:
- *
- * struct Foo {
- *   template <typename T, typename X = safe_overload<Foo, T>>
- *   Foo(T &&value) { ... }
- * };
- *
- * It also works with variadic templates:
- *
- * struct Foo {
- *   template <
- *     typename... UArgs,
- *     typename X = safe_overload<Foo, UArgs...>
- *   >
- *   Foo(UArgs &&...args) { ... }
- * };
- *
- * @author: Marcelo Juchem <marcelo@fb.com>
- */
-template <typename Class, typename... Args>
-using safe_overload = enable_when::is_true<is_safe_overload<Class, Args...>>;
-
 ////////////////////////////
 // IMPLEMENTATION DETAILS //
 ////////////////////////////
@@ -761,22 +675,6 @@ public:
       static_cast<typename std::remove_reference<T>::type *>(nullptr)
     )
   );
-};
-
-//////////////////////
-// is_safe_overload //
-//////////////////////
-
-template <typename Class, typename T>
-struct is_safe_overload<Class, T> {
-  using type = bool_constant<
-    !std::is_base_of<
-      Class,
-      typename std::remove_cv<
-        typename std::remove_reference<T>::type
-      >::type
-    >::value
-  >;
 };
 
 } // namespace traits_impl {
