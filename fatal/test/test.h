@@ -16,6 +16,7 @@
 #include <fatal/test/type.h>
 #include <fatal/time/time.h>
 #include <fatal/type/call_traits.h>
+#include <fatal/type/compilability.h>
 #include <fatal/type/traits.h>
 
 #include <chrono>
