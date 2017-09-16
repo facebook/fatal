@@ -8,7 +8,7 @@ language: cpp
 matrix:
   include:
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: gcc
       addons:
@@ -20,7 +20,7 @@ matrix:
         CPP_STD=c++11
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: gcc
       addons:
@@ -32,7 +32,7 @@ matrix:
         CPP_STD=c++14
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: gcc
       addons:
@@ -44,7 +44,7 @@ matrix:
         CPP_STD=c++11
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: gcc
       addons:
@@ -56,7 +56,7 @@ matrix:
         CPP_STD=c++14
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: gcc
       addons:
@@ -68,7 +68,7 @@ matrix:
         CPP_STD=c++1z
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: gcc
       addons:
@@ -80,7 +80,7 @@ matrix:
         CPP_STD=c++11
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: gcc
       addons:
@@ -92,7 +92,7 @@ matrix:
         CPP_STD=c++14
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: gcc
       addons:
@@ -104,12 +104,12 @@ matrix:
         CPP_STD=c++1z
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.5']
           packages: ['clang-3.5', 'g++-6']
       env:
         COMPILER=clang++-3.5
@@ -117,12 +117,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.5']
           packages: ['clang-3.5', 'g++-6']
       env:
         COMPILER=clang++-3.5
@@ -130,12 +130,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.5']
           packages: ['clang-3.5', 'g++-6']
       env:
         COMPILER=clang++-3.5
@@ -143,12 +143,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.6']
           packages: ['clang-3.6', 'g++-6']
       env:
         COMPILER=clang++-3.6
@@ -156,12 +156,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.6']
           packages: ['clang-3.6', 'g++-6']
       env:
         COMPILER=clang++-3.6
@@ -169,12 +169,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.6']
           packages: ['clang-3.6', 'g++-6']
       env:
         COMPILER=clang++-3.6
@@ -221,12 +221,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.8']
           packages: ['clang-3.8', 'g++-6']
       env:
         COMPILER=clang++-3.8
@@ -234,12 +234,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.8']
           packages: ['clang-3.8', 'g++-6']
       env:
         COMPILER=clang++-3.8
@@ -247,12 +247,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.8']
           packages: ['clang-3.8', 'g++-6']
       env:
         COMPILER=clang++-3.8
@@ -260,12 +260,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.9']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.9']
           packages: ['clang-3.9', 'g++-6']
       env:
         COMPILER=clang++-3.9
@@ -273,12 +273,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.9']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.9']
           packages: ['clang-3.9', 'g++-6']
       env:
         COMPILER=clang++-3.9
@@ -286,12 +286,12 @@ matrix:
         #USE_STDLIB=libc++
 
     - os: linux
-      dist: precise
+      dist: trusty
       sudo: false
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.9']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.9']
           packages: ['clang-3.9', 'g++-6']
       env:
         COMPILER=clang++-3.9
