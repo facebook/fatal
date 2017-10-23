@@ -18,11 +18,7 @@ namespace fatal {
 namespace impl_fe {
 
 template <typename, typename>
-struct f {
-  template <typename... Args>
-  FATAL_ATTR_ALWAYS_INLINE FATAL_ATTR_VISIBILITY_HIDDEN
-  static void g(Args &&...) {}
-};
+struct f;
 
 template <typename... T, std::size_t... Indexes>
 struct f<list<T...>, index_sequence<Indexes...>> {
@@ -31,10 +27,8 @@ struct f<list<T...>, index_sequence<Indexes...>> {
   template <typename Visitor, typename... Args>
   FATAL_ATTR_ALWAYS_INLINE FATAL_ATTR_VISIBILITY_HIDDEN
   static void g(Visitor &&visitor, Args &&...args) {
-    bool _[sizeof...(T)] = {
-      (visitor(indexed<T, Indexes>{}, args...), false)...
-    };
-    (void)_;
+    using _ = int[];
+    void(_{(void(visitor(indexed<T, Indexes>{}, args...)), 0)...});
   }
 };
 
