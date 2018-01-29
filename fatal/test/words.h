@@ -1833,6 +1833,7 @@ template <
   template <typename V, V...> class Sequence
 >
 using random_900_words = List<
+ // @lint-ignore TXT2 T25377293 Grandfathered in
 	Sequence<char, 'r', 'a', 't', 'i', 'o'>,
 	Sequence<char, 'd', 'e', 'c', 'l', 'a', 'r', 'a', 't', 'i', 'o', 'n'>,
 	Sequence<char, 'b', 'a', 'n', 'a', 'n', 'a'>,

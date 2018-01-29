@@ -1,3 +1,4 @@
+# shellcheck disable=SC1113
 #/bin/sh
 
 . ./scripts.inc
