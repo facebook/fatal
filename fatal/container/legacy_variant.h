@@ -1509,7 +1509,10 @@ public:
 
   template <typename... UArgs>
   legacy_variant &operator =(legacy_variant<storage_policy, UArgs...> &&other) {
-    if (allocator() == other.allocator()) {
+    auto get_allocator = [](auto &obj) {
+      return obj.has_allocator() ? &obj.allocator() : nullptr;
+    };
+    if (get_allocator(*this) == get_allocator(other)) {
       if (!other.visit(copy_variant_visitor<false, true>(), *this)) {
         clear();
       }
