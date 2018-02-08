@@ -1419,6 +1419,7 @@ public:
 
   allocator_type &allocator() const { return *control_.allocator(); }
   bool has_allocator() const { return control_.allocator() != nullptr; }
+  allocator_type *allocator_ptr() const { return control_.allocator(); }
 
   void set_allocator(allocator_type &allocator) {
     control_.set_allocator(std::addressof(allocator));
@@ -1509,10 +1510,7 @@ public:
 
   template <typename... UArgs>
   legacy_variant &operator =(legacy_variant<storage_policy, UArgs...> &&other) {
-    auto get_allocator = [](auto &obj) {
-      return obj.has_allocator() ? &obj.allocator() : nullptr;
-    };
-    if (get_allocator(*this) == get_allocator(other)) {
+    if (allocator_ptr() == other.allocator_ptr()) {
       if (!other.visit(copy_variant_visitor<false, true>(), *this)) {
         clear();
       }
