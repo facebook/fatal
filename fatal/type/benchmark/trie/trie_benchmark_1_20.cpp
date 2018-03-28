@@ -13,6 +13,6 @@
 
 namespace fatal {
 
-CREATE_BENCHMARK(n1_len20, s20_00);
+CREATE_BENCHMARK(n1_len20, s20_00)
 
 } // namespace fatal {

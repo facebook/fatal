@@ -20,6 +20,6 @@ CREATE_BENCHMARK(n30_len5,
   s5_15, s5_16, s5_17, s5_18, s5_19,
   s5_20, s5_21, s5_22, s5_23, s5_24,
   s5_25, s5_26, s5_27, s5_28, s5_29
-);
+)
 
 } // namespace fatal {

@@ -171,7 +171,7 @@ namespace has_type {
   FATAL_IMPL_HAS_TYPE(writer);
 
 # undef FATAL_IMPL_HAS_TYPE
-};
+}
 
 } // namespace fatal
 

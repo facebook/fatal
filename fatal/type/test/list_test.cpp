@@ -1113,7 +1113,7 @@ void check_separate()  {
   typedef typename TList::template separate<TPredicate> actual;
   FATAL_EXPECT_SAME<TExpectedFirst, typename actual::first>();
   FATAL_EXPECT_SAME<TExpectedSecond, typename actual::second>();
-};
+}
 
 FATAL_TEST(separate, separate) {
   check_separate<el, false_predicate, el, el>();
@@ -1133,7 +1133,7 @@ template <
 >
 void check_filter()  {
   FATAL_EXPECT_SAME<TExpected, typename TList::template filter<TPredicate>>();
-};
+}
 
 FATAL_TEST(filter, filter) {
   check_filter<el, false_predicate, el>();
@@ -1156,7 +1156,7 @@ void check_inverse_filter()  {
     TExpected,
     typename TList::template reject<TPredicate>
   >();
-};
+}
 
 FATAL_TEST(reject, reject) {
   check_inverse_filter<el, false_predicate, el>();
@@ -1205,7 +1205,7 @@ template <typename TLHS, typename TRHS, typename TExpected>
 void check_zip()  {
   typedef typename TRHS::template apply<TLHS::template zip> actual;
   FATAL_EXPECT_SAME<TExpected, actual>();
-};
+}
 
 FATAL_TEST(zip, zip) {
   check_zip<el, el, el>();

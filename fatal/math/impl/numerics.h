@@ -54,7 +54,7 @@ inline constexpr std::size_t slcu() noexcept {
   );
 
   return data_bits<T>::value - Size - std::is_signed<T>::value;
-};
+}
 
 template <typename T>
 inline constexpr T integral_reverse(

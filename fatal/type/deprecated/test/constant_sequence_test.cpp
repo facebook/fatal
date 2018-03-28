@@ -802,7 +802,7 @@ void check_polynomial() {
     std::integral_constant<int, Expected>,
     typename seq::template polynomial<Variable>
   >();
-};
+}
 
 FATAL_TEST(constant_sequence, polynomial) {
   check_polynomial<-3 * 9 * 9 + 2 * 9 + 5, 9, 5, 2, -3>();

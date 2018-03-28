@@ -59,7 +59,7 @@ FATAL_TEST(array, as_array_from) {
 std::size_t non_constexpr() {
   static std::size_t const value = std::default_random_engine()();
   return value;
-};
+}
 
 struct non_constexpr_factory {
   template <typename T>
