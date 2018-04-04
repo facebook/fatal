@@ -16,6 +16,7 @@
 #include <fatal/type/sequence.h>
 #include <fatal/type/tag.h>
 
+#include <memory>
 #include <type_traits>
 #include <utility>
 
