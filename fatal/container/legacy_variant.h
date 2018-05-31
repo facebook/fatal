@@ -1104,7 +1104,7 @@ public:
     other.visit(copy_variant_visitor<true, false>(), *this);
   }
 
-  ~legacy_variant() { unset_impl(control_.get_allocator()); }
+  ~legacy_variant() { unset_impl(); }
 
   /**
    * The unchecked_get won't perform type checks. The user must ensure the
@@ -1345,7 +1345,7 @@ public:
     ));
   }
 
-  void clear() { unset_impl(control_.get_allocator()); }
+  void clear() { unset_impl(); }
   bool empty() const { return control_.storedType() == no_tag(); }
 
   void swap(legacy_variant &other) {
@@ -1421,7 +1421,7 @@ public:
     );
 
     if (this != std::addressof(other)) {
-      unset_impl(control_.get_allocator());
+      unset_impl();
       control_ = copy_impl(other);
     }
 
@@ -1438,7 +1438,7 @@ public:
     noexcept(logical::all<nothrow_mv_assign<Args>...>::value)
   {
     if (this != std::addressof(other)) {
-      unset_impl(control_.get_allocator());
+      unset_impl();
       control_ = move_impl(std::move(other));
     }
 
@@ -1594,7 +1594,7 @@ private:
       }
     }
 
-    unset_impl(allocator);
+    unset_impl();
 
     traits::allocate(allocator, tag<U>(), union_);
     try {
@@ -1609,8 +1609,9 @@ private:
     }
   }
 
-  void unset_impl(allocator_type const &allocator) {
+  void unset_impl() {
     auto const storedType = control_.storedType();
+    auto const &allocator = control_.get_allocator();
 
     if (storedType == no_tag()) {
       return;
