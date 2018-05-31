@@ -147,17 +147,33 @@ struct checked_allocator {
 
   checked_allocator() = default;
 
-FATAL_DIAGNOSTIC_PUSH
-FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
+  checked_allocator(checked_allocator const &other) = default;
 
-  explicit checked_allocator(allocator_type allocator): allocator_(allocator) {}
-
-FATAL_DIAGNOSTIC_POP
+  explicit checked_allocator(allocator_type const &allocator) noexcept:
+    allocator_(allocator)
+  {}
 
   template <typename UAllocator, typename U>
-  checked_allocator(checked_allocator<UAllocator, U> const &other):
-    allocator_(other.allocator())
+  /* implicit */ checked_allocator(
+    checked_allocator<UAllocator, U> const &other
+  ) noexcept:
+    allocator_(other.get_allocator())
   {}
+
+  checked_allocator& operator =(checked_allocator const &other) = default;
+
+  checked_allocator& operator =(allocator_type const &allocator) noexcept {
+    allocator_ = allocator;
+    return *this;
+  }
+
+  template <typename UAllocator, typename U>
+  checked_allocator& operator =(
+    checked_allocator<UAllocator, U> const &other
+  ) noexcept {
+    allocator_ = other.get_allocator();
+    return *this;
+  }
 
   pointer allocate(size_type n, void const *hint = nullptr) {
     auto p = allocator_.allocate(n, hint);
@@ -187,7 +203,7 @@ FATAL_DIAGNOSTIC_POP
     >;
   };
 
-  allocator_type const &allocator() const { return allocator_; }
+  allocator_type get_allocator() const { return allocator_; }
 
   bool operator !=(checked_allocator const &other) const {
     return allocator_ != other.allocator_;
@@ -218,7 +234,7 @@ template <typename T>
 using basic_test_string = std::basic_string<
   char,
   std::char_traits<char>,
-  typename decltype(allocator)::template rebind<char>::other
+  typename decltype(allocator)::template rebind<T>::other
 >;
 
 using test_string = basic_test_string<char>;
@@ -649,110 +665,6 @@ FATAL_TEST(variant, noexcept) {
   TEST_IMPL(true,  true,  throw_foo, throw_large, nothrow_foo);
 
   TEST_IMPL(true,  true,  int, throw_foo, throw_large, nothrow_foo);
-
-# undef TEST_IMPL
-}
-
-struct recursive_nothrow;
-
-using recursive_nothrow_var = test_variant<recursive_nothrow>;
-
-struct recursive_nothrow {
-  recursive_nothrow() noexcept: var(allocator) {}
-  recursive_nothrow(recursive_nothrow const &rhs) noexcept: var(rhs.var) {}
-  recursive_nothrow(recursive_nothrow &&rhs) noexcept:
-    var(std::move(rhs.var))
-  {}
-
-  recursive_nothrow &operator =(recursive_nothrow const &rhs) noexcept {
-    var = rhs.var;
-    return *this;
-  }
-  recursive_nothrow &operator =(recursive_nothrow &&rhs) noexcept {
-    var = std::move(rhs.var);
-    return *this;
-  }
-
-  recursive_nothrow_var var;
-};
-
-static_assert(
-  std::is_nothrow_default_constructible<recursive_nothrow>::value, ""
-);
-static_assert(std::is_nothrow_copy_constructible<recursive_nothrow>::value, "");
-static_assert(std::is_nothrow_move_constructible<recursive_nothrow>::value, "");
-static_assert(std::is_nothrow_copy_assignable<recursive_nothrow>::value, "");
-static_assert(std::is_nothrow_move_assignable<recursive_nothrow>::value, "");
-
-struct recursive_pair;
-
-using recursive_pair_var = test_variant<recursive_pair>;
-using recursive_pair_base = std::pair<recursive_pair_var, recursive_pair_var>;
-
-struct recursive_pair:
-  recursive_pair_base
-{
-  recursive_pair() noexcept:
-    recursive_pair_base(
-      recursive_pair_var(allocator),
-      recursive_pair_var(allocator)
-    )
-  {}
-
-  recursive_pair(recursive_pair const &rhs) noexcept:
-    recursive_pair_base(rhs.first, rhs.second)
-  {}
-
-  recursive_pair(recursive_pair &&rhs) noexcept:
-    recursive_pair_base(std::move(rhs.first), std::move(rhs.second))
-  {}
-
-  recursive_pair &operator =(recursive_pair const &rhs) noexcept {
-    first = rhs.first;
-    second = rhs.second;
-    return *this;
-  }
-  recursive_pair &operator =(recursive_pair &&rhs) noexcept {
-    first = std::move(rhs.first);
-    second = std::move(rhs.second);
-    return *this;
-  }
-};
-
-static_assert(
-  std::is_nothrow_default_constructible<recursive_pair>::value, ""
-);
-static_assert(std::is_nothrow_copy_constructible<recursive_pair>::value, "");
-static_assert(std::is_nothrow_move_constructible<recursive_pair>::value, "");
-static_assert(std::is_nothrow_copy_assignable<recursive_pair>::value, "");
-static_assert(std::is_nothrow_move_assignable<recursive_pair>::value, "");
-
-FATAL_TEST(variant, noexcept (recursive)) {
-# define TEST_IMPL(Variant) \
-  do { \
-    Variant v; \
-    FATAL_EXPECT_NOT_NULL(std::addressof(v)); \
-    \
-    static_assert( \
-      !std::is_nothrow_copy_constructible<Variant>::value, \
-      "unexpected noexcept declaration for copy constructor" \
-    ); \
-    static_assert( \
-      std::is_nothrow_move_constructible<Variant>::value, \
-      "unexpected noexcept declaration for move constructor" \
-    ); \
-    static_assert( \
-      !std::is_nothrow_copy_assignable<Variant>::value, \
-      "unexpected noexcept declaration for copy assignment operator" \
-    ); \
-    static_assert( \
-      std::is_nothrow_move_assignable<Variant>::value, \
-      "unexpected noexcept declaration for move assignment operator" \
-    ); \
-  } while (false)
-
-  TEST_IMPL(recursive_nothrow_var);
-  TEST_IMPL(recursive_pair_var);
 
 # undef TEST_IMPL
 }
@@ -1437,10 +1349,10 @@ FATAL_TEST(variant, operator_copy_assignment_rvref) {
   test_variant<int> i4(allocator, 4);
   FATAL_EXPECT_EQ(4, i4.get<int>());
 
-  test_variant<int, double> id3(nullptr, 3);
+  test_variant<int, double> id3(3);
   FATAL_EXPECT_EQ(3, id3.get<int>());
 
-  test_variant<int> i2(nullptr, 2);
+  test_variant<int> i2(2);
   FATAL_EXPECT_EQ(2, i2.get<int>());
 
   test_variant<int> ie;
@@ -1493,19 +1405,19 @@ FATAL_TEST(variant, operator_copy_assignment_heterogeneous_policy_clvref) {
   auto_variant<int, double> const idce;
   FATAL_EXPECT_TRUE(idce.empty());
 
-  auto_variant<int, double> const idc50_1(nullptr, 50.1);
+  auto_variant<int, double> const idc50_1(50.1);
   FATAL_EXPECT_EQ(50.1, idc50_1.get<double>());
 
-  auto_variant<int, double> const idc10(nullptr, 10);
+  auto_variant<int, double> const idc10(10);
   FATAL_EXPECT_EQ(10, idc10.get<int>());
 
-  auto_variant<int> const ic11(nullptr, 11);
+  auto_variant<int> const ic11(11);
   FATAL_EXPECT_EQ(11, ic11.get<int>());
 
   auto_variant<int> const ice;
   FATAL_EXPECT_TRUE(ice.empty());
 
-  auto_variant<int, double> id(nullptr, 7);
+  auto_variant<int, double> id(7);
   FATAL_EXPECT_EQ(7, id.get<int>());
 
   id = idce;
@@ -1543,19 +1455,19 @@ FATAL_TEST(variant, operator_copy_assignment_heterogeneous_policy_lvref) {
   auto_variant<int, double> ide;
   FATAL_EXPECT_TRUE(ide.empty());
 
-  auto_variant<int, double> id6_7(nullptr, 6.7);
+  auto_variant<int, double> id6_7(6.7);
   FATAL_EXPECT_EQ(6.7, id6_7.get<double>());
 
-  auto_variant<int, double> id5(nullptr, 5);
+  auto_variant<int, double> id5(5);
   FATAL_EXPECT_EQ(5, id5.get<int>());
 
-  auto_variant<int> i4(nullptr, 4);
+  auto_variant<int> i4(4);
   FATAL_EXPECT_EQ(4, i4.get<int>());
 
   auto_variant<int> ie;
   FATAL_EXPECT_TRUE(ie.empty());
 
-  auto_variant<int, double> id(nullptr, 7);
+  auto_variant<int, double> id(7);
   FATAL_EXPECT_EQ(7, id.get<int>());
 
   id = ide;
@@ -1593,22 +1505,22 @@ FATAL_TEST(variant, operator_copy_assignment_heterogeneous_policy_rvref) {
   auto_variant<int, double> ide;
   FATAL_EXPECT_TRUE(ide.empty());
 
-  auto_variant<int, double> id6_7(nullptr, 6.7);
+  auto_variant<int, double> id6_7(6.7);
   FATAL_EXPECT_EQ(6.7, id6_7.get<double>());
 
-  auto_variant<int, double> id5(nullptr, 5);
+  auto_variant<int, double> id5(5);
   FATAL_EXPECT_EQ(5, id5.get<int>());
 
-  auto_variant<int> i4(nullptr, 4);
+  auto_variant<int> i4(4);
   FATAL_EXPECT_EQ(4, i4.get<int>());
 
-  auto_variant<int, double> id3(nullptr, 3);
+  auto_variant<int, double> id3(3);
   FATAL_EXPECT_EQ(3, id3.get<int>());
 
-  auto_variant<int> i2(nullptr, 2);
+  auto_variant<int> i2(2);
   FATAL_EXPECT_EQ(2, i2.get<int>());
 
-  auto_variant<int, double> id(nullptr, 7);
+  auto_variant<int, double> id(7);
   FATAL_EXPECT_EQ(7, id.get<int>());
 
   auto_variant<int> ie;

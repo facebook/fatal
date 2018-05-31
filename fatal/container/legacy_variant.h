@@ -142,10 +142,10 @@ using automatic_allocation_policy = fixed_allocation_policy<false>;
  *
  *  - these methods are analogous to std::allocator_traits' ones:
  *
- *  static void allocate(TAllocator &, typename storage_type<T>::type &);
- *  static void deallocate(TAllocator &, typename storage_type<T>::type &);
- *  static T &construct(TAllocator &, typename storage_type<T>::type &, ...);
- *  static void destroy(TAllocator &, typename storage_type<T>::type &);
+ *  static void allocate(Alloc const &, typename storage_type<T>::type &);
+ *  static void deallocate(Alloc const &, typename storage_type<T>::type &);
+ *  static T &construct(Alloc const &, typename storage_type<T>::type &, ...);
+ *  static void destroy(Alloc const &, typename storage_type<T>::type &);
  *
  * - move_over() is provided to aid implementation of move construction, move
  *   assignment and swapping:
@@ -236,49 +236,49 @@ struct legacy_storage_policy {
 
   template <typename T, typename... Args>
   static void allocate(
-    allocator_type *allocator,
+    allocator_type const &allocator,
     typename std::enable_if<
       storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
-    storage = rebound_alloc(*allocator).allocate(1);
+    storage = rebound_alloc(allocator).allocate(1);
   }
 
   template <typename T>
   static void deallocate(
-    allocator_type *allocator,
+    allocator_type const &allocator,
     typename std::enable_if<
       storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
-    rebound_alloc(*allocator).deallocate(storage, 1);
+    rebound_alloc(allocator).deallocate(storage, 1);
     storage = nullptr;
   }
 
   template <typename T, typename... Args>
   static T &construct(
-    allocator_type *allocator,
+    allocator_type const &allocator,
     typename std::enable_if<
       storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage,
     Args &&...args
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
-    rebound_alloc(*allocator).construct(storage, std::forward<Args>(args)...);
+    rebound_alloc(allocator).construct(storage, std::forward<Args>(args)...);
     return *storage;
   }
 
   template <typename T>
   static void destroy(
-    allocator_type *allocator,
+    allocator_type const &allocator,
     typename std::enable_if<
       storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
-    rebound_alloc(*allocator).destroy(storage);
+    rebound_alloc(allocator).destroy(storage);
   }
 
   template <typename T>
@@ -319,7 +319,7 @@ struct legacy_storage_policy {
 
   template <typename T, typename... Args>
   static void allocate(
-    allocator_type *,
+    allocator_type const &,
     typename std::enable_if<
       !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &
@@ -327,7 +327,7 @@ struct legacy_storage_policy {
 
   template <typename T>
   static void deallocate(
-    allocator_type *,
+    allocator_type const &,
     typename std::enable_if<
       !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &
@@ -335,7 +335,7 @@ struct legacy_storage_policy {
 
   template <typename T, typename... Args>
   static T &construct(
-    allocator_type *,
+    allocator_type const &,
     typename std::enable_if<
       !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage,
@@ -346,7 +346,7 @@ struct legacy_storage_policy {
 
   template <typename T>
   static void destroy(
-    allocator_type *,
+    allocator_type const &,
     typename std::enable_if<
       !storage_type<T>::dynamic::value, typename storage_type<T>::type
     >::type &storage
@@ -520,21 +520,21 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
   }
 
   static void allocate(
-    allocator_type *allocator, size_type const depth, union_type &u
+    allocator_type const &allocator, size_type const depth, union_type &u
   ) {
     assert(depth == Depth), (void) depth;
     storage_policy::template allocate<value_type>(allocator, u.storage);
   }
 
   static void deallocate(
-    allocator_type *allocator, size_type const depth, union_type &u
+    allocator_type const &allocator, size_type const depth, union_type &u
   ) {
     assert(depth == Depth), (void) depth;
     storage_policy::template deallocate<value_type>(allocator, u.storage);
   }
 
   static void copy_construct(
-    allocator_type *allocator, size_type const depth,
+    allocator_type const &allocator, size_type const depth,
     union_type const &from, union_type &to
   ) {
     assert(depth == Depth), (void) depth;
@@ -545,7 +545,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
   }
 
   static void destroy(
-    allocator_type *allocator, size_type const depth, union_type &u
+    allocator_type const &allocator, size_type const depth, union_type &u
   ) {
     assert(depth == Depth), (void) depth;
     storage_policy::template destroy<value_type>(allocator, u.storage);
@@ -610,7 +610,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
 
   template <typename U, typename... UArgs>
   static value_type &construct(
-    allocator_type *allocator,
+    allocator_type const &allocator,
     typename std::enable_if<
       std::is_same<U, value_type>::value,
       size_type
@@ -708,7 +708,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
   }
 
   static void allocate(
-    allocator_type *allocator, size_type const depth, union_type &u
+    allocator_type const &allocator, size_type const depth, union_type &u
   ) {
     if (depth == Depth) {
       head_type::allocate(allocator, depth, u.head);
@@ -718,7 +718,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
   }
 
   static void deallocate(
-    allocator_type *allocator, size_type const depth, union_type &u
+    allocator_type const &allocator, size_type const depth, union_type &u
   ) {
     if (depth == Depth) {
       head_type::deallocate(allocator, depth, u.head);
@@ -728,7 +728,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
   }
 
   static void copy_construct(
-    allocator_type *allocator, size_type const depth,
+    allocator_type const &allocator, size_type const depth,
     union_type const &from, union_type &to
   ) {
     if (depth == Depth) {
@@ -739,7 +739,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
   }
 
   static void destroy(
-    allocator_type *allocator, size_type const depth, union_type &u
+    allocator_type const &allocator, size_type const depth, union_type &u
   ) {
     if (depth == Depth) {
       head_type::destroy(allocator, depth, u.head);
@@ -822,7 +822,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
 
   template <typename U, typename... UArgs>
   static U &construct(
-    allocator_type *allocator,
+    allocator_type const &allocator,
     typename std::enable_if<
       std::is_same<U, value_type>::value,
       size_type
@@ -837,7 +837,7 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
 
   template <typename U, typename... UArgs>
   static U &construct(
-    allocator_type *allocator,
+    allocator_type const &allocator,
     typename std::enable_if<
       !std::is_same<U, value_type>::value,
       size_type
@@ -892,7 +892,7 @@ public:
 
 template <typename T, bool>
 struct nothrow_cp_ctor {
-  using type = std::is_nothrow_move_constructible<T>;
+  using type = std::is_nothrow_copy_constructible<T>;
 };
 
 template <typename T>
@@ -976,6 +976,9 @@ struct legacy_variant {
   using types = type_list<Args...>;
 
 private:
+  template <typename UStoragePolicy, typename... UArgs>
+  friend struct legacy_variant;
+
   /**
    * This is the control block used by the variant to hold both the allocator
    * and the type_tag of the type currently stored in the variant.
@@ -989,21 +992,17 @@ private:
 
     using type_tag = smallest_uint_for_value<sizeof...(Args)>;
 
-    control_block(allocator_type *allocator, type_tag storedType):
-      allocator_(std::move(allocator)),
+    control_block(allocator_type const &allocator, type_tag storedType):
+      allocator_(allocator),
       tag_(std::move(storedType))
     {}
 
     fast_pass<type_tag> storedType() const { return tag_; }
     void setStoredType(type_tag tag) { tag_ = std::move(tag); }
 
-    allocator_type *allocator() const { return allocator_; }
+    allocator_type const &get_allocator() const { return allocator_; }
 
-    void set_allocator(allocator_type *allocator) {
-      allocator_ = std::move(allocator);
-    }
-
-    allocator_type *allocator_;
+    allocator_type allocator_;
     type_tag tag_;
   };
 
@@ -1047,21 +1046,12 @@ public:
   template <typename U>
   constexpr static bool is_supported() { return tag<U>() != no_tag(); }
 
-  /**
-   * The allocator starts uninitialized (nullptr)
-   * That's fine when dealing with types that will use automatic
-   * storage, but for dynamically allocated ones set_allocator()
-   * must be called before setting anything.
-   *
-   * This method is provided mainly for compatibility with some
-   * standard containers.
-   */
-  explicit legacy_variant() noexcept:
-    control_(nullptr, no_tag())
+  legacy_variant() noexcept:
+    control_(allocator_type(), no_tag())
   {}
 
-  explicit legacy_variant(allocator_type &allocator) noexcept:
-    control_(std::addressof(allocator), no_tag())
+  explicit legacy_variant(allocator_type const &allocator) noexcept:
+    control_(allocator, no_tag())
   {}
 
   legacy_variant(legacy_variant const &other)
@@ -1080,32 +1070,33 @@ public:
   {}
 
   template <typename U>
-  explicit legacy_variant(allocator_type *allocator, U &&value):
+  explicit legacy_variant(allocator_type const &allocator, U &&value):
     control_(allocator, no_tag())
   {
     set<typename std::decay<U>::type>(std::forward<U>(value));
   }
 
-  template <typename U>
-  explicit legacy_variant(allocator_type &allocator, U &&value):
-    legacy_variant(std::addressof(allocator), std::forward<U>(value))
-  {}
-
-  template <typename U, typename = safe_overload<legacy_variant, U>>
-  explicit legacy_variant(U&& value) : control_(nullptr, no_tag()) {
+  template <
+    typename U,
+    typename = safe_overload<legacy_variant, U>,
+    typename = typename std::enable_if<
+      !std::is_convertible<U&&, allocator_type const &>::value
+    >::type
+  >
+  explicit legacy_variant(U &&value) : control_(allocator_type(), no_tag()) {
     set(std::forward<U>(value));
   }
 
   template <typename... UArgs>
   legacy_variant(legacy_variant<storage_policy, UArgs...> const &other):
-    legacy_variant(other.allocator())
+    legacy_variant(other.control_.get_allocator())
   {
     other.visit(copy_variant_visitor<true, false>(), *this);
   }
 
   template <typename UStoragePolicy, typename... UArgs>
   legacy_variant(
-    allocator_type &allocator,
+    allocator_type const &allocator,
     legacy_variant<UStoragePolicy, UArgs...> const &other
   ):
     legacy_variant(allocator)
@@ -1113,7 +1104,7 @@ public:
     other.visit(copy_variant_visitor<true, false>(), *this);
   }
 
-  ~legacy_variant() { unset_impl(control_.allocator()); }
+  ~legacy_variant() { unset_impl(control_.get_allocator()); }
 
   /**
    * The unchecked_get won't perform type checks. The user must ensure the
@@ -1354,7 +1345,7 @@ public:
     ));
   }
 
-  void clear() { unset_impl(control_.allocator()); }
+  void clear() { unset_impl(control_.get_allocator()); }
   bool empty() const { return control_.storedType() == no_tag(); }
 
   void swap(legacy_variant &other) {
@@ -1417,13 +1408,7 @@ public:
     return traits::template type<TTransforms...>(control_.storedType());
   }
 
-  allocator_type &allocator() const { return *control_.allocator(); }
-  bool has_allocator() const { return control_.allocator() != nullptr; }
-  allocator_type *allocator_ptr() const { return control_.allocator(); }
-
-  void set_allocator(allocator_type &allocator) {
-    control_.set_allocator(std::addressof(allocator));
-  }
+  allocator_type get_allocator() const { return control_.get_allocator(); }
 
   legacy_variant &operator =(legacy_variant const &other)
     noexcept(
@@ -1436,7 +1421,7 @@ public:
     );
 
     if (this != std::addressof(other)) {
-      unset_impl(control_.allocator());
+      unset_impl(control_.get_allocator());
       control_ = copy_impl(other);
     }
 
@@ -1453,7 +1438,7 @@ public:
     noexcept(logical::all<nothrow_mv_assign<Args>...>::value)
   {
     if (this != std::addressof(other)) {
-      unset_impl(control_.allocator());
+      unset_impl(control_.get_allocator());
       control_ = move_impl(std::move(other));
     }
 
@@ -1510,7 +1495,7 @@ public:
 
   template <typename... UArgs>
   legacy_variant &operator =(legacy_variant<storage_policy, UArgs...> &&other) {
-    if (allocator_ptr() == other.allocator_ptr()) {
+    if (control_.get_allocator() == other.control_.get_allocator()) {
       if (!other.visit(copy_variant_visitor<false, true>(), *this)) {
         clear();
       }
@@ -1589,7 +1574,7 @@ private:
   template <typename U, typename... UArgs>
   U &set_impl(UArgs &&...args) {
     auto const storedType = control_.storedType();
-    auto allocator = control_.allocator();
+    auto const &allocator = control_.get_allocator();
 
     static_assert((is_supported<U>()), "can't set an unsupported type");
 
@@ -1624,7 +1609,7 @@ private:
     }
   }
 
-  void unset_impl(allocator_type *allocator) {
+  void unset_impl(allocator_type const &allocator) {
     auto const storedType = control_.storedType();
 
     if (storedType == no_tag()) {
@@ -1639,7 +1624,7 @@ private:
   // assumes already unset
   control_block copy_impl(legacy_variant const &other) {
     auto const otherStoredType = other.control_.storedType();
-    auto otherAllocator = other.control_.allocator();
+    auto otherAllocator = other.control_.get_allocator();
 
     if (otherStoredType == no_tag()) {
       return other.control_;
@@ -1667,7 +1652,7 @@ private:
     }
 
     control_block control(
-      other.control_.allocator(),
+      other.control_.get_allocator(),
       other.control_.storedType()
     );
     other.control_.setStoredType(no_tag());
