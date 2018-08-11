@@ -41,7 +41,7 @@ struct normalized_wrapper {
 
   normalized_wrapper(normalized_wrapper const &rhs): wrapped_(rhs.wrapped_) {}
 
-  normalized_wrapper(normalized_wrapper &&rhs)
+  normalized_wrapper(normalized_wrapper &&rhs):
     wrapped_(std::forward<type>(rhs.wrapped_))
   {}
 
