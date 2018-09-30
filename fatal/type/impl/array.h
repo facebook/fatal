@@ -238,7 +238,7 @@ template <typename T, typename Filter, typename... Args>
 class ZF {
   template <typename Arg>
   using indexes = make_index_sequence<
-    size<typename Filter::template apply<Arg>>::value
+    fatal::size<typename Filter::template apply<Arg>>::value
   >;
 
 public:
@@ -315,7 +315,7 @@ template <
 class sF {
   template <typename Element>
   using str = zF<
-    make_index_sequence<size<Element>::value>,
+    make_index_sequence<fatal::size<Element>::value>,
     Element,
     typename T::value_type
   >;
