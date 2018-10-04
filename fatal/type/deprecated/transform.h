@@ -483,6 +483,15 @@ struct bitwise {
   template <typename... Args>
   using diff = typename detail::transform_impl::bitwise::diff<Args...>::type;
 
+private:
+  template<typename T>
+  using comptype = typename std::conditional<
+    std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
+    typename std::decay<decltype(T::value)>::type,
+    typename std::decay<decltype(~T::value)>::type
+  >::type;
+
+public:
   /**
    * Helper class similar to std::integral_constant whose value is the bitwise
    * complement of T's value.
@@ -498,18 +507,8 @@ struct bitwise {
    */
   template <typename T>
   using complement = std::integral_constant<
-    conditional<
-      std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
-      typename std::decay<decltype(T::value)>::type,
-      typename std::decay<decltype(~T::value)>::type
-    >,
-    static_cast<
-      conditional<
-        std::is_integral<typename std::decay<decltype(T::value)>::type>::value,
-        typename std::decay<decltype(T::value)>::type,
-        typename std::decay<decltype(~T::value)>::type
-      >
-    >(~T::value)
+    comptype<T>,
+    static_cast<comptype<T>>(~T::value)
   >;
 };
 
