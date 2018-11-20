@@ -12,6 +12,8 @@
 
 #include <type_traits>
 
+#include <fatal/type/list.h>
+
 namespace fatal {
 namespace i_cpl {
 

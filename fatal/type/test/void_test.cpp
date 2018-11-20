@@ -15,11 +15,13 @@
 
 namespace fatal {
 
+namespace {
 template <typename T, typename = void>
 struct has_type : std::false_type {};
 
 template <typename T>
 struct has_type<T, void_t<typename T::type>> : std::true_type {};
+}
 
 FATAL_TEST(void_t, example) {
   FATAL_EXPECT_FALSE(has_type<int>::value);

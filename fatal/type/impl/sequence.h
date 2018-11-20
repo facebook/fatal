@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_sequence_h
 #define FATAL_INCLUDE_fatal_type_impl_sequence_h
 
+#include <cstdlib>
+
 namespace fatal {
 namespace impl_seq {
 

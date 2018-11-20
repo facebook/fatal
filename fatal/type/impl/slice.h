@@ -13,6 +13,7 @@
 #include <fatal/type/cat.h>
 #include <fatal/type/inherit.h>
 #include <fatal/type/sequence.h>
+#include <fatal/type/tag.h>
 
 #include <type_traits>
 

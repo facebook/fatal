@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_safe_overload_h
 #define FATAL_INCLUDE_fatal_type_impl_safe_overload_h
 
+#include <type_traits>
+
 namespace fatal {
 namespace i_sfo {
 

@@ -7,11 +7,12 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <fatal/type/pair.h>
-#include <fatal/type/tag.h>
-
 #ifndef FATAL_INCLUDE_fatal_type_impl_group_by_h
 #define FATAL_INCLUDE_fatal_type_impl_group_by_h
+
+#include <fatal/type/list.h>
+#include <fatal/type/pair.h>
+#include <fatal/type/tag.h>
 
 namespace fatal {
 namespace i_g {

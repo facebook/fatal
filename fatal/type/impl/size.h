@@ -10,6 +10,8 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_size_h
 #define FATAL_INCLUDE_fatal_type_impl_size_h
 
+#include <type_traits>
+
 namespace fatal {
 namespace impl_sz {
 

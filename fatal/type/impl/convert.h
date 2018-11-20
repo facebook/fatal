@@ -10,6 +10,9 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_convert_h
 #define FATAL_INCLUDE_fatal_type_impl_convert_h
 
+#include <type_traits>
+#include <utility>
+
 namespace fatal {
 namespace impl_cv {
 

@@ -13,6 +13,7 @@
 
 namespace fatal {
 
+namespace {
 template <typename> struct type1_t {};
 template <typename> struct type2_t {};
 template <char Value> using chr_val = std::integral_constant<char, Value>;
@@ -56,6 +57,7 @@ typedef type_map<
 > ibdlsv_map;
 
 struct not_found_type {};
+}
 
 ////////////////////
 // build_type_map //

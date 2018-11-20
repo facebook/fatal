@@ -10,8 +10,10 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_sort_h
 #define FATAL_INCLUDE_fatal_type_impl_sort_h
 
+#include <fatal/type/apply.h>
 #include <fatal/type/cat.h>
 #include <fatal/type/conditional.h>
+#include <fatal/type/slice.h>
 #include <fatal/type/tag.h>
 
 // TODO: REMOVE THESE HEADERS WHEN A PROPER SORT FOR SEQUENCES IS IN

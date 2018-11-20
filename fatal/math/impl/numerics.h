@@ -10,6 +10,12 @@
 #ifndef FATAL_INCLUDE_fatal_math_impl_numerics_h
 #define FATAL_INCLUDE_fatal_math_impl_numerics_h
 
+#include <limits.h>
+
+#include <fatal/type/scalar.h>
+#include <fatal/type/sort.h>
+#include <fatal/type/unique.h>
+
 namespace fatal {
 
 struct get_data_bits;

@@ -12,6 +12,7 @@
 
 #include <fatal/portability.h>
 #include <fatal/type/list.h>
+#include <fatal/type/sequence.h>
 #include <fatal/type/tag.h>
 
 namespace fatal {

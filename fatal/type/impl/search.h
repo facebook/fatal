@@ -10,7 +10,10 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_search_h
 #define FATAL_INCLUDE_fatal_type_impl_search_h
 
+#include <utility>
+
 #include <fatal/type/size.h>
+#include <fatal/type/slice.h>
 #include <fatal/type/tag.h>
 
 namespace fatal {

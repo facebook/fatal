@@ -24,6 +24,7 @@
 
 namespace fatal {
 
+namespace {
 struct X0 {};
 struct X1 {};
 struct X2 {};
@@ -115,6 +116,7 @@ using transform_bool = transform_values<TTransform, bool, Values...>;
 
 struct complete_type {};
 struct incomplete_type;
+}
 
 /////////////////
 // is_complete //
