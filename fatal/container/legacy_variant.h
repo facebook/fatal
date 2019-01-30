@@ -1263,48 +1263,44 @@ public:
   }
 
   template <typename U>
-  auto try_set(U &&value)
-    -> typename std::enable_if<
-      is_supported<typename std::decay<U>::type>(), bool
-    >::type
-  {
+  typename std::enable_if<
+    is_supported<typename std::decay<U>::type>(), bool
+  >::type
+  try_set(U &&value) {
     *this = std::forward<U>(value);
     return true;
   }
 
   template <typename U>
-  auto try_set(U &&)
-    -> typename std::enable_if<
-      !is_supported<typename std::decay<U>::type>(), bool
-    >::type
-  {
+  typename std::enable_if<
+    !is_supported<typename std::decay<U>::type>(), bool
+  >::type
+  try_set(U &&) {
     return false;
   }
 
   template <typename UCallable, typename... UArgs>
-  auto set_result_of(UCallable &&callable, UArgs &&...args)
-    -> typename std::enable_if<
-      is_supported<
-        typename std::decay<
-          typename std::result_of<UCallable&(UArgs...)>::type
-        >::type
-      >(), bool
-    >::type
-  {
+  typename std::enable_if<
+    is_supported<
+      typename std::decay<
+        typename std::result_of<UCallable&(UArgs...)>::type
+      >::type
+    >(), bool
+  >::type
+  set_result_of(UCallable &&callable, UArgs &&...args) {
     *this = callable(std::forward<UArgs>(args)...);
     return true;
   }
 
   template <typename UCallable, typename... UArgs>
-  auto set_result_of(UCallable &&callable, UArgs &&...args)
-    -> typename std::enable_if<
-      !is_supported<
-        typename std::decay<
-          typename std::result_of<UCallable&(UArgs...)>::type
-        >::type
-      >(), bool
-    >::type
-  {
+  typename std::enable_if<
+    !is_supported<
+      typename std::decay<
+        typename std::result_of<UCallable&(UArgs...)>::type
+      >::type
+    >(), bool
+  >::type
+  set_result_of(UCallable &&callable, UArgs &&...args) {
     callable(std::forward<UArgs>(args)...);
     return false;
   }
