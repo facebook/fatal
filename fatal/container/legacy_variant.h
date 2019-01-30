@@ -1286,7 +1286,7 @@ public:
     -> typename std::enable_if<
       is_supported<
         typename std::decay<
-          decltype(callable(std::forward<UArgs>(args)...))
+          typename std::result_of<UCallable&(UArgs...)>::type
         >::type
       >(), bool
     >::type
@@ -1300,7 +1300,7 @@ public:
     -> typename std::enable_if<
       !is_supported<
         typename std::decay<
-          decltype(callable(std::forward<UArgs>(args)...))
+          typename std::result_of<UCallable&(UArgs...)>::type
         >::type
       >(), bool
     >::type
