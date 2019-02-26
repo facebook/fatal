@@ -234,35 +234,35 @@ struct legacy_storage_policy {
   //    storage_type<T>::dynamic::value,
   //    ...
 
-  template <typename T, typename... Args>
+  template <typename T, typename std::enable_if<
+    storage_type<T>::dynamic::value, int
+  >::type = 0>
   static void allocate(
     allocator_type const &allocator,
-    typename std::enable_if<
-      storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &storage
+    typename storage_type<T>::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
     storage = rebound_alloc(allocator).allocate(1);
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    storage_type<T>::dynamic::value, int
+  >::type = 0>
   static void deallocate(
     allocator_type const &allocator,
-    typename std::enable_if<
-      storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &storage
+    typename storage_type<T>::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
     rebound_alloc(allocator).deallocate(storage, 1);
     storage = nullptr;
   }
 
-  template <typename T, typename... Args>
+  template <typename T, typename... Args, typename std::enable_if<
+    storage_type<T>::dynamic::value, int
+  >::type = 0>
   static T &construct(
     allocator_type const &allocator,
-    typename std::enable_if<
-      storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &storage,
+    typename storage_type<T>::type &storage,
     Args &&...args
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
@@ -270,42 +270,42 @@ struct legacy_storage_policy {
     return *storage;
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    storage_type<T>::dynamic::value, int
+  >::type = 0>
   static void destroy(
     allocator_type const &allocator,
-    typename std::enable_if<
-      storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &storage
+    typename storage_type<T>::type &storage
   ) {
     using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
     rebound_alloc(allocator).destroy(storage);
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    storage_type<T>::dynamic::value, int
+  >::type = 0>
   static void move_over(
-    typename std::enable_if<
-      storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &from,
+    typename storage_type<T>::type &from,
     typename storage_type<T>::type &to
   ) {
     to = from;
     from = nullptr;
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    storage_type<T>::dynamic::value, int
+  >::type = 0>
   static T const &get(
-    typename std::enable_if<
-      storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type const &storage
+    typename storage_type<T>::type const &storage
   ) {
     return *storage;
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    storage_type<T>::dynamic::value, int
+  >::type = 0>
   static T &get(
-    typename std::enable_if<
-      storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &storage
+    typename storage_type<T>::type &storage
   ) {
     return *storage;
   }
@@ -317,68 +317,68 @@ struct legacy_storage_policy {
   //    !storage_type<T>::dynamic::value,
   //    ...
 
-  template <typename T, typename... Args>
+  template <typename T, typename std::enable_if<
+    !storage_type<T>::dynamic::value, int
+  >::type = 0>
   static void allocate(
     allocator_type const &,
-    typename std::enable_if<
-      !storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &
+    typename storage_type<T>::type &
   ) {}
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    !storage_type<T>::dynamic::value, int
+  >::type = 0>
   static void deallocate(
     allocator_type const &,
-    typename std::enable_if<
-      !storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &
+    typename storage_type<T>::type &
   ) {}
 
-  template <typename T, typename... Args>
+  template <typename T, typename... Args, typename std::enable_if<
+    !storage_type<T>::dynamic::value, int
+  >::type = 0>
   static T &construct(
     allocator_type const &,
-    typename std::enable_if<
-      !storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &storage,
+    typename storage_type<T>::type &storage,
     Args &&...args
   ) {
     return *new (std::addressof(storage.value)) T(std::forward<Args>(args)...);
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    !storage_type<T>::dynamic::value, int
+  >::type = 0>
   static void destroy(
     allocator_type const &,
-    typename std::enable_if<
-      !storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &storage
+    typename storage_type<T>::type &storage
   ) {
     storage.value.~T();
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    !storage_type<T>::dynamic::value, int
+  >::type = 0>
   static void move_over(
-    typename std::enable_if<
-      !storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &from,
+    typename storage_type<T>::type &from,
     typename storage_type<T>::type &to
   ) {
     new (std::addressof(to.value)) T(std::move(from.value));
     from.value.~T();
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    !storage_type<T>::dynamic::value, int
+  >::type = 0>
   static T const &get(
-    typename std::enable_if<
-      !storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type const &storage
+    typename storage_type<T>::type const &storage
   ) {
     return storage.value;
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if<
+    !storage_type<T>::dynamic::value, int
+  >::type = 0>
   static T &get(
-    typename std::enable_if<
-      !storage_type<T>::dynamic::value, typename storage_type<T>::type
-    >::type &storage
+    typename storage_type<T>::type &storage
   ) {
     return storage.value;
   }
@@ -590,31 +590,26 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T> {
     return std::is_same<U, value_type>::value ? Depth : end_depth();
   }
 
-  template <typename U>
-  static storage_type const &get(
-    typename std::enable_if<
-      std::is_same<U, value_type>::value, union_type
-    >::type const &u
-  ) {
+  template <typename U, typename std::enable_if<
+    std::is_same<U, value_type>::value, int
+  >::type = 0>
+  static storage_type const &get(union_type const &u) {
     return u.storage;
   }
 
-  template <typename U>
-  static storage_type &get(
-    typename std::enable_if<
-      std::is_same<U, value_type>::value, union_type
-    >::type &u
-  ) {
+  template <typename U, typename std::enable_if<
+    std::is_same<U, value_type>::value, int
+  >::type = 0>
+  static storage_type &get(union_type &u) {
     return u.storage;
   }
 
-  template <typename U, typename... UArgs>
+  template <typename U, typename... UArgs, typename std::enable_if<
+    std::is_same<U, value_type>::value, int
+  >::type = 0>
   static value_type &construct(
     allocator_type const &allocator,
-    typename std::enable_if<
-      std::is_same<U, value_type>::value,
-      size_type
-    >::type const depth,
+    size_type const depth,
     union_type &u,
     UArgs &&...args
   ) {
@@ -784,49 +779,44 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
       : tail_type::template get_depth<U>();
   }
 
-  template <typename U>
-  static storage_type const &get(
-    typename std::enable_if<
-      std::is_same<U, value_type>::value, union_type
-    >::type const &u
-  ) {
+  template <typename U, typename std::enable_if<
+    std::is_same<U, value_type>::value, int
+  >::type = 0>
+  static storage_type const &get(union_type const &u) {
     return head_type::template get<U>(u.head);
   }
 
-  template <typename U>
-  static storage_type &get(
-    typename std::enable_if<
-      std::is_same<U, value_type>::value, union_type
-    >::type &u
-  ) {
+  template <typename U, typename std::enable_if<
+    std::is_same<U, value_type>::value, int
+  >::type = 0>
+  static storage_type &get(union_type &u) {
     return head_type::template get<U>(u.head);
   }
 
-  template <typename U>
+  template <typename U, typename std::enable_if<
+    !std::is_same<U, value_type>::value, int
+  >::type = 0>
   static typename storage_policy::template storage_type<U>::type const &get(
-    typename std::enable_if<
-      !std::is_same<U, value_type>::value, union_type
-    >::type const &u
+    union_type const &u
   ) {
     return tail_type::template get<U>(u.tail);
   }
 
-  template <typename U>
+  template <typename U, typename std::enable_if<
+    !std::is_same<U, value_type>::value, int
+  >::type = 0>
   static typename storage_policy::template storage_type<U>::type &get(
-    typename std::enable_if<
-      !std::is_same<U, value_type>::value, union_type
-    >::type &u
+    union_type &u
   ) {
     return tail_type::template get<U>(u.tail);
   }
 
-  template <typename U, typename... UArgs>
+  template <typename U, typename... UArgs, typename std::enable_if<
+    std::is_same<U, value_type>::value, int
+  >::type = 0>
   static U &construct(
     allocator_type const &allocator,
-    typename std::enable_if<
-      std::is_same<U, value_type>::value,
-      size_type
-    >::type const depth,
+    size_type const depth,
     union_type &u,
     UArgs &&...args
   ) {
@@ -835,13 +825,12 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
     );
   }
 
-  template <typename U, typename... UArgs>
+  template <typename U, typename... UArgs, typename std::enable_if<
+    !std::is_same<U, value_type>::value, int
+  >::type = 0>
   static U &construct(
     allocator_type const &allocator,
-    typename std::enable_if<
-      !std::is_same<U, value_type>::value,
-      size_type
-    >::type const depth,
+    size_type const depth,
     union_type &u,
     UArgs &&...args
   ) {
@@ -853,16 +842,28 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
 
 template <template <typename...> class UCondition>
 class visit_if_visitor {
-  template <bool Condition, typename U, typename UVisitor, typename... UArgs>
-  typename std::enable_if<Condition,  bool>::type visit(
+  template <
+    bool Condition,
+    typename U,
+    typename UVisitor,
+    typename... UArgs,
+    typename std::enable_if<Condition,  int>::type = 0
+  >
+  bool visit(
     U &&value, UVisitor &&visitor, UArgs &&...args
   ) const {
     visitor(std::forward<U>(value), std::forward<UArgs>(args)...);
     return true;
   }
 
-  template <bool Condition, typename U, typename UVisitor, typename... UArgs>
-  typename std::enable_if<!Condition,  bool>::type visit(
+  template <
+    bool Condition,
+    typename U,
+    typename UVisitor,
+    typename... UArgs,
+    typename std::enable_if<!Condition,  int>::type = 0
+  >
+  bool visit(
     U &&, UVisitor &&, UArgs &&...
   ) const {
     return false;
@@ -1079,9 +1080,9 @@ public:
   template <
     typename U,
     typename = safe_overload<legacy_variant, U>,
-    typename = typename std::enable_if<
-      !std::is_convertible<U&&, allocator_type const &>::value
-    >::type
+    typename std::enable_if<
+      !std::is_convertible<U&&, allocator_type const &>::value, int
+    >::type = 0
   >
   explicit legacy_variant(U &&value) : control_(allocator_type(), no_tag()) {
     set(std::forward<U>(value));
@@ -1262,45 +1263,41 @@ public:
     return true;
   }
 
-  template <typename U>
-  typename std::enable_if<
-    is_supported<typename std::decay<U>::type>(), bool
-  >::type
-  try_set(U &&value) {
+  template <typename U, typename std::enable_if<
+    is_supported<typename std::decay<U>::type>(), int
+  >::type = 0>
+  bool try_set(U &&value) {
     *this = std::forward<U>(value);
     return true;
   }
 
-  template <typename U>
-  typename std::enable_if<
-    !is_supported<typename std::decay<U>::type>(), bool
-  >::type
-  try_set(U &&) {
+  template <typename U, typename std::enable_if<
+    !is_supported<typename std::decay<U>::type>(), int
+  >::type = 0>
+  bool try_set(U &&) {
     return false;
   }
 
-  template <typename UCallable, typename... UArgs>
-  typename std::enable_if<
+  template <typename UCallable, typename... UArgs, typename std::enable_if<
     is_supported<
       typename std::decay<
         typename std::result_of<UCallable&(UArgs...)>::type
       >::type
-    >(), bool
-  >::type
-  set_result_of(UCallable &&callable, UArgs &&...args) {
+    >(), int
+  >::type = 0>
+  bool set_result_of(UCallable &&callable, UArgs &&...args) {
     *this = callable(std::forward<UArgs>(args)...);
     return true;
   }
 
-  template <typename UCallable, typename... UArgs>
-  typename std::enable_if<
+  template <typename UCallable, typename... UArgs, typename std::enable_if<
     !is_supported<
       typename std::decay<
         typename std::result_of<UCallable&(UArgs...)>::type
       >::type
-    >(), bool
-  >::type
-  set_result_of(UCallable &&callable, UArgs &&...args) {
+    >(), int
+  >::type = 0>
+  bool set_result_of(UCallable &&callable, UArgs &&...args) {
     callable(std::forward<UArgs>(args)...);
     return false;
   }
