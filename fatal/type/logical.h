@@ -113,10 +113,14 @@ struct negation {
 template <typename... Values>
 using logical_and = std::integral_constant<
   bool,
+#if __cplusplus >= 201703 || (defined(_MSC_VER) && _MSC_VER >= 1914)
+  (Values::value && ...)
+#else
   std::is_same<
     sequence<bool, true, Values::value...>,
     sequence<bool, Values::value..., true>
   >::value
+#endif
 >;
 
 // TODO: DOCUMENT AND TEST
@@ -146,10 +150,14 @@ using logical_and_of = apply_to<T, logical_and>;
 template <typename... Values>
 using logical_nor = std::integral_constant<
   bool,
+#if __cplusplus >= 201703 || (defined(_MSC_VER) && _MSC_VER >= 1914)
+  !(Values::value || ...)
+#else
   std::is_same<
     sequence<bool, false, Values::value...>,
     sequence<bool, Values::value..., false>
   >::value
+#endif
 >;
 
 // TODO: DOCUMENT AND TEST

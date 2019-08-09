@@ -75,18 +75,18 @@ static constexpr std::size_t size(T const (&)[Size]) {
   return Size - 1;
 }
 
-#define FATAL_IMPL_BUILD_STRING(Sequence, Id, Helper, Indexes, ...) \
-  template <::std::size_t... Indexes> \
-  static Sequence< \
-    typename ::std::decay<decltype(*(__VA_ARGS__))>::type, \
-    (__VA_ARGS__)[Indexes]... \
-  > Helper(Sequence<::std::size_t, Indexes...>); \
-  \
-  using Id = decltype(Helper( \
-    typename ::fatal::impl_seq::make_sequence< \
+#define FATAL_IMPL_BUILD_STRING(Sequence, Id, Helper, ArgT, ArgV, ...) \
+  template <typename...> struct Helper; \
+  template <typename ArgT, ArgT... ArgV> \
+  struct Helper<Sequence<ArgT, ArgV...>> { \
+    using char_type = typename ::std::decay<decltype(*(__VA_ARGS__))>::type; \
+    using type = Sequence<char_type, (__VA_ARGS__)[ArgV]...>; \
+  }; \
+  using Id = typename Helper< \
+    ::fatal::impl_seq::make_sequence< \
       Sequence, ::std::size_t, ::fatal::impl_seq::size(__VA_ARGS__) \
-    >() \
-  ))
+    > \
+  >::type
 
 } // namespace impl_seq {
 } // namespace fatal {

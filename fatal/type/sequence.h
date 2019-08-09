@@ -66,7 +66,8 @@ using int_sequence = sequence<int, Values...>;
     ::fatal::sequence, \
     Id, \
     FATAL_UID(FATAL_CAT(fatal_str_, Id)), \
-    FATAL_UID(Indexes), \
+    FATAL_UID(ArgT), \
+    FATAL_UID(ArgV), \
     String \
   )
 

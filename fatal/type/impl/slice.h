@@ -328,8 +328,7 @@ struct t<Sequence<T, Values...>, index_sequence<Indexes...>> {
   );
 };
 
-template <std::size_t Size>
-static constexpr std::size_t hd_chunk() {
+static constexpr std::size_t hd_chunk(std::size_t Size) {
   return Size >= 32 ? 32 : Size >= 16 ? 16 : Size >= 8 ? 8 : Size >= 4 ? 4
     : Size;
 }
@@ -374,7 +373,7 @@ template <
 struct th<4, Size, List, T01, T02, T03, T04, Tail...> {
   using type = cat<
     List<T01, T02, T03, T04>,
-    typename th<hd_chunk<Size - 4>(), Size - 4, List, Tail...>::type
+    typename th<hd_chunk(Size - 4), Size - 4, List, Tail...>::type
   >;
 };
 
@@ -388,7 +387,7 @@ template <
 struct th<8, Size, List, T01, T02, T03, T04, T05, T06, T07, T08, Tail...> {
   using type = cat<
     List<T01, T02, T03, T04, T05, T06, T07, T08>,
-    typename th<hd_chunk<Size - 8>(), Size - 8, List, Tail...>::type
+    typename th<hd_chunk(Size - 8), Size - 8, List, Tail...>::type
   >;
 };
 
@@ -412,7 +411,7 @@ struct th<
       T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15,
       T16
     >,
-    typename th<hd_chunk<Size - 16>(), Size - 16, List, Tail...>::type
+    typename th<hd_chunk(Size - 16), Size - 16, List, Tail...>::type
   >;
 };
 
@@ -441,7 +440,7 @@ struct th<
       T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30,
       T31, T32
     >,
-    typename th<hd_chunk<Size - 32>(), Size - 32, List, Tail...>::type
+    typename th<hd_chunk(Size - 32), Size - 32, List, Tail...>::type
   >;
 };
 
@@ -490,7 +489,7 @@ struct vh<4, Size, Variadics<int>, T, V01, V02, V03, V04, Tail...> {
   using type = cat<
     Variadics<T, V01, V02, V03, V04>,
     typename vh<
-      hd_chunk<Size - 4>(), Size - 4, Variadics<int>, T, Tail...
+      hd_chunk(Size - 4), Size - 4, Variadics<int>, T, Tail...
     >::type
   >;
 };
@@ -509,7 +508,7 @@ struct vh<
   using type = cat<
     Variadics<T, V01, V02, V03, V04, V05, V06, V07, V08>,
     typename vh<
-      hd_chunk<Size - 8>(), Size - 8, Variadics<int>, T, Tail...
+      hd_chunk(Size - 8), Size - 8, Variadics<int>, T, Tail...
     >::type
   >;
 };
@@ -537,7 +536,7 @@ struct vh<
       V16
     >,
     typename vh<
-      hd_chunk<Size - 16>(), Size - 16, Variadics<int>, T, Tail...
+      hd_chunk(Size - 16), Size - 16, Variadics<int>, T, Tail...
     >::type
   >;
 };
@@ -570,7 +569,7 @@ struct vh<
       V31, V32
     >,
     typename vh<
-      hd_chunk<Size - 32>(), Size - 32, Variadics<int>, T, Tail...
+      hd_chunk(Size - 32), Size - 32, Variadics<int>, T, Tail...
     >::type
   >;
 };
@@ -583,7 +582,7 @@ template <
   std::size_t Offset
 >
 struct h<Offset, List<Args...>>:
-  th<hd_chunk<Offset>(), Offset, List, Args...>
+  th<hd_chunk(Offset), Offset, List, Args...>
 {
   static_assert(Offset <= sizeof...(Args), "index out of bounds");
 };
@@ -595,7 +594,7 @@ template <
   std::size_t Offset
 >
 struct h<Offset, Sequence<T, Values...>>:
-  vh<hd_chunk<Offset>(), Offset, Sequence<int>, T, Values...>
+  vh<hd_chunk(Offset), Offset, Sequence<int>, T, Values...>
 {
   static_assert(Offset <= sizeof...(Values), "index out of bounds");
 };
