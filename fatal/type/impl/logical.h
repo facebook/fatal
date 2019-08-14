@@ -17,45 +17,31 @@
 namespace fatal {
 namespace impl_logical {
 
-template <typename...> struct l_xor;
+// TODO: after C++17, switch to param-pack folds
 
-template <typename V0, typename V1, typename... Args>
-struct l_xor<V0, V1, Args...> {
-  using type = typename l_xor<
-    std::integral_constant<
-      bool,
-      static_cast<bool>(V0::value ^ V1::value)
-    >,
-    Args...
-  >::type;
-};
+template <typename... Values>
+static constexpr bool l_and() {
+  using _ = int[];
+  bool ret = true;
+  void(_{0, (void(ret = ret && Values::value), 0)...});
+  return ret;
+}
 
-template <typename V0, typename V1, typename V2, typename... Args>
-struct l_xor<V0, V1, V2, Args...> {
-  using type = typename l_xor<
-    std::integral_constant<
-      bool,
-      static_cast<bool>(V0::value ^ V1::value ^ V2::value)
-    >,
-    Args...
-  >::type;
-};
+template <typename... Values>
+static constexpr bool l_nor() {
+  using _ = int[];
+  bool ret = true;
+  void(_{0, (void(ret = ret && !Values::value), 0)...});
+  return ret;
+}
 
-template <typename V0, typename V1, typename V2, typename V3, typename... Args>
-struct l_xor<V0, V1, V2, V3, Args...> {
-  using type = typename l_xor<
-    std::integral_constant<
-      bool,
-      static_cast<bool>(V0::value ^ V1::value ^ V2::value ^ V3::value)
-    >,
-    Args...
-  >::type;
-};
-
-template <typename T>
-struct l_xor<T> {
-  using type = T;
-};
+template <typename... Values>
+static constexpr bool l_xor() {
+  using _ = int[];
+  bool ret = false;
+  void(_{0, (void(ret = ret ^ Values::value), 0)...});
+  return ret;
+}
 
 } // namespace impl_logical {
 } // namespace fatal {

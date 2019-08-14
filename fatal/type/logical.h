@@ -113,14 +113,7 @@ struct negation {
 template <typename... Values>
 using logical_and = std::integral_constant<
   bool,
-#if __cplusplus >= 201703 || (defined(_MSC_VER) && _MSC_VER >= 1914)
-  (Values::value && ...)
-#else
-  std::is_same<
-    sequence<bool, true, Values::value...>,
-    sequence<bool, Values::value..., true>
-  >::value
-#endif
+  impl_logical::l_and<Values...>()
 >;
 
 // TODO: DOCUMENT AND TEST
@@ -150,14 +143,7 @@ using logical_and_of = apply_to<T, logical_and>;
 template <typename... Values>
 using logical_nor = std::integral_constant<
   bool,
-#if __cplusplus >= 201703 || (defined(_MSC_VER) && _MSC_VER >= 1914)
-  !(Values::value || ...)
-#else
-  std::is_same<
-    sequence<bool, false, Values::value...>,
-    sequence<bool, Values::value..., false>
-  >::value
-#endif
+  impl_logical::l_nor<Values...>()
 >;
 
 // TODO: DOCUMENT AND TEST
@@ -213,8 +199,11 @@ using logical_or_of = apply_to<T, logical_or>;
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename... Args>
-using logical_xor = typename impl_logical::l_xor<Args...>::type;
+template <typename... Values>
+using logical_xor = std::integral_constant<
+  bool,
+  impl_logical::l_xor<Values...>()
+>;
 
 // TODO: DOCUMENT AND TEST
 template <typename T>
