@@ -19,7 +19,7 @@ if [ "${USE_CC:0:5}" = "clang" ]; then
 fi
 
 if [ -z "$USE_STD" ]; then
-  export USE_STD="c++11"
+  export USE_STD="c++14"
 fi
 
 CC_STDLIB=""

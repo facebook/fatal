@@ -20,10 +20,6 @@ while [ "$1" ]; do
   shift
 done
 
-if [ "$USE_STD" = "c++11" ] || [ "$USE_STD" = "c++0x" ]; then
-  skip_demo=true
-fi
-
 run_validation() {
   cc="$1"
 
@@ -41,7 +37,7 @@ run_validation() {
     CC_OPT="-O0" USE_CC="$cc" NO_CLEAR=true ./test.sh
   fi
 
-  if [ "$skip_demo" != "true" ] && [ "$cc" != "g++-4.8" ]; then
+  if [ "$skip_demo" != "true" ]; then
     for demo in ytse_jam; do
       echo -n | CC_OPT="-O0" USE_CC="$cc" NO_CLEAR=true ./demo.sh $demo
     done
