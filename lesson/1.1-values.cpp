@@ -82,9 +82,8 @@ LESSON(
   constexpr int const int_constant_proper<Value>::value;
 ) {
   COMMENT(
-    "C++11 introduced the `constexpr` keyword which roughly allows us to tell "
-    "the compiler that a given variable holds the result of a constant "
-    "expression."
+    "The `constexpr` keyword roughly allows us to tell the compiler that a "
+    "given variable holds the result of a constant expression."
     "\n\n"
     "Once we have such guarantee, the compiler can evaluate the contents of "
     "such variable at compile time, effectivelly making it a compile time "

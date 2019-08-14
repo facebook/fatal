@@ -10,7 +10,7 @@ if [ -z "$1" ]; then
 fi
 
 if [ -z "$USE_STD" ]; then
-  export USE_STD="c++11"
+  export USE_STD="c++14"
 fi
 
 export USE_CC="templight"
