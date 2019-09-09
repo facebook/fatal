@@ -153,8 +153,9 @@ FATAL_TEST(runtime_array, move_ctor) {
     { \
       type Const v(10); \
       for (std::size_t i = 0; i < v.size(); ++i) { \
-        FATAL_EXPECT_EQ(std::next(v.data(), i), std::addressof(v.Fn(i))); \
-        FATAL_EXPECT_EQ(*std::next(v.data(), i), v.Fn(i)); \
+        auto const i_ = signed_cast(i); \
+        FATAL_EXPECT_EQ(std::next(v.data(), i_), std::addressof(v.Fn(i))); \
+        FATAL_EXPECT_EQ(*std::next(v.data(), i_), v.Fn(i)); \
       } \
       \
       if (CheckOverflow) { \
@@ -164,8 +165,9 @@ FATAL_TEST(runtime_array, move_ctor) {
     { \
       type Const v(10); \
       for (std::size_t i = 0; i < v.size(); ++i) { \
-        FATAL_EXPECT_EQ(std::next(v.data(), i), std::addressof(v.Fn(i))); \
-        FATAL_EXPECT_EQ(*std::next(v.data(), i), v.Fn(i)); \
+        auto const i_ = signed_cast(i); \
+        FATAL_EXPECT_EQ(std::next(v.data(), i_), std::addressof(v.Fn(i))); \
+        FATAL_EXPECT_EQ(*std::next(v.data(), i_), v.Fn(i)); \
       } \
       \
       if (CheckOverflow) { \
@@ -213,9 +215,10 @@ void set(runtime_array<T, Size> const &, std::size_t, T) {}
         set(v, n, static_cast<int>(n * 100)); \
       } \
       for (std::size_t index = 0; index < v.size(); ++index, ++i) { \
+        auto const index_ = signed_cast(index); \
         FATAL_ASSERT_NE(v.Begin(), v.End()); \
-        FATAL_EXPECT_EQ(std::next(v.data(), index), i); \
-        FATAL_EXPECT_EQ(*std::next(v.data(), index), *i); \
+        FATAL_EXPECT_EQ(std::next(v.data(), index_), i); \
+        FATAL_EXPECT_EQ(*std::next(v.data(), index_), *i); \
         FATAL_EXPECT_EQ(v[index], *i); \
       } \
       FATAL_EXPECT_EQ(i, v.End()); \

@@ -1104,7 +1104,7 @@ public:
     ) {
       auto piece = pieces_[i].ref();
 
-      piece.limit(std::distance(begin, end));
+      piece.limit(static_cast<size_type>(std::distance(begin, end)));
       assert(piece);
 
       auto const e = std::copy(piece.begin(), piece.end(), begin);
@@ -1452,9 +1452,8 @@ public:
       auto const j = std::find(ref.begin(), ref.end(), c);
 
       if (j != ref.end()) {
-        return const_iterator(
-          this, std::addressof(piece), i, std::distance(ref.begin(), j)
-        );
+        auto const off = static_cast<size_type>(std::distance(ref.begin(), j));
+        return const_iterator(this, std::addressof(piece), i, off);
       }
     }
 
@@ -1491,16 +1490,15 @@ public:
       auto const &piece = pieces_[i];
       auto const ref = piece.ref();
       auto const j = std::find(
-        std::next(ref.begin(), piece_offset),
+        std::next(ref.begin(), static_cast<difference_type>(piece_offset)),
         ref.end(),
         c
       );
 
       if (j != ref.end()) {
         assert(i < pieces);
-        return const_iterator(
-          this, std::addressof(pieces_[i]), i, std::distance(ref.begin(), j)
-        );
+        auto const off = static_cast<size_type>(std::distance(ref.begin(), j));
+        return const_iterator(this, std::addressof(pieces_[i]), i, off);
       }
     };
 
@@ -1824,7 +1822,7 @@ std::ostream &operator <<(
   for (piece_index i = 0, pieces = r.pieces(); i < pieces; ++i) {
     auto piece = r.piece(i);
 
-    out.write(piece.data(), piece.size());
+    out.write(piece.data(), static_cast<std::streamsize>(piece.size()));
   }
 
   return out;

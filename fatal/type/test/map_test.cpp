@@ -975,7 +975,7 @@ struct visit_test_visitor {
 
   template <typename T>
   void operator ()(T &&...) const {
-    FATAL_EXPECT_TRUE(!"unexpected match");
+    FATAL_WARN_UNREACHABLE();
   }
 };
 

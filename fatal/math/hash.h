@@ -41,7 +41,7 @@ private:
 
 public:
   static result_type hash(result_type state, char const data) {
-    return state ^ (state * prime::value + data);
+    return state ^ (state * prime::value + static_cast<result_type>(data));
   }
 
   static result_type hash(
@@ -57,31 +57,36 @@ public:
     );
 
     assert(begin <= end);
-    auto const size = std::distance(begin, end);
+    auto const size = unsigned_cast(std::distance(begin, end));
     assert(size >= 0);
 
-    auto const tail = std::next(begin, size - (size & (step::value - 1)));
+    auto const delta = signed_cast(size - (size & (step::value - 1)));
+    auto const tail = std::next(begin, delta);
     assert(begin <= tail);
     assert(tail <= end);
+
+    auto next = [](auto it, auto i) {
+      return static_cast<result_type>(*std::next(it, i));
+    };
 
     for (; begin != tail; std::advance(begin, step::value)) {
       assert(begin < tail);
 
-      state ^= state * prime::value + *std::next(begin, 0);
-      state ^= state * prime::value + *std::next(begin, 1);
-      state ^= state * prime::value + *std::next(begin, 2);
-      state ^= state * prime::value + *std::next(begin, 3);
-      state ^= state * prime::value + *std::next(begin, 4);
-      state ^= state * prime::value + *std::next(begin, 5);
-      state ^= state * prime::value + *std::next(begin, 6);
-      state ^= state * prime::value + *std::next(begin, 7);
+      state ^= state * prime::value + next(begin, 0);
+      state ^= state * prime::value + next(begin, 1);
+      state ^= state * prime::value + next(begin, 2);
+      state ^= state * prime::value + next(begin, 3);
+      state ^= state * prime::value + next(begin, 4);
+      state ^= state * prime::value + next(begin, 5);
+      state ^= state * prime::value + next(begin, 6);
+      state ^= state * prime::value + next(begin, 7);
     }
 
     assert(begin == tail);
 
     for (; begin != end; std::advance(begin, 1)) {
       assert(begin < end);
-      state ^= state * prime::value + *begin;
+      state ^= state * prime::value + next(begin, 0);
     }
 
     assert(begin == end);
@@ -132,7 +137,7 @@ public:
   }
 
   bytes_hasher &operator ()(char const *const data, std::size_t const size) {
-    hash_ = impl::hash(hash_, data, std::next(data, size));
+    hash_ = impl::hash(hash_, data, std::next(data, signed_cast(size)));
     return *this;
   }
 

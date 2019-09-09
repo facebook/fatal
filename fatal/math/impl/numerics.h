@@ -75,7 +75,7 @@ inline constexpr T integral_reverse(
       ((value >> phase) & mask) | ((value << phase) & ~mask),
       end_phase,
       phase >> 1,
-      mask ^ (mask << (phase >> 1))
+      mask ^ (T(mask << (phase >> 1)))
     );
 }
 
@@ -91,7 +91,7 @@ inline constexpr T integral_reverse(T value, std::size_t end_phase) noexcept {
 
   return static_cast<T>(
     integral_reverse<U>(
-      value, end_phase, Phase, U(~U(0)) ^ U(U(~U(0)) << Phase)
+      U(value), end_phase, Phase, U(~U(0)) ^ U(U(~U(0)) << Phase)
     )
   );
 }

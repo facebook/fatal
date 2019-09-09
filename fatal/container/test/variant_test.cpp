@@ -12,6 +12,7 @@
 #include <fatal/test/driver.h>
 
 #include <fatal/container/optional.h>
+#include <fatal/math/numerics.h>
 #include <fatal/portability.h>
 
 #include <algorithm>
@@ -50,7 +51,7 @@ struct test_allocator {
   using const_reference = value_type const *;
 
   using difference_type = std::ptrdiff_t;
-  using size_type = std::ptrdiff_t;
+  using size_type = std::size_t;
 
 private:
   using chunk_t = std::unique_ptr<void, free_deleter>;
@@ -1694,7 +1695,7 @@ FATAL_TEST(variant, arena_allocator) {
   FATAL_EXPECT_FALSE(v.empty());
   FATAL_EXPECT_EQ(5, v.get<std::vector<int>>().size());
   for (int i = 1; i <= 5; ++i) {
-    FATAL_EXPECT_EQ(i, v.get<std::vector<int>>()[i - 1]);
+    FATAL_EXPECT_EQ(i, v.get<std::vector<int>>()[unsigned_cast(i - 1)]);
   }
 
   v.clear();

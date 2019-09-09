@@ -87,13 +87,13 @@ struct data_bits_ge {
 
 // TODO: DOCUMENT AND TEST
 template <typename T>
-typename std::make_signed<T>::type signed_cast(T value) {
+constexpr typename std::make_signed<T>::type signed_cast(T value) {
   return static_cast<typename std::make_signed<T>::type>(value);
 }
 
 // TODO: DOCUMENT AND TEST
 template <typename T>
-typename std::make_unsigned<T>::type unsigned_cast(T value) {
+constexpr typename std::make_unsigned<T>::type unsigned_cast(T value) {
   return static_cast<typename std::make_unsigned<T>::type>(value);
 }
 
@@ -655,7 +655,7 @@ struct discrete_to_continuous {
     normalizer_(discreteMax - discreteMin_),
     adjustment_(continuousMax - continuousMin_)
   {
-    if(!normalizer_) {
+    if(normalizer_ == continuous_type(0)) {
       throw std::invalid_argument(
         "the difference between discreteMin and discreteMax cannot be zero"
       );

@@ -36,176 +36,176 @@ FATAL_TEST(numerics, data_bits) {
 FATAL_TEST(numerics, reverse_integral_bytes signed 8 bytes) {
   FATAL_EXPECT_EQ(
     std::int8_t(0x00),
-    reverse_integral_bytes<std::int8_t>(0x00)
+    reverse_integral_bytes(std::int8_t(0x00))
   );
   FATAL_EXPECT_EQ(
     std::int8_t(0x01),
-    reverse_integral_bytes<std::int8_t>(0x01)
+    reverse_integral_bytes(std::int8_t(0x01))
   );
   FATAL_EXPECT_EQ(
     std::int8_t(0x0a),
-    reverse_integral_bytes<std::int8_t>(0x0a)
+    reverse_integral_bytes(std::int8_t(0x0a))
   );
   FATAL_EXPECT_EQ(
     std::int8_t(0xc2),
-    reverse_integral_bytes<std::int8_t>(0xc2)
+    reverse_integral_bytes(std::int8_t(0xc2))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bytes unsigned 8 bytes) {
   FATAL_EXPECT_EQ(
     std::uint8_t(0x00),
-    reverse_integral_bytes<std::uint8_t>(0x00)
+    reverse_integral_bytes(std::uint8_t(0x00))
   );
   FATAL_EXPECT_EQ(
     std::uint8_t(0x01),
-    reverse_integral_bytes<std::uint8_t>(0x01)
+    reverse_integral_bytes(std::uint8_t(0x01))
   );
   FATAL_EXPECT_EQ(
     std::uint8_t(0x0a),
-    reverse_integral_bytes<std::uint8_t>(0x0a)
+    reverse_integral_bytes(std::uint8_t(0x0a))
   );
   FATAL_EXPECT_EQ(
     std::uint8_t(0xc2),
-    reverse_integral_bytes<std::uint8_t>(0xc2)
+    reverse_integral_bytes(std::uint8_t(0xc2))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bytes signed 16 bytes) {
   FATAL_EXPECT_EQ(
     std::int16_t(0x0000),
-    reverse_integral_bytes<std::int16_t>(0x00)
+    reverse_integral_bytes(std::int16_t(0x00))
   );
   FATAL_EXPECT_EQ(
     std::int16_t(0x0100),
-    reverse_integral_bytes<std::int16_t>(0x01)
+    reverse_integral_bytes(std::int16_t(0x01))
   );
   FATAL_EXPECT_EQ(
     std::int16_t(0x0a00),
-    reverse_integral_bytes<std::int16_t>(0x0a)
+    reverse_integral_bytes(std::int16_t(0x0a))
   );
   FATAL_EXPECT_EQ(
     std::int16_t(0xc200),
-    reverse_integral_bytes<std::int16_t>(0xc2)
+    reverse_integral_bytes(std::int16_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::int16_t(0xf30c),
-    reverse_integral_bytes<std::int16_t>(0xcf3)
+    reverse_integral_bytes(std::int16_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bytes unsigned 16 bytes) {
   FATAL_EXPECT_EQ(
     std::uint16_t(0x0000),
-    reverse_integral_bytes<std::uint16_t>(0x00)
+    reverse_integral_bytes(std::uint16_t(0x00))
   );
   FATAL_EXPECT_EQ(
     std::uint16_t(0x0100),
-    reverse_integral_bytes<std::uint16_t>(0x01)
+    reverse_integral_bytes(std::uint16_t(0x01))
   );
   FATAL_EXPECT_EQ(
     std::uint16_t(0x0a00),
-    reverse_integral_bytes<std::uint16_t>(0x0a)
+    reverse_integral_bytes(std::uint16_t(0x0a))
   );
   FATAL_EXPECT_EQ(
     std::uint16_t(0xc200),
-    reverse_integral_bytes<std::uint16_t>(0xc2)
+    reverse_integral_bytes(std::uint16_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::uint16_t(0xf30c),
-    reverse_integral_bytes<std::uint16_t>(0xcf3)
+    reverse_integral_bytes(std::uint16_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bytes signed 32 bytes) {
   FATAL_EXPECT_EQ(
     std::int32_t(0x00000000),
-    reverse_integral_bytes<std::int32_t>(0x00)
+    reverse_integral_bytes(std::int32_t(0x00))
   );
   FATAL_EXPECT_EQ(
     std::int32_t(0x01000000),
-    reverse_integral_bytes<std::int32_t>(0x01)
+    reverse_integral_bytes(std::int32_t(0x01))
   );
   FATAL_EXPECT_EQ(
     std::int32_t(0x0a000000),
-    reverse_integral_bytes<std::int32_t>(0x0a)
+    reverse_integral_bytes(std::int32_t(0x0a))
   );
   FATAL_EXPECT_EQ(
     std::int32_t(0xc2000000),
-    reverse_integral_bytes<std::int32_t>(0xc2)
+    reverse_integral_bytes(std::int32_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::int32_t(0xf30c0000),
-    reverse_integral_bytes<std::int32_t>(0xcf3)
+    reverse_integral_bytes(std::int32_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bytes unsigned 32 bytes) {
   FATAL_EXPECT_EQ(
     std::uint32_t(0x00000000),
-    reverse_integral_bytes<std::uint32_t>(0x00)
+    reverse_integral_bytes(std::uint32_t(0x00))
   );
   FATAL_EXPECT_EQ(
     std::uint32_t(0x01000000),
-    reverse_integral_bytes<std::uint32_t>(0x01)
+    reverse_integral_bytes(std::uint32_t(0x01))
   );
   FATAL_EXPECT_EQ(
     std::uint32_t(0x0a000000),
-    reverse_integral_bytes<std::uint32_t>(0x0a)
+    reverse_integral_bytes(std::uint32_t(0x0a))
   );
   FATAL_EXPECT_EQ(
     std::uint32_t(0xc2000000),
-    reverse_integral_bytes<std::uint32_t>(0xc2)
+    reverse_integral_bytes(std::uint32_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::uint32_t(0xf30c0000),
-    reverse_integral_bytes<std::uint32_t>(0xcf3)
+    reverse_integral_bytes(std::uint32_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bytes signed 64 bytes) {
   FATAL_EXPECT_EQ(
     std::int64_t(0x0000000000000000),
-    reverse_integral_bytes<std::int64_t>(0x00)
+    reverse_integral_bytes(std::int64_t(0x00))
   );
   FATAL_EXPECT_EQ(
     std::int64_t(0x0100000000000000),
-    reverse_integral_bytes<std::int64_t>(0x01)
+    reverse_integral_bytes(std::int64_t(0x01))
   );
   FATAL_EXPECT_EQ(
     std::int64_t(0x0a00000000000000),
-    reverse_integral_bytes<std::int64_t>(0x0a)
+    reverse_integral_bytes(std::int64_t(0x0a))
   );
   FATAL_EXPECT_EQ(
     std::int64_t(0xc200000000000000),
-    reverse_integral_bytes<std::int64_t>(0xc2)
+    reverse_integral_bytes(std::int64_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::int64_t(0xf30c000000000000),
-    reverse_integral_bytes<std::int64_t>(0xcf3)
+    reverse_integral_bytes(std::int64_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bytes unsigned 64 bytes) {
   FATAL_EXPECT_EQ(
     std::uint64_t(0x0000000000000000),
-    reverse_integral_bytes<std::uint64_t>(0x00)
+    reverse_integral_bytes(std::uint64_t(0x00))
   );
   FATAL_EXPECT_EQ(
     std::uint64_t(0x0100000000000000),
-    reverse_integral_bytes<std::uint64_t>(0x01)
+    reverse_integral_bytes(std::uint64_t(0x01))
   );
   FATAL_EXPECT_EQ(
     std::uint64_t(0x0a00000000000000),
-    reverse_integral_bytes<std::uint64_t>(0x0a)
+    reverse_integral_bytes(std::uint64_t(0x0a))
   );
   FATAL_EXPECT_EQ(
     std::uint64_t(0xc200000000000000),
-    reverse_integral_bytes<std::uint64_t>(0xc2)
+    reverse_integral_bytes(std::uint64_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::uint64_t(0xf30c000000000000),
-    reverse_integral_bytes<std::uint64_t>(0xcf3)
+    reverse_integral_bytes(std::uint64_t(0xcf3))
   );
 }
 
@@ -241,151 +241,151 @@ FATAL_TEST(numerics, reverse_integral_bytes randomized) {
 ///////////////////////////
 
 FATAL_TEST(numerics, reverse_integral_bits signed 8 bits) {
-  FATAL_EXPECT_EQ(std::int8_t(0x00), reverse_integral_bits<std::int8_t>(0));
-  FATAL_EXPECT_EQ(std::int8_t(0x80), reverse_integral_bits<std::int8_t>(1));
-  FATAL_EXPECT_EQ(std::int8_t(0x50), reverse_integral_bits<std::int8_t>(10));
-  FATAL_EXPECT_EQ(std::int8_t(0x43), reverse_integral_bits<std::int8_t>(0xc2));
+  FATAL_EXPECT_EQ(std::int8_t(0x00), reverse_integral_bits(std::int8_t(0)));
+  FATAL_EXPECT_EQ(std::int8_t(0x80), reverse_integral_bits(std::int8_t(1)));
+  FATAL_EXPECT_EQ(std::int8_t(0x50), reverse_integral_bits(std::int8_t(10)));
+  FATAL_EXPECT_EQ(std::int8_t(0x43), reverse_integral_bits(std::int8_t(0xc2)));
 }
 
 FATAL_TEST(numerics, reverse_integral_bits unsigned 8 bits) {
-  FATAL_EXPECT_EQ(std::uint8_t(0x00), reverse_integral_bits<std::uint8_t>(0));
-  FATAL_EXPECT_EQ(std::uint8_t(0x80), reverse_integral_bits<std::uint8_t>(1));
-  FATAL_EXPECT_EQ(std::uint8_t(0x50), reverse_integral_bits<std::uint8_t>(10));
+  FATAL_EXPECT_EQ(std::uint8_t(0x00), reverse_integral_bits(std::uint8_t(0)));
+  FATAL_EXPECT_EQ(std::uint8_t(0x80), reverse_integral_bits(std::uint8_t(1)));
+  FATAL_EXPECT_EQ(std::uint8_t(0x50), reverse_integral_bits(std::uint8_t(10)));
   FATAL_EXPECT_EQ(
     std::uint8_t(0x43),
-    reverse_integral_bits<std::uint8_t>(0xc2)
+    reverse_integral_bits(std::uint8_t(0xc2))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bits signed 16 bits) {
-  FATAL_EXPECT_EQ(std::int16_t(0x0000), reverse_integral_bits<std::int16_t>(0));
-  FATAL_EXPECT_EQ(std::int16_t(0x8000), reverse_integral_bits<std::int16_t>(1));
+  FATAL_EXPECT_EQ(std::int16_t(0x0000), reverse_integral_bits(std::int16_t(0)));
+  FATAL_EXPECT_EQ(std::int16_t(0x8000), reverse_integral_bits(std::int16_t(1)));
   FATAL_EXPECT_EQ(
     std::int16_t(0x5000),
-    reverse_integral_bits<std::int16_t>(10)
+    reverse_integral_bits(std::int16_t(10))
   );
   FATAL_EXPECT_EQ(
     std::int16_t(0x4300),
-    reverse_integral_bits<std::int16_t>(0xc2)
+    reverse_integral_bits(std::int16_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::int16_t(0xcf30),
-    reverse_integral_bits<std::int16_t>(0xcf3)
+    reverse_integral_bits(std::int16_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bits unsigned 16 bits) {
   FATAL_EXPECT_EQ(
     std::uint16_t(0x0000),
-    reverse_integral_bits<std::uint16_t>(0)
+    reverse_integral_bits(std::uint16_t(0))
   );
   FATAL_EXPECT_EQ(
     std::uint16_t(0x8000),
-    reverse_integral_bits<std::uint16_t>(1)
+    reverse_integral_bits(std::uint16_t(1))
   );
   FATAL_EXPECT_EQ(
     std::uint16_t(0x5000),
-    reverse_integral_bits<std::uint16_t>(10)
+    reverse_integral_bits(std::uint16_t(10))
   );
   FATAL_EXPECT_EQ(
     std::uint16_t(0x4300),
-    reverse_integral_bits<std::uint16_t>(0xc2)
+    reverse_integral_bits(std::uint16_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::uint16_t(0xcf30),
-    reverse_integral_bits<std::uint16_t>(0xcf3)
+    reverse_integral_bits(std::uint16_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bits signed 32 bits) {
   FATAL_EXPECT_EQ(
     std::int32_t(0x00000000),
-    reverse_integral_bits<std::int32_t>(0)
+    reverse_integral_bits(std::int32_t(0))
   );
   FATAL_EXPECT_EQ(
     std::int32_t(0x80000000),
-    reverse_integral_bits<std::int32_t>(1)
+    reverse_integral_bits(std::int32_t(1))
   );
   FATAL_EXPECT_EQ(
     std::int32_t(0x50000000),
-    reverse_integral_bits<std::int32_t>(10)
+    reverse_integral_bits(std::int32_t(10))
   );
   FATAL_EXPECT_EQ(
     std::int32_t(0x43000000),
-    reverse_integral_bits<std::int32_t>(0xc2)
+    reverse_integral_bits(std::int32_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::int32_t(0xcf300000),
-    reverse_integral_bits<std::int32_t>(0xcf3)
+    reverse_integral_bits(std::int32_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bits unsigned 32 bits) {
   FATAL_EXPECT_EQ(
     std::uint32_t(0x00000000),
-    reverse_integral_bits<std::uint32_t>(0)
+    reverse_integral_bits(std::uint32_t(0))
   );
   FATAL_EXPECT_EQ(
     std::uint32_t(0x80000000),
-    reverse_integral_bits<std::uint32_t>(1)
+    reverse_integral_bits(std::uint32_t(1))
   );
   FATAL_EXPECT_EQ(
     std::uint32_t(0x50000000),
-    reverse_integral_bits<std::uint32_t>(10)
+    reverse_integral_bits(std::uint32_t(10))
   );
   FATAL_EXPECT_EQ(
     std::uint32_t(0x43000000),
-    reverse_integral_bits<std::uint32_t>(0xc2)
+    reverse_integral_bits(std::uint32_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::uint32_t(0xcf300000),
-    reverse_integral_bits<std::uint32_t>(0xcf3)
+    reverse_integral_bits(std::uint32_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bits signed 64 bits) {
   FATAL_EXPECT_EQ(
     std::int64_t(0x0000000000000000),
-    reverse_integral_bits<std::int64_t>(0)
+    reverse_integral_bits(std::int64_t(0))
   );
   FATAL_EXPECT_EQ(
     std::int64_t(0x8000000000000000),
-    reverse_integral_bits<std::int64_t>(1)
+    reverse_integral_bits(std::int64_t(1))
   );
   FATAL_EXPECT_EQ(
     std::int64_t(0x5000000000000000),
-    reverse_integral_bits<std::int64_t>(10)
+    reverse_integral_bits(std::int64_t(10))
   );
   FATAL_EXPECT_EQ(
     std::int64_t(0x4300000000000000),
-    reverse_integral_bits<std::int64_t>(0xc2)
+    reverse_integral_bits(std::int64_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::int64_t(0xcf30000000000000),
-    reverse_integral_bits<std::int64_t>(0xcf3)
+    reverse_integral_bits(std::int64_t(0xcf3))
   );
 }
 
 FATAL_TEST(numerics, reverse_integral_bits unsigned 64 bits) {
   FATAL_EXPECT_EQ(
     std::uint64_t(0x0000000000000000),
-    reverse_integral_bits<std::uint64_t>(0)
+    reverse_integral_bits(std::uint64_t(0))
   );
   FATAL_EXPECT_EQ(
     std::uint64_t(0x8000000000000000),
-    reverse_integral_bits<std::uint64_t>(1)
+    reverse_integral_bits(std::uint64_t(1))
   );
   FATAL_EXPECT_EQ(
     std::uint64_t(0x5000000000000000),
-    reverse_integral_bits<std::uint64_t>(10)
+    reverse_integral_bits(std::uint64_t(10))
   );
   FATAL_EXPECT_EQ(
     std::uint64_t(0x4300000000000000),
-    reverse_integral_bits<std::uint64_t>(0xc2)
+    reverse_integral_bits(std::uint64_t(0xc2))
   );
   FATAL_EXPECT_EQ(
     std::uint64_t(0xcf30000000000000),
-    reverse_integral_bits<std::uint64_t>(0xcf3)
+    reverse_integral_bits(std::uint64_t(0xcf3))
   );
 }
 
@@ -1062,29 +1062,21 @@ FATAL_TEST(numerics, largest_mersenne_prime_for_type) {
 // DISCRETE_TO_CONTINUOUS //
 ////////////////////////////
 
-#define C_TEST_IMPL(conv, dmin, dmax, rng) \
-  do { \
-    auto const drange = dmax - dmin; \
-    auto const crange = conv.max() - conv.min(); \
-    for(auto i = 100000; i--; ) { \
-      auto n = dmin + (rng() % drange); \
-      auto expected = static_cast<double>(n - dmin) \
-        / drange * crange + conv.min(); \
-      FATAL_EXPECT_EQ(expected, conv(n)); \
-    } \
-  } while(false);
-
 FATAL_TEST(discrete_to_continuous, sanity_check) {
-  std::mt19937 rng([]() {
-    std::random_device r;
-    return r();
-  }());
+  std::mt19937 rng(std::random_device{}());
 
-  discrete_to_continuous<unsigned, double> conv(11, 9999, -5.5, 5.5);
+  auto const dmin = 11;
+  auto const dmax = 9999;
+  discrete_to_continuous<unsigned, double> conv(dmin, dmax, -5.5, 5.5);
 
-  C_TEST_IMPL(conv, 11, 9999, rng);
+  auto const drange = dmax - dmin;
+  auto const crange = conv.max() - conv.min();
+  for(auto i = 100000; i--; ) {
+    auto n = dmin + (static_cast<unsigned>(rng()) % drange);
+    auto expected = static_cast<double>(n - dmin)
+      / drange * crange + conv.min();
+    FATAL_EXPECT_EQ(expected, conv(n));
+  }
 }
-
-#undef C_TEST_IMPL
 
 } // namespace fatal {

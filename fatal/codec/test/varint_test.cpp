@@ -11,6 +11,8 @@
 
 #include <fatal/test/driver.h>
 
+#include <fatal/math/numerics.h>
+
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
@@ -70,7 +72,7 @@ public:
   struct decode {
     type operator ()(fast_pass<encoded> data) const {
       auto const begin = data.first.begin();
-      auto const end = std::next(begin, data.second);
+      auto const end = std::next(begin, signed_cast(data.second));
       auto const value = codec::decode(begin, end);
       FATAL_EXPECT_TRUE(value.second);
       return value.first;
@@ -80,7 +82,7 @@ public:
   struct tracking_decode {
     type operator ()(fast_pass<encoded> data) const {
       auto begin = data.first.begin();
-      auto const end = std::next(begin, data.second);
+      auto const end = std::next(begin, signed_cast(data.second));
       auto const value = codec::tracking_decode(begin, end);
       FATAL_EXPECT_TRUE(value.second);
       FATAL_EXPECT_EQ(end, begin);
@@ -91,7 +93,7 @@ public:
   struct decoder {
     type operator ()(fast_pass<encoded> data) const {
       auto const begin = data.first.begin();
-      auto const end = std::next(begin, data.second);
+      auto const end = std::next(begin, signed_cast(data.second));
       typename codec::decoder d;
       FATAL_EXPECT_EQ(end, d(begin, end));
       FATAL_EXPECT_TRUE(d.done());
@@ -113,20 +115,20 @@ struct signed_tester {
     TEncoder<impl<T>> encoder;
     TDecoder<impl<T>> decoder;
 
-    auto const lower_limit = -static_cast<T>(upper_limit);
+    auto const lower_limit = static_cast<T>(-static_cast<T>(upper_limit));
 
     FATAL_VLOG(1) << "[-count, 0): [" << static_cast<std::intmax_t>(lower_limit)
       << ", 0)";
 
-    for (T i = lower_limit; i < 0; ++i) {
+    for (T i = lower_limit; i < T(0); ++i) {
       FATAL_ASSERT_EQ(i, decoder(encoder(i)));
     }
 
     if (limit::min() < lower_limit) {
-      T i = limit::min() + std::min(
+      T i = limit::min() + static_cast<T>(std::min(
         static_cast<std::uintmax_t>(-(limit::min() - lower_limit)),
         count::value
-      );
+      ));
       FATAL_VLOG(1) << "[min, -count): ["
         << static_cast<std::intmax_t>(limit::min()) << ", "
         << static_cast<std::intmax_t>(i) << ')';

@@ -11,6 +11,7 @@
 #define FATAL_INCLUDE_fatal_string_string_view_h
 
 #include <fatal/math/hash.h>
+#include <fatal/math/numerics.h>
 #include <fatal/portability.h>
 #include <fatal/type/array.h>
 #include <fatal/type/call_traits.h>
@@ -78,14 +79,14 @@ struct string_view {
 
   /* implicit */ string_view(value_type *s):
     begin_(s),
-    end_(std::next(s, std::strlen(s)))
+    end_(std::next(s, signed_cast(std::strlen(s))))
   {
     assert(begin_ <= end_);
   }
 
   /* implicit */ string_view(value_type const *s):
     begin_(s),
-    end_(std::next(s, std::strlen(s)))
+    end_(std::next(s, signed_cast(std::strlen(s))))
   {
     assert(begin_ <= end_);
   }
@@ -329,7 +330,7 @@ struct string_view {
 
   void reset(const_iterator begin, size_type size) {
     begin_ = begin;
-    end_ = std::next(begin, size);
+    end_ = std::next(begin, signed_cast(size));
     assert(begin_ <= end_);
   }
 
@@ -338,7 +339,7 @@ struct string_view {
     // assert(size >= size_type(0));
 
     if (size < this->size()) {
-      end_ = std::next(begin_, size);
+      end_ = std::next(begin_, signed_cast(size));
     }
 
     assert(begin_ <= end_);
@@ -368,7 +369,7 @@ struct string_view {
 #   if __cplusplus > 201400
     assert(begin_ <= end_);
 #   endif // __cplusplus > 201400
-    return end_ - begin_;
+    return unsigned_cast(end_ - begin_);
   }
 
   constexpr bool empty() const {

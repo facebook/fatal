@@ -218,12 +218,13 @@ struct value_traits<true, T> {
   static_assert(sizeof(external) == sizeof(internal), "invalid integral");
 
   static internal pre(fast_pass<external> value) noexcept {
-    return (*reinterpret_cast<internal const *>(std::addressof(value)) << 1)
-      | (value < 0 ? 1 : 0);
+    auto ivalue = *reinterpret_cast<internal const *>(std::addressof(value));
+    return internal(ivalue << 1) | internal(value < 0 ? 1 : 0);
   }
 
   static external post(internal value) noexcept {
-    value = (value >> 1) | ((value & 1) << (data_bits<internal>::value - 1));
+    auto const shift = (data_bits<internal>::value - 1);
+    value = internal(value >> 1) | internal((value & 1) << shift);
     return *reinterpret_cast<external const *>(std::addressof(value));
   }
 };

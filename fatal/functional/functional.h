@@ -819,17 +819,6 @@ namespace tuple_comparer_impl {
 template <int Index>
 struct index_traits {
   using reversed = bool_constant<(Index < 0)>;
-
-  static_assert(Index >= 0 || -(Index + 1) >= 0, "internal error");
-  static_assert(
-    Index <= std::numeric_limits<std::size_t>::max(),
-    "index ouf of supported range"
-  );
-  static_assert(
-    Index >= 0 || -(Index + 1) <= std::numeric_limits<std::size_t>::max(),
-    "index ouf of supported range"
-  );
-
   using index = size_constant<
     static_cast<std::size_t>(Index < 0 ? -(Index + 1) : Index)
   >;

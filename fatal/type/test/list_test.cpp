@@ -608,12 +608,12 @@ FATAL_TEST(visit, visit) {
 
   using list = type_list<double, float, long, bool, int>;
 
-  FATAL_EXPECT_TRUE(list::visit(0, visit_test_visitor<double>(), 0));
-  FATAL_EXPECT_TRUE(list::visit(1, visit_test_visitor<float>(), 1));
-  FATAL_EXPECT_TRUE(list::visit(2, visit_test_visitor<long>(), 2));
-  FATAL_EXPECT_TRUE(list::visit(3, visit_test_visitor<bool>(), 3));
-  FATAL_EXPECT_TRUE(list::visit(4, visit_test_visitor<int>(), 4));
-  FATAL_EXPECT_FALSE(list::visit(5, visit_no_visit_test_visitor(), 5));
+  FATAL_EXPECT_TRUE(list::visit(0, visit_test_visitor<double>(), 0u));
+  FATAL_EXPECT_TRUE(list::visit(1, visit_test_visitor<float>(), 1u));
+  FATAL_EXPECT_TRUE(list::visit(2, visit_test_visitor<long>(), 2u));
+  FATAL_EXPECT_TRUE(list::visit(3, visit_test_visitor<bool>(), 3u));
+  FATAL_EXPECT_TRUE(list::visit(4, visit_test_visitor<int>(), 4u));
+  FATAL_EXPECT_FALSE(list::visit(5, visit_no_visit_test_visitor(), 5u));
 }
 
 //////////////////////////

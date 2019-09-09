@@ -11,6 +11,7 @@
 
 #include <fatal/test/driver.h>
 
+#include <fatal/math/numerics.h>
 #include <fatal/utility/timed_iterations.h>
 
 #include <sstream>
@@ -1024,11 +1025,17 @@ FATAL_TEST(copy, copy) {
     \
     auto const end = r.copy( \
       buffer.data(), \
-      std::next(buffer.data(), buffer.size()) \
+      std::next(buffer.data(), signed_cast(buffer.size())) \
     ); \
     \
-    FATAL_EXPECT_EQ(r.size(), std::distance(buffer.data(), end)); \
-    FATAL_EXPECT_EQ(buffer.size(), std::distance(buffer.data(), end)); \
+    FATAL_EXPECT_EQ( \
+      r.size(), \
+      unsigned_cast(std::distance(buffer.data(), end)) \
+    ); \
+    FATAL_EXPECT_EQ( \
+      buffer.size(), \
+      unsigned_cast(std::distance(buffer.data(), end)) \
+    ); \
     \
     FATAL_EXPECT_EQ(r, buffer); \
   } while (false)
@@ -1526,7 +1533,7 @@ void find_char_test(
     rdg.string(s.begin(), s.end(), alphabet.data(), alphabet.size());
 
     auto const begin = s.data();
-    auto const end = std::next(begin, s.size());
+    auto const end = std::next(begin, signed_cast(s.size()));
 
     for (timed_iterations<> i(time, minimum_iterations); i.next(); ) {
       rope<> r;
@@ -1599,7 +1606,7 @@ FATAL_TEST(find, char const_iterator) {
       std::string const &alphabet
     ) {
       for (auto offset = s.size() + 1; offset--; ) {
-        auto const r_offset = std::next(r.begin(), offset);
+        auto const r_offset = std::next(r.begin(), signed_cast(offset));
         FATAL_EXPECT_EQ(offset, r_offset.absolute());
 
         for (auto c: alphabet) {

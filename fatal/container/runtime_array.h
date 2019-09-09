@@ -97,8 +97,8 @@ FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
       ).get();
 
       auto input = rhs.container_.template ref<dynamic_type>().get();
-      auto end = std::copy(input, std::next(input, size_), data_);
-      assert(std::next(data_, size_) == end);
+      auto end = std::copy(input, std::next(input, signed_cast(size_)), data_);
+      assert(std::next(data_, signed_cast(size_)) == end);
     }
   }
 
@@ -159,9 +159,9 @@ FATAL_DIAGNOSTIC_POP
   const_iterator begin() const { return data_; }
   iterator begin() { return data_; }
 
-  const_iterator cend() const { return std::next(data_, size_); }
-  const_iterator end() const { return std::next(data_, size_); }
-  iterator end() { return std::next(data_, size_); }
+  const_iterator cend() const { return std::next(data_, signed_cast(size_)); }
+  const_iterator end() const { return std::next(data_, signed_cast(size_)); }
+  iterator end() { return std::next(data_, signed_cast(size_)); }
 
   size_type size() const { return size_; }
   bool empty() const { return !size_; }

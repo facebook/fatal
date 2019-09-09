@@ -414,7 +414,7 @@ FATAL_TEST(data_member_getter, getter) {
   double const dc = 5.6;
   bool bl = true;
   std::vector<short> v{1, 2, 3, 4, 5, 6};
-  float const fcr = 7.2;
+  float const fcr = 7.2f;
 
   data_member_getter_test::data x(
     i, scl, std::move(lr), dc, bl, v, std::move(fcr)
@@ -1590,7 +1590,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
   double const dc = 5.6;
   bool bl = true;
   std::vector<short> v{1, 2, 3, 4, 5, 6};
-  float const fcr = 7.2;
+  float const fcr = 7.2f;
 
 # define TEST_IMPL(Data) \
   do { \
@@ -1656,7 +1656,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
   double const d_dc = 5.6;
   bool d_bl = true;
   std::vector<short> d_v{1, 2, 3, 4, 5, 6};
-  float const d_fcr = 7.2;
+  float const d_fcr = 7.2f;
   data_member_getter_test::data d(
     d_i, d_scl, std::move(d_lr), d_dc, d_bl, d_v, std::move(d_fcr)
   );
@@ -1675,7 +1675,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
   double const l_dc = 5.6;
   bool l_bl = true;
   std::vector<short> l_v{1, 2, 3, 4, 5, 6};
-  float const l_fcr = 7.2;
+  float const l_fcr = 7.2f;
   data_member_getter_test::data l(
     l_i, l_scl, std::move(l_lr), l_dc, l_bl, l_v, std::move(l_fcr)
   );
@@ -1694,7 +1694,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
   double const r_dc = 5.6;
   bool r_bl = true;
   std::vector<short> r_v{1, 2, 3, 4, 5, 6};
-  float const r_fcr = 7.2;
+  float const r_fcr = 7.2f;
   data_member_getter_test::data r(
     r_i, r_scl, std::move(r_lr), r_dc, r_bl, r_v, std::move(r_fcr)
   );
@@ -1713,7 +1713,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
   double const cl_dc = 5.6;
   bool cl_bl = true;
   std::vector<short> cl_v{1, 2, 3, 4, 5, 6};
-  float const cl_fcr = 7.2;
+  float const cl_fcr = 7.2f;
   data_member_getter_test::data cl(
     cl_i, cl_scl, std::move(cl_lr), cl_dc, cl_bl, cl_v, std::move(cl_fcr)
   );
@@ -1732,7 +1732,7 @@ FATAL_TEST(chained_data_member_getter, getter) {
   double const cr_dc = 5.6;
   bool cr_bl = true;
   std::vector<short> cr_v{1, 2, 3, 4, 5, 6};
-  float const cr_fcr = 7.2;
+  float const cr_fcr = 7.2f;
   data_member_getter_test::data cr(
     cr_i, cr_scl, std::move(cr_lr), cr_dc, cr_bl, cr_v, std::move(cr_fcr)
   );

@@ -125,7 +125,7 @@ FATAL_TEST(circular_queue, shift_to_front) {
 
   for (std::size_t capacity = 0; capacity <= size; ++capacity) {
     circular_queue<int> q(capacity);
-    for (int i = size; i--; ) {
+    for (int i = int(size); i--; ) {
       q.push_front(i);
     }
     CHECK_CONTENTS(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
@@ -167,7 +167,7 @@ FATAL_TEST(circular_queue, shift_to_front_by) {
 
   for (std::size_t capacity = 0; capacity <= size; ++capacity) {
     circular_queue<int> q(capacity);
-    for (int i = size; i--; ) {
+    for (int i = int(size); i--; ) {
       q.push_front(i);
     }
     CHECK_CONTENTS(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
@@ -218,7 +218,7 @@ FATAL_TEST(circular_queue, shift_to_back) {
 
   for (std::size_t capacity = 0; capacity <= size; ++capacity) {
     circular_queue<int> q(capacity);
-    for (int i = size; i--; ) {
+    for (int i = int(size); i--; ) {
       q.push_front(i);
     }
     CHECK_CONTENTS(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
@@ -260,7 +260,7 @@ FATAL_TEST(circular_queue, shift_to_back_by) {
 
   for (std::size_t capacity = 0; capacity <= size; ++capacity) {
     circular_queue<int> q(capacity);
-    for (int i = size; i--; ) {
+    for (int i = int(size); i--; ) {
       q.push_front(i);
     }
     CHECK_CONTENTS(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);

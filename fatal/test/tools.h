@@ -32,7 +32,8 @@ void data_as_literal(Out &out, Buffer const &v) {
   switch (Style) {
     case literal_style::expanded: {
       out << '"';
-      for (std::uint8_t c: v) {
+      for (auto c_: v) {
+        auto const c = static_cast<std::uint8_t>(c_);
         out << "\\x";
         out << least_significant_hex_digit(c >> 4);
         out << least_significant_hex_digit(c);
@@ -42,7 +43,8 @@ void data_as_literal(Out &out, Buffer const &v) {
     }
     case literal_style::readable: {
       std::size_t size = 0;
-      for (std::uint8_t c: v) {
+      for (auto c_: v) {
+        auto const c = static_cast<std::uint8_t>(c_);
         if (size) {
           out << ' ';
           if (size % 4 == 0) {
@@ -58,7 +60,8 @@ void data_as_literal(Out &out, Buffer const &v) {
     case literal_style::compact: {
       out << '"';
       bool hex = false;
-      for (std::uint8_t c: v) {
+      for (auto c_: v) {
+        auto const c = static_cast<std::uint8_t>(c_);
         if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')
           || (c >= 'A' && c <= 'F')
         ) {

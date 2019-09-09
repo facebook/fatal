@@ -97,21 +97,23 @@ struct random_data {
 
   template <typename T, typename Iterator>
   std::size_t chop(Iterator begin, Iterator const end, T &&fn) {
+    using difference_type =
+      typename std::iterator_traits<Iterator>::difference_type;
     assert(begin <= end);
 
     return chop(
-      std::distance(begin, end),
+      static_cast<std::size_t>(std::distance(begin, end)),
       [&](std::size_t offset, std::size_t size) {
-        auto const b = std::next(begin, offset);
+        auto const b = std::next(begin, static_cast<difference_type>(offset));
         assert(begin < end);
-        auto const e = std::next(b, size);
+        auto const e = std::next(b, static_cast<difference_type>(size));
         assert(e <= end);
 
         fn(b, e);
       }
     );
   }
-  
+
   std::vector<std::string> chop(std::string const &s) {
     std::vector<std::string> result;
 
