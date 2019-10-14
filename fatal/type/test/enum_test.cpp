@@ -456,11 +456,11 @@ FATAL_TEST(enums, to_string) {
 }
 
 FATAL_TEST(enums, enum_to_string) {
-  FATAL_EXPECT_EQ(nullptr, enum_to_string(static_cast<test_enum>(-1)));
-  FATAL_EXPECT_EQ("state0", enum_to_string(test_enum::state0));
-  FATAL_EXPECT_EQ("state1", enum_to_string(test_enum::state1));
-  FATAL_EXPECT_EQ("state2", enum_to_string(test_enum::state2));
-  FATAL_EXPECT_EQ("state3", enum_to_string(test_enum::state3));
+  FATAL_EXPECT_EQ(nullptr, enum_to_string(static_cast<test_enum>(-1), nullptr));
+  FATAL_EXPECT_EQ("state0", enum_to_string(test_enum::state0, nullptr));
+  FATAL_EXPECT_EQ("state1", enum_to_string(test_enum::state1, nullptr));
+  FATAL_EXPECT_EQ("state2", enum_to_string(test_enum::state2, nullptr));
+  FATAL_EXPECT_EQ("state3", enum_to_string(test_enum::state3, nullptr));
 
   FATAL_EXPECT_EQ("", enum_to_string(static_cast<test_enum>(-1), ""));
   FATAL_EXPECT_EQ("state0", enum_to_string(test_enum::state0, ""));
@@ -468,10 +468,13 @@ FATAL_TEST(enums, enum_to_string) {
   FATAL_EXPECT_EQ("state2", enum_to_string(test_enum::state2, ""));
   FATAL_EXPECT_EQ("state3", enum_to_string(test_enum::state3, ""));
 
-  FATAL_EXPECT_EQ(nullptr, enum_to_string(static_cast<custom_enum>(-1)));
-  FATAL_EXPECT_EQ("field", enum_to_string(custom_enum::field));
-  FATAL_EXPECT_EQ("field10", enum_to_string(custom_enum::field10));
-  FATAL_EXPECT_EQ("field2", enum_to_string(custom_enum::field2));
+  FATAL_EXPECT_EQ(
+    nullptr,
+    enum_to_string(static_cast<custom_enum>(-1), nullptr)
+  );
+  FATAL_EXPECT_EQ("field", enum_to_string(custom_enum::field, nullptr));
+  FATAL_EXPECT_EQ("field10", enum_to_string(custom_enum::field10, nullptr));
+  FATAL_EXPECT_EQ("field2", enum_to_string(custom_enum::field2, nullptr));
 
   FATAL_EXPECT_EQ("", enum_to_string(static_cast<custom_enum>(-1), ""));
   FATAL_EXPECT_EQ("field", enum_to_string(custom_enum::field, ""));
