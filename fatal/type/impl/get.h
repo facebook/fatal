@@ -17,7 +17,7 @@ namespace fatal {
 namespace impl_gt {
 
 template <typename Key, typename Value>
-static Value f(pair<Key, Value>);
+Value f(pair<Key, Value>);
 
 template <typename> struct g;
 

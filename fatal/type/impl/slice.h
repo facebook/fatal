@@ -115,7 +115,7 @@ struct vindex<index_sequence<Indexes...>, T, Values...>:
 {};
 
 template <std::size_t Index, typename T>
-static T find(indexed<T, Index>);
+T find(indexed<T, Index>);
 
 template <
   std::size_t Index,
@@ -600,24 +600,24 @@ struct h<Offset, Sequence<T, Values...>>:
 };
 
 template <typename T, std::size_t Index>
-static std::integral_constant<std::size_t, Index> I(indexed<T, Index>);
+std::integral_constant<std::size_t, Index> I(indexed<T, Index>);
 
 template <std::size_t, typename T, std::size_t Index>
-static std::integral_constant<std::size_t, Index> TI(indexed<T, Index>);
+std::integral_constant<std::size_t, Index> TI(indexed<T, Index>);
 
 template <std::size_t Size, typename>
-static std::integral_constant<std::size_t, Size> TI(...);
+std::integral_constant<std::size_t, Size> TI(...);
 
 template <typename T, T, std::size_t> struct vi {};
 
 template <typename T, T Value, std::size_t Index>
-static std::integral_constant<std::size_t, Index> IV(vi<T, Value, Index>);
+std::integral_constant<std::size_t, Index> IV(vi<T, Value, Index>);
 
 template <std::size_t, typename T, T Value, std::size_t Index>
-static std::integral_constant<std::size_t, Index> TIV(vi<T, Value, Index>);
+std::integral_constant<std::size_t, Index> TIV(vi<T, Value, Index>);
 
 template <std::size_t Size, typename T, T>
-static std::integral_constant<std::size_t, Size> TIV(...);
+std::integral_constant<std::size_t, Size> TIV(...);
 
 template <typename...> struct i;
 
