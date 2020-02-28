@@ -126,6 +126,7 @@ struct random_data {
     );
 
     assert(result.size() == chunks);
+    (void)chunks;
     return result;
   }
 

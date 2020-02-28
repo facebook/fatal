@@ -223,6 +223,7 @@ struct ref_counter {
     guard() {
       auto duplicate = singleton().test_and_set();
       assert(!duplicate);
+      (void)duplicate;
       reset();
     }
 
@@ -407,6 +408,7 @@ struct ref_counter_guard {
   ref_counter_guard() {
     auto duplicate = singleton().test_and_set();
     assert(!duplicate);
+    (void)duplicate;
     ref_counter_reset();
   }
 

@@ -99,6 +99,7 @@ FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN
       auto input = rhs.container_.template ref<dynamic_type>().get();
       auto end = std::copy(input, std::next(input, signed_cast(size_)), data_);
       assert(std::next(data_, signed_cast(size_)) == end);
+      (void)end;
     }
   }
 
