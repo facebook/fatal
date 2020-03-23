@@ -60,7 +60,7 @@ using replicate = typename replicate_impl<T, make_index_sequence<N>>::type;
 
 FATAL_TEST(foreach_test, very_long_type_list) {
   struct foo { static std::string get() { return "foo"; } };
-  constexpr auto size = 1ULL << 12;
+  constexpr auto size = 1ULL << 8;
   using types = replicate<foo, size>;
   static_assert(fatal::size<types>::value == size, "size mismatch");
 
