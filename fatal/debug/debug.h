@@ -13,6 +13,8 @@
 // production build
 #ifdef NDEBUG
 
+# include <type_traits>
+
 namespace fatal {
 
 using debug_mode = std::false_type;
@@ -29,9 +31,9 @@ using debug_mode = std::false_type;
 // debug build
 #else // NDEBUG
 
-# include <iostream>
-
 # include <cstdlib>
+# include <iostream>
+# include <type_traits>
 
 namespace fatal {
 
