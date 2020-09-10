@@ -10,8 +10,6 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_search_h
 #define FATAL_INCLUDE_fatal_type_impl_search_h
 
-#include <utility>
-
 #include <fatal/type/size.h>
 #include <fatal/type/slice.h>
 #include <fatal/type/tag.h>
@@ -42,21 +40,21 @@ struct s {
     using filtered = typename Filter::template apply<pivot>;
     return Comparer::template greater<filtered>(needle)
       ? s<T, Offset, Size / 2>::template S<Comparer, Filter>(
-        std::forward<Needle>(needle),
-        std::forward<Visitor>(visitor),
-        std::forward<Args>(args)...
+        static_cast<Needle &&>(needle),
+        static_cast<Visitor &&>(visitor),
+        static_cast<Args &&>(args)...
       )
       : Comparer::template less<filtered>(needle)
         ? s<T, (Offset + Size / 2) + 1, Size / 2 - !(Size & 1)>
           ::template S<Comparer, Filter>(
-            std::forward<Needle>(needle),
-            std::forward<Visitor>(visitor),
-            std::forward<Args>(args)...
+            static_cast<Needle &&>(needle),
+            static_cast<Visitor &&>(visitor),
+            static_cast<Args &&>(args)...
           )
         : (
           visitor(
             indexed<pivot, Offset + (Size / 2)>(),
-            std::forward<Args>(args)...
+            static_cast<Args &&>(args)...
           ), true
         );
   }
@@ -89,7 +87,7 @@ struct s<T, Offset, 1> {
     return Comparer::template equal<filtered>(needle) && (
       visitor(
         indexed<at<T, Offset>, Offset>(),
-        std::forward<Args>(args)...
+        static_cast<Args &&>(args)...
       ),
       true
     );
@@ -117,14 +115,14 @@ struct s<T, Offset, 2> {
       Comparer::template equal<filtered>(needle) && (
         visitor(
           indexed<at<T, Offset>, Offset>(),
-          std::forward<Args>(args)...
+          static_cast<Args &&>(args)...
         ), true
       )
     ) || (
       Comparer::template equal<filtered_next>(needle) && (
         visitor(
           indexed<at<T, Offset + 1>, Offset + 1>(),
-          std::forward<Args>(args)...
+          static_cast<Args &&>(args)...
         ), true
       )
     );

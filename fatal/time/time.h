@@ -20,6 +20,7 @@
 #include <chrono>
 #include <ratio>
 #include <type_traits>
+#include <utility>
 
 namespace fatal {
 namespace time {

@@ -16,8 +16,6 @@
 #include <fatal/type/slice.h>
 #include <fatal/type/sort.h>
 
-#include <utility>
-
 #include <cassert>
 
 #include <fatal/type/impl/search.h>
@@ -39,9 +37,9 @@ static inline constexpr bool sorted_search(
   Args &&...args
 ) {
   return i_S::s<T>::template S<Comparer, Filter>(
-    std::forward<Needle>(needle),
-    std::forward<Visitor>(visitor),
-    std::forward<Args>(args)...
+    static_cast<Needle &&>(needle),
+    static_cast<Visitor &&>(visitor),
+    static_cast<Args &&>(args)...
   );
 }
 
@@ -53,7 +51,7 @@ template <
 >
 static inline constexpr bool sorted_search(Needle &&needle) {
   return sorted_search<T, Filter, Comparer>(
-    std::forward<Needle>(needle),
+    static_cast<Needle &&>(needle),
     fn::no_op()
   );
 }
@@ -72,9 +70,9 @@ static inline constexpr bool scalar_search(
   Args &&...args
 ) {
   return sorted_search<sort<T, Comparer, Filter>, Filter, Comparer>(
-    std::forward<Needle>(needle),
-    std::forward<Visitor>(visitor),
-    std::forward<Args>(args)...
+    static_cast<Needle &&>(needle),
+    static_cast<Visitor &&>(visitor),
+    static_cast<Args &&>(args)...
   );
 }
 
@@ -86,7 +84,7 @@ template <
 >
 static inline constexpr bool scalar_search(Needle &&needle) {
   return scalar_search<T, Filter, Comparer>(
-    std::forward<Needle>(needle),
+    static_cast<Needle &&>(needle),
     fn::no_op()
   );
 }
@@ -99,8 +97,8 @@ static inline constexpr bool index_search(
 ) {
   return sorted_search<T, index<T>>(
     needle,
-    std::forward<Visitor>(visitor),
-    std::forward<Args>(args)...
+    static_cast<Visitor &&>(visitor),
+    static_cast<Args &&>(args)...
   );
 }
 

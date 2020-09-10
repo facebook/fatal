@@ -26,7 +26,6 @@
 #include <fatal/type/sequence.h>
 
 #include <type_traits>
-#include <utility>
 
 namespace fatal {
 
@@ -658,7 +657,7 @@ class is_callable {
       typename T,
       typename = decltype(
         std::declval<T>()(
-          std::forward<Args>(std::declval<Args>())...
+          static_cast<Args &&>(std::declval<Args>())...
         )
       )
     >

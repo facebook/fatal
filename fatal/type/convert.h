@@ -16,7 +16,6 @@
 #include <fatal/type/sequence.h>
 
 #include <type_traits>
-#include <utility>
 
 #include <fatal/type/impl/convert.h>
 
@@ -34,7 +33,7 @@ using as_list = typename impl_cv::l<List, T>::type;
 
 template <typename To, typename T, typename... Args>
 static constexpr To to_instance(Args &&...args) {
-  return impl_cv::t<To, T>::to(std::forward<Args>(args)...);
+  return impl_cv::t<To, T>::to(static_cast<Args &&>(args)...);
 }
 
 namespace bound {

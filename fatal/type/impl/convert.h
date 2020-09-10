@@ -11,7 +11,6 @@
 #define FATAL_INCLUDE_fatal_type_impl_convert_h
 
 #include <type_traits>
-#include <utility>
 
 namespace fatal {
 namespace impl_cv {
@@ -92,7 +91,7 @@ template <typename To, template <typename...> class Variadics, typename... T>
 struct t<To, Variadics<T...>> {
   template <typename... Args>
   static constexpr To to(Args &&...args) {
-    return To{T::value..., std::forward<Args>(args)...};
+    return To{T::value..., static_cast<Args &&>(args)...};
   }
 };
 
@@ -105,7 +104,7 @@ template <
 struct t<To, Variadics<T, Values...>> {
   template <typename... Args>
   static constexpr To to(Args &&...args) {
-    return To{Values..., std::forward<Args>(args)...};
+    return To{Values..., static_cast<Args &&>(args)...};
   }
 };
 

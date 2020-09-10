@@ -14,8 +14,6 @@
 #include <fatal/type/identity.h>
 #include <fatal/type/sort.h>
 
-#include <utility>
-
 #include <fatal/type/impl/trie.h>
 
 namespace fatal {
@@ -39,9 +37,9 @@ static inline bool trie_find(
   assert(begin <= end);
   return i_t::e<Filter, sort<T, sequence_compare<Comparer>, Filter>>::type::f(
     static_cast<std::size_t>(std::distance(begin, end)),
-    std::forward<Begin>(begin),
-    std::forward<Visitor>(visitor),
-    std::forward<VArgs>(args)...
+    static_cast<Begin &&>(begin),
+    static_cast<Visitor &&>(visitor),
+    static_cast<VArgs &&>(args)...
   );
 }
 
@@ -54,8 +52,8 @@ template <
 >
 static inline bool trie_find(Begin &&begin, End &&end) {
   return trie_find<T, Filter, Comparer>(
-    std::forward<Begin>(begin),
-    std::forward<End>(end),
+    static_cast<Begin &&>(begin),
+    static_cast<End &&>(end),
     fn::no_op()
   );
 }

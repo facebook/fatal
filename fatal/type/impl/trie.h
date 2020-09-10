@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
+#include <utility>
 
 #include <cassert>
 
@@ -122,15 +123,15 @@ struct l<Offset, Filter, n<Haystack, IsTerminal, Begin, End, Children...>> {
     }
 
     if (IsTerminal && size == End - Begin - Offset) {
-      visitor(tag<Haystack>(), std::forward<VArgs>(args)...);
+      visitor(tag<Haystack>(), static_cast<VArgs &&>(args)...);
       return true;
     }
 
     return l<0, Filter, Children...>::f(
       size - (End - Begin - Offset),
       std::move(i),
-      std::forward<Visitor>(visitor),
-      std::forward<VArgs>(args)...
+      static_cast<Visitor &&>(visitor),
+      static_cast<VArgs &&>(args)...
     );
   }
 };
@@ -173,9 +174,9 @@ struct l<
       l(),
       found,
       size,
-      std::forward<NeedleBegin>(begin),
-      std::forward<Visitor>(visitor),
-      std::forward<VArgs>(args)...
+      static_cast<NeedleBegin &&>(begin),
+      static_cast<Visitor &&>(visitor),
+      static_cast<VArgs &&>(args)...
     );
 
     return found;
@@ -199,8 +200,8 @@ struct l<
     found = l<1, Filter, Match>::f(
       size - 1,
       std::next(begin),
-      std::forward<Visitor>(visitor),
-      std::forward<VArgs>(args)...
+      static_cast<Visitor &&>(visitor),
+      static_cast<VArgs &&>(args)...
     );
   }
 };
