@@ -27,7 +27,7 @@ struct f<list<T...>, index_sequence<Indexes...>> {
 
   template <typename Visitor, typename... Args>
   FATAL_ATTR_ALWAYS_INLINE FATAL_ATTR_VISIBILITY_HIDDEN
-  static void g(Visitor &&visitor, Args &&...args) {
+  constexpr static void g(Visitor &&visitor, Args &&...args) {
     using _ = int[];
     void(_{(void(visitor(indexed<T, Indexes>{}, args...)), 0)...});
   }

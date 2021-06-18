@@ -20,7 +20,7 @@ namespace fatal {
 
 template <typename List, typename Visitor, typename... Args>
 FATAL_ATTR_ALWAYS_INLINE
-static inline void foreach(Visitor&& visitor, Args&&... args) {
+constexpr static inline void foreach(Visitor&& visitor, Args&&... args) {
   impl_fe::f<List, make_index_sequence<size<List>::value>>::g(
     static_cast<Visitor &&>(visitor),
     static_cast<Args &&>(args)...
