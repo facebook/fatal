@@ -2,6 +2,9 @@
 We want to make contributing to this project as easy and transparent as
 possible.
 
+## Code of Conduct
+The code of conduct is described in [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+
 ## Our Development Process
 This library is developed internally at Facebook. It is released to the public
 in periodic (usually bi-weekly) pushes.
