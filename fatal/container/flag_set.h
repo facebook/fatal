@@ -77,7 +77,7 @@ private:
         flags_type
       >::type,
       (try_index_of<tag_list, UFlags>::value < size<tag_list>::value
-        ? (flags_type(1) << try_index_of<tag_list, UFlags>::value)
+        ? ((flags_type(1) << try_index_of<tag_list, UFlags>::value) != 0)
         : 0
       )
     >...
