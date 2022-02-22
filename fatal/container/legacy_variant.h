@@ -265,8 +265,9 @@ struct legacy_storage_policy {
     typename storage_type<T>::type &storage,
     Args &&...args
   ) {
-    using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
-    rebound_alloc(allocator).construct(storage, std::forward<Args>(args)...);
+    using rebound_traits = typename allocator_traits::template rebind_traits<T>;
+    auto allocator_ = typename rebound_traits::allocator_type(allocator);
+    rebound_traits::construct(allocator_, storage, std::forward<Args>(args)...);
     return *storage;
   }
 
@@ -277,8 +278,9 @@ struct legacy_storage_policy {
     allocator_type const &allocator,
     typename storage_type<T>::type &storage
   ) {
-    using rebound_alloc = typename allocator_traits::template rebind_alloc<T>;
-    rebound_alloc(allocator).destroy(storage);
+    using rebound_traits = typename allocator_traits::template rebind_traits<T>;
+    auto allocator_ = typename rebound_traits::allocator_type(allocator);
+    rebound_traits::destroy(allocator_, storage);
   }
 
   template <typename T, typename std::enable_if<

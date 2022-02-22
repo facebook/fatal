@@ -132,6 +132,7 @@ template <
 >
 struct checked_allocator {
   using allocator_type = TAllocator;
+  using allocator_traits = std::allocator_traits<allocator_type>;
   using value_type = T;
   using pointer = value_type *;
   using const_pointer = value_type const *;
@@ -177,7 +178,7 @@ struct checked_allocator {
   }
 
   pointer allocate(size_type n, void const *hint = nullptr) {
-    auto p = allocator_.allocate(n, hint);
+    auto p = allocator_traits::allocate(allocator_, n, hint);
     allocated += n * sizeof(value_type);
     return p;
   }
@@ -187,19 +188,23 @@ struct checked_allocator {
     freed += n * sizeof(value_type);
   }
 
-  size_type max_size() const { return allocator_.max_size(); }
+  size_type max_size() const {
+    return allocator_traits::max_size(allocator_);
+  }
 
   template <typename... Args>
   void construct(pointer p, Args &&...args) {
-    allocator_.construct(p, std::forward<Args>(args)...);
+    allocator_traits::construct(allocator_, p, std::forward<Args>(args)...);
   }
 
-  void destroy(pointer p) { allocator_.destroy(p); }
+  void destroy(pointer p) {
+    allocator_traits::destroy(allocator_, p);
+  }
 
   template <typename U>
   struct rebind {
     using other = checked_allocator<
-      typename std::allocator_traits<allocator_type>::template rebind_alloc<U>,
+      typename allocator_traits::template rebind_alloc<U>,
       U
     >;
   };
@@ -219,9 +224,9 @@ private:
 };
 
 checked_allocator<
-  typename default_storage_policy<>::allocator_type::rebind<int>::other
+  typename default_storage_policy<>::allocator_traits::rebind_alloc<int>
 > allocator{
-  typename default_storage_policy<>::allocator_type::rebind<int>::other()
+  typename default_storage_policy<>::allocator_traits::rebind_alloc<int>()
 };
 
 using test_policy = default_storage_policy<decltype(allocator)>;
