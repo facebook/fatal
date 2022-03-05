@@ -1,4 +1,4 @@
-# Facebook Template Library [![Build Status](https://secure.travis-ci.org/facebook/fatal.png?branch=master "Build Status")](https://travis-ci.org/facebook/fatal)
+# Facebook Template Library [![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://opensource.fb.com/support-ukraine) [![Build Status](https://secure.travis-ci.org/facebook/fatal.png?branch=master "Build Status")](https://travis-ci.org/facebook/fatal)
 Fatal (Facebook Template Library) is a library for fast prototyping software in modern C++.
 
 It provides facilities heavily based on template meta-programming, while keeping most of the complexity under-the-hood, to enhance the expressive power of C++.
