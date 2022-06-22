@@ -19,6 +19,8 @@
 
 namespace fatal {
 
+using i_at::type_pack_element;
+
 template <typename T, std::size_t Index>
 using at = typename i_at::a<Index, T>::type;
 

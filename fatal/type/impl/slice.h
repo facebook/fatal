@@ -20,6 +20,40 @@
 namespace fatal {
 namespace i_at {
 
+template <std::size_t I, typename T>
+struct type_pack_element_indexed_type {};
+
+template <typename, typename...>
+struct type_pack_element_set;
+template <std::size_t... I, typename... T>
+struct type_pack_element_set<index_sequence<I...>, T...>
+    : type_pack_element_indexed_type<I, T>... {};
+template <typename... T>
+using type_pack_element_set_t =
+    type_pack_element_set<make_index_sequence<sizeof...(T)>, T...>;
+
+template <std::size_t I>
+struct type_pack_element_test {
+  template <typename T>
+  static T impl(type_pack_element_indexed_type<I, T>*);
+};
+
+template <std::size_t I, typename... Ts>
+using type_pack_element_fallback = decltype(type_pack_element_test<I>::impl(
+    static_cast<type_pack_element_set_t<Ts...>*>(nullptr)));
+
+#if FATAL_HAS_BUILTIN(__type_pack_element)
+
+template <std::size_t I, typename... Ts>
+using type_pack_element = __type_pack_element<I, Ts...>;
+
+#else
+
+template <std::size_t I, typename... Ts>
+using type_pack_element = type_pack_element_fallback<I, Ts...>;
+
+#endif
+
 template <std::size_t, typename> struct a;
 
 template <template <typename> class Single, typename T>
