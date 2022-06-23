@@ -1351,7 +1351,7 @@ struct gtest_printer {
 
 template <typename TPrinter = default_printer, typename TOut>
 int list(TOut &out) {
-  auto& registry = detail::test_impl::registry::get();
+  auto &registry = detail::test_impl::registry::get();
   registry.list<TPrinter>(out);
 
   return EXIT_SUCCESS;
@@ -1359,7 +1359,7 @@ int list(TOut &out) {
 
 template <typename TPrinter = default_printer, typename TOut>
 int run_all(TOut &out) {
-auto& registry = detail::test_impl::registry::get();
+  auto &registry = detail::test_impl::registry::get();
   auto const result = registry.run_all<TPrinter>(out);
 
   return result.second ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -1367,7 +1367,7 @@ auto& registry = detail::test_impl::registry::get();
 
 template <typename TPrinter = default_printer, typename TOut>
 int run_one(TOut &out, std::string const &full_name) {
-  auto& registry = detail::test_impl::registry::get();
+  auto &registry = detail::test_impl::registry::get();
   auto const result = registry.run_one<TPrinter>(out, full_name);
 
   return result.second ? EXIT_SUCCESS : EXIT_FAILURE;
