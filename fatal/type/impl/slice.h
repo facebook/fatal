@@ -54,6 +54,37 @@ using type_pack_element = type_pack_element_fallback<I, Ts...>;
 
 #endif
 
+template <typename List>
+struct pick_var_;
+template <
+  template <typename...> class Variadic,
+  typename... Args
+>
+struct pick_var_<Variadic<Args...>> {
+  template <std::size_t i>
+  using t = type_pack_element<i, Args...>;
+  template <std::size_t... i>
+  using apply = Variadic<t<i>...>;
+};
+template <
+  template <typename V, V...> class Variadic,
+  typename T, T... Args
+>
+struct pick_var_<Variadic<T, Args...>> {
+  template <std::size_t i>
+  using t = type_pack_element<i, std::integral_constant<T, Args>...>;
+  template <std::size_t... i>
+  using apply = Variadic<T, t<i>::value...>;
+};
+
+template <typename Seq>
+struct pick_seq_;
+template <std::size_t... Indexes>
+struct pick_seq_<index_sequence<Indexes...>> {
+  template <typename List>
+  using apply = typename pick_var_<List>::template apply<Indexes...>;
+};
+
 template <std::size_t, typename> struct a;
 
 template <template <typename> class Single, typename T>

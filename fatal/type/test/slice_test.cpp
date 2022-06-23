@@ -49,6 +49,46 @@ FATAL_TEST(type_pack_element, list) {
   FATAL_EXPECT_FALSE((detect_v<test::native_ic, zero>));
 }
 
+FATAL_TEST(pick_var, list) {
+  FATAL_EXPECT_SAME<
+    pick_var<
+      list<int, float, char, double, long>,
+      3, 1
+    >,
+    list<double, float>
+  >();
+}
+
+FATAL_TEST(pick_var, seq) {
+  FATAL_EXPECT_SAME<
+    pick_var<
+      char_sequence<'a', 'b', 'c', 'd', 'e'>,
+      3, 1
+    >,
+    char_sequence<'d', 'b'>
+  >();
+}
+
+FATAL_TEST(pick_seq, list) {
+  FATAL_EXPECT_SAME<
+    pick_seq<
+      list<int, float, char, double, long>,
+      index_sequence<3, 1>
+    >,
+    list<double, float>
+  >();
+}
+
+FATAL_TEST(pick_seq, seq) {
+  FATAL_EXPECT_SAME<
+    pick_seq<
+      char_sequence<'a', 'b', 'c', 'd', 'e'>,
+      index_sequence<3, 1>
+    >,
+    char_sequence<'d', 'b'>
+  >();
+}
+
 FATAL_TEST(index_of, list) {
   using ls = list<int, double, bool, void, float, char, unsigned>;
   FATAL_EXPECT_EQ(0, index_of<ls, int>::value);

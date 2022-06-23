@@ -21,6 +21,12 @@ namespace fatal {
 
 using i_at::type_pack_element;
 
+template <typename List, std::size_t... Indexes>
+using pick_var = typename i_at::pick_var_<List>::template apply<Indexes...>;
+
+template <typename List, typename Seq>
+using pick_seq = typename i_at::pick_seq_<Seq>::template apply<List>;
+
 template <typename T, std::size_t Index>
 using at = typename i_at::a<Index, T>::type;
 
