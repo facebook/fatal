@@ -58,8 +58,6 @@ public:
 
     assert(begin <= end);
     auto const size = unsigned_cast(std::distance(begin, end));
-    assert(size >= 0);
-
     auto const delta = signed_cast(size - (size & (step::value - 1)));
     auto const tail = std::next(begin, delta);
     assert(begin <= tail);
