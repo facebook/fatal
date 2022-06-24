@@ -19,6 +19,30 @@
 
 #include <fatal/test/driver.h>
 
+FATAL_TEST(c_array, overloads_full) {
+  using arr_t = fatal::c_array<int, 3>;
+  arr_t arr{{'b', 'a', 'r'}};
+  FATAL_EXPECT_EQ(size(arr), 3);
+  FATAL_EXPECT_EQ(empty(arr), false);
+  FATAL_EXPECT_EQ(data(arr), &arr.data[0]);
+  FATAL_EXPECT_EQ(begin(arr), &arr.data[0]);
+  FATAL_EXPECT_EQ(cbegin(arr), &arr.data[0]);
+  FATAL_EXPECT_EQ(end(arr), &arr.data[3]);
+  FATAL_EXPECT_EQ(cend(arr), &arr.data[3]);
+}
+
+FATAL_TEST(c_array, overloads_empty) {
+  using arr_t = fatal::c_array<int, 0>;
+  arr_t arr{{}};
+  FATAL_EXPECT_EQ(size(arr), 0);
+  FATAL_EXPECT_EQ(empty(arr), true);
+  FATAL_EXPECT_EQ(data(arr), &arr.data[0]);
+  FATAL_EXPECT_EQ(begin(arr), &arr.data[0]);
+  FATAL_EXPECT_EQ(cbegin(arr), &arr.data[0]);
+  FATAL_EXPECT_EQ(end(arr), &arr.data[0]);
+  FATAL_EXPECT_EQ(cend(arr), &arr.data[0]);
+}
+
 namespace fatal {
 namespace seq {
 

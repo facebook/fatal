@@ -16,7 +16,43 @@
 #include <fatal/type/sequence.h>
 #include <fatal/type/size.h>
 
+#include <cstddef>
+
 namespace fatal {
+
+namespace c_array_ {
+
+template <typename T, std::size_t S>
+struct c_array {
+  T data[S ? S : 1];
+  constexpr T& operator[](std::size_t i) noexcept { return data[i]; }
+  constexpr T const& operator[](std::size_t i) const noexcept { return data[i]; }
+};
+
+template <typename T, std::size_t S>
+constexpr std::size_t size(c_array<T, S> const &) noexcept { return S; }
+template <typename T, std::size_t S>
+constexpr bool empty(c_array<T, S> const &) noexcept { return S == 0; }
+template <typename T, std::size_t S>
+constexpr T* data(c_array<T, S> &c) { return c.data; }
+template <typename T, std::size_t S>
+constexpr T const* data(c_array<T, S> const &c) { return c.data; }
+template <typename T, std::size_t S>
+constexpr T* begin(c_array<T, S> &c) { return c.data; }
+template <typename T, std::size_t S>
+constexpr T const* begin(c_array<T, S> const &c) { return c.data; }
+template <typename T, std::size_t S>
+constexpr T const* cbegin(c_array<T, S> const &c) { return c.data; }
+template <typename T, std::size_t S>
+constexpr T* end(c_array<T, S> &c) { return c.data + S; }
+template <typename T, std::size_t S>
+constexpr T const* end(c_array<T, S> const &c) { return c.data + S; }
+template <typename T, std::size_t S>
+constexpr T const* cend(c_array<T, S> const &c) { return c.data + S; }
+
+} // namespace c_array_ {
+
+using c_array_::c_array;
 
 template <
   typename Array,
