@@ -55,6 +55,13 @@ constexpr T const* cend(c_array<T, S> const &c) { return c.data + S; }
 using c_array_::c_array;
 
 template <
+  template <typename, std::size_t> class A, typename T, std::size_t S,
+  A<T, S> const &V
+>
+using array_to_sequence =
+    typename i_a::array_to_sequence_<A, T, S>::template apply<V>;
+
+template <
   typename Array,
   typename OuterFilter,
   typename InnerFilter = get_identity,

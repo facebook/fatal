@@ -15,6 +15,7 @@
 #include <fatal/type/size.h>
 #include <fatal/type/slice.h>
 
+#include <array>
 #include <random>
 
 #include <fatal/test/driver.h>
@@ -65,6 +66,49 @@ using gaz = char_list<'g', 'a', 'z', '-', '3'>;
 using all = list<foo, bar, baz, gaz>;
 
 } // namespace lst {
+
+template <typename T, std::size_t S>
+using raw = T[S];
+
+FATAL_TEST(array_to_sequence, raw_array_full) {
+  static constexpr raw<char, 5> arr{'h', 'e', 'l', 'l', 'o'};
+  FATAL_EXPECT_SAME<
+    array_to_sequence<raw, char, 5, arr>,
+    char_sequence<'h', 'e', 'l', 'l', 'o'>
+  >();
+}
+
+FATAL_TEST(array_to_sequence, c_array_full) {
+  static constexpr c_array<char, 5> arr{{'h', 'e', 'l', 'l', 'o'}};
+  FATAL_EXPECT_SAME<
+    array_to_sequence<c_array, char, 5, arr>,
+    char_sequence<'h', 'e', 'l', 'l', 'o'>
+  >();
+}
+
+FATAL_TEST(array_to_sequence, c_array_empty) {
+  static constexpr c_array<char, 0> arr{{}};
+  FATAL_EXPECT_SAME<
+    array_to_sequence<c_array, char, 0, arr>,
+    char_sequence<>
+  >();
+}
+
+FATAL_TEST(array_to_sequence, std_array_full) {
+  static constexpr std::array<char, 5> arr{{'h', 'e', 'l', 'l', 'o'}};
+  FATAL_EXPECT_SAME<
+    array_to_sequence<std::array, char, 5, arr>,
+    char_sequence<'h', 'e', 'l', 'l', 'o'>
+  >();
+}
+
+FATAL_TEST(array_to_sequence, std_array_empty) {
+  static constexpr std::array<char, 0> arr{{}};
+  FATAL_EXPECT_SAME<
+    array_to_sequence<std::array, char, 0, arr>,
+    char_sequence<>
+  >();
+}
 
 struct constexpr_factory {
   template <typename T>

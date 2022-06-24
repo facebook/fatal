@@ -17,7 +17,29 @@
 #include <type_traits>
 
 namespace fatal {
+
+namespace c_array_ {
+
+template <typename T, std::size_t S>
+struct c_array;
+
+} // namespace c_array_ {
+
 namespace i_a {
+
+template <
+  template <typename, std::size_t> class A, typename T, std::size_t S,
+  typename = make_index_sequence<S>
+>
+struct array_to_sequence_;
+template <
+  template <typename, std::size_t> class A, typename T, std::size_t S,
+  std::size_t... I
+>
+struct array_to_sequence_<A, T, S, index_sequence<I...>> {
+  template <A<T, S> const &V>
+  using apply = sequence<T, V[I]...>;
+};
 
 // constexpr statically allocated array //
 
