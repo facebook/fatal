@@ -183,7 +183,7 @@ FATAL_TEST(runtime_array, at) {
   TEST_IMPL(const, at, true, true);
 }
 
-FATAL_TEST(runtime_array, operator []) {
+FATAL_TEST(runtime_array, operator_index) {
   TEST_IMPL(, operator [], false, false);
   TEST_IMPL(const, operator [], false, false);
   TEST_IMPL(, operator [], false, true);
@@ -225,14 +225,14 @@ void set(runtime_array<T, Size> const &, std::size_t, T) {}
     } \
   } while (false)
 
-FATAL_TEST(runtime_array, cbegin/cend) {
+FATAL_TEST(runtime_array, cbegin_cend) {
   TEST_IMPL(, cbegin, cend, false);
   TEST_IMPL(const, cbegin, cend, false);
   TEST_IMPL(, cbegin, cend, true);
   TEST_IMPL(const, cbegin, cend, true);
 }
 
-FATAL_TEST(runtime_array, begin/end) {
+FATAL_TEST(runtime_array, begin_end) {
   TEST_IMPL(, begin, end, false);
   TEST_IMPL(const, begin, end, false);
   TEST_IMPL(, begin, end, true);

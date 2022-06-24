@@ -117,7 +117,7 @@ struct check_sequence_list<T> {
   }
 };
 
-FATAL_TEST(as_array_from, sequence list) {
+FATAL_TEST(as_array_from, sequence_list) {
   check_sequence_list<char const *>::check();
   check_sequence_list<char const *, str::hello>::check();
   check_sequence_list<char const *, str::hello, str::world>::check();

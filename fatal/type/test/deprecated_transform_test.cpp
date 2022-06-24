@@ -1158,7 +1158,7 @@ FATAL_TEST(transform_switch, empty_identity) {
   FATAL_EXPECT_SAME<int, transform::apply<int>>();
 }
 
-FATAL_TEST(transform_switch, empty_T1) {
+FATAL_TEST(transform_switch, empty_t1) {
   using transform = transform_switch<T1>;
 
   FATAL_EXPECT_SAME<T1<int>, transform::apply<int>>();
@@ -1189,7 +1189,7 @@ FATAL_TEST(transform_switch, identity) {
   >();
 }
 
-FATAL_TEST(transform_switch, T1) {
+FATAL_TEST(transform_switch, t1) {
   using transform = transform_switch<
     T1,
     is_tuple, type_member_transform<tuple_as_list>::template apply,

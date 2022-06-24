@@ -163,7 +163,7 @@ void check_trie_find(std::string const &needle) {
 // match_exact //
 /////////////////
 
-FATAL_TEST(trie, find variations) {
+FATAL_TEST(trie, find_variations) {
   check_trie_find<hs_tree>("");
   check_trie_find<hs_tree, h>("h");
   check_trie_find<hs_tree>("H");

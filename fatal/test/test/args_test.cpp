@@ -16,7 +16,7 @@
 
 using Args = std::map<std::string, std::string>;
 
-FATAL_TEST(args, parse_args empty) {
+FATAL_TEST(args, parse_args_empty) {
   char const * const argv[] = {"prog"};
   int const argc = sizeof(argv) / sizeof(*argv);
   FATAL_EXPECT_EQ(1, argc); // sanity
@@ -25,7 +25,7 @@ FATAL_TEST(args, parse_args empty) {
   FATAL_EXPECT_EQ(Args({}), args);
 }
 
-FATAL_TEST(args, parse_args one basic) {
+FATAL_TEST(args, parse_args_one_basic) {
   char const * const argv[] = {"prog", "x"};
   int const argc = sizeof(argv) / sizeof(*argv);
   FATAL_EXPECT_EQ(2, argc); // sanity
@@ -34,7 +34,7 @@ FATAL_TEST(args, parse_args one basic) {
   FATAL_EXPECT_EQ(Args({{"x", ""}}), args);
 }
 
-FATAL_TEST(args, parse_args one key) {
+FATAL_TEST(args, parse_args_one_key) {
   char const * const argv[] = {"prog", "y="};
   int const argc = sizeof(argv) / sizeof(*argv);
   FATAL_EXPECT_EQ(2, argc); // sanity
@@ -43,7 +43,7 @@ FATAL_TEST(args, parse_args one key) {
   FATAL_EXPECT_EQ(Args({{"y", ""}}), args);
 }
 
-FATAL_TEST(args, parse_args one key-value) {
+FATAL_TEST(args, parse_args_one_key_value) {
   char const * const argv[] = {"prog", "z=a"};
   int const argc = sizeof(argv) / sizeof(*argv);
   FATAL_EXPECT_EQ(2, argc); // sanity
@@ -52,7 +52,7 @@ FATAL_TEST(args, parse_args one key-value) {
   FATAL_EXPECT_EQ(Args({{"z", "a"}}), args);
 }
 
-FATAL_TEST(args, parse_args multi) {
+FATAL_TEST(args, parse_args_multi) {
   char const * const argv[] = {"prog", "x", "y=", "z=a"};
   int const argc = sizeof(argv) / sizeof(*argv);
   FATAL_EXPECT_EQ(4, argc); // sanity

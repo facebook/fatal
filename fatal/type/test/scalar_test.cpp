@@ -79,7 +79,7 @@ FATAL_TEST(to_integral, enum) {
   FATAL_EXPECT_EQ_SAME(std::int16_t, 4, to_integral(Eic));
 }
 
-FATAL_TEST(to_integral, enum class) {
+FATAL_TEST(to_integral, enum_class) {
   FATAL_EXPECT_EQ_SAME(unsigned, 1, to_integral(EC::a));
   FATAL_EXPECT_EQ_SAME(unsigned, 2, to_integral(EC::b));
   FATAL_EXPECT_EQ_SAME(unsigned, 4, to_integral(EC::c));
@@ -125,7 +125,7 @@ FATAL_TEST(bitwise_merge, enum) {
   FATAL_EXPECT_EQ_SAME(Ei, Eiabc, bitwise_merge(Eia, Eiabc));
 }
 
-FATAL_TEST(bitwise_merge, enum class) {
+FATAL_TEST(bitwise_merge, enum_class) {
   FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_merge(EC::a));
   FATAL_EXPECT_EQ_SAME(EC, EC::b, bitwise_merge(EC::b));
   FATAL_EXPECT_EQ_SAME(EC, EC::c, bitwise_merge(EC::c));
@@ -183,7 +183,7 @@ FATAL_TEST(bitwise_filter, enum) {
   FATAL_EXPECT_EQ_SAME(Ei, Eia, bitwise_filter(Eia, Eiabc));
 }
 
-FATAL_TEST(bitwise_filter, enum class) {
+FATAL_TEST(bitwise_filter, enum_class) {
   FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_filter(EC::a));
   FATAL_EXPECT_EQ_SAME(EC, EC::b, bitwise_filter(EC::b));
   FATAL_EXPECT_EQ_SAME(EC, EC::c, bitwise_filter(EC::c));
@@ -245,7 +245,7 @@ FATAL_TEST(bitwise_disable, enum) {
   FATAL_EXPECT_EQ_SAME(Ei, Eiz, bitwise_disable(Eia, Eiabc));
 }
 
-FATAL_TEST(bitwise_disable, enum class) {
+FATAL_TEST(bitwise_disable, enum_class) {
   FATAL_EXPECT_EQ_SAME(EC, EC::a, bitwise_disable(EC::a));
   FATAL_EXPECT_EQ_SAME(EC, EC::b, bitwise_disable(EC::b));
   FATAL_EXPECT_EQ_SAME(EC, EC::c, bitwise_disable(EC::c));
@@ -291,7 +291,7 @@ FATAL_TEST(bitwise_has_all, enum) {
   FATAL_EXPECT_FALSE(bitwise_has_all(Eia, Eia, Eib, Eic));
 }
 
-FATAL_TEST(bitwise_has_all, enum class) {
+FATAL_TEST(bitwise_has_all, enum_class) {
   FATAL_EXPECT_FALSE(bitwise_has_all(EC::d, EC::a, EC::b, EC::c));
   FATAL_EXPECT_TRUE(bitwise_has_all(EC::abc, EC::a, EC::b, EC::c));
   FATAL_EXPECT_FALSE(bitwise_has_all(EC::bc, EC::a, EC::b, EC::c));
@@ -327,7 +327,7 @@ FATAL_TEST(bitwise_has_any, enum) {
   FATAL_EXPECT_TRUE(bitwise_has_any(Eia, Eia, Eib, Eic));
 }
 
-FATAL_TEST(bitwise_has_any, enum class) {
+FATAL_TEST(bitwise_has_any, enum_class) {
   FATAL_EXPECT_FALSE(bitwise_has_any(EC::d, EC::a, EC::b, EC::c));
   FATAL_EXPECT_TRUE(bitwise_has_any(EC::abc, EC::a, EC::b, EC::c));
   FATAL_EXPECT_TRUE(bitwise_has_any(EC::bc, EC::a, EC::b, EC::c));

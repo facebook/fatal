@@ -100,7 +100,7 @@ FATAL_TEST(index_of, list) {
   FATAL_EXPECT_EQ(6, index_of<ls, unsigned>::value);
 }
 
-FATAL_TEST(index apply, list) {
+FATAL_TEST(index_apply, list) {
   using ls = list<int, double, bool, void, float, char, unsigned>;
   FATAL_EXPECT_EQ(0, index<ls>::apply<int>::value);
   FATAL_EXPECT_EQ(1, index<ls>::apply<double>::value);
@@ -111,7 +111,7 @@ FATAL_TEST(index apply, list) {
   FATAL_EXPECT_EQ(6, index<ls>::apply<unsigned>::value);
 }
 
-FATAL_TEST(index apply, sequence) {
+FATAL_TEST(index_apply, sequence) {
   using sq = index_sequence<0, 8, 9, 6, 7, 5, 4, 1, 3, 2>;
   FATAL_EXPECT_EQ(0, index<sq>::apply<0>::value);
   FATAL_EXPECT_EQ(1, index<sq>::apply<8>::value);
@@ -125,7 +125,7 @@ FATAL_TEST(index apply, sequence) {
   FATAL_EXPECT_EQ(9, index<sq>::apply<2>::value);
 }
 
-FATAL_TEST(try_index_of, empty list) {
+FATAL_TEST(try_index_of, empty_list) {
   using ls = list<>;
   FATAL_EXPECT_EQ(size<ls>::value, try_index_of<ls, int>::value);
   FATAL_EXPECT_EQ(size<ls>::value, try_index_of<ls, double>::value);
@@ -149,7 +149,7 @@ FATAL_TEST(try_index_of, list) {
   FATAL_EXPECT_EQ(size<ls>::value, try_index_of<ls, void *>::value);
 }
 
-FATAL_TEST(try_index apply, empty list) {
+FATAL_TEST(try_index_apply, empty_list) {
   using ls = list<>;
   FATAL_EXPECT_EQ(size<ls>::value, try_index<ls>::apply<int>::value);
   FATAL_EXPECT_EQ(size<ls>::value, try_index<ls>::apply<double>::value);
@@ -161,7 +161,7 @@ FATAL_TEST(try_index apply, empty list) {
   FATAL_EXPECT_EQ(size<ls>::value, try_index<ls>::apply<void *>::value);
 }
 
-FATAL_TEST(try_index apply, list) {
+FATAL_TEST(try_index_apply, list) {
   using ls = list<int, double, bool, void, float, char, unsigned>;
   FATAL_EXPECT_EQ(0, try_index<ls>::apply<int>::value);
   FATAL_EXPECT_EQ(1, try_index<ls>::apply<double>::value);
@@ -173,7 +173,7 @@ FATAL_TEST(try_index apply, list) {
   FATAL_EXPECT_EQ(size<ls>::value, try_index<ls>::apply<void *>::value);
 }
 
-FATAL_TEST(try_index apply, empty sequence) {
+FATAL_TEST(try_index_apply, empty_sequence) {
   using sq = index_sequence<>;
   FATAL_EXPECT_EQ(size<sq>::value, try_index<sq>::apply<0>::value);
   FATAL_EXPECT_EQ(size<sq>::value, try_index<sq>::apply<8>::value);
@@ -188,7 +188,7 @@ FATAL_TEST(try_index apply, empty sequence) {
   FATAL_EXPECT_EQ(size<sq>::value, try_index<sq>::apply<10>::value);
 }
 
-FATAL_TEST(try_index apply, sequence) {
+FATAL_TEST(try_index_apply, sequence) {
   using sq = index_sequence<0, 8, 9, 6, 7, 5, 4, 1, 3, 2>;
   FATAL_EXPECT_EQ(0, try_index<sq>::apply<0>::value);
   FATAL_EXPECT_EQ(1, try_index<sq>::apply<8>::value);

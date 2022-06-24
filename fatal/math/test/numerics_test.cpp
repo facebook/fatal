@@ -33,7 +33,7 @@ FATAL_TEST(numerics, data_bits) {
 // reverse_integral_bytes //
 ////////////////////////////
 
-FATAL_TEST(numerics, reverse_integral_bytes signed 8 bytes) {
+FATAL_TEST(numerics, reverse_integral_bytes_signed_8_bytes) {
   FATAL_EXPECT_EQ(
     std::int8_t(0x00),
     reverse_integral_bytes(std::int8_t(0x00))
@@ -52,7 +52,7 @@ FATAL_TEST(numerics, reverse_integral_bytes signed 8 bytes) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bytes unsigned 8 bytes) {
+FATAL_TEST(numerics, reverse_integral_bytes_unsigned_8_bytes) {
   FATAL_EXPECT_EQ(
     std::uint8_t(0x00),
     reverse_integral_bytes(std::uint8_t(0x00))
@@ -71,7 +71,7 @@ FATAL_TEST(numerics, reverse_integral_bytes unsigned 8 bytes) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bytes signed 16 bytes) {
+FATAL_TEST(numerics, reverse_integral_bytes_signed_16_bytes) {
   FATAL_EXPECT_EQ(
     std::int16_t(0x0000),
     reverse_integral_bytes(std::int16_t(0x00))
@@ -94,7 +94,7 @@ FATAL_TEST(numerics, reverse_integral_bytes signed 16 bytes) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bytes unsigned 16 bytes) {
+FATAL_TEST(numerics, reverse_integral_bytes_unsigned_16_bytes) {
   FATAL_EXPECT_EQ(
     std::uint16_t(0x0000),
     reverse_integral_bytes(std::uint16_t(0x00))
@@ -117,7 +117,7 @@ FATAL_TEST(numerics, reverse_integral_bytes unsigned 16 bytes) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bytes signed 32 bytes) {
+FATAL_TEST(numerics, reverse_integral_bytes_signed_32_bytes) {
   FATAL_EXPECT_EQ(
     std::int32_t(0x00000000),
     reverse_integral_bytes(std::int32_t(0x00))
@@ -140,7 +140,7 @@ FATAL_TEST(numerics, reverse_integral_bytes signed 32 bytes) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bytes unsigned 32 bytes) {
+FATAL_TEST(numerics, reverse_integral_bytes_unsigned_32_bytes) {
   FATAL_EXPECT_EQ(
     std::uint32_t(0x00000000),
     reverse_integral_bytes(std::uint32_t(0x00))
@@ -163,7 +163,7 @@ FATAL_TEST(numerics, reverse_integral_bytes unsigned 32 bytes) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bytes signed 64 bytes) {
+FATAL_TEST(numerics, reverse_integral_bytes_signed_64_bytes) {
   FATAL_EXPECT_EQ(
     std::int64_t(0x0000000000000000),
     reverse_integral_bytes(std::int64_t(0x00))
@@ -186,7 +186,7 @@ FATAL_TEST(numerics, reverse_integral_bytes signed 64 bytes) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bytes unsigned 64 bytes) {
+FATAL_TEST(numerics, reverse_integral_bytes_unsigned_64_bytes) {
   FATAL_EXPECT_EQ(
     std::uint64_t(0x0000000000000000),
     reverse_integral_bytes(std::uint64_t(0x00))
@@ -218,7 +218,7 @@ T naive_reverse_bytes(T value) {
   return value;
 }
 
-FATAL_TEST(numerics, reverse_integral_bytes randomized) {
+FATAL_TEST(numerics, reverse_integral_bytes_randomized) {
   random_data rng;
 
   for (auto i = 100000; i--; ) {
@@ -240,14 +240,14 @@ FATAL_TEST(numerics, reverse_integral_bytes randomized) {
 // reverse_integral_bits //
 ///////////////////////////
 
-FATAL_TEST(numerics, reverse_integral_bits signed 8 bits) {
+FATAL_TEST(numerics, reverse_integral_bits_signed_8_bits) {
   FATAL_EXPECT_EQ(std::int8_t(0x00), reverse_integral_bits(std::int8_t(0)));
   FATAL_EXPECT_EQ(std::int8_t(0x80), reverse_integral_bits(std::int8_t(1)));
   FATAL_EXPECT_EQ(std::int8_t(0x50), reverse_integral_bits(std::int8_t(10)));
   FATAL_EXPECT_EQ(std::int8_t(0x43), reverse_integral_bits(std::int8_t(0xc2)));
 }
 
-FATAL_TEST(numerics, reverse_integral_bits unsigned 8 bits) {
+FATAL_TEST(numerics, reverse_integral_bits_unsigned_8_bits) {
   FATAL_EXPECT_EQ(std::uint8_t(0x00), reverse_integral_bits(std::uint8_t(0)));
   FATAL_EXPECT_EQ(std::uint8_t(0x80), reverse_integral_bits(std::uint8_t(1)));
   FATAL_EXPECT_EQ(std::uint8_t(0x50), reverse_integral_bits(std::uint8_t(10)));
@@ -257,7 +257,7 @@ FATAL_TEST(numerics, reverse_integral_bits unsigned 8 bits) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bits signed 16 bits) {
+FATAL_TEST(numerics, reverse_integral_bits_signed_16_bits) {
   FATAL_EXPECT_EQ(std::int16_t(0x0000), reverse_integral_bits(std::int16_t(0)));
   FATAL_EXPECT_EQ(std::int16_t(0x8000), reverse_integral_bits(std::int16_t(1)));
   FATAL_EXPECT_EQ(
@@ -274,7 +274,7 @@ FATAL_TEST(numerics, reverse_integral_bits signed 16 bits) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bits unsigned 16 bits) {
+FATAL_TEST(numerics, reverse_integral_bits_unsigned_16_bits) {
   FATAL_EXPECT_EQ(
     std::uint16_t(0x0000),
     reverse_integral_bits(std::uint16_t(0))
@@ -297,7 +297,7 @@ FATAL_TEST(numerics, reverse_integral_bits unsigned 16 bits) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bits signed 32 bits) {
+FATAL_TEST(numerics, reverse_integral_bits_signed_32_bits) {
   FATAL_EXPECT_EQ(
     std::int32_t(0x00000000),
     reverse_integral_bits(std::int32_t(0))
@@ -320,7 +320,7 @@ FATAL_TEST(numerics, reverse_integral_bits signed 32 bits) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bits unsigned 32 bits) {
+FATAL_TEST(numerics, reverse_integral_bits_unsigned_32_bits) {
   FATAL_EXPECT_EQ(
     std::uint32_t(0x00000000),
     reverse_integral_bits(std::uint32_t(0))
@@ -343,7 +343,7 @@ FATAL_TEST(numerics, reverse_integral_bits unsigned 32 bits) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bits signed 64 bits) {
+FATAL_TEST(numerics, reverse_integral_bits_signed_64_bits) {
   FATAL_EXPECT_EQ(
     std::int64_t(0x0000000000000000),
     reverse_integral_bits(std::int64_t(0))
@@ -366,7 +366,7 @@ FATAL_TEST(numerics, reverse_integral_bits signed 64 bits) {
   );
 }
 
-FATAL_TEST(numerics, reverse_integral_bits unsigned 64 bits) {
+FATAL_TEST(numerics, reverse_integral_bits_unsigned_64_bits) {
   FATAL_EXPECT_EQ(
     std::uint64_t(0x0000000000000000),
     reverse_integral_bits(std::uint64_t(0))
@@ -400,7 +400,7 @@ T naive_reverse_bits(T value) {
   return result;
 }
 
-FATAL_TEST(numerics, reverse_integral_bits randomized) {
+FATAL_TEST(numerics, reverse_integral_bits_randomized) {
   random_data rng;
 
   for (auto i = 100000; i--; ) {

@@ -77,31 +77,31 @@ FATAL_TEST(array, as_runtime_array_from) {
   );
 }
 
-FATAL_TEST(array, z_array from sequence / implicit type) {
+FATAL_TEST(array, z_array_from_sequence_with_implicit_type) {
   using array = z_array<seq::all>;
   FATAL_EXPECT_EQ(size<seq::all>::value, array::size::value);
   static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
 }
 
-FATAL_TEST(array, z_array from sequence / explicit type) {
+FATAL_TEST(array, z_array_from_sequence_with_explicit_type) {
   using array = z_array<seq::all, const char *>;
   FATAL_EXPECT_EQ(size<seq::all>::value, array::size::value);
   static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
 }
 
-FATAL_TEST(array, z_array from list / implicit type) {
+FATAL_TEST(array, z_array_from_list_with_implicit_type) {
   using array = z_array<lst::all>;
   FATAL_EXPECT_EQ(size<lst::all>::value, array::size::value);
   static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
 }
 
-FATAL_TEST(array, z_array from list / explicit type) {
+FATAL_TEST(array, z_array_from_list_with_explicit_type) {
   using array = z_array<lst::all, const char *>;
   FATAL_EXPECT_EQ(size<lst::all>::value, array::size::value);
   static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
 }
 
-FATAL_TEST(array, string_view_array from sequence) {
+FATAL_TEST(array, string_view_array_from_sequence) {
   using array = string_view_array<seq::all, string_view>;
   FATAL_EXPECT_EQ(size<seq::all>::value, array::size::value);
   static_assert(array::data[0][0] == 'f', "ensure it is constexpr");
@@ -127,7 +127,7 @@ FATAL_TEST(array, string_view_array from sequence) {
   );
 }
 
-FATAL_TEST(array, string_view_array from list) {
+FATAL_TEST(array, string_view_array_from_list) {
   using array = string_view_array<lst::all, string_view>;
   FATAL_EXPECT_EQ(size<lst::all>::value, array::size::value);
   static_assert(array::data[0][0] == 'f', "ensure it is constexpr");

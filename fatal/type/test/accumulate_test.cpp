@@ -16,7 +16,7 @@
 
 namespace fatal {
 
-FATAL_TEST(accumulate, sanity check) {
+FATAL_TEST(accumulate, sanity_check) {
   FATAL_EXPECT_SAME<
     std::integral_constant<int, 0>,
     accumulate<list<>, std::integral_constant<int, 0>, add>

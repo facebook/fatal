@@ -667,7 +667,7 @@ FATAL_TEST(enable_when, movable) {
 
 struct non_callable {};
 
-FATAL_TEST(enable_when, callable [non-callable object]) {
+FATAL_TEST(enable_when, callable_with_non_callable_object) {
   FATAL_EXPECT_TEMPLATE_DOESNT_COMPILE(
     enable_when::callable, int, int
   );
@@ -694,7 +694,7 @@ struct callable_overloaded_f_id {
   void operator ()(int, double);
 };
 
-FATAL_TEST(enable_when, callable [callable object]) {
+FATAL_TEST(enable_when, callable_with_callable_object) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
     enable_when::callable, callable_nullary
   );
@@ -821,7 +821,7 @@ void fun_i(int);
 void fun_d(double);
 void fun_id(int, double);
 
-FATAL_TEST(enable_when, callable [function]) {
+FATAL_TEST(enable_when, callable_with_function) {
   FATAL_EXPECT_TEMPLATE_COMPILES(
     enable_when::callable, decltype(fun_nullary)
   );

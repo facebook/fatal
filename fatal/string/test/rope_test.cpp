@@ -970,7 +970,7 @@ FATAL_TEST(accessors, at) {
   FATAL_EXPECT_THROW(std::out_of_range) { r.at(r.size()); };
 }
 
-FATAL_TEST(accessors, operator []) {
+FATAL_TEST(accessors, operator_index) {
   rope<> r;
 
   r.append('a');
@@ -1133,7 +1133,7 @@ FATAL_TEST(capacity, empty) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(capacity, reserve (absolute)) {
+FATAL_TEST(capacity, reserve_absolute) {
 # define TEST_IMPL(SmallBufferSize) \
   do { \
     auto const capacity = SmallBufferSize * 2 + 1; \
@@ -1192,7 +1192,7 @@ FATAL_TEST(capacity, reserve (absolute)) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(capacity, reserve (relative)) {
+FATAL_TEST(capacity, reserve_relative) {
 # define TEST_IMPL(SmallBufferSize) \
   do { \
     rope<SmallBufferSize> r; \
@@ -1572,7 +1572,7 @@ FATAL_TEST(find, char) {
   );
 }
 
-FATAL_TEST(find, char size_type) {
+FATAL_TEST(find, char_size_type) {
   find_char_test(
     std::chrono::milliseconds(100), 1000,
     [](
@@ -1597,7 +1597,7 @@ FATAL_TEST(find, char size_type) {
   );
 }
 
-FATAL_TEST(find, char const_iterator) {
+FATAL_TEST(find, char_const_iterator) {
   find_char_test(
     std::chrono::milliseconds(100), 1000,
     [](
@@ -1714,7 +1714,7 @@ FATAL_TEST(const_iterator, foreach) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(const_iterator, foreach (prefix ++)) {
+FATAL_TEST(const_iterator, foreach_with_prefix_operator_inc) {
 # define TEST_IMPL(...) \
   do { \
     rope<> r(__VA_ARGS__); \
@@ -1745,7 +1745,7 @@ FATAL_TEST(const_iterator, foreach (prefix ++)) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(const_iterator, foreach (postfix ++)) {
+FATAL_TEST(const_iterator, foreach_with_postfix_operator_inc) {
 # define TEST_IMPL(...) \
   do { \
     rope<> r(__VA_ARGS__); \
@@ -1776,7 +1776,7 @@ FATAL_TEST(const_iterator, foreach (postfix ++)) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(const_iterator, foreach (prefix --)) {
+FATAL_TEST(const_iterator, foreach_with_prefix_operator_dec) {
 # define TEST_IMPL(...) \
   do { \
     rope<> r(__VA_ARGS__); \
@@ -1810,7 +1810,7 @@ FATAL_TEST(const_iterator, foreach (prefix --)) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(const_iterator, foreach (postfix --)) {
+FATAL_TEST(const_iterator, foreach_with_postfix_operator_dec) {
 # define TEST_IMPL(...) \
   do { \
     rope<> r(__VA_ARGS__); \
@@ -1844,7 +1844,7 @@ FATAL_TEST(const_iterator, foreach (postfix --)) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(const_iterator, foreach (+= 1)) {
+FATAL_TEST(const_iterator, foreach_with_operator_add_assign) {
 # define TEST_IMPL(...) \
   do { \
     rope<> r(__VA_ARGS__); \
@@ -1875,7 +1875,7 @@ FATAL_TEST(const_iterator, foreach (+= 1)) {
 # undef TEST_IMPL
 }
 
-FATAL_TEST(const_iterator, foreach (-= 1)) {
+FATAL_TEST(const_iterator, foreach_with_operator_sub_assign) {
 # define TEST_IMPL(...) \
   do { \
     rope<> r(__VA_ARGS__); \

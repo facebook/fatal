@@ -1447,6 +1447,6 @@ void run_sanity_check() {
 
 }
 
-FATAL_TEST(type, sanity check) {
+FATAL_TEST(type, sanity_check) {
   fatal::run_sanity_check();
 }

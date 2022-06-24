@@ -19,7 +19,7 @@ namespace fatal {
 using seq = index_sequence<0, 1, 2, 3, 4, 5, 6, 7>;
 using lst = list<int, double, bool, void, float, char, unsigned>;
 
-FATAL_TEST(push, list front) {
+FATAL_TEST(push, list_front) {
   FATAL_EXPECT_SAME<lst, push<lst>::front<>>();
 
   FATAL_EXPECT_SAME<
@@ -45,7 +45,7 @@ FATAL_TEST(push, list front) {
   >();
 }
 
-FATAL_TEST(push, sequence front) {
+FATAL_TEST(push, sequence_front) {
   FATAL_EXPECT_SAME<seq, push<seq>::front<>>();
 
   FATAL_EXPECT_SAME<
@@ -59,7 +59,7 @@ FATAL_TEST(push, sequence front) {
   >();
 }
 
-FATAL_TEST(push, list back) {
+FATAL_TEST(push, list_back) {
   FATAL_EXPECT_SAME<lst, push<lst>::back<>>();
 
   FATAL_EXPECT_SAME<
@@ -85,7 +85,7 @@ FATAL_TEST(push, list back) {
   >();
 }
 
-FATAL_TEST(push, sequence back) {
+FATAL_TEST(push, sequence_back) {
   FATAL_EXPECT_SAME<seq, push<seq>::back<>>();
 
   FATAL_EXPECT_SAME<
@@ -99,7 +99,7 @@ FATAL_TEST(push, sequence back) {
   >();
 }
 
-FATAL_TEST(push, list front_if true) {
+FATAL_TEST(push, list_front_if_true) {
   FATAL_EXPECT_SAME<lst, push<lst>::front_if<true>>();
 
   FATAL_EXPECT_SAME<
@@ -125,7 +125,7 @@ FATAL_TEST(push, list front_if true) {
   >();
 }
 
-FATAL_TEST(push, sequence front_if true) {
+FATAL_TEST(push, sequence_front_if_true) {
 /*
   FATAL_EXPECT_SAME<seq, push<seq>::front_if<true>>();
 
@@ -141,7 +141,7 @@ FATAL_TEST(push, sequence front_if true) {
   */
 }
 
-FATAL_TEST(push, list back_if true) {
+FATAL_TEST(push, list_back_if_true) {
   FATAL_EXPECT_SAME<lst, push<lst>::back_if<true>>();
 
   FATAL_EXPECT_SAME<
@@ -167,7 +167,7 @@ FATAL_TEST(push, list back_if true) {
   >();
 }
 
-FATAL_TEST(push, sequence back_if true) {
+FATAL_TEST(push, sequence_back_if_true) {
 /*
   FATAL_EXPECT_SAME<seq, push<seq>::back_if<true>>();
 
@@ -183,7 +183,7 @@ FATAL_TEST(push, sequence back_if true) {
   */
 }
 
-FATAL_TEST(push, list front_if false) {
+FATAL_TEST(push, list_front_if_false) {
   FATAL_EXPECT_SAME<lst, push<lst>::front_if<false>>();
   FATAL_EXPECT_SAME<lst, push<lst>::front_if<false, void *>>();
   FATAL_EXPECT_SAME<lst, push<lst>::front_if<false, void *, int *, char *>>();
@@ -193,7 +193,7 @@ FATAL_TEST(push, list front_if false) {
   FATAL_EXPECT_SAME<lst, push_front_if<false, lst, void *, int *, char *>>();
 }
 
-FATAL_TEST(push, sequence front_if false) {
+FATAL_TEST(push, sequence_front_if_false) {
 /*
   FATAL_EXPECT_SAME<seq, push<seq>::front_if<false>>();
 
@@ -209,7 +209,7 @@ FATAL_TEST(push, sequence front_if false) {
   */
 }
 
-FATAL_TEST(push, list back_if false) {
+FATAL_TEST(push, list_back_if_false) {
   FATAL_EXPECT_SAME<lst, push<lst>::back_if<false>>();
   FATAL_EXPECT_SAME<lst, push<lst>::back_if<false, void *>>();
   FATAL_EXPECT_SAME<lst, push<lst>::back_if<false, void *, int *, char *>>();
@@ -219,7 +219,7 @@ FATAL_TEST(push, list back_if false) {
   FATAL_EXPECT_SAME<lst, push_back_if<false, lst, void *, int *, char *>>();
 }
 
-FATAL_TEST(push, sequence back_if false) {
+FATAL_TEST(push, sequence_back_if_false) {
 /*
   FATAL_EXPECT_SAME<seq, push<seq>::back_if<false>>();
 

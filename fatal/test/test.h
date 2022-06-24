@@ -38,19 +38,35 @@
 namespace fatal {
 namespace test {
 
+constexpr bool is_identifier(char const *const text) {
+  for (char const *p = text; *p != '\0'; ++p) {
+    char const c = *p;
+    if (c >= 'a' && c <= 'z') continue;
+    if (c >= '0' && c <= '9') continue;
+    if (c >= '_' && c <= '_') continue;
+    return false;
+  }
+  return true;
+}
+
+static_assert(is_identifier("hello"), "hello");
+static_assert(!is_identifier("hello world"), "hello world");
+
 // TODO: organize the order of components
 
-#define FATAL_TEST(Case, ...) \
+#define FATAL_TEST(Suite, Case) \
   FATAL_IMPL_TEST_CASE( \
     FATAL_UID(fatal_test_case_impl), \
+    FATAL_TO_STR(FATAL_UNPARENTHESIZE(Suite)), \
     FATAL_TO_STR(FATAL_UNPARENTHESIZE(Case)), \
-    FATAL_TO_STR(FATAL_UNPARENTHESIZE(__VA_ARGS__)), \
     FATAL_UID(fatal_test_case_results_impl), \
     FATAL_UID(fatal_test_case_test_registry_placeholder_impl) \
   )
 
-#define FATAL_IMPL_TEST_CASE(Class, Case, Name, Results, RegistryPlaceholder) \
+#define FATAL_IMPL_TEST_CASE(Class, Suite, Case, Results, RegistryPlaceholder) \
   struct Class { \
+    static_assert(::fatal::test::is_identifier(Suite), Suite); \
+    static_assert(::fatal::test::is_identifier(Case), Case); \
     void operator ()(); \
     \
     ::fatal::test::results Results; \
@@ -70,14 +86,14 @@ namespace test {
     ::fatal::test::detail::test_impl::group_tag, \
     Class * \
   ) { \
-    return Case; \
+    return Suite; \
   } \
   \
   char const *operator <<( \
     ::fatal::test::detail::test_impl::name_tag, \
     Class * \
   ) { \
-    return Name; \
+    return Case; \
   } \
   \
   ::fatal::source_info const &operator <<( \
@@ -1141,7 +1157,7 @@ public:
 
   // not entirely a robust way of generating full names, but it will work
   static std::string make_full_name(char const *group, char const *name) {
-    return std::string() + group + " - " + name;
+    return std::string() + group + "." + name;
   }
 
 private:
@@ -1257,7 +1273,7 @@ private:
 struct gtest_printer {
   template <typename TOut, typename TGroup>
   void list_start_group(TOut &out, TGroup const &group) {
-    out << group << " - \n";
+    out << group << ".\n";
   }
 
   template <typename TOut, typename TGroup, typename TName>
@@ -1273,7 +1289,7 @@ struct gtest_printer {
     TOut &out, std::size_t total, std::size_t groups, timestamp_t
   ) {
     out << "[==========] Running " << total << " tests from " << groups
-        << " test case\n";
+        << " test suites.\n";
     out << "[----------] Global test environment set-up.\n";
   }
 
@@ -1289,7 +1305,7 @@ struct gtest_printer {
     TOut &out, TGroup const &group, TName const &name,
     source_info const &, timestamp_t
   ) {
-    out << "[ RUN      ] " << group << " - " << name << "\n";
+    out << "[ RUN      ] " << group << "." << name << "\n";
   }
 
   template <typename TOut, typename TName>
@@ -1317,7 +1333,7 @@ struct gtest_printer {
         result.elapsed()
       );
 
-    out << "[   " << result_str << " ] " << group << " - " << name
+    out << "[   " << result_str << " ] " << group << "." << name
         << " (" << elapsed_ms.count() << " ms)\n";
   }
 
@@ -1344,7 +1360,7 @@ struct gtest_printer {
 
     out << "[----------] Global test environment tear-down\n";
     out << "[==========] " << total << " tests from " << groups
-        << " test case ran. (" << elapsed_ms.count() << " ms total)\n";
+        << " test suites ran. (" << elapsed_ms.count() << " ms total)\n";
     out << "[  " << result_str << "  ] " << total << " tests.\n";
   }
 };

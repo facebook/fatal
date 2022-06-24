@@ -55,7 +55,7 @@ struct h {
   using apply = std::integral_constant<typename T::value_type, T::value / 2>;
 };
 
-FATAL_TEST(transform, 0 transforms) {
+FATAL_TEST(transform, 0_transforms) {
   FATAL_EXPECT_SAME<list<>, transform<list<>>>();
 
   FATAL_EXPECT_SAME<list<v<0>>, transform<list<v<0>>>>();
@@ -66,7 +66,7 @@ FATAL_TEST(transform, 0 transforms) {
   >();
 }
 
-FATAL_TEST(transform, 1 transform) {
+FATAL_TEST(transform, 1_transform) {
   FATAL_EXPECT_SAME<list<>, transform<list<>, id>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, p>>();
 
@@ -84,7 +84,7 @@ FATAL_TEST(transform, 1 transform) {
   >();
 }
 
-FATAL_TEST(transform, 2 transforms) {
+FATAL_TEST(transform, 2_transforms) {
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, id>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, p>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, p, d>>();
@@ -116,7 +116,7 @@ FATAL_TEST(transform, 2 transforms) {
   >();
 }
 
-FATAL_TEST(transform, 3 transforms) {
+FATAL_TEST(transform, 3_transforms) {
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, id, p>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, p, s>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, p, d, s>>();
@@ -148,7 +148,7 @@ FATAL_TEST(transform, 3 transforms) {
   >();
 }
 
-FATAL_TEST(transform, 4 transforms) {
+FATAL_TEST(transform, 4_transforms) {
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, id, p, s>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, p, s, h>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, p, d, s, h>>();
@@ -180,7 +180,7 @@ FATAL_TEST(transform, 4 transforms) {
   >();
 }
 
-FATAL_TEST(transform, 5 transforms) {
+FATAL_TEST(transform, 5_transforms) {
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, id, p, s, n>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, p, s, h, n>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, p, d, s, h, n>>();
@@ -212,7 +212,7 @@ FATAL_TEST(transform, 5 transforms) {
   >();
 }
 
-FATAL_TEST(transform, 6 transforms) {
+FATAL_TEST(transform, 6_transforms) {
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, id, p, s, n, m, m>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, id, p, s, h, n, m>>();
   FATAL_EXPECT_SAME<list<>, transform<list<>, p, d, s, h, n, m>>();

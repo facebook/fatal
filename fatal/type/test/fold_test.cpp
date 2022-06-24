@@ -15,7 +15,7 @@
 
 namespace fatal {
 
-FATAL_TEST(fold, sanity check) {
+FATAL_TEST(fold, sanity_check) {
   FATAL_EXPECT_SAME<
     list<>,
     fold<std::integral_constant<int, 0>, add, list<>>
