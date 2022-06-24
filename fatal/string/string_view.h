@@ -537,21 +537,21 @@ string_view as_string_view() noexcept {
 /////////////////
 
 template <typename T, typename = detail::safe_overload<string_view, T>>
-bool operator ==(T const &lhs, string_view rhs) { return rhs == lhs; }
+bool operator ==(T const &lhs, string_view rhs) { return rhs.operator==(lhs); }
 
 ////////////////
 // operator < //
 ////////////////
 
 template <typename T, typename = detail::safe_overload<string_view, T>>
-bool operator <(T const &lhs, string_view rhs) { return rhs > lhs; }
+bool operator <(T const &lhs, string_view rhs) { return rhs.operator>(lhs); }
 
 ////////////////
 // operator > //
 ////////////////
 
 template <typename T, typename = detail::safe_overload<string_view, T>>
-bool operator >(T const &lhs, string_view rhs) { return rhs < lhs; }
+bool operator >(T const &lhs, string_view rhs) { return rhs.operator<(lhs); }
 
 /////////////////
 // operator != //
