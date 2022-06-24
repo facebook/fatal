@@ -22,8 +22,10 @@
 #include <chrono>
 #include <exception>
 #include <functional>
+#include <iomanip>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -1347,6 +1349,328 @@ struct gtest_printer {
     out << "[  " << result_str << "  ] " << total << " tests.\n";
   }
 };
+
+struct gtest_xml_printer {
+ private:
+  struct case_info {
+    std::string name;
+    timestamp_t time;
+    duration_t elapsed;
+    std::unique_ptr<results> result;
+  };
+  struct suite_info {
+    std::string name;
+    timestamp_t time;
+    duration_t elapsed;
+    std::vector<case_info> cases;
+  };
+  struct suite_list_info {
+    timestamp_t time;
+    duration_t elapsed;
+    std::vector<suite_info> suites;
+  };
+
+ public:
+  explicit gtest_xml_printer(std::ostream &out_) : out{out_} {}
+
+  void start_run(std::size_t, std::size_t, timestamp_t start) {
+    suite_list.time = start;
+  }
+
+  template <typename TGroup>
+  void start_group(TGroup const &group, std::size_t, timestamp_t start) {
+    suite_list.suites.emplace_back();
+    auto &suite = suite_list.suites.back();
+    suite.name = group;
+    suite.time = start;
+  }
+
+  template <typename TGroup, typename TName>
+  void start_test(
+    TGroup const &, TName const &name, source_info const &, timestamp_t start
+  ) {
+    auto &suite = suite_list.suites.back();
+    suite.cases.emplace_back();
+    auto &case_ = suite.cases.back();
+    case_.name = name;
+    case_.time = start;
+  }
+
+  template <typename TName>
+  void issue(
+    TName const &, source_info const &, test_issue const &, std::size_t
+  ) {}
+
+  template <typename TGroup, typename TName>
+  void end_test(
+    results const &result, TGroup const &, TName const &, source_info const &
+  ) {
+    auto &suite = suite_list.suites.back();
+    auto &case_ = suite.cases.back();
+    case_.result = std::make_unique<results>(result);
+  }
+
+  template <typename TGroup>
+  void end_group(TGroup const &, std::size_t, duration_t time) {
+    auto &suite = suite_list.suites.back();
+    suite.elapsed = time;
+  }
+
+  void end_run(std::size_t, std::size_t, std::size_t, duration_t time) {
+    suite_list.elapsed = time;
+
+    emit_suite_list(out, suite_list);
+  }
+
+ private:
+  template <typename F>
+  static std::string quoting(F f) {
+    std::ostringstream quoted;
+    quoted << "\"";
+    f(quoted);
+    quoted << "\"";
+    return quoted.str();
+  }
+  static char const *escape_char(char c) {
+    switch (c) {
+      case '&': return "&amp;";
+      case '"': return "&quot;";
+      case '<': return "&lt;";
+      case '>': return "&gt;";
+      case '\r': return "&#x0A;";
+      case '\n': return "&#x0D;";
+      default: return nullptr;
+    }
+  }
+  static std::string quote(std::string const &text) {
+    return quoting([&](auto &out) {
+      for (char c : text) {
+        auto e = escape_char(c);
+        if (e) {
+          out << e;
+        } else {
+          out << c;
+        }
+      }
+    });
+  }
+  static std::string quote(std::size_t num) {
+    return quoting([&](auto &out) {
+      out << num;
+    });
+  }
+  static std::string quote_elapsed(duration_t elapsed) {
+    using ms = std::chrono::milliseconds;
+    auto const elapsed_ms = std::chrono::duration_cast<ms>(elapsed);
+    return quoting([&](auto &out) {
+      out << std::setprecision(3) << (double(elapsed_ms.count()) / 1000);
+    });
+  }
+  static std::string quote_time(timestamp_t time) {
+    using ms = std::chrono::milliseconds;
+    auto const time_ms = std::chrono::time_point_cast<ms>(time);
+    auto const elapsed_ms = time_ms.time_since_epoch();
+    constexpr std::size_t bufsize = 20;
+    char buf[bufsize];
+    auto const ct = clock::to_time_t(time);
+    auto const tm = ::localtime(&ct);
+    auto const len = ::strftime(buf, bufsize, "%Y-%m-%dT%H:%M:%S", tm);
+    assert(len == 19);
+    return quoting([&](auto &out) {
+      out << buf;
+      out << '.';
+      out << std::setfill('0');
+      out << std::setw(3);
+      out << (elapsed_ms.count() % 1000);
+    });
+  }
+  static std::string render(test_issue const &issue) {
+    std::ostringstream out;
+    out << issue.source().file() << ":"
+        << issue.source().line() << std::endl
+        << issue.message();
+    return out.str();
+  }
+
+  template <typename TOut>
+  static void emit_failure(
+    TOut &out,
+    suite_info const &, case_info const &, test_issue const &issue
+  ) {
+    out << "      <failure"
+        << " message=" << quote(render(issue))
+        << " type=" << quote("")
+        << "/>\n";
+  }
+  template <typename TOut>
+  static void emit_case(
+    TOut &out, suite_info const &suite, case_info const& case_
+  ) {
+    out << "    <testcase"
+        << " name=" << quote(case_.name)
+        << " status=" << quote("run")
+        << " result=" << quote("completed")
+        << " time=" << quote_elapsed(case_.result->elapsed())
+        << " timestamp=" << quote_time(case_.time)
+        << " classname=" << quote(suite.name)
+        << ">\n";
+    for (auto const &failure : *case_.result) {
+      emit_failure(out, suite, case_, failure);
+    }
+    out << "    </testcase>\n";
+  }
+  template <typename TOut>
+  static void emit_suite(
+    TOut &out, suite_info const &suite
+  ) {
+    std::size_t tests = 0;
+    std::size_t failures = 0;
+    for (auto const &case_ : suite.cases) {
+      ++tests;
+      if (!case_.result->empty()) {
+        ++failures;
+      }
+    }
+    out << "  <testsuite"
+        << " name=" << quote(suite.name)
+        << " tests=" << quote(tests)
+        << " failures=" << quote(failures)
+        << " disabled=" << quote(0)
+        << " skipped=" << quote(0)
+        << " errors=" << quote(0)
+        << " time=" << quote_elapsed(suite.elapsed)
+        << " timestamp=" << quote_time(suite.time)
+        << ">\n";
+    for (auto const &case_ : suite.cases) {
+      emit_case(out, suite, case_);
+    }
+    out << "  </testsuite>\n";
+  }
+  template <typename TOut>
+  static void emit_suite_list(TOut &out, suite_list_info const &list) {
+    std::size_t tests = 0;
+    std::size_t failures = 0;
+    for (auto const &suite : list.suites) {
+      for (auto const &case_ : suite.cases) {
+        ++tests;
+        if (!case_.result->empty()) {
+          ++failures;
+        }
+      }
+    }
+    out << "<?xml"
+        << " version=" << quote("1.0")
+        << " encoding=" << quote("UTF-8")
+        << "?>\n"
+        << "<testsuites"
+        << " tests=" << quote(tests)
+        << " failures=" << quote(failures)
+        << " errors=" << quote(0)
+        << " time=" << quote_elapsed(list.elapsed)
+        << " timestamp=" << quote_time(list.time)
+        << " name=" << quote("AllTests")
+        << ">\n";
+    for (auto const &suite : list.suites) {
+      emit_suite(out, suite);
+    }
+    out << "</testsuites>\n";
+  }
+
+  std::ostream &out;
+  suite_list_info suite_list;
+};
+
+template <typename... TPrinter>
+struct composite_printer : private std::tuple<TPrinter...> {
+ private:
+  using base = std::tuple<TPrinter...>;
+
+ public:
+  using base::base;
+  composite_printer(base&& base_) : base(static_cast<base&&>(base_)) {}
+  composite_printer(composite_printer const &) = default;
+  composite_printer& operator=(composite_printer const &) = delete;
+
+  template <typename TGroup>
+  void list_start_group(TGroup const &group) {
+    each([&](auto &_) { _.list_start_group(group); });
+  }
+
+  template <typename TGroup, typename TName>
+  void list_entry(TGroup const &group, TName const &name) {
+    each([&](auto &_) { _.list_entry(group, name); });
+  }
+
+  template <typename TGroup>
+  void list_end_group(TGroup const &group) {
+    each([&](auto &_) { _.list_end_group(group); });
+  }
+
+  void start_run(std::size_t total, std::size_t groups, timestamp_t start) {
+    each([&](auto &_) { _.start_run(total, groups, start); });
+  }
+
+  template <typename TGroup>
+  void start_group(TGroup const &group, std::size_t size, timestamp_t start) {
+    each([&](auto &_) { _.start_group(group, size, start); });
+  }
+
+  template <typename TGroup, typename TName>
+  void start_test(
+    TGroup const &group, TName const &name,
+    source_info const &source, timestamp_t start
+  ) {
+    each([&](auto &_) { _.start_test(group, name, source, start); });
+  }
+
+  template <typename TName>
+  void issue(
+    TName const &name, source_info const &source,
+    test_issue const &i, std::size_t index
+  ) {
+    each([&](auto &_) { _.issue(name, source, i, index); });
+  }
+
+  template <typename TGroup, typename TName>
+  void end_test(
+    results const &result, TGroup const &group,
+    TName const &name, source_info const &source
+  ) {
+    each([&](auto &_) { _.end_test(result, group, name, source); });
+  }
+
+  template <typename TGroup>
+  void end_group(TGroup const &group, std::size_t size, duration_t time) {
+    each([&](auto &_) { _.end_group(group, size, time); });
+  }
+
+  void end_run(
+    std::size_t passed, std::size_t total, std::size_t groups, duration_t time
+  ) {
+    each([&](auto &_) { _.end_run(passed, total, groups, time); });
+  }
+
+ private:
+  using seq = make_index_sequence<std::tuple_size<base>::value>;
+  base &as_base() { return *this; }
+
+  template <typename F>
+  void each(F f) { each(f, seq{}); }
+  template <typename F, std::size_t... I>
+  void each(F f, index_sequence<I...>) {
+    using _ = int[];
+    void(_{0, (f(std::get<I>(as_base())), 0)...});
+  }
+};
+
+template <typename... TPrinter>
+composite_printer<TPrinter &&...> combine_printers(
+  TPrinter &&...printers
+) {
+  return composite_printer<TPrinter &&...>(
+    std::tuple<TPrinter &&...>(static_cast<TPrinter &&>(printers)...)
+  );
+}
 
 template <typename TPrinter>
 int list(TPrinter &printer) {
