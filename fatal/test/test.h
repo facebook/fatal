@@ -23,6 +23,7 @@
 #include <exception>
 #include <functional>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -1055,33 +1056,29 @@ public:
     return ++size_;
   }
 
-  template <typename TPrinter, typename TOut>
-  void list(TOut &out) const {
-    TPrinter printer;
-
+  template <typename TPrinter>
+  void list(TPrinter &printer) const {
     for (auto const &order: groups_order_) {
       auto g = groups_.find(order);
       assert(g != groups_.end());
       assert(g->second < entries_.size());
       auto const &group = entries_[g->second];
 
-      printer.list_start_group(out, order);
+      printer.list_start_group(order);
 
       for (auto const &i: group) {
-        printer.list_entry(out, g->first, i->name());
+        printer.list_entry(g->first, i->name());
       }
 
-      printer.list_end_group(out, order);
+      printer.list_end_group(order);
     }
   }
 
-  template <typename TPrinter, typename TOut, typename Filter>
-  run_result run(TOut &out, Filter &&filter) const {
+  template <typename TPrinter, typename Filter>
+  run_result run(TPrinter &printer, Filter &&filter) const {
     run_result summary;
 
-    TPrinter printer;
-
-    printer.start_run(out, size_, groups_.size(), clock::now());
+    printer.start_run(size_, groups_.size(), clock::now());
 
     duration_t running_time(0);
     size_type passed = 0;
@@ -1095,23 +1092,23 @@ public:
 
       duration_t group_time(0);
 
-      printer.start_group(out, g->first, group.size(), clock::now());
+      printer.start_group(g->first, group.size(), clock::now());
 
       for (auto const &i: group) {
         if (!filter(*i)) {
           continue;
         }
 
-        printer.start_test(out, g->first, i->name(), i->source(), clock::now());
+        printer.start_test(g->first, i->name(), i->source(), clock::now());
 
         std::size_t issues = 0;
         auto result = i->run(
           [&](test_issue const &issue) {
-            printer.issue(out, i->name(), i->source(), issue, issues);
+            printer.issue(i->name(), i->source(), issue, issues);
           }
         );
 
-        printer.end_test(out, result, g->first, i->name(), i->source());
+        printer.end_test(result, g->first, i->name(), i->source());
 
         group_time += result.elapsed();
         ++total;
@@ -1125,25 +1122,25 @@ public:
 
       running_time += group_time;
 
-      printer.end_group(out, g->first, group.size(), group_time);
+      printer.end_group(g->first, group.size(), group_time);
     }
 
-    printer.end_run(out, passed, total, groups_.size(), running_time);
+    printer.end_run(passed, total, groups_.size(), running_time);
 
     summary.second = passed == total;
 
     return summary;
   }
 
-  template <typename TPrinter, typename TOut>
-  run_result run_all(TOut &out) const {
-    return run<TPrinter>(out, [](entry const &) { return true; });
+  template <typename TPrinter>
+  run_result run_all(TPrinter &printer) const {
+    return run(printer, [](entry const &) { return true; });
   }
 
   // only supports exact match
-  template <typename TPrinter, typename TOut>
-  run_result run_one(TOut &out, std::string const &full_name) const {
-    return run<TPrinter>(out, [&](entry const &e) {
+  template <typename TPrinter>
+  run_result run_one(TPrinter &printer, std::string const &full_name) const {
+    return run(printer, [&](entry const &e) {
       return make_full_name(e.group(), e.name()) == full_name;
     });
   }
@@ -1171,29 +1168,28 @@ private:
 } // namespace detail {
 
 struct default_printer {
-  template <typename TOut, typename TGroup>
-  void list_start_group(TOut &, TGroup const &) {}
+  std::ostream &out;
 
-  template <typename TOut, typename TGroup, typename TName>
-  void list_entry(TOut &out, TGroup const &group, TName const &name) {
+  explicit default_printer(std::ostream &out_) : out{out_} {}
+
+  template <typename TGroup>
+  void list_start_group(TGroup const &) {}
+
+  template <typename TGroup, typename TName>
+  void list_entry(TGroup const &group, TName const &name) {
     out << group << " - " << name << "\n";
   }
 
-  template <typename TOut, typename TGroup>
-  void list_end_group(TOut &, TGroup const &) {}
+  template <typename TGroup>
+  void list_end_group(TGroup const &) {}
 
-  template <typename TOut>
-  void start_run(
-    TOut &out, std::size_t total, std::size_t groups, timestamp_t start
-  ) {
+  void start_run(std::size_t total, std::size_t groups, timestamp_t start) {
     out << "running " << total << " tests from " << groups << " test cases\n";
     run_start_ = start;
   }
 
-  template <typename TOut, typename TGroup>
-  void start_group(
-    TOut &out, TGroup const &group, std::size_t, timestamp_t start
-  ) {
+  template <typename TGroup>
+  void start_group(TGroup const &group, std::size_t, timestamp_t start) {
     auto const time = start - run_start_;
 
     time::pretty_print(out << "\n== test case: '" << group << "' at [", time)
@@ -1202,9 +1198,9 @@ struct default_printer {
     group_start_ = start;
   }
 
-  template <typename TOut, typename TGroup, typename TName>
+  template <typename TGroup, typename TName>
   void start_test(
-    TOut &out, TGroup const &, TName const &name,
+    TGroup const &, TName const &name,
     source_info const &source, timestamp_t start
   ) {
     auto const time = start - group_start_;
@@ -1218,10 +1214,9 @@ struct default_printer {
     test_start_ = start;
   }
 
-  template <typename TOut, typename TName>
+  template <typename TName>
   void issue(
-    TOut &out, TName const &, source_info const &,
-    test_issue const &i, std::size_t index
+    TName const &, source_info const &, test_issue const &i, std::size_t index
   ) {
     if (index) {
       out << '\n';
@@ -1236,10 +1231,9 @@ struct default_printer {
     ) << "]:\n  " << i.message() << '\n';
   }
 
-  template <typename TOut, typename TGroup, typename TName>
+  template <typename TGroup, typename TName>
   void end_test(
-    TOut &out, results const &result,
-    TGroup const &, TName const &, source_info const &
+    results const &result, TGroup const &, TName const &, source_info const &
   ) {
     time::pretty_print(
       out << "<< " << (result.passed() ? "succeeded" : "failed") << " after [",
@@ -1247,14 +1241,11 @@ struct default_printer {
     ) << "]\n\n";
   }
 
-  template <typename TOut, typename TGroup>
-  void end_group(TOut &, TGroup const &, std::size_t, duration_t) {
-  }
+  template <typename TGroup>
+  void end_group(TGroup const &, std::size_t, duration_t) {}
 
-  template <typename TOut>
   void end_run(
-    TOut &out, std::size_t passed, std::size_t total, std::size_t,
-    duration_t time
+    std::size_t passed, std::size_t total, std::size_t, duration_t time
   ) {
     time::pretty_print(
       out << '\n' << (passed == total ? "succeeded" : "FAILED") << ": passed "
@@ -1271,47 +1262,44 @@ private:
 
 // a minimal mimic of gtest test output
 struct gtest_printer {
-  template <typename TOut, typename TGroup>
-  void list_start_group(TOut &out, TGroup const &group) {
+  std::ostream &out;
+
+  explicit gtest_printer(std::ostream &out_) : out{out_} {}
+
+  template <typename TGroup>
+  void list_start_group(TGroup const &group) {
     out << group << ".\n";
   }
 
-  template <typename TOut, typename TGroup, typename TName>
-  void list_entry(TOut &out, TGroup const &, TName const &name) {
+  template <typename TGroup, typename TName>
+  void list_entry(TGroup const &, TName const &name) {
     out << "  " << name << "\n";
   }
 
-  template <typename TOut, typename TGroup>
-  void list_end_group(TOut &, TGroup const &) {}
+  template <typename TGroup>
+  void list_end_group(TGroup const &) {}
 
-  template <typename TOut>
-  void start_run(
-    TOut &out, std::size_t total, std::size_t groups, timestamp_t
-  ) {
+  void start_run(std::size_t total, std::size_t groups, timestamp_t) {
     out << "[==========] Running " << total << " tests from " << groups
         << " test suites.\n";
     out << "[----------] Global test environment set-up.\n";
   }
 
-  template <typename TOut, typename TGroup>
-  void start_group(
-    TOut &out, TGroup const &group, std::size_t size, timestamp_t
-  ) {
+  template <typename TGroup>
+  void start_group(TGroup const &group, std::size_t size, timestamp_t) {
     out << "[----------] " << size << " tests from " << group << "\n";
   }
 
-  template <typename TOut, typename TGroup, typename TName>
+  template <typename TGroup, typename TName>
   void start_test(
-    TOut &out, TGroup const &group, TName const &name,
-    source_info const &, timestamp_t
+    TGroup const &group, TName const &name, source_info const &, timestamp_t
   ) {
     out << "[ RUN      ] " << group << "." << name << "\n";
   }
 
-  template <typename TOut, typename TName>
+  template <typename TName>
   void issue(
-    TOut &out, TName const &, source_info const &,
-    test_issue const &i, std::size_t index
+    TName const &, source_info const &, test_issue const &i, std::size_t index
   ) {
     if (index) {
       out << '\n';
@@ -1321,10 +1309,9 @@ struct gtest_printer {
         << i.source().line() << "]: " << i.message() << '\n';
   }
 
-  template <typename TOut, typename TGroup, typename TName>
+  template <typename TGroup, typename TName>
   void end_test(
-    TOut &out, results const &result,
-    TGroup const &group, TName const &name,
+    results const &result, TGroup const &group, TName const &name,
     source_info const &
   ) {
     auto const result_str = result.passed() ? "    OK" : "FAILED";
@@ -1337,10 +1324,8 @@ struct gtest_printer {
         << " (" << elapsed_ms.count() << " ms)\n";
   }
 
-  template <typename TOut, typename TGroup>
-  void end_group(
-    TOut &out, TGroup const &group, std::size_t size, duration_t time
-  ) {
+  template <typename TGroup>
+  void end_group(TGroup const &group, std::size_t size, duration_t time) {
     auto const elapsed_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(time);
 
@@ -1349,10 +1334,8 @@ struct gtest_printer {
     out << "\n";
   }
 
-  template <typename TOut>
   void end_run(
-    TOut &out, std::size_t passed, std::size_t total,
-    std::size_t groups, duration_t time
+    std::size_t passed, std::size_t total, std::size_t groups, duration_t time
   ) {
     auto const result_str = passed == total ? "PASSED" : "FAILED";
     auto const elapsed_ms =
@@ -1365,26 +1348,26 @@ struct gtest_printer {
   }
 };
 
-template <typename TPrinter = default_printer, typename TOut>
-int list(TOut &out) {
+template <typename TPrinter>
+int list(TPrinter &printer) {
   auto &registry = detail::test_impl::registry::get();
-  registry.list<TPrinter>(out);
+  registry.list(printer);
 
   return EXIT_SUCCESS;
 }
 
-template <typename TPrinter = default_printer, typename TOut>
-int run_all(TOut &out) {
+template <typename TPrinter>
+int run_all(TPrinter &printer) {
   auto &registry = detail::test_impl::registry::get();
-  auto const result = registry.run_all<TPrinter>(out);
+  auto const result = registry.run_all(printer);
 
   return result.second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-template <typename TPrinter = default_printer, typename TOut>
-int run_one(TOut &out, std::string const &full_name) {
+template <typename TPrinter>
+int run_one(TPrinter &printer, std::string const &full_name) {
   auto &registry = detail::test_impl::registry::get();
-  auto const result = registry.run_one<TPrinter>(out, full_name);
+  auto const result = registry.run_one(printer, full_name);
 
   return result.second ? EXIT_SUCCESS : EXIT_FAILURE;
 }

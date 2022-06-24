@@ -40,33 +40,35 @@ int main(int const argc, char const *const *const argv) {
   auto const opts = fatal::test_impl::args::parse_args<Opts>(argc, argv);
 
   if (opts.empty()) {
-    return fatal::test::run_all<fatal::test::default_printer>(std::cerr);
+    auto printer = fatal::test::default_printer{std::cout};
+    return fatal::test::run_all(printer);
   }
   auto const iter_gtest = opts.find(arg_gtest);
   if (iter_gtest != opts.end()) {
-    return fatal::test::run_all<fatal::test::gtest_printer>(std::cout);
+    auto printer = fatal::test::gtest_printer{std::cout};
+    return fatal::test::run_all(printer);
   }
 
   auto const iter_list = opts.find(arg_list);
   if (iter_list != opts.end()) {
-    return fatal::test::list<fatal::test::default_printer>(std::cout);
+    auto printer = fatal::test::default_printer{std::cout};
+    return fatal::test::list(printer);
   }
   auto const iter_gtest_list = opts.find(arg_gtest_list);
   if (iter_gtest_list != opts.end()) {
-    return fatal::test::list<fatal::test::gtest_printer>(std::cout);
+    auto printer = fatal::test::gtest_printer{std::cout};
+    return fatal::test::list(printer);
   }
 
   auto const iter_filter = opts.find(arg_filter);
   if (iter_filter != opts.end()) {
-    return fatal::test::run_one<fatal::test::default_printer>(
-      std::cerr, iter_filter->second
-    );
+    auto printer = fatal::test::default_printer{std::cout};
+    return fatal::test::run_one(printer, iter_filter->second);
   }
   auto const iter_gtest_filter = opts.find(arg_gtest_filter);
   if (iter_gtest_filter != opts.end()) {
-    return fatal::test::run_one<fatal::test::gtest_printer>(
-      std::cout, iter_gtest_filter->second
-    );
+    auto printer = fatal::test::gtest_printer{std::cout};
+    return fatal::test::run_one(printer, iter_gtest_filter->second);
   }
 
   return 1; // unrecognized input
