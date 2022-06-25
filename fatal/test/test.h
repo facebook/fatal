@@ -568,11 +568,11 @@ class check_wrapper {
 public:
   template <typename UPredicate, typename UArgsTuple>
   check_wrapper(
-    UPredicate &&predicate,
+    UPredicate &&pred,
     source_info source,
     UArgsTuple &&args
   ):
-    predicate_(std::forward<UPredicate>(predicate)),
+    predicate_(std::forward<UPredicate>(pred)),
     source_(source),
     args_(std::forward<UArgsTuple>(args))
   {}
