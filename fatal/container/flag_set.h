@@ -39,6 +39,8 @@ namespace fatal {
  */
 template <typename... Flags>
 struct flag_set {
+  static_assert(sizeof...(Flags) <= 64, "no matching integer type");
+
   /**
    * The list of supported flags.
    *
@@ -77,8 +79,8 @@ private:
         flags_type
       >::type,
       (try_index_of<tag_list, UFlags>::value < size<tag_list>::value
-        ? ((flags_type(1) << try_index_of<tag_list, UFlags>::value) != 0)
-        : 0
+        ? flags_type(1ull << try_index_of<tag_list, UFlags>::value)
+        : flags_type(0ull)
       )
     >...
   >;
