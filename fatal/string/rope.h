@@ -1725,7 +1725,7 @@ template <
   typename = safe_overload<rope<SmallBufferSize>, T>
 >
 bool operator ==(T const &lhs, rope<SmallBufferSize> const &rhs) {
-  return rhs == lhs;
+  return rhs.operator==(lhs);
 }
 
 ////////////////
