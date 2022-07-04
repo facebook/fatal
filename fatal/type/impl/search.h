@@ -21,9 +21,10 @@ namespace i_S {
 // TODO: HIGHER LOG BASE OPTIMIZATION (3 or 4 should be enough)
 // TODO: SWITCH CASE OPTIMIZATION
 
-template <typename T, std::size_t Offset = 0, std::size_t Size = size<T>::value>
+template <std::size_t Offset, std::size_t Size>
 struct s {
   template <
+    typename T,
     typename Comparer,
     typename Filter,
     typename Needle,
@@ -39,14 +40,14 @@ struct s {
     using pivot = at<T, Offset + (Size / 2)>;
     using filtered = typename Filter::template apply<pivot>;
     return Comparer::template greater<filtered>(needle)
-      ? s<T, Offset, Size / 2>::template S<Comparer, Filter>(
+      ? s<Offset, Size / 2>::template S<T, Comparer, Filter>(
         static_cast<Needle &&>(needle),
         static_cast<Visitor &&>(visitor),
         static_cast<Args &&>(args)...
       )
       : Comparer::template less<filtered>(needle)
-        ? s<T, (Offset + Size / 2) + 1, Size / 2 - !(Size & 1)>
-          ::template S<Comparer, Filter>(
+        ? s<(Offset + Size / 2) + 1, Size / 2 - !(Size & 1)>
+          ::template S<T, Comparer, Filter>(
             static_cast<Needle &&>(needle),
             static_cast<Visitor &&>(visitor),
             static_cast<Args &&>(args)...
@@ -60,17 +61,18 @@ struct s {
   }
 };
 
-template <typename T, std::size_t Offset>
-struct s<T, Offset, 0> {
-  template <typename, typename, typename... Args>
+template <std::size_t Offset>
+struct s<Offset, 0> {
+  template <typename, typename, typename, typename... Args>
   static constexpr inline bool S(Args &&...) {
     return false;
   }
 };
 
-template <typename T, std::size_t Offset>
-struct s<T, Offset, 1> {
+template <std::size_t Offset>
+struct s<Offset, 1> {
   template <
+    typename T,
     typename Comparer,
     typename Filter,
     typename Needle,
@@ -94,9 +96,10 @@ struct s<T, Offset, 1> {
   }
 };
 
-template <typename T, std::size_t Offset>
-struct s<T, Offset, 2> {
+template <std::size_t Offset>
+struct s<Offset, 2> {
   template <
+    typename T,
     typename Comparer,
     typename Filter,
     typename Needle,

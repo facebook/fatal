@@ -36,7 +36,7 @@ static inline constexpr bool sorted_search(
   Visitor &&visitor,
   Args &&...args
 ) {
-  return i_S::s<T>::template S<Comparer, Filter>(
+  return i_S::s<0, size<T>::value>::template S<T, Comparer, Filter>(
     static_cast<Needle &&>(needle),
     static_cast<Visitor &&>(visitor),
     static_cast<Args &&>(args)...
