@@ -22,10 +22,14 @@ struct type_pack_element_test {
   template <size_t I, typename... T>
   using fallback = i_at::type_pack_element_fallback<I, T...>;
   template <size_t I, typename... T>
+  using fallback_rec = i_at::type_pack_element_fallback_rec<I, T...>;
+  template <size_t I, typename... T>
   using native = type_pack_element<I, T...>;
 
   template <typename IC, typename... T>
   using fallback_ic = fallback<IC::value, T...>;
+  template <typename IC, typename... T>
+  using fallback_rec_ic = fallback_rec<IC::value, T...>;
   template <typename IC, typename... T>
   using native_ic = native<IC::value, T...>;
 };
@@ -40,6 +44,13 @@ FATAL_TEST(type_pack_element, list) {
   >();
   FATAL_EXPECT_TRUE((detect_v<test::fallback_ic, zero, int>));
   FATAL_EXPECT_FALSE((detect_v<test::fallback_ic, zero>));
+
+  FATAL_EXPECT_SAME<
+    test::fallback_rec<3, int, int, int, double, int, int>,
+    double
+  >();
+  FATAL_EXPECT_TRUE((detect_v<test::fallback_rec_ic, zero, int>));
+  FATAL_EXPECT_FALSE((detect_v<test::fallback_rec_ic, zero>));
 
   FATAL_EXPECT_SAME<
     test::native<3, int, int, int, double, int, int>,

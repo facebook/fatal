@@ -42,10 +42,26 @@ template <std::size_t I, typename... Ts>
 using type_pack_element_fallback = decltype(type_pack_element_test<I>::impl(
     static_cast<type_pack_element_set_t<Ts...>*>(nullptr)));
 
+template <std::size_t I, typename, typename... Ts>
+struct type_pack_element_rec_impl : type_pack_element_rec_impl<I - 1, Ts...> {};
+template <typename T, typename... Ts>
+struct type_pack_element_rec_impl<0, T, Ts...> {
+  using type = T;
+};
+
+template <std::size_t I, typename... Ts>
+using type_pack_element_fallback_rec =
+    typename type_pack_element_rec_impl<I, Ts...>::type;
+
 #if FATAL_HAS_BUILTIN(__type_pack_element)
 
 template <std::size_t I, typename... Ts>
 using type_pack_element = __type_pack_element<I, Ts...>;
+
+#elif _MSC_VER && _MSC_VER < /* vs2019 = */ 1920
+
+template <std::size_t I, typename... Ts>
+using type_pack_element = type_pack_element_fallback_rec<I, Ts...>;
 
 #else
 
