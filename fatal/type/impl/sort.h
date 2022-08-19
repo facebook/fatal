@@ -11,8 +11,10 @@
 #define FATAL_INCLUDE_fatal_type_impl_sort_h
 
 #include <fatal/type/apply.h>
+#include <fatal/type/array.h>
 #include <fatal/type/cat.h>
 #include <fatal/type/conditional.h>
+#include <fatal/type/sequence.h>
 #include <fatal/type/slice.h>
 #include <fatal/type/tag.h>
 
@@ -630,12 +632,10 @@ struct q<Variadic<LHS, RHS>, Less> {
   >;
 };
 
-// TODO: MAKE IT FOUR WAY QUICK SORT??
 template <
   template <typename...> class Variadic,
   typename Pivot, typename... Args, typename Less
 >
-// TODO: USE A BETTER PIVOT
 struct q<Variadic<Pivot, Args...>, Less> {
   using type = lcat<
     typename q<
@@ -726,14 +726,57 @@ struct C {
   >;
 };
 
+// biggest prime fitting in size_t
+static constexpr std::size_t c_array_shuffle_prime =
+  sizeof(std::size_t) == 8 ? std::size_t(-59) : std::size_t(-5);
+
+template <typename T, std::size_t S>
+constexpr c_array<T, S> c_array_iota() {
+  c_array<T, S> a{};
+  for (std::size_t i = 0; i < S; ++i) {
+    a[i] = i;
+  }
+  return a;
+}
+
+template <typename T, std::size_t S>
+constexpr c_array<T, S> c_array_shuffle(c_array<T, S> a) {
+  std::size_t const p = c_array_shuffle_prime;
+  for (std::size_t i = 0; i < S; ++i) {
+    std::size_t const s = S - i; // unshuffled size remaining
+    std::size_t const o = (p % (s + 1)) - 1; // because p % s != 0
+    std::size_t const j = i + o; // index of swap partner
+
+    std::size_t const t = a[i];
+    a[i] = a[j];
+    a[j] = t;
+  }
+  return a;
+}
+
+template <std::size_t S>
+struct c_array_index_shuffle_storage {
+  using array_t = c_array<std::size_t, S>;
+  static constexpr array_t array = c_array_shuffle(
+    c_array_iota<std::size_t, S>()
+  );
+  using seq = array_to_sequence<c_array, std::size_t, S, array>;
+};
+
+template <std::size_t S, typename X = c_array_index_shuffle_storage<S>>
+using shuf_seq = array_to_sequence<c_array, std::size_t, S, X::array>;
+
+template <typename List>
+using shuf = pick_seq<List, shuf_seq<size<List>::value>>;
+
 // quicksort entry-point
 template <typename...> struct Q;
 
 template <typename T, typename Less>
-struct Q<T, Less>: q<T, Less> {};
+struct Q<T, Less>: q<shuf<T>, Less> {};
 
 template <typename T, typename Less, typename By>
-struct Q<T, Less, By>: q<T, C<Less, By>> {};
+struct Q<T, Less, By>: q<shuf<T>, C<Less, By>> {};
 
 template <typename> struct i;
 
