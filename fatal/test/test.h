@@ -1474,7 +1474,7 @@ struct gtest_xml_printer {
     char buf[bufsize];
     auto const ct = clock::to_time_t(time);
     auto const tm = ::localtime(&ct);
-    auto const len = ::strftime(buf, bufsize, "%Y-%m-%dT%H:%M:%S", tm);
+    [[maybe_unused]] auto const len = ::strftime(buf, bufsize, "%Y-%m-%dT%H:%M:%S", tm);
     assert(len == 19);
     return quoting([&](auto &out) {
       out << buf;
