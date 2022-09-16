@@ -11,7 +11,7 @@
 #define FATAL_INCLUDE_fatal_type_sequence_h
 
 #include <fatal/portability.h>
-#include <fatal/preprocessor.h>
+#include <fatal/type/builtin.h>
 #include <fatal/type/debug.h>
 
 #include <cstdlib>
@@ -25,18 +25,8 @@ struct sequence {
   using value_type = T;
 };
 
-#if FATAL_HAS_BUILTIN(__make_integer_seq) || _MSC_FULL_VER >= 190023918
-
 template <typename T, std::size_t Size>
 using make_sequence = __make_integer_seq<sequence, T, Size>;
-
-#else
-
-template <typename T, std::size_t Size>
-using make_sequence =
-  typename impl_seq::make<Size>::template apply<sequence<T>, sequence<T, 0>>;
-
-#endif
 
 template <typename T, T Begin, T End>
 using make_interval = typename impl_seq::offset<

@@ -15,47 +15,6 @@
 namespace fatal {
 namespace impl_seq {
 
-template <typename...> struct cat;
-
-template <
-  template <typename T, T...> class Sequence,
-  typename T, T... V0, T... V1, T... Tail
->
-struct cat<Sequence<T, V0...>, Sequence<T, V1...>, Sequence<T, Tail...>> {
-  using type = Sequence<
-    T,
-    V0...,
-    (sizeof...(V0) + V1)...,
-    (sizeof...(V0) + sizeof...(V1) + Tail)...
-  >;
-};
-
-template <std::size_t Size>
-struct make {
-  template <typename S0, typename S1>
-  using apply = typename cat<
-    typename make<Size / 2>::template apply<S0, S1>,
-    typename make<Size / 2>::template apply<S0, S1>,
-    typename make<Size % 2>::template apply<S0, S1>
-  >::type;
-};
-
-template <> struct make<1> {
-  template <typename S0, typename S1>
-  using apply = S1;
-};
-template <> struct make<0> {
-  template <typename S0, typename S1>
-  using apply = S0;
-};
-
-template <
-  template <typename T, T...> class Sequence, typename T, std::size_t Size
->
-using make_sequence = typename make<Size>::template apply<
-  Sequence<T>, Sequence<T, 0>
->;
-
 template <typename T, T Offset, typename> struct offset;
 
 template <
@@ -83,7 +42,7 @@ static constexpr std::size_t size(T const (&)[Size]) {
     using type = Sequence<char_type, (__VA_ARGS__)[ArgV]...>; \
   }; \
   using Id = typename Helper< \
-    ::fatal::impl_seq::make_sequence< \
+    ::fatal::make_integer_seq< \
       Sequence, ::std::size_t, ::fatal::impl_seq::size(__VA_ARGS__) \
     > \
   >::type

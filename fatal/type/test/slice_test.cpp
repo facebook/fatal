@@ -8,58 +8,6 @@
 
 namespace fatal {
 
-template <typename T, typename... S>
-struct type_t_ { using type = T; };
-template <typename Void, template <typename...> class, typename...>
-struct detect_ : std::false_type {};
-template <template <typename...> class T, typename... A>
-struct detect_<typename type_t_<void, T<A...>>::type, T, A...>
-  : std::true_type {};
-template <template <typename...> class T, typename... A>
-constexpr bool detect_v = detect_<void, T, A...>::value;
-
-struct type_pack_element_test {
-  template <size_t I, typename... T>
-  using fallback = i_at::type_pack_element_fallback<I, T...>;
-  template <size_t I, typename... T>
-  using fallback_rec = i_at::type_pack_element_fallback_rec<I, T...>;
-  template <size_t I, typename... T>
-  using native = type_pack_element<I, T...>;
-
-  template <typename IC, typename... T>
-  using fallback_ic = fallback<IC::value, T...>;
-  template <typename IC, typename... T>
-  using fallback_rec_ic = fallback_rec<IC::value, T...>;
-  template <typename IC, typename... T>
-  using native_ic = native<IC::value, T...>;
-};
-
-FATAL_TEST(type_pack_element, list) {
-  using test = type_pack_element_test;
-  using zero = std::integral_constant<std::size_t, 0>;
-
-  FATAL_EXPECT_SAME<
-    test::fallback<3, int, int, int, double, int, int>,
-    double
-  >();
-  FATAL_EXPECT_TRUE((detect_v<test::fallback_ic, zero, int>));
-  FATAL_EXPECT_FALSE((detect_v<test::fallback_ic, zero>));
-
-  FATAL_EXPECT_SAME<
-    test::fallback_rec<3, int, int, int, double, int, int>,
-    double
-  >();
-  FATAL_EXPECT_TRUE((detect_v<test::fallback_rec_ic, zero, int>));
-  FATAL_EXPECT_FALSE((detect_v<test::fallback_rec_ic, zero>));
-
-  FATAL_EXPECT_SAME<
-    test::native<3, int, int, int, double, int, int>,
-    double
-  >();
-  FATAL_EXPECT_TRUE((detect_v<test::native_ic, zero, int>));
-  FATAL_EXPECT_FALSE((detect_v<test::native_ic, zero>));
-}
-
 FATAL_TEST(pick_var, list) {
   FATAL_EXPECT_SAME<
     pick_var<

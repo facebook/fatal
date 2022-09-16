@@ -19,8 +19,6 @@
 
 namespace fatal {
 
-using i_at::type_pack_element;
-
 template <typename List, std::size_t... Indexes>
 using pick_var = typename i_at::pick_var_<List>::template apply<Indexes...>;
 

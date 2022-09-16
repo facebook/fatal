@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_slice_h
 #define FATAL_INCLUDE_fatal_type_impl_slice_h
 
+#include <fatal/type/builtin.h>
 #include <fatal/type/cat.h>
 #include <fatal/type/inherit.h>
 #include <fatal/type/sequence.h>
@@ -20,56 +21,6 @@
 namespace fatal {
 namespace i_at {
 
-template <std::size_t I, typename T>
-struct type_pack_element_indexed_type {};
-
-template <typename, typename...>
-struct type_pack_element_set;
-template <std::size_t... I, typename... T>
-struct type_pack_element_set<index_sequence<I...>, T...>
-    : type_pack_element_indexed_type<I, T>... {};
-template <typename... T>
-using type_pack_element_set_t =
-    type_pack_element_set<make_index_sequence<sizeof...(T)>, T...>;
-
-template <std::size_t I>
-struct type_pack_element_test {
-  template <typename T>
-  static T impl(type_pack_element_indexed_type<I, T>*);
-};
-
-template <std::size_t I, typename... Ts>
-using type_pack_element_fallback = decltype(type_pack_element_test<I>::impl(
-    static_cast<type_pack_element_set_t<Ts...>*>(nullptr)));
-
-template <std::size_t I, typename, typename... Ts>
-struct type_pack_element_rec_impl : type_pack_element_rec_impl<I - 1, Ts...> {};
-template <typename T, typename... Ts>
-struct type_pack_element_rec_impl<0, T, Ts...> {
-  using type = T;
-};
-
-template <std::size_t I, typename... Ts>
-using type_pack_element_fallback_rec =
-    typename type_pack_element_rec_impl<I, Ts...>::type;
-
-#if FATAL_HAS_BUILTIN(__type_pack_element)
-
-template <std::size_t I, typename... Ts>
-using type_pack_element = __type_pack_element<I, Ts...>;
-
-#elif _MSC_VER && _MSC_VER < /* vs2019 = */ 1920
-
-template <std::size_t I, typename... Ts>
-using type_pack_element = type_pack_element_fallback_rec<I, Ts...>;
-
-#else
-
-template <std::size_t I, typename... Ts>
-using type_pack_element = type_pack_element_fallback<I, Ts...>;
-
-#endif
-
 template <typename List>
 struct pick_var_;
 template <
@@ -78,7 +29,7 @@ template <
 >
 struct pick_var_<Variadic<Args...>> {
   template <std::size_t i>
-  using t = type_pack_element<i, Args...>;
+  using t = __type_pack_element<i, Args...>;
   template <std::size_t... i>
   using apply = Variadic<t<i>...>;
 };
@@ -88,7 +39,7 @@ template <
 >
 struct pick_var_<Variadic<T, Args...>> {
   template <std::size_t i>
-  using t = type_pack_element<i, std::integral_constant<T, Args>...>;
+  using t = __type_pack_element<i, std::integral_constant<T, Args>...>;
   template <std::size_t... i>
   using apply = Variadic<T, t<i>::value...>;
 };
