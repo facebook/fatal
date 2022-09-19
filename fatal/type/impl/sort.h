@@ -689,7 +689,6 @@ template <
   typename T, T Pivot, T Arg0, T Arg1, T... Args,
   typename Less
 >
-// TODO: USE A BETTER PIVOT
 struct q<Variadic<T, Pivot, Arg0, Arg1, Args...>, Less> {
   using type = typename vcat<
     typename q<
