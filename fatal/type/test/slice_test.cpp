@@ -1,5 +1,6 @@
 #include <fatal/type/slice.h>
 
+#include <fatal/type/constant.h>
 #include <fatal/type/list.h>
 #include <fatal/type/sequence.h>
 
@@ -46,6 +47,12 @@ FATAL_TEST(pick_seq, seq) {
     >,
     char_sequence<'d', 'b'>
   >();
+}
+
+FATAL_TEST(at, single) {
+  FATAL_EXPECT_SAME<at<get_constant<float>, 0>, float>();
+  FATAL_EXPECT_SAME<at<pair<float, double>, 0>, float>();
+  FATAL_EXPECT_SAME<at<pair<float, double>, 1>, double>();
 }
 
 FATAL_TEST(index_of, list) {
