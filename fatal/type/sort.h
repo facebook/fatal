@@ -22,7 +22,7 @@ namespace fatal {
 
 // `Pair` is guaranteed to be instantiated at most once
 template <typename T, typename Filter, template <typename...> class Pair = pair>
-using partition = typename i_s::P<Pair, T, Filter>::type;
+using partition = typename i_s::P<T>::template apply<Filter, Pair>;
 
 template <typename T, typename Predicate>
 using filter = typename i_s::F<Predicate, T>::type;

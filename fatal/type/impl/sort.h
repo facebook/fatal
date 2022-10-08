@@ -27,381 +27,77 @@
 namespace fatal {
 namespace i_s {
 
-// partition recursion
-template <template <typename...> class, typename...> struct p;
-
-template <template <typename...> class Pair, typename L, typename R>
-struct p<Pair, L, R> {
-  using type = Pair<L, R>;
+template <bool>
+struct Ptf;
+template <>
+struct Ptf<false> {
+  template <template <typename...> class Variadic, typename>
+  using apply = Variadic<>;
 };
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R, typename T0
->
-struct p<Pair, Variadic<L...>, Variadic<R...>, indexed<T0, true>> {
-  using type = Pair<Variadic<L..., T0>, Variadic<R...>>;
+template <>
+struct Ptf<true> {
+  template <template <typename...> class Variadic, typename A>
+  using apply = Variadic<A>;
 };
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R, typename T0
->
-struct p<Pair, Variadic<L...>, Variadic<R...>, indexed<T0, false>> {
-  using type = Pair<Variadic<L...>, Variadic<R..., T0>>;
+template <bool>
+struct Pvf;
+template <>
+struct Pvf<false> {
+  template <template <typename V, V...> class Variadic, typename T, T>
+  using apply = Variadic<T>;
 };
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R, typename T0, typename T1
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, false>, indexed<T1, false>
-> {
-  using type = Pair<Variadic<L...>, Variadic<R..., T0, T1>>;
+template <>
+struct Pvf<true> {
+  template <template <typename V, V...> class Variadic, typename T, T A>
+  using apply = Variadic<T, A>;
 };
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R, typename T0, typename T1
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, false>, indexed<T1, true>
-> {
-  using type = Pair<Variadic<L..., T1>, Variadic<R..., T0>>;
-};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R, typename T0, typename T1
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, true>, indexed<T1, false>
-> {
-  using type = Pair<Variadic<L..., T0>, Variadic<R..., T1>>;
-};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R, typename T0, typename T1
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, true>, indexed<T1, true>
-> {
-  using type = Pair<Variadic<L..., T0, T1>, Variadic<R...>>;
-};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R,
-  typename T0, typename T1, typename T2, typename... Args
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, false>, indexed<T1, false>, indexed<T2, false>,
-  Args...
->:
-  p<Pair, Variadic<L...>, Variadic<R..., T0, T1, T2>, Args...>
-{};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R,
-  typename T0, typename T1, typename T2, typename... Args
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, false>, indexed<T1, false>, indexed<T2, true>,
-  Args...
->:
-  p<Pair, Variadic<L..., T2>, Variadic<R..., T0, T1>, Args...>
-{};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R,
-  typename T0, typename T1, typename T2, typename... Args
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, false>, indexed<T1, true>, indexed<T2, false>,
-  Args...
->:
-  p<Pair, Variadic<L..., T1>, Variadic<R..., T0, T2>, Args...>
-{};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R,
-  typename T0, typename T1, typename T2, typename... Args
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, false>, indexed<T1, true>, indexed<T2, true>,
-  Args...
->:
-  p<Pair, Variadic<L..., T1, T2>, Variadic<R..., T0>, Args...>
-{};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R,
-  typename T0, typename T1, typename T2, typename... Args
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, true>, indexed<T1, false>, indexed<T2, false>,
-  Args...
->:
-  p<Pair, Variadic<L..., T0>, Variadic<R..., T1, T2>, Args...>
-{};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R,
-  typename T0, typename T1, typename T2, typename... Args
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, true>, indexed<T1, false>, indexed<T2, true>,
-  Args...
->:
-  p<Pair, Variadic<L..., T0, T2>, Variadic<R..., T1>, Args...>
-{};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R,
-  typename T0, typename T1, typename T2, typename... Args
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, true>, indexed<T1, true>, indexed<T2, false>,
-  Args...
->:
-  p<Pair, Variadic<L..., T0, T1>, Variadic<R..., T2>, Args...>
-{};
-
-template <
-  template <typename...> class Pair, template <typename...> class Variadic,
-  typename... L, typename... R,
-  typename T0, typename T1, typename T2, typename... Args
->
-struct p<
-  Pair, Variadic<L...>, Variadic<R...>,
-  indexed<T0, true>, indexed<T1, true>, indexed<T2, true>,
-  Args...
->:
-  p<Pair, Variadic<L..., T0, T1, T2>, Variadic<R...>, Args...>
-{};
-
-// placeholder for partition's filtered sequence elements
-template <typename T, T, bool> struct h;
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic, typename T,
-  T... L, T... R, T T0
->
-struct p<Pair, Variadic<T, L...>, Variadic<T, R...>, h<T, T0, true>> {
-  using type = Pair<Variadic<T, L..., T0>, Variadic<T, R...>>;
-};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>, h<T, T0, false>
-> {
-  using type = Pair<Variadic<T, L...>, Variadic<T, R..., T0>>;
-};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, false>, h<T, T1, false>
-> {
-  using type = Pair<Variadic<T, L...>, Variadic<T, R..., T0, T1>>;
-};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, false>, h<T, T1, true>
-> {
-  using type = Pair<Variadic<T, L..., T1>, Variadic<T, R..., T0>>;
-};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, true>, h<T, T1, false>
-> {
-  using type = Pair<Variadic<T, L..., T0>, Variadic<T, R..., T1>>;
-};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, true>, h<T, T1, true>
-> {
-  using type = Pair<Variadic<T, L..., T0, T1>, Variadic<T, R...>>;
-};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1, T T2, typename... Args
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, false>, h<T, T1, false>, h<T, T2, false>,
-  Args...
->:
-  p<Pair, Variadic<T, L...>, Variadic<T, R..., T0, T1, T2>, Args...>
-{};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1, T T2, typename... Args
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, false>, h<T, T1, false>, h<T, T2, true>,
-  Args...
->:
-  p<Pair, Variadic<T, L..., T2>, Variadic<T, R..., T0, T1>, Args...>
-{};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1, T T2, typename... Args
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, false>, h<T, T1, true>, h<T, T2, false>,
-  Args...
->:
-  p<Pair, Variadic<T, L..., T1>, Variadic<T, R..., T0, T2>, Args...>
-{};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1, T T2, typename... Args
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, false>, h<T, T1, true>, h<T, T2, true>,
-  Args...
->:
-  p<Pair, Variadic<T, L..., T1, T2>, Variadic<T, R..., T0>, Args...>
-{};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1, T T2, typename... Args
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, true>, h<T, T1, false>, h<T, T2, false>,
-  Args...
->:
-  p<Pair, Variadic<T, L..., T0>, Variadic<T, R..., T1, T2>, Args...>
-{};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1, T T2, typename... Args
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, true>, h<T, T1, false>, h<T, T2, true>,
-  Args...
->:
-  p<Pair, Variadic<T, L..., T0, T2>, Variadic<T, R..., T1>, Args...>
-{};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1, T T2, typename... Args
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, true>, h<T, T1, true>, h<T, T2, false>,
-  Args...
->:
-  p<Pair, Variadic<T, L..., T0, T1>, Variadic<T, R..., T2>, Args...>
-{};
-
-template <
-  template <typename...> class Pair,
-  template <typename V, V...> class Variadic,
-  typename T, T... L, T... R, T T0, T T1, T T2, typename... Args
->
-struct p<
-  Pair, Variadic<T, L...>, Variadic<T, R...>,
-  h<T, T0, true>, h<T, T1, true>, h<T, T2, true>,
-  Args...
->:
-  p<Pair, Variadic<T, L..., T0, T1, T2>, Variadic<T, R...>, Args...>
-{};
 
 // partition entry point
-template <template <typename...> class, typename...> struct P;
+template <typename> struct P;
 
 template <
-  template <typename...> class Pair,
   template <typename...> class Variadic,
-  typename... Args,
-  typename Filter
+  typename... Args
 >
-struct P<Pair, Variadic<Args...>, Filter>:
-  p<
-    Pair, Variadic<>, Variadic<>,
-    indexed<Args, Filter::template apply<Args>::value>...
-  >
-{};
+struct P<Variadic<Args...>> {
+  template <typename Filter, template <typename...> class Pair>
+  using apply = Pair<
+    cat<
+      Variadic<>,
+      typename Ptf<
+        Filter::template apply<Args>::value
+      >::template apply<Variadic, Args>...
+    >,
+    cat<
+      Variadic<>,
+      typename Ptf<
+        !Filter::template apply<Args>::value
+      >::template apply<Variadic, Args>...
+    >
+  >;
+};
 
 template <
-  template <typename...> class Pair,
   template <typename V, V...> class Variadic,
-  typename T, T... Args,
-  typename Filter
+  typename T, T... Args
 >
-struct P<Pair, Variadic<T, Args...>, Filter>:
-  p<
-    Pair, Variadic<T>, Variadic<T>,
-    h<T, Args, Filter::template apply<T, Args>::value>...
-  >
-{};
+struct P<Variadic<T, Args...>> {
+  template <typename Filter, template <typename...> class Pair>
+  using apply = Pair<
+    cat<
+      Variadic<T>,
+      typename Pvf<
+        Filter::template apply<T, Args>::value
+      >::template apply<Variadic, T, Args>...
+    >,
+    cat<
+      Variadic<T>,
+      typename Pvf<
+        !Filter::template apply<T, Args>::value
+      >::template apply<Variadic, T, Args>...
+    >
+  >;
+};
 
 template <typename...> struct f;
 
@@ -639,11 +335,21 @@ template <
 struct q<Variadic<Pivot, Args...>, Less> {
   using type = lcat<
     typename q<
-      second<typename P<pair, Variadic<Args...>, curry<Less, Pivot>>::type>,
+      cat<
+        Variadic<>,
+        typename Ptf<
+          !curry<Less, Pivot>::template apply<Args>::value
+        >::template apply<Variadic, Args>...
+      >,
       Less
     >::type,
     typename q<
-      first<typename P<pair, Variadic<Args...>, curry<Less, Pivot>>::type>,
+      cat<
+        Variadic<>,
+        typename Ptf<
+          curry<Less, Pivot>::template apply<Args>::value
+        >::template apply<Variadic, Args>...
+      >,
       Less
     >::type,
     Pivot
@@ -692,22 +398,32 @@ template <
 struct q<Variadic<T, Pivot, Arg0, Arg1, Args...>, Less> {
   using type = typename vcat<
     typename q<
-      second<
-        typename P<
-          pair,
-          Variadic<T, Arg0, Arg1, Args...>,
-          c<Less, T, Pivot>
-        >::type
+      cat<
+        Variadic<T>,
+        typename Pvf<
+          !c<Less, T, Pivot>::template apply<T, Arg0>::value
+        >::template apply<Variadic, T, Arg0>,
+        typename Pvf<
+          !c<Less, T, Pivot>::template apply<T, Arg1>::value
+        >::template apply<Variadic, T, Arg1>,
+        typename Pvf<
+          !c<Less, T, Pivot>::template apply<T, Args>::value
+        >::template apply<Variadic, T, Args>...
       >,
       Less
     >::type,
     typename q<
-      first<
-        typename P<
-          pair,
-          Variadic<T, Arg0, Arg1, Args...>,
-          c<Less, T, Pivot>
-        >::type
+      cat<
+        Variadic<T>,
+        typename Pvf<
+          c<Less, T, Pivot>::template apply<T, Arg0>::value
+        >::template apply<Variadic, T, Arg0>,
+        typename Pvf<
+          c<Less, T, Pivot>::template apply<T, Arg1>::value
+        >::template apply<Variadic, T, Arg1>,
+        typename Pvf<
+          c<Less, T, Pivot>::template apply<T, Args>::value
+        >::template apply<Variadic, T, Args>...
       >,
       Less
     >::type
