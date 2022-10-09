@@ -329,18 +329,27 @@ struct q<Variadic<LHS, RHS>, Less> {
   >;
 };
 
+template <typename Type, bool Result>
+struct q_tpair_ {
+  using type = Type;
+  static constexpr bool result = Result;
+};
+template <typename Less, typename Head, typename... Tail>
+struct q_;
 template <
+  typename Less,
   template <typename...> class Variadic,
-  typename Pivot, typename... Args, typename Less
+  typename Pivot,
+  typename... Pairs
 >
-struct q<Variadic<Pivot, Args...>, Less> {
+struct q_<Less, Variadic<Pivot>, Pairs...> {
   using type = lcat<
     typename q<
       cat<
         Variadic<>,
         typename Ptf<
-          !curry<Less, Pivot>::template apply<Args>::value
-        >::template apply<Variadic, Args>...
+          !Pairs::result
+        >::template apply<Variadic, typename Pairs::type>...
       >,
       Less
     >::type,
@@ -348,14 +357,26 @@ struct q<Variadic<Pivot, Args...>, Less> {
       cat<
         Variadic<>,
         typename Ptf<
-          curry<Less, Pivot>::template apply<Args>::value
-        >::template apply<Variadic, Args>...
+          Pairs::result
+        >::template apply<Variadic, typename Pairs::type>...
       >,
       Less
     >::type,
     Pivot
   >;
 };
+
+template <
+  template <typename...> class Variadic,
+  typename Pivot, typename... Args, typename Less
+>
+struct q<Variadic<Pivot, Args...>, Less>:
+  q_<
+    Less,
+    Variadic<Pivot>,
+    q_tpair_<Args, curry<Less, Pivot>::template apply<Args>::value>...
+  >
+{};
 
 template <template <typename V, V...> class Variadic, typename T, typename Less>
 struct q<Variadic<T>, Less> {
@@ -391,25 +412,27 @@ struct c {
   using apply = typename Less::template vapply<T, LHS, RHS>;
 };
 
+template <typename T, T Value, bool Result>
+struct q_vpair_ {
+  static constexpr T value = Value;
+  static constexpr bool result = Result;
+};
+template <typename Less, typename Head, typename... Tail>
+struct q_;
 template <
+  typename Less,
   template <typename V, V...> class Variadic,
-  typename T, T Pivot, T Arg0, T Arg1, T... Args,
-  typename Less
+  typename T, T Pivot,
+  typename... Pairs
 >
-struct q<Variadic<T, Pivot, Arg0, Arg1, Args...>, Less> {
+struct q_<Less, Variadic<T, Pivot>, Pairs...> {
   using type = typename vcat<
     typename q<
       cat<
         Variadic<T>,
         typename Pvf<
-          !c<Less, T, Pivot>::template apply<T, Arg0>::value
-        >::template apply<Variadic, T, Arg0>,
-        typename Pvf<
-          !c<Less, T, Pivot>::template apply<T, Arg1>::value
-        >::template apply<Variadic, T, Arg1>,
-        typename Pvf<
-          !c<Less, T, Pivot>::template apply<T, Args>::value
-        >::template apply<Variadic, T, Args>...
+          !Pairs::result
+        >::template apply<Variadic, T, Pairs::value>...
       >,
       Less
     >::type,
@@ -417,19 +440,28 @@ struct q<Variadic<T, Pivot, Arg0, Arg1, Args...>, Less> {
       cat<
         Variadic<T>,
         typename Pvf<
-          c<Less, T, Pivot>::template apply<T, Arg0>::value
-        >::template apply<Variadic, T, Arg0>,
-        typename Pvf<
-          c<Less, T, Pivot>::template apply<T, Arg1>::value
-        >::template apply<Variadic, T, Arg1>,
-        typename Pvf<
-          c<Less, T, Pivot>::template apply<T, Args>::value
-        >::template apply<Variadic, T, Args>...
+          Pairs::result
+        >::template apply<Variadic, T, Pairs::value>...
       >,
       Less
     >::type
   >::template apply<Pivot>;
 };
+
+template <
+  template <typename V, V...> class Variadic,
+  typename T, T Pivot, T Arg0, T Arg1, T... Args,
+  typename Less
+>
+struct q<Variadic<T, Pivot, Arg0, Arg1, Args...>, Less>:
+  q_<
+    Less,
+    Variadic<T, Pivot>,
+    q_vpair_<T, Arg0, c<Less, T, Pivot>::template apply<T, Arg0>::value>,
+    q_vpair_<T, Arg1, c<Less, T, Pivot>::template apply<T, Arg1>::value>,
+    q_vpair_<T, Args, c<Less, T, Pivot>::template apply<T, Args>::value>...
+  >
+{};
 
 // TODO: OPTIMIZE BY EXPANDING THE q LIST INTO A PAIR(FILTERED, T)??
 // filtered comparer for quicksort
