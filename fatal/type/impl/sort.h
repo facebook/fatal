@@ -374,7 +374,7 @@ struct q<Variadic<Pivot, Args...>, Less>:
   q_<
     Less,
     Variadic<Pivot>,
-    q_tpair_<Args, curry<Less, Pivot>::template apply<Args>::value>...
+    q_tpair_<Args, Less::template apply<Pivot, Args>::value>...
   >
 {};
 
@@ -403,13 +403,6 @@ struct q<Variadic<T, LHS, RHS>, Less> {
     Variadic<T, RHS, LHS>,
     Variadic<T, LHS, RHS>
   >;
-};
-
-// curried comparer for sequences
-template <typename Less, typename T, T LHS>
-struct c {
-  template <typename U, U RHS>
-  using apply = typename Less::template vapply<T, LHS, RHS>;
 };
 
 template <typename T, T Value, bool Result>
@@ -457,9 +450,9 @@ struct q<Variadic<T, Pivot, Arg0, Arg1, Args...>, Less>:
   q_<
     Less,
     Variadic<T, Pivot>,
-    q_vpair_<T, Arg0, c<Less, T, Pivot>::template apply<T, Arg0>::value>,
-    q_vpair_<T, Arg1, c<Less, T, Pivot>::template apply<T, Arg1>::value>,
-    q_vpair_<T, Args, c<Less, T, Pivot>::template apply<T, Args>::value>...
+    q_vpair_<T, Arg0, Less::template vapply<T, Pivot, Arg0>::value>,
+    q_vpair_<T, Arg1, Less::template vapply<T, Pivot, Arg1>::value>,
+    q_vpair_<T, Args, Less::template vapply<T, Pivot, Args>::value>...
   >
 {};
 
