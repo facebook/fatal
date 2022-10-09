@@ -151,8 +151,9 @@ template <
   typename... Args
 >
 struct m<Variadic<L, LHS...>, Variadic<R, RHS...>, Variadic<Args...>> {
+  static constexpr bool c = R::value < L::value;
   using type = conditional<
-    (R::value < L::value),
+    c,
     typename m<
       Variadic<L, LHS...>, Variadic<RHS...>, Variadic<Args..., R>
     >::type,
