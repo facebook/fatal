@@ -58,6 +58,90 @@ matrix:
     - os: linux
       dist: xenial
       sudo: false
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7']
+      env:
+        COMPILER=g++-7
+        CPP_STD=c++14
+
+    - os: linux
+      dist: xenial
+      sudo: false
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7']
+      env:
+        COMPILER=g++-7
+        CPP_STD=c++1z
+
+    - os: linux
+      dist: xenial
+      sudo: false
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-8']
+      env:
+        COMPILER=g++-8
+        CPP_STD=c++14
+
+    - os: linux
+      dist: xenial
+      sudo: false
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-8']
+      env:
+        COMPILER=g++-8
+        CPP_STD=c++1z
+
+    - os: linux
+      dist: xenial
+      sudo: false
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-9']
+      env:
+        COMPILER=g++-9
+        CPP_STD=c++14
+
+    - os: linux
+      dist: xenial
+      sudo: false
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-9']
+      env:
+        COMPILER=g++-9
+        CPP_STD=c++1z
+
+    - os: linux
+      dist: bionic
+      sudo: false
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-9']
+      env:
+        COMPILER=g++-9
+        CPP_STD=c++1z
+
+    - os: linux
+      dist: xenial
+      sudo: false
       compiler: clang
       addons:
         apt:
