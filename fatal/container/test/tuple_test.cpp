@@ -254,6 +254,20 @@ FATAL_TEST(tuple, tuple) {
   CHECK_IMPL(check_tuple);
 }
 
+FATAL_TEST(tuple, push_back) {
+  using tup = tuple<pair<W, std::string>>;
+  FATAL_EXPECT_SAME<
+      typename tup::push_back<pair<X, std::string>>,
+    tuple<pair<W, std::string>, pair<X, std::string>>>();
+}
+
+FATAL_TEST(tuple, push_front) {
+  using tup = tuple<pair<W, std::string>>;
+  FATAL_EXPECT_SAME<
+      typename tup::push_front<pair<X, std::string>>,
+    tuple<pair<X, std::string>, pair<W, std::string>>>();
+}
+
 template <typename... Tags, typename... TData>
 void check_paired_tuple(TData &&...) {
   static_assert(sizeof...(Tags) == sizeof...(TData), "size mismatch");

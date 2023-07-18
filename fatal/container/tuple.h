@@ -281,24 +281,24 @@ struct tuple {
   using apply = fatal::apply<Transform, Args...>;
 
   /**
-   * TODO: DOCUMENT AND TEST
+   * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... TPairs>
   using push_front = apply_to<
-    push_front<typename tags::list, TPairs...>,
+    push_front<map, TPairs...>,
     fatal::tuple
   >;
 
   /**
-   * TODO: DOCUMENT AND TEST
+   * TODO: DOCUMENT
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
   template <typename... TPairs>
   using push_back = apply_to<
-    push_back<typename tags::list, TPairs...>,
+    push_back<map, TPairs...>,
     fatal::tuple
   >;
 
