@@ -14,6 +14,12 @@
 // FATAL_HAS_BUILTIN //
 ///////////////////////
 
+#if defined(_MSC_VER)
+#define FATAL_CPLUSPLUS _MSVC_LANG
+#else
+#define FATAL_CPLUSPLUS __cplusplus
+#endif
+
 /**
  * TODO: DOCUMENT
  */

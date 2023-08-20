@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_type_tag_h
 #define FATAL_INCLUDE_fatal_type_deprecated_type_tag_h
 
+#include <fatal/portability.h>
 #include <type_traits>
 
 namespace fatal {
@@ -28,8 +29,10 @@ struct indexed_type_tag:
   constexpr static std::size_t index = Index;
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <typename T, std::size_t Index>
 constexpr std::size_t indexed_type_tag<T, Index>::index;
+#endif
 
 struct type_not_found_tag {};
 struct no_metadata_tag {};

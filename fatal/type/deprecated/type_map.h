@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_type_map_h
 #define FATAL_INCLUDE_fatal_type_deprecated_type_map_h
 
+#include <fatal/portability.h>
 #include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/transform.h>
 #include <fatal/type/deprecated/type_list.h>
@@ -913,8 +914,10 @@ public:
 // STATIC MEMBERS DEFINITION //
 ///////////////////////////////
 
+#if FATAL_CPLUSPLUS < 201703L
 template <typename... Args> constexpr std::size_t type_map<Args...>::size;
 template <typename... Args> constexpr bool type_map<Args...>::empty;
+#endif
 
 /////////////////////
 // SUPPORT LIBRARY //

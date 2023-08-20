@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_deprecated_list_h
 #define FATAL_INCLUDE_fatal_type_deprecated_list_h
 
+#include <fatal/portability.h>
 #include <fatal/type/conditional.h>
 #include <fatal/type/deprecated/flatten.h>
 #include <fatal/type/deprecated/transform.h>
@@ -1777,8 +1778,10 @@ using size_list = type_list<std::integral_constant<std::size_t, Values>...>;
 // STATIC MEMBERS DEFINITION //
 ///////////////////////////////
 
+#if FATAL_CPLUSPLUS < 201703L
 template <typename... Args> constexpr std::size_t type_list<Args...>::size;
 template <typename... Args> constexpr bool type_list<Args...>::empty;
+#endif
 
 ////////////////////////////
 // IMPLEMENTATION DETAILS //

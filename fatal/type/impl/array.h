@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_impl_array_h
 #define FATAL_INCLUDE_fatal_type_impl_array_h
 
+#include <fatal/portability.h>
 #include <fatal/type/identity.h>
 #include <fatal/type/list.h>
 #include <fatal/type/slice.h>
@@ -50,8 +51,10 @@ struct a {
   static constexpr T const data[sizeof...(Values)] = {Values...};
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <std::size_t Excess, typename T, T... Values>
 constexpr T const a<Excess, T, Values...>::data[sizeof...(Values)];
+#endif
 
 template <
   std::size_t Excess,
@@ -73,6 +76,7 @@ struct aF {
   };
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <
   std::size_t Excess,
   typename T,
@@ -84,6 +88,7 @@ template <
 constexpr T const aF<
   Excess, T, OuterFilter, InnerFilter, Array, Indexes...
 >::data[sizeof...(Indexes)];
+#endif
 
 template <typename...> struct C;
 
@@ -243,8 +248,10 @@ struct Z {
   static constexpr T const data[sizeof...(Args)] = { z<Args>::data... };
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <typename T, typename... Args>
 constexpr T const Z<T, Args...>::data[sizeof...(Args)];
+#endif
 
 template <typename...> struct ZA;
 
@@ -274,8 +281,10 @@ public:
   };
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <typename T, typename Filter, typename... Args>
 constexpr T const ZF<T, Filter, Args...>::data[sizeof...(Args)];
+#endif
 
 template <typename...> struct ZAF;
 
@@ -319,8 +328,10 @@ struct s {
   };
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <typename T, typename... Args>
 constexpr T const s<T, Args...>::data[sizeof...(Args)];
+#endif
 
 template <typename...> struct S;
 
@@ -361,6 +372,7 @@ public:
   };
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <
   typename T,
   typename OuterFilter,
@@ -371,6 +383,7 @@ template <
 constexpr T const sF<T, OuterFilter, InnerFilter, Array, Indexes...>::data[
   sizeof...(Indexes)
 ];
+#endif
 
 template <typename...> struct SF;
 
@@ -426,8 +439,10 @@ struct c {
   };
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <typename T, typename Factory, typename... Args>
 constexpr T const c<T, Factory, Args...>::data[sizeof...(Args)];
+#endif
 
 // non-constexpr statically allocated array from element factory//
 

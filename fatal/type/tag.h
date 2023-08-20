@@ -10,6 +10,7 @@
 #ifndef FATAL_INCLUDE_fatal_type_tag_h
 #define FATAL_INCLUDE_fatal_type_tag_h
 
+#include <fatal/portability.h>
 #include <fatal/type/pair.h>
 
 #include <cstddef>
@@ -28,8 +29,10 @@ struct indexed: tag<T> {
   static constexpr std::size_t value = Index;
 };
 
+#if FATAL_CPLUSPLUS < 201703L
 template <typename T, std::size_t Index>
 constexpr std::size_t indexed<T, Index>::value;
+#endif
 
 template <typename First, typename Second, std::size_t Index>
 using indexed_pair = indexed<pair<First, Second>, Index>;
