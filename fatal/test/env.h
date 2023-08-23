@@ -19,8 +19,6 @@ namespace env {
 // Not a real argument parser. Just enough to get started with.
 template <typename Map>
 void parse_env(char const *const *envp, Map &map) {
-  using Key = typename Map::key_type;
-  using Val = typename Map::mapped_type;
   for (auto e = envp; e != nullptr && *e != nullptr; ++e) {
     auto const p = std::strchr(*e, '=');
     if (p == nullptr) {

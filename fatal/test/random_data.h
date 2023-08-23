@@ -33,6 +33,7 @@ static std::size_t random_seed() {
 struct random_data {
   using rng_type = std::mt19937;
   using result_type = typename rng_type::result_type;
+  static_assert(!std::is_signed<result_type>::value, "rng produces signed");
 
   random_data(): rng_(impl_rng::random_seed()) {}
 
@@ -55,7 +56,6 @@ struct random_data {
 
     for (; begin != end; ++begin) {
       auto const index = rng_() % alphabet_size;
-      assert(index >= 0);
       *begin = alphabet[index];
     }
   }
