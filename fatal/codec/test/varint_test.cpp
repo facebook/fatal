@@ -62,7 +62,7 @@ public:
       typename codec::encoder e(value);
       auto const begin = out.begin();
       auto const end = out.end();
-      assert(std::distance(begin, end) == out.size());
+      assert(std::distance(begin, end) == 1 * out.size());
       auto const i = e(begin, end);
       FATAL_EXPECT_TRUE(e.done());
       return result(out, i);

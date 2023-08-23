@@ -70,42 +70,60 @@ using all = list<foo, bar, baz, gaz>;
 template <typename T, std::size_t S>
 using raw = T[S];
 
+template <template <typename, std::size_t> class A, typename T, T... V>
+struct static_array {
+  static constexpr A<T, sizeof...(V)> value{{V...}};
+};
+#if FATAL_CPLUSPLUS < 201703L
+template <template <typename, std::size_t> class A, typename T, T... V>
+constexpr A<T, sizeof...(V)> static_array<A, T, V...>::value;
+#endif
+
+template <typename T, T... V>
+struct static_array<raw, T, V...> {
+  static constexpr raw<T, sizeof...(V)> value{V...};
+};
+#if FATAL_CPLUSPLUS < 201703L
+template <typename T, T... V>
+constexpr raw<T, sizeof...(V)> static_array<raw, T, V...>::value;
+#endif
+
 FATAL_TEST(array_to_sequence, raw_array_full) {
-  static constexpr raw<char, 5> arr{'h', 'e', 'l', 'l', 'o'};
+  using arr = static_array<raw, char, 'h', 'e', 'l', 'l', 'o'>;
   FATAL_EXPECT_SAME<
-    array_to_sequence<raw, char, 5, arr>,
+    array_to_sequence<raw, char, 5, arr::value>,
     char_sequence<'h', 'e', 'l', 'l', 'o'>
   >();
 }
 
 FATAL_TEST(array_to_sequence, c_array_full) {
-  static constexpr c_array<char, 5> arr{{'h', 'e', 'l', 'l', 'o'}};
+  using arr = static_array<c_array, char, 'h', 'e', 'l', 'l', 'o'>;
   FATAL_EXPECT_SAME<
-    array_to_sequence<c_array, char, 5, arr>,
+    array_to_sequence<c_array, char, 5, arr::value>,
     char_sequence<'h', 'e', 'l', 'l', 'o'>
   >();
 }
 
 FATAL_TEST(array_to_sequence, c_array_empty) {
-  static constexpr c_array<char, 0> arr{{}};
+  using arr = static_array<c_array, char>;
   FATAL_EXPECT_SAME<
-    array_to_sequence<c_array, char, 0, arr>,
+    array_to_sequence<c_array, char, 0, arr::value>,
     char_sequence<>
   >();
 }
 
 FATAL_TEST(array_to_sequence, std_array_full) {
-  static constexpr std::array<char, 5> arr{{'h', 'e', 'l', 'l', 'o'}};
+  using arr = static_array<std::array, char, 'h', 'e', 'l', 'l', 'o'>;
   FATAL_EXPECT_SAME<
-    array_to_sequence<std::array, char, 5, arr>,
+    array_to_sequence<std::array, char, 5, arr::value>,
     char_sequence<'h', 'e', 'l', 'l', 'o'>
   >();
 }
 
 FATAL_TEST(array_to_sequence, std_array_empty) {
-  static constexpr std::array<char, 0> arr{{}};
+  using arr = static_array<std::array, char>;
   FATAL_EXPECT_SAME<
-    array_to_sequence<std::array, char, 0, arr>,
+    array_to_sequence<std::array, char, 0, arr::value>,
     char_sequence<>
   >();
 }
