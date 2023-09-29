@@ -159,15 +159,9 @@ FATAL_TEST(type_get, type_pair) {
 
 template <int LHSFirst, int LHSSecond, int RHSFirst, int RHSSecond>
 class Foo {
-  typedef type_pair<
-    std::integral_constant<int, LHSFirst>,
-    std::integral_constant<int, LHSSecond>
-  > lhs;
+  using lhs = type_pair<std::integral_constant<int, LHSFirst>, std::integral_constant<int, LHSSecond>>;
 
-  typedef type_pair<
-    std::integral_constant<int, RHSFirst>,
-    std::integral_constant<int, RHSSecond>
-  > rhs;
+  using rhs = type_pair<std::integral_constant<int, RHSFirst>, std::integral_constant<int, RHSSecond>>;
 
 public:
   template <template <typename...> class TComparer>

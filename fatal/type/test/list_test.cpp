@@ -491,7 +491,7 @@ struct foreach_if_predicate {
   using apply = decltype(sfinae(static_cast<U *>(nullptr)));
 };
 
-typedef std::vector<std::pair<std::size_t, std::size_t>> foreach_if_expected;
+using foreach_if_expected = std::vector<std::pair<std::size_t, std::size_t>>;
 
 template <template <int...> class TTemplate>
 struct foreach_if_test_visitor {

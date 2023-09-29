@@ -20,14 +20,14 @@ struct foo {};
 template <int> struct T {};
 template <int> struct S {};
 
-template <typename... T> struct lst { typedef type_list<T...> list; };
+template <typename... T> struct lst { using list = type_list<T...>; };
 template <typename... T> struct lst2 {};
 
 template <int... values> using ilstt = lst<T<values>...>;
 template <int... values> using ilsts = lst<S<values>...>;
 
 template <typename T, T... values> struct seq {
-  typedef sequence<T, values...> cseq;
+  using cseq = sequence<T, values...>;
 };
 template <typename T, T... values> struct seq2 {};
 

@@ -42,7 +42,7 @@ Z(0); Z(1); Z(2); Z(3); Z(4); Z(5); Z(6); Z(7); Z(8); Z(9);
 #undef Z
 
 template <typename T>
-struct sort_transform_impl { typedef typename T::template sort<> type; };
+struct sort_transform_impl { using type = typename T::template sort<>; };
 template <typename T>
 using sort_transform = typename sort_transform_impl<T>::type;
 
@@ -50,11 +50,7 @@ using sort_transform = typename sort_transform_impl<T>::type;
 // type_map //
 //////////////
 
-typedef type_map<
-  type_pair<int, bool>,
-  type_pair<double, long>,
-  type_pair<short, void>
-> ibdlsv_map;
+using ibdlsv_map = type_map<type_pair<int, bool>, type_pair<double, long>, type_pair<short, void>>;
 
 struct not_found_type {};
 }
@@ -1380,19 +1376,19 @@ FATAL_TEST(type_map, type_map_from_list) {
 
 template <typename L1, typename L2, typename L3, typename L4>
 struct clustered_index_metadata {
-  typedef L1 l1;
-  typedef L2 l2;
-  typedef L3 l3;
-  typedef L4 l4;
+  using l1 = L1;
+  using l2 = L2;
+  using l3 = L3;
+  using l4 = L4;
 };
 
-template <typename T> struct get_l1_impl { typedef typename T::l1 type; };
+template <typename T> struct get_l1_impl { using type = typename T::l1; };
 template <typename T> using get_l1 = typename get_l1_impl<T>::type;
-template <typename T> struct get_l2_impl { typedef typename T::l2 type; };
+template <typename T> struct get_l2_impl { using type = typename T::l2; };
 template <typename T> using get_l2 = typename get_l2_impl<T>::type;
-template <typename T> struct get_l3_impl { typedef typename T::l3 type; };
+template <typename T> struct get_l3_impl { using type = typename T::l3; };
 template <typename T> using get_l3 = typename get_l3_impl<T>::type;
-template <typename T> struct get_l4_impl { typedef typename T::l4 type; };
+template <typename T> struct get_l4_impl { using type = typename T::l4; };
 template <typename T> using get_l4 = typename get_l4_impl<T>::type;
 
 template <typename TInput, typename TExpected>

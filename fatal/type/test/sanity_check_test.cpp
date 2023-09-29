@@ -51,7 +51,7 @@ namespace impl_detail {
 
 template <typename T, typename U>
 struct same_impl {
-  static_assert(std::is_same<T, U>::value, "");
+  static_assert(std::is_same<T, U>::value );
 };
 
 #define SAME(...) impl_detail::same_impl<__VA_ARGS__>()
@@ -60,7 +60,7 @@ struct same_impl {
 
 template <typename T, decltype(T::value) U>
 struct equal_impl {
-  static_assert(T::value == U, "");
+  static_assert(T::value == U );
 };
 
 #define EQUAL(Expected, ...) impl_detail::equal_impl<__VA_ARGS__, Expected>()

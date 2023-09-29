@@ -14,7 +14,7 @@
 namespace fatal {
 
 struct foo { using xyz = int; };
-struct bar { typedef int xyz; };
+struct bar { using xyz = int; };
 struct baz {};
 struct gaz { struct xyz {}; };
 struct qux { int xyz; };
@@ -40,7 +40,7 @@ FATAL_TEST(has_type, fatal_has_type_name) {
 }
 
 struct ifoo { using id = int; };
-struct ibar { typedef int id; };
+struct ibar { using id = int; };
 struct ibaz {};
 struct igaz { struct id {}; };
 struct iqux { int id; };
