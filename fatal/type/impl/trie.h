@@ -107,7 +107,7 @@ struct l<Offset, Filter, n<Haystack, IsTerminal, Begin, End, Children...>> {
 
     if (!IsTerminal && size == End - Begin - Offset) {
       return false;
-    };
+    }
 
     using value_type = typename std::iterator_traits<
       typename std::decay<NeedleBegin>::type
