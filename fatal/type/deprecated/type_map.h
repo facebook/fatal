@@ -667,9 +667,9 @@ public:
 
   template <typename TKey, typename TVisitor, typename... VArgs>
   static constexpr bool visit(TVisitor &&visitor, VArgs &&...args) {
-    using mapped = find<TKey, detail::type_map_impl::visit_not_found>;
+    using found = find<TKey, detail::type_map_impl::visit_not_found>;
 
-    return detail::type_map_impl::visit_visitor<TKey, mapped>::visit(
+    return detail::type_map_impl::visit_visitor<TKey, found>::visit(
       std::forward<TVisitor>(visitor),
       std::forward<VArgs>(args)...
     );
