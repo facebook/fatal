@@ -1172,7 +1172,7 @@ public:
       } else {
         break;
       }
-    };
+    }
 
     return begin;
   }
@@ -1500,7 +1500,7 @@ public:
         auto const off = static_cast<size_type>(std::distance(ref.begin(), j));
         return const_iterator(this, std::addressof(pieces_[i]), i, off);
       }
-    };
+    }
 
     return cend();
   }
