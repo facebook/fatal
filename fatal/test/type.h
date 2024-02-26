@@ -23,7 +23,7 @@ namespace fatal {
 std::string type_str(std::string &out, std::type_info const &type) {
 # ifdef __GNUC__
   int status;
-  auto name = abi::__cxa_demangle(type.name(), 0, 0, &status);
+  auto name = abi::__cxa_demangle(type.name(), nullptr, nullptr, &status);
 
   if (name) {
     out.append(name);
