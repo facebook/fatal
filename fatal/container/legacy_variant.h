@@ -1283,7 +1283,7 @@ public:
   template <typename UCallable, typename... UArgs, typename std::enable_if<
     is_supported<
       typename std::decay<
-        typename std::result_of<UCallable&(UArgs...)>::type
+        typename std::invoke_result<UCallable&, UArgs...>::type
       >::type
     >(), int
   >::type = 0>
@@ -1295,7 +1295,7 @@ public:
   template <typename UCallable, typename... UArgs, typename std::enable_if<
     !is_supported<
       typename std::decay<
-        typename std::result_of<UCallable&(UArgs...)>::type
+        typename std::invoke_result<UCallable&, UArgs...>::type
       >::type
     >(), int
   >::type = 0>
