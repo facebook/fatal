@@ -163,7 +163,7 @@ public:
    */
   template <typename T, typename... Args>
   using supports = decltype(
-    is_impl<Args...>::template sfinae(static_cast<T *>(nullptr))
+    is_impl<Args...>::template sfinae<>(static_cast<T *>(nullptr))
   );
 };
 
@@ -226,7 +226,7 @@ public:
       struct bind { \
         template <typename... UArgs> \
         using supports = decltype( \
-          member_fn_supports_impl<UArgs...>::template sfinae( \
+          member_fn_supports_impl<UArgs...>::template sfinae<>( \
             static_cast<typename ::std::remove_reference<U>::type *>(nullptr) \
           ) \
         ); \
