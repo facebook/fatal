@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_test_test_h
-#define FATAL_INCLUDE_fatal_test_test_h
+#pragma once
 
 #include <fatal/portability.h>
 #include <fatal/preprocessor.h>
@@ -1698,5 +1696,3 @@ int run_one(TPrinter &printer, std::string const &full_name) {
 
 } // namespace test {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_test_test_h

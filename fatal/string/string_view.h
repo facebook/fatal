@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_string_string_view_h
-#define FATAL_INCLUDE_fatal_string_string_view_h
+#pragma once
 
 #include <fatal/math/hash.h>
 #include <fatal/math/numerics.h>
@@ -595,5 +593,3 @@ std::ostream &operator <<(std::basic_ostream<C, T> &out, string_view rhs) {
 } // namespace fatal {
 
 FATAL_DIAGNOSTIC_POP
-
-#endif // FATAL_INCLUDE_fatal_string_string_view_h

@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_constify_from_h
-#define FATAL_INCLUDE_fatal_type_constify_from_h
+#pragma once
 
 #include <fatal/type/constify.h>
 
@@ -53,5 +51,3 @@ struct constify_from<T, TFrom const> {
 };
 
 } // namespace fatal
-
-#endif // FATAL_INCLUDE_fatal_type_constify_from_h

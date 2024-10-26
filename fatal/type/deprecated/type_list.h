@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_deprecated_list_h
-#define FATAL_INCLUDE_fatal_type_deprecated_list_h
+#pragma once
 
 #include <fatal/portability.h>
 #include <fatal/type/conditional.h>
@@ -3278,5 +3276,3 @@ struct binary_search_upper_bound<> {
 } // namespace fatal {
 
 // TODO: ADD TESTS TO AVOID DOUBLE MOVES
-
-#endif // FATAL_INCLUDE_fatal_type_deprecated_list_h

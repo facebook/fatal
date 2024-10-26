@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_string_tokenizer_h
-#define FATAL_INCLUDE_fatal_string_tokenizer_h
+#pragma once
 
 #include <fatal/container/uninitialized.h>
 #include <fatal/string/string_view.h>
@@ -109,5 +107,3 @@ using space_tokenizer = tokenizer<string_view, ' '>;
 using csv_tokenizer = tokenizer<comma_tokenizer, '\n'>;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_string_tokenizer_h

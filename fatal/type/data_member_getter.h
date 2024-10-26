@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_data_member_getter_h
-#define FATAL_INCLUDE_fatal_type_data_member_getter_h
+#pragma once
 
 #include <fatal/preprocessor.h>
 #include <fatal/type/constify_from.h>
@@ -402,5 +400,3 @@ public:
 };
 
 } // namespace fatal
-
-#endif // FATAL_INCLUDE_fatal_type_data_member_getter_h

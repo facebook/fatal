@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_array_h
-#define FATAL_INCLUDE_fatal_type_array_h
+#pragma once
 
 #include <fatal/type/impl/array.h>
 
@@ -109,5 +107,3 @@ template <typename Array, typename StringView>
 using string_view_array = i_a::S<Array, StringView>;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_array_h

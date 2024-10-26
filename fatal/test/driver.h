@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_test_driver_h
-#define FATAL_INCLUDE_fatal_test_driver_h
+#pragma once
 
 #include <fatal/log/log.h>
 #include <fatal/test/args.h>
@@ -102,5 +100,3 @@ int main(
 
   return 1; // unrecognized input
 }
-
-#endif // FATAL_INCLUDE_fatal_test_driver_h

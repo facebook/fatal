@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_preprocessor_h
-#define FATAL_INCLUDE_fatal_preprocessor_h
+#pragma once
 
 #include <fatal/portability.h>
 
@@ -752,5 +750,3 @@ Out &operator <<(Out &out, source_info source) {
   FATAL_CAT(Prefix, FATAL_CAT(_, __LINE__))
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_preprocessor_h

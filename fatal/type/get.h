@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_get_h
-#define FATAL_INCLUDE_fatal_type_get_h
+#pragma once
 
 #include <fatal/type/identity.h>
 #include <fatal/type/slice.h>
@@ -32,5 +30,3 @@ template <typename T, typename Key>
 using reverse_pair_get = get<T, Key, get_second, get_first>;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_get_h

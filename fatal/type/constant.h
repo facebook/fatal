@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_constant_h
-#define FATAL_INCLUDE_fatal_type_constant_h
+#pragma once
 
 #include <type_traits>
 
@@ -32,5 +30,3 @@ struct get_constant {
 };
 
 }
-
-#endif // FATAL_INCLUDE_fatal_type_constant_h

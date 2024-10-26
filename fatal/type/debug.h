@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_debug_h
-#define FATAL_INCLUDE_fatal_type_debug_h
+#pragma once
 
 namespace fatal {
 
@@ -130,5 +128,3 @@ using debug_type_if_t = typename debug_type_if<Condition, Args...>::type;
   ::fatal::debug_type_if_t<Condition, __VA_ARGS__>
 
 } // namespace fatal
-
-#endif // FATAL_INCLUDE_fatal_type_debug_h

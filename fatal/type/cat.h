@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_cat_h
-#define FATAL_INCLUDE_fatal_type_cat_h
+#pragma once
 
 #include <fatal/type/debug.h>
 
@@ -27,5 +25,3 @@ template <typename LHS, typename RHS, typename... Args>
 using lcat = typename impl_cat::l<LHS, RHS, Args...>::type;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_cat_h

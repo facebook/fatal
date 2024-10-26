@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_time_time_h
-#define FATAL_INCLUDE_fatal_time_time_h
+#pragma once
 
 #include <fatal/type/apply.h>
 #include <fatal/type/array.h>
@@ -148,5 +146,3 @@ Out &&pretty_print(Out &&out, std::chrono::duration<R, P> time) {
 
 } // namespace time {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_time_time_h

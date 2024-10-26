@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_builtin
-#define FATAL_INCLUDE_fatal_type_builtin
+#pragma once
 
 // note: no dependencies!
 
@@ -39,5 +37,3 @@ template <std::size_t I, typename... T>
 using type_pack_element = __type_pack_element<I, T...>;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_builtin

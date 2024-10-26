@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_enum_h
-#define FATAL_INCLUDE_fatal_type_enum_h
+#pragma once
 
 #include <fatal/preprocessor.h>
 #include <fatal/string/string_view.h>
@@ -795,5 +793,3 @@ using enum_values_array = as_array<
   FATAL_REGISTER_ENUM_TRAITS(ClassName)
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_enum_h

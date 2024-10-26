@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_test_args_h
-#define FATAL_INCLUDE_fatal_test_args_h
+#pragma once
 
 namespace fatal {
 namespace test_impl {
@@ -44,5 +42,3 @@ Map parse_args(int const argc, char const *const *const argv) {
 }
 }
 }
-
-#endif // FATAL_INCLUDE_fatal_test_args_h

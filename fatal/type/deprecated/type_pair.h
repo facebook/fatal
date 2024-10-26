@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_deprecated_type_pair_h
-#define FATAL_INCLUDE_fatal_type_deprecated_type_pair_h
+#pragma once
 
 #include <fatal/type/deprecated/type_tag.h>
 #include <fatal/type/deprecated/transform.h>
@@ -196,5 +194,3 @@ using indexed_type_pair_tag = indexed_type_tag<
 >;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_deprecated_type_pair_h

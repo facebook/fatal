@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_test_string_h
-#define FATAL_INCLUDE_fatal_test_string_h
+#pragma once
 
 #include <fatal/string/string_view.h>
 #include <fatal/time/time.h>
@@ -155,5 +153,3 @@ std::string &to_string(std::string &s) { return s; }
 std::string &&to_string(std::string &&s) { return std::move(s); }
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_test_string_h

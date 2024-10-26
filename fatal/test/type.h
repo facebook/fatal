@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_test_type_h
-#define FATAL_INCLUDE_fatal_test_type_h
+#pragma once
 
 #include <string>
 #include <type_traits>
@@ -73,5 +71,3 @@ std::string type_str(std::type_info const &type) {
 }
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_test_type_h

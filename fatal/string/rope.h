@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_string_rope_h
-#define FATAL_INCLUDE_fatal_string_rope_h
+#pragma once
 
 #include <fatal/container/uninitialized.h>
 #include <fatal/math/hash.h>
@@ -1831,5 +1829,3 @@ std::ostream &operator <<(
 } // namespace fatal {
 
 FATAL_DIAGNOSTIC_POP
-
-#endif // FATAL_INCLUDE_fatal_string_rope_h

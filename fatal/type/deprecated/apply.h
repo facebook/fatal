@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_deprecated_apply_h
-#define FATAL_INCLUDE_fatal_type_deprecated_apply_h
+#pragma once
 
 namespace fatal {
 namespace detail {
@@ -143,5 +141,3 @@ struct apply<T, U0, U1, U2, U3, U4, U5, V0, V1, V2, V3, V4, V5> {
 } // namespace transform_impl {
 } // namespace detail {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_deprecated_apply_h
