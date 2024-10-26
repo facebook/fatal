@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_size_h
-#define FATAL_INCLUDE_fatal_type_size_h
+#pragma once
 
 #include <fatal/type/debug.h>
 
@@ -25,5 +23,3 @@ template <typename T>
 using empty = std::integral_constant<bool, size<T>::value == 0>;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_size_h

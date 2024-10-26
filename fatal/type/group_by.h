@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_group_by_h
-#define FATAL_INCLUDE_fatal_type_group_by_h
+#pragma once
 
 #include <fatal/type/list.h>
 #include <fatal/type/pair.h>
@@ -40,5 +38,3 @@ template <
 using filtered_group_by = typename i_g::F<T, Key, Filter, Pair, Group>::type;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_group_by_h

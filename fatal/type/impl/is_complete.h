@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_impl_is_complete_h
-#define FATAL_INCLUDE_fatal_type_impl_is_complete_h
+#pragma once
 
 #include <type_traits>
 
@@ -23,5 +21,3 @@ std::false_type sfinae(...);
 
 } // namespace impl_is_complete {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_impl_is_complete_h

@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_remove_rvalue_reference_h
-#define FATAL_INCLUDE_fatal_type_remove_rvalue_reference_h
+#pragma once
 
 namespace fatal {
 
@@ -49,5 +47,3 @@ template <typename T>
 using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
 
 } // namespace fatal
-
-#endif // FATAL_INCLUDE_fatal_type_remove_rvalue_reference_h

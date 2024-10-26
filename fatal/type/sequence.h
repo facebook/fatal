@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_sequence_h
-#define FATAL_INCLUDE_fatal_type_sequence_h
+#pragma once
 
 #include <fatal/portability.h>
 #include <fatal/type/builtin.h>
@@ -62,5 +60,3 @@ using int_sequence = sequence<int, Values...>;
   )
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_sequence_h

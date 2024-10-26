@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_impl_select_h
-#define FATAL_INCLUDE_fatal_type_impl_select_h
+#pragma once
 
 #include <fatal/type/conditional.h>
 #include <fatal/type/compare.h>
@@ -192,5 +190,3 @@ struct lx<Less, List<Args...>, Filter>: vx<Less, Filter<Args>...> {};
 
 } // namespace impl_sl {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_impl_select_h

@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_select_h
-#define FATAL_INCLUDE_fatal_type_select_h
+#pragma once
 
 #include <fatal/type/compare.h>
 
@@ -37,5 +35,3 @@ template <typename Less, typename T, template <typename...> class... Filter>
 using lmax = typename impl_sl::lx<Less, T, Filter...>::type;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_select_h

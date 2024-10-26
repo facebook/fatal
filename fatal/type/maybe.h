@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_maybe_h
-#define FATAL_INCLUDE_fatal_type_maybe_h
+#pragma once
 
 #include <fatal/type/deprecated/apply.h>
 
@@ -106,5 +104,3 @@ struct maybe<First, Second, Third, Args...> {
 };
 
 } // namespace fatal
-
-#endif // FATAL_INCLUDE_fatal_type_maybe_h

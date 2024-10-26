@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_tag_h
-#define FATAL_INCLUDE_fatal_type_tag_h
+#pragma once
 
 #include <fatal/portability.h>
 #include <fatal/type/pair.h>
@@ -52,5 +50,3 @@ Second tag_second(tag_pair<First, Second> const &);
 struct not_found {};
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_tag_h

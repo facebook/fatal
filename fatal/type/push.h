@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_push_h
-#define FATAL_INCLUDE_fatal_type_push_h
+#pragma once
 
 #include <fatal/type/impl/push.h>
 
@@ -30,5 +28,3 @@ template <bool Condition, typename T, typename... Args>
 using push_front_if = typename i_P::F<Condition, T, Args...>::type;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_push_h

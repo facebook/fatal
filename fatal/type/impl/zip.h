@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_impl_zip_h
-#define FATAL_INCLUDE_fatal_type_impl_zip_h
+#pragma once
 
 namespace fatal {
 namespace impl_zp {
@@ -64,5 +62,3 @@ struct zp<Outer, Inner, L0<T0...>, L1<T1...>, L2<T2...>, L3<T3...>> {
 
 } // namespace impl_zp {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_impl_zip_h

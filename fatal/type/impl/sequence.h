@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_impl_sequence_h
-#define FATAL_INCLUDE_fatal_type_impl_sequence_h
+#pragma once
 
 #include <cstdlib>
 
@@ -49,5 +47,3 @@ static constexpr std::size_t size(T const (&)[Size]) {
 
 } // namespace impl_seq {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_impl_sequence_h

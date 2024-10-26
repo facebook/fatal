@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_reflect_template_h
-#define FATAL_INCLUDE_fatal_type_reflect_template_h
+#pragma once
 
 #include <fatal/type/deprecated/type_list.h>
 #include <fatal/type/sequence.h>
@@ -285,5 +283,3 @@ template <typename T>
 using reflect_types = typename reflect_template<T>::types;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_reflect_template_h

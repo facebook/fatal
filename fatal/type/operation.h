@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_operation_h
-#define FATAL_INCLUDE_fatal_type_operation_h
+#pragma once
 
 #include <fatal/type/cartesian_product.h>
 #include <fatal/type/deprecated/flatten.h>
@@ -151,5 +149,3 @@ struct breadth<list<Prefix...>> {
 } // namespace operation_impl {
 } // namespace detail {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_operation_h

@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_impl_sort_h
-#define FATAL_INCLUDE_fatal_type_impl_sort_h
+#pragma once
 
 #include <fatal/type/apply.h>
 #include <fatal/type/array.h>
@@ -538,5 +536,3 @@ struct i<Variadic<LHS, RHS, Args...>> {
 
 } // namespace i_s {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_impl_sort_h

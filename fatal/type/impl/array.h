@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_impl_array_h
-#define FATAL_INCLUDE_fatal_type_impl_array_h
+#pragma once
 
 #include <fatal/portability.h>
 #include <fatal/type/identity.h>
@@ -460,5 +458,3 @@ T const n<T, Factory, Args...>::data[sizeof...(Args)] = {
 
 } // namespace i_a {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_impl_array_h

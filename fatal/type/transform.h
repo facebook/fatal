@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_transform_h
-#define FATAL_INCLUDE_fatal_type_transform_h
+#pragma once
 
 #include <fatal/type/identity.h>
 
@@ -28,5 +26,3 @@ template <
 using transform_if = transform<T, i_t::c<Predicate, WhenTrue, WhenFalse>>;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_transform_h

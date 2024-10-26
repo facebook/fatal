@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_longest_common_prefix_h
-#define FATAL_INCLUDE_fatal_type_longest_common_prefix_h
+#pragma once
 
 #include <cstdlib>
 
@@ -27,5 +25,3 @@ using longest_common_prefix = typename impl_lcp::s<
 >::type;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_longest_common_prefix_h

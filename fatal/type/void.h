@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_void_h
-#define FATAL_INCLUDE_fatal_type_void_h
+#pragma once
 
 #include <fatal/type/impl/void.h>
 
@@ -36,5 +34,3 @@ template <typename... Ts>
 using void_t = typename detail::void_impl::void_t_<Ts...>::type;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_void_h

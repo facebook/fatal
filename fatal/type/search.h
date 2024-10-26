@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_search_h
-#define FATAL_INCLUDE_fatal_type_search_h
+#pragma once
 
 #include <fatal/functional/no_op.h>
 #include <fatal/type/compare.h>
@@ -103,5 +101,3 @@ static inline constexpr bool index_search(
 }
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_search_h

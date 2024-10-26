@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_type_impl_longest_common_prefix_h
-#define FATAL_INCLUDE_fatal_type_impl_longest_common_prefix_h
+#pragma once
 
 #include <fatal/type/list.h>
 
@@ -81,5 +79,3 @@ struct s<true, Key, Offset, End, T, Args...>:
 
 } // namespace impl_lcp {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_type_impl_longest_common_prefix_h
