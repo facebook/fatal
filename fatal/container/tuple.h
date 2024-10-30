@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_container_tuple_h
-#define FATAL_INCLUDE_fatal_container_tuple_h
+#pragma once
 
 #include <fatal/container/tuple_tags.h>
 #include <fatal/type/list.h>
@@ -673,5 +671,3 @@ struct builder<tuple<T...>, Tag, Type, Args...>:
 } // namespace tuple_impl {
 } // namespace detail {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_container_tuple_h

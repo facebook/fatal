@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_container_circular_queue_h
-#define FATAL_INCLUDE_fatal_container_circular_queue_h
+#pragma once
 
 #include <fatal/container/random_access_iterator.h>
 
@@ -529,5 +527,3 @@ private:
 } // namespace fatal {
 
 FATAL_DIAGNOSTIC_POP
-
-#endif // FATAL_INCLUDE_fatal_container_circular_queue_h

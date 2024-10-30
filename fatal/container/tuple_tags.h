@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_container_tuple_tags_h
-#define FATAL_INCLUDE_fatal_container_tuple_tags_h
+#pragma once
 
 #include <fatal/type/find.h>
 #include <fatal/type/foreach.h>
@@ -236,5 +234,3 @@ using tuple_tags_from = typename reflect_template<T>::types
   ::template apply<tuple_tags>;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_container_tuple_tags_h

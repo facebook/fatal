@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_container_legacy_variant_h
-#define FATAL_INCLUDE_fatal_container_legacy_variant_h
+#pragma once
 
 #include <fatal/container/optional.h>
 #include <fatal/container/unitary_union.h>
@@ -2136,5 +2134,3 @@ private:
 } // namespace std {
 
 FATAL_DIAGNOSTIC_POP
-
-#endif // FATAL_INCLUDE_fatal_container_legacy_variant_h

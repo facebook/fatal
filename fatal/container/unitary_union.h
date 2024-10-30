@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_container_unitary_union_h
-#define FATAL_INCLUDE_fatal_container_unitary_union_h
+#pragma once
 
 #include <type_traits>
 
@@ -83,5 +81,3 @@ template <typename T, bool AutoDestroy>
 using unitary_union = typename detail::unitary_union_impl<T, AutoDestroy>::type;
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_container_unitary_union_h
