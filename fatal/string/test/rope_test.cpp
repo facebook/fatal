@@ -137,7 +137,6 @@ FATAL_TEST(sanity_check, empty) {
 // comparison //
 ////////////////
 
-FATAL_TEST(comparison, equal) {
 # define TEST_IMPL_COMPARE(r, other) \
   do { \
     FATAL_EXPECT_EQ(0, r.compare(other)); \
@@ -161,117 +160,143 @@ FATAL_TEST(comparison, equal) {
     FATAL_EXPECT_TRUE(other >= r); \
   } while (false)
 
+FATAL_TEST(comparison, equal) {
 # define TEST_IMPL(...) \
   do { \
     auto const str = to_string(__VA_ARGS__); \
+    rope<> r1(__VA_ARGS__); \
+    auto cr1 = r1.mimic(); \
+    rope<> r2(__VA_ARGS__); \
+    auto cr2 = r2.mimic(); \
+    string_view ref(str); \
+    auto cstr = str.c_str(); \
+    std::vector<char> v(str.cbegin(), str.cend()); \
+    v.push_back('\0'); \
+    auto c = v.data(); \
+    std::string s(str); \
     \
-    { \
-      rope<> r1(__VA_ARGS__); \
-      auto cr1 = r1.mimic(); \
-      rope<> r2(__VA_ARGS__); \
-      auto cr2 = r2.mimic(); \
-      string_view ref(str); \
-      auto cstr = str.c_str(); \
-      std::vector<char> v(str.cbegin(), str.cend()); \
-      v.push_back('\0'); \
-      auto c = v.data(); \
-      std::string s(str); \
-      \
-      TEST_IMPL_COMPARE(r1, r1); \
-      TEST_IMPL_COMPARE(cr1, r1); \
-      TEST_IMPL_COMPARE(r1, cr1); \
-      TEST_IMPL_COMPARE(r1, r2); \
-      TEST_IMPL_COMPARE(cr1, r2); \
-      TEST_IMPL_COMPARE(r1, cr2); \
-      TEST_IMPL_COMPARE(r1, ref); \
-      TEST_IMPL_COMPARE(r1, cstr); \
-      TEST_IMPL_COMPARE(r1, c); \
-      TEST_IMPL_COMPARE(r1, s); \
-      TEST_IMPL_COMPARE(cr1, ref); \
-      TEST_IMPL_COMPARE(cr1, cstr); \
-      TEST_IMPL_COMPARE(cr1, c); \
-      TEST_IMPL_COMPARE(cr1, s); \
-    } \
-    { \
-      rope<> const r1(__VA_ARGS__); \
-      auto const cr1 = r1.mimic(); \
-      rope<> const r2(__VA_ARGS__); \
-      auto const cr2 = r2.mimic(); \
-      string_view const ref(str); \
-      auto const cstr = str.c_str(); \
-      std::vector<char> v(str.cbegin(), str.cend()); \
-      v.push_back('\0'); \
-      auto const c = v.data(); \
-      std::string const s(str); \
-      \
-      TEST_IMPL_COMPARE(r1, r1); \
-      TEST_IMPL_COMPARE(cr1, r1); \
-      TEST_IMPL_COMPARE(r1, cr1); \
-      TEST_IMPL_COMPARE(r1, r2); \
-      TEST_IMPL_COMPARE(cr1, r2); \
-      TEST_IMPL_COMPARE(r1, cr2); \
-      TEST_IMPL_COMPARE(r1, ref); \
-      TEST_IMPL_COMPARE(r1, cstr); \
-      TEST_IMPL_COMPARE(r1, c); \
-      TEST_IMPL_COMPARE(r1, s); \
-      TEST_IMPL_COMPARE(cr1, ref); \
-      TEST_IMPL_COMPARE(cr1, cstr); \
-      TEST_IMPL_COMPARE(cr1, c); \
-      TEST_IMPL_COMPARE(cr1, s); \
-    } \
-    { \
-      rope<> r1(__VA_ARGS__); \
-      auto cr1 = r1.mimic(); \
-      rope<> r2(__VA_ARGS__); \
-      auto cr2 = r2.mimic(); \
-      string_view ref(str); \
-      auto cstr = str.c_str(); \
-      std::vector<char> v(str.cbegin(), str.cend()); \
-      v.push_back('\0'); \
-      auto c = v.data(); \
-      std::string s(str); \
-      \
-      TEST_IMPL_COMPARE(std::move(r1), std::move(r1)); \
-      TEST_IMPL_COMPARE(std::move(cr1), std::move(r1)); \
-      TEST_IMPL_COMPARE(std::move(r1), std::move(cr1)); \
-      TEST_IMPL_COMPARE(std::move(r1), std::move(r2)); \
-      TEST_IMPL_COMPARE(std::move(cr1), std::move(r2)); \
-      TEST_IMPL_COMPARE(std::move(r1), std::move(cr2)); \
-      TEST_IMPL_COMPARE(std::move(r1), std::move(ref)); \
-      TEST_IMPL_COMPARE(std::move(r1), std::move(cstr)); \
-      TEST_IMPL_COMPARE(std::move(r1), std::move(c)); \
-      TEST_IMPL_COMPARE(std::move(r1), std::move(s)); \
-      TEST_IMPL_COMPARE(std::move(cr1), std::move(ref)); \
-      TEST_IMPL_COMPARE(std::move(cr1), std::move(cstr)); \
-      TEST_IMPL_COMPARE(std::move(cr1), std::move(c)); \
-      TEST_IMPL_COMPARE(std::move(cr1), std::move(s)); \
-    } \
-    { \
-      rope<> r1(__VA_ARGS__); \
-      auto cr1 = r1.mimic(); \
-      std::vector<char> v(str.cbegin(), str.cend()); \
-      v.push_back('\0'); \
-      \
-      TEST_IMPL_COMPARE(r1, rope<>(__VA_ARGS__)); \
-      TEST_IMPL_COMPARE(cr1, rope<>(__VA_ARGS__)); \
-      TEST_IMPL_COMPARE(r1, rope<>(__VA_ARGS__).mimic()); \
-      TEST_IMPL_COMPARE(cr1, rope<>(__VA_ARGS__).mimic()); \
-      TEST_IMPL_COMPARE(r1, string_view(str)); \
-      TEST_IMPL_COMPARE(r1, str.c_str()); \
-      TEST_IMPL_COMPARE(r1, v.data()); \
-      TEST_IMPL_COMPARE(r1, std::string(str)); \
-      TEST_IMPL_COMPARE(cr1, string_view(str)); \
-      TEST_IMPL_COMPARE(cr1, str.c_str()); \
-      TEST_IMPL_COMPARE(cr1, v.data()); \
-      TEST_IMPL_COMPARE(cr1, std::string(str)); \
-    } \
+    TEST_IMPL_COMPARE(r1, r1); \
+    TEST_IMPL_COMPARE(cr1, r1); \
+    TEST_IMPL_COMPARE(r1, cr1); \
+    TEST_IMPL_COMPARE(r1, r2); \
+    TEST_IMPL_COMPARE(cr1, r2); \
+    TEST_IMPL_COMPARE(r1, cr2); \
+    TEST_IMPL_COMPARE(r1, ref); \
+    TEST_IMPL_COMPARE(r1, cstr); \
+    TEST_IMPL_COMPARE(r1, c); \
+    TEST_IMPL_COMPARE(r1, s); \
+    TEST_IMPL_COMPARE(cr1, ref); \
+    TEST_IMPL_COMPARE(cr1, cstr); \
+    TEST_IMPL_COMPARE(cr1, c); \
+    TEST_IMPL_COMPARE(cr1, s); \
   } while (false)
 
   TEST_IMPL_SINGLE_STRING(TEST_IMPL);
 
 # undef TEST_IMPL
-# undef TEST_IMPL_COMPARE
 }
+
+FATAL_TEST(comparison, equal_const) {
+# define TEST_IMPL(...) \
+  do { \
+    auto const str = to_string(__VA_ARGS__); \
+    rope<> const r1(__VA_ARGS__); \
+    auto const cr1 = r1.mimic(); \
+    rope<> const r2(__VA_ARGS__); \
+    auto const cr2 = r2.mimic(); \
+    string_view const ref(str); \
+    auto const cstr = str.c_str(); \
+    std::vector<char> v(str.cbegin(), str.cend()); \
+    v.push_back('\0'); \
+    auto const c = v.data(); \
+    std::string const s(str); \
+    \
+    TEST_IMPL_COMPARE(r1, r1); \
+    TEST_IMPL_COMPARE(cr1, r1); \
+    TEST_IMPL_COMPARE(r1, cr1); \
+    TEST_IMPL_COMPARE(r1, r2); \
+    TEST_IMPL_COMPARE(cr1, r2); \
+    TEST_IMPL_COMPARE(r1, cr2); \
+    TEST_IMPL_COMPARE(r1, ref); \
+    TEST_IMPL_COMPARE(r1, cstr); \
+    TEST_IMPL_COMPARE(r1, c); \
+    TEST_IMPL_COMPARE(r1, s); \
+    TEST_IMPL_COMPARE(cr1, ref); \
+    TEST_IMPL_COMPARE(cr1, cstr); \
+    TEST_IMPL_COMPARE(cr1, c); \
+    TEST_IMPL_COMPARE(cr1, s); \
+  } while (false)
+
+  TEST_IMPL_SINGLE_STRING(TEST_IMPL);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(comparison, equal_move) {
+# define TEST_IMPL(...) \
+  do { \
+    auto const str = to_string(__VA_ARGS__); \
+    rope<> r1(__VA_ARGS__); \
+    auto cr1 = r1.mimic(); \
+    rope<> r2(__VA_ARGS__); \
+    auto cr2 = r2.mimic(); \
+    string_view ref(str); \
+    auto cstr = str.c_str(); \
+    std::vector<char> v(str.cbegin(), str.cend()); \
+    v.push_back('\0'); \
+    auto c = v.data(); \
+    std::string s(str); \
+    \
+    TEST_IMPL_COMPARE(std::move(r1), std::move(r1)); \
+    TEST_IMPL_COMPARE(std::move(cr1), std::move(r1)); \
+    TEST_IMPL_COMPARE(std::move(r1), std::move(cr1)); \
+    TEST_IMPL_COMPARE(std::move(r1), std::move(r2)); \
+    TEST_IMPL_COMPARE(std::move(cr1), std::move(r2)); \
+    TEST_IMPL_COMPARE(std::move(r1), std::move(cr2)); \
+    TEST_IMPL_COMPARE(std::move(r1), std::move(ref)); \
+    TEST_IMPL_COMPARE(std::move(r1), std::move(cstr)); \
+    TEST_IMPL_COMPARE(std::move(r1), std::move(c)); \
+    TEST_IMPL_COMPARE(std::move(r1), std::move(s)); \
+    TEST_IMPL_COMPARE(std::move(cr1), std::move(ref)); \
+    TEST_IMPL_COMPARE(std::move(cr1), std::move(cstr)); \
+    TEST_IMPL_COMPARE(std::move(cr1), std::move(c)); \
+    TEST_IMPL_COMPARE(std::move(cr1), std::move(s)); \
+  } while (false)
+
+  TEST_IMPL_SINGLE_STRING(TEST_IMPL);
+
+# undef TEST_IMPL
+}
+
+FATAL_TEST(comparison, equal_other) {
+# define TEST_IMPL(...) \
+  do { \
+    auto const str = to_string(__VA_ARGS__); \
+    rope<> r1(__VA_ARGS__); \
+    auto cr1 = r1.mimic(); \
+    std::vector<char> v(str.cbegin(), str.cend()); \
+    v.push_back('\0'); \
+    \
+    TEST_IMPL_COMPARE(r1, rope<>(__VA_ARGS__)); \
+    TEST_IMPL_COMPARE(cr1, rope<>(__VA_ARGS__)); \
+    TEST_IMPL_COMPARE(r1, rope<>(__VA_ARGS__).mimic()); \
+    TEST_IMPL_COMPARE(cr1, rope<>(__VA_ARGS__).mimic()); \
+    TEST_IMPL_COMPARE(r1, string_view(str)); \
+    TEST_IMPL_COMPARE(r1, str.c_str()); \
+    TEST_IMPL_COMPARE(r1, v.data()); \
+    TEST_IMPL_COMPARE(r1, std::string(str)); \
+    TEST_IMPL_COMPARE(cr1, string_view(str)); \
+    TEST_IMPL_COMPARE(cr1, str.c_str()); \
+    TEST_IMPL_COMPARE(cr1, v.data()); \
+    TEST_IMPL_COMPARE(cr1, std::string(str)); \
+  } while (false)
+
+  TEST_IMPL_SINGLE_STRING(TEST_IMPL);
+
+# undef TEST_IMPL
+}
+
+# undef TEST_IMPL_COMPARE
 
 FATAL_TEST(comparison, not_equal) {
 # define TEST_IMPL_COMPARE(r, other, expected_less) \
