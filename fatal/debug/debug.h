@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_debug_debug_h
-#define FATAL_INCLUDE_fatal_debug_debug_h
+#pragma once
 
 // production build
 #ifdef NDEBUG
@@ -67,4 +65,3 @@ struct debug_block {
 } // namespace fatal {
 
 #endif // NDEBUG
-#endif // FATAL_INCLUDE_fatal_debug_debug_h

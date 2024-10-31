@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_container_variadic_union_h
-#define FATAL_INCLUDE_fatal_container_variadic_union_h
+#pragma once
 
 #include <fatal/math/numerics.h>
 #include <fatal/type/conditional.h>
@@ -441,5 +439,3 @@ struct variadic_union_impl<T0, T1, T2, T3, T4> {
 
 } // namespace detail {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_container_variadic_union_h

@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_log_log_h
-#define FATAL_INCLUDE_fatal_log_log_h
+#pragma once
 
 #include <fatal/preprocessor.h>
 #include <fatal/time/time.h>
@@ -222,5 +220,3 @@ log::detail::log_impl::logger<std::ostream, TInfo> log(source_info source) {
 #endif // NDEBUG
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_log_log_h

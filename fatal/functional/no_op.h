@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_functional_no_op_h
-#define FATAL_INCLUDE_fatal_functional_no_op_h
+#pragma once
 
 namespace fatal {
 namespace fn {
@@ -25,5 +23,3 @@ struct no_op {
 
 } // namespace fn {
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_functional_no_op_h

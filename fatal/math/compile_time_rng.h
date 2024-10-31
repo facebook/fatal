@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_math_compile_time_rng_h
-#define FATAL_INCLUDE_fatal_math_compile_time_rng_h
+#pragma once
 
 #include <type_traits>
 
@@ -259,5 +257,3 @@ struct helper {
   ::fatal::detail::compile_time_rng_impl::helper<__LINE__>::bind
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_math_compile_time_rng_h

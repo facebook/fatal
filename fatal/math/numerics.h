@@ -6,9 +6,7 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-
-#ifndef FATAL_INCLUDE_fatal_math_numerics_h
-#define FATAL_INCLUDE_fatal_math_numerics_h
+#pragma once
 
 #include <fatal/type/apply.h>
 #include <fatal/type/conditional.h>
@@ -681,5 +679,3 @@ private:
 };
 
 } // namespace fatal {
-
-#endif // FATAL_INCLUDE_fatal_math_numerics_h
