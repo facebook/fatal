@@ -59,7 +59,8 @@ void check(TExpectedValue &&expected, TActual &&actual) {
   fx x01##suffix(x01s); fx x23##suffix(x23s); fx x45##suffix(x45s); \
   fx x012345##suffix(x012345s); \
   fx x543210##suffix(x543210s); \
-  fx x051423##suffix(x051423s);
+  fx x051423##suffix(x051423s); \
+  static_assert(true)
 
 //////////
 // ctor //

@@ -1586,7 +1586,7 @@ void check_type_tag_size() {
 template <int> struct X {};
 FATAL_TEST(variant, type_tag_size) {
 #define TAG_SIZE_TEST(Expected,...) \
-  check_type_tag_size<Expected, __VA_ARGS__>();
+  check_type_tag_size<Expected, __VA_ARGS__>()
 
   TAG_SIZE_TEST(bool, X<1>);
   TAG_SIZE_TEST(uint8_t, X<1>, X<2>);

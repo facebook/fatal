@@ -45,7 +45,7 @@ FATAL_TEST(qualifier, cv_qualifier_bitwise_and) {
 
 FATAL_TEST(qualifier, add_const_from) {
 # define TEST_IMPL(From, T, ...) \
-  FATAL_EXPECT_SAME<__VA_ARGS__, add_const_from_t<T, From>>();
+  FATAL_EXPECT_SAME<__VA_ARGS__, add_const_from_t<T, From>>()
 
   TEST_IMPL(int, int &&, int &&);
   TEST_IMPL(int, int &, int &);
@@ -90,7 +90,7 @@ FATAL_TEST(qualifier, add_const_from) {
 
 FATAL_TEST(qualifier, add_volatile_from) {
 # define TEST_IMPL(From, T, ...) \
-  FATAL_EXPECT_SAME<__VA_ARGS__, add_volatile_from_t<T, From>>();
+  FATAL_EXPECT_SAME<__VA_ARGS__, add_volatile_from_t<T, From>>()
 
   TEST_IMPL(int, int &&, int &&);
   TEST_IMPL(int, int &, int &);
@@ -135,7 +135,7 @@ FATAL_TEST(qualifier, add_volatile_from) {
 
 FATAL_TEST(qualifier, add_cv_from) {
 # define TEST_IMPL(From, T, ...) \
-  FATAL_EXPECT_SAME<__VA_ARGS__, add_cv_from_t<T, From>>();
+  FATAL_EXPECT_SAME<__VA_ARGS__, add_cv_from_t<T, From>>()
 
   TEST_IMPL(int, int, int);
   TEST_IMPL(int, int const, int const);
@@ -159,7 +159,7 @@ FATAL_TEST(qualifier, add_cv_from) {
 
 FATAL_TEST(qualifier, add_reference_from) {
 # define TEST_IMPL(From, T, ...) \
-  FATAL_EXPECT_SAME<__VA_ARGS__, add_reference_from_t<T, From>>();
+  FATAL_EXPECT_SAME<__VA_ARGS__, add_reference_from_t<T, From>>()
 
   TEST_IMPL(int &&, int &&, int &&);
   TEST_IMPL(int &&, int &, int &);
@@ -223,7 +223,7 @@ FATAL_TEST(qualifier, add_reference_from) {
 
 FATAL_TEST(qualifier, add_cv_reference_from) {
 # define TEST_IMPL(From, T, ...) \
-  FATAL_EXPECT_SAME<__VA_ARGS__, add_cv_reference_from_t<T, From>>();
+  FATAL_EXPECT_SAME<__VA_ARGS__, add_cv_reference_from_t<T, From>>()
 
   TEST_IMPL(int, int, int);
   TEST_IMPL(int, int const &, int const &);

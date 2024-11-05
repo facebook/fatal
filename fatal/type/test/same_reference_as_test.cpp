@@ -15,7 +15,7 @@ namespace fatal {
 
 FATAL_TEST(traits, same_reference_as) {
 # define TEST_IMPL(From, T, ...) \
-  FATAL_EXPECT_SAME<__VA_ARGS__, same_reference_as<T, From>::type>();
+  FATAL_EXPECT_SAME<__VA_ARGS__, same_reference_as<T, From>::type>()
 
   TEST_IMPL(int &&, int &&, int &&);
   TEST_IMPL(int &&, int &, int &&);

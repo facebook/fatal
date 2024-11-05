@@ -15,7 +15,7 @@ namespace fatal {
 
 FATAL_TEST(traits, constify) {
 # define TEST_IMPL(T, ...) \
-  FATAL_EXPECT_SAME<__VA_ARGS__, constify<T>::type>();
+  FATAL_EXPECT_SAME<__VA_ARGS__, constify<T>::type>()
 
   TEST_IMPL(int &&, int const &&);
   TEST_IMPL(int &, int const &);
