@@ -1,7 +1,6 @@
 #include <fatal/type/foreach.h>
 
 #include <fatal/test/driver.h>
-#include <fatal/log/log.h>
 
 #include <string>
 #include <vector>

@@ -10,7 +10,6 @@
 #include <fatal/benchmark/cases.h>
 #include <fatal/type/sequence.h>
 
-#include <cstdint>
 
 int main() {
   using namespace fatal;

@@ -13,7 +13,6 @@
 
 #include <fatal/container/optional.h>
 #include <fatal/math/numerics.h>
-#include <fatal/portability.h>
 
 #include <algorithm>
 #include <initializer_list>

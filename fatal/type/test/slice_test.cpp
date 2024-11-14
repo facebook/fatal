@@ -5,7 +5,6 @@
 #include <fatal/type/sequence.h>
 
 #include <fatal/test/driver.h>
-#include <fatal/log/log.h>
 
 namespace fatal {
 

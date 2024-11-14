@@ -9,7 +9,6 @@
 
 #include <fatal/type/array.h>
 
-#include <fatal/type/debug.h>
 #include <fatal/type/foreach.h>
 #include <fatal/type/list.h>
 #include <fatal/type/sequence.h>
