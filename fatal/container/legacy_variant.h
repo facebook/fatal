@@ -672,12 +672,12 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
     UArgs &&...args
   ) {
     if (depth == Depth) {
-      head_type::template visit(
+      head_type::visit(
         depth, u.head, std::forward<TVisitor>(visitor),
         std::forward<UArgs>(args)...
       );
     } else {
-      tail_type::template visit(
+      tail_type::visit(
         depth, u.tail, std::forward<TVisitor>(visitor),
         std::forward<UArgs>(args)...
       );
@@ -690,12 +690,12 @@ struct variadic_union_traits<TStoragePolicy, TSize, Depth, T, Head, Tail...> {
     UArgs &&...args
   ) {
     if (depth == Depth) {
-      head_type::template visit(
+      head_type::visit(
         depth, u.head, std::forward<TVisitor>(visitor),
         std::forward<UArgs>(args)...
       );
     } else {
-      tail_type::template visit(
+      tail_type::visit(
         depth, u.tail, std::forward<TVisitor>(visitor),
         std::forward<UArgs>(args)...
       );
@@ -1241,7 +1241,7 @@ public:
       return false;
     }
 
-    traits::template visit(
+    traits::visit(
       storedType, union_, std::forward<TVisitor>(visitor),
       std::forward<UArgs>(args)...
     );
@@ -1256,7 +1256,7 @@ public:
       return false;
     }
 
-    traits::template visit(
+    traits::visit(
       storedType, union_, std::forward<TVisitor>(visitor),
       std::forward<UArgs>(args)...
     );
