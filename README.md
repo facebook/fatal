@@ -50,12 +50,12 @@ For Clang and GCC, it suffices to either:
 
 ## Building Benchmarks and Unit Tests
 ```sh
-$ clang++ -Wall -Werror -O2 -std=c++14 -I path/to/fatal \
+$ clang++ -Wall -Werror -O2 -std=c++17 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
 ```
 or
 ```sh
-$ g++ -Wall -Werror -O2 -std=c++14 -I path/to/fatal \
+$ g++ -Wall -Werror -O2 -std=c++17 -I path/to/fatal \
   -o path/to/output/binary path/to/test/or/benchmark.cpp \
 ```
 

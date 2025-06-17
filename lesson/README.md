@@ -58,11 +58,11 @@ There are no other external dependencies.
 
 ## Building lessons
 ```sh
-$ clang++ -std=c++14 -I path/to/fatal \
+$ clang++ -std=c++17 -I path/to/fatal \
   -o path/to/output/binary lesson/lesson_filename.cpp
 ```
 or
 ```sh
-$ g++ -std=c++14 -I path/to/fatal \
+$ g++ -std=c++17 -I path/to/fatal \
   -o path/to/output/binary lesson/lesson_filename.cpp
 ```
