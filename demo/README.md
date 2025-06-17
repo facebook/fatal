@@ -10,11 +10,11 @@ There are no other external dependencies.
 
 ## Building demos
 ```sh
-$ clang++ -Wall -Werror -O2 -std=c++1y -I path/to/fatal \
+$ clang++ -Wall -Werror -O2 -std=c++17 -I path/to/fatal \
   -o path/to/output/binary demo/demo_filename.cpp
 ```
 or
 ```sh
-$ g++ -Wall -Werror -O2 -std=c++1y -I path/to/fatal \
+$ g++ -Wall -Werror -O2 -std=c++17 -I path/to/fatal \
   -o path/to/output/binary demo/demo_filename.cpp
 ```
