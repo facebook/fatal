@@ -242,7 +242,7 @@ using uniform_min = std::ratio<-1000>;
 // the maximum value of a sample on uniform distribution randomized tests
 using uniform_max = std::ratio<1000>;
 
-static_assert(std::ratio_less_equal<uniform_min, uniform_max>::value, "");
+static_assert(std::ratio_less_equal<uniform_min, uniform_max>::value);
 
 FATAL_TEST(statistical_moments, uniform_distribution) {
   test_statistical_moments<value_type>(

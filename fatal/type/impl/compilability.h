@@ -17,7 +17,7 @@ namespace i_cpl {
 
 template <template <typename...> class T, std::size_t Arity>
 struct checker {
-  static_assert(Arity > 0, "");
+  static_assert(Arity > 0);
 
   template <typename U, typename... Args, typename = T<U, Args...>>
   static std::true_type sfinae(list<U, Args...> *);

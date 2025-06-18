@@ -531,11 +531,11 @@ struct throw_foo {
   throw_foo &operator =(throw_foo &&) { throw nullptr; }
 };
 
-static_assert(!std::is_nothrow_default_constructible<throw_foo>::value, "");
-static_assert(!std::is_nothrow_copy_constructible<throw_foo>::value, "");
-static_assert(!std::is_nothrow_move_constructible<throw_foo>::value, "");
-static_assert(!std::is_nothrow_copy_assignable<throw_foo>::value, "");
-static_assert(!std::is_nothrow_move_assignable<throw_foo>::value, "");
+static_assert(!std::is_nothrow_default_constructible<throw_foo>::value);
+static_assert(!std::is_nothrow_copy_constructible<throw_foo>::value);
+static_assert(!std::is_nothrow_move_constructible<throw_foo>::value);
+static_assert(!std::is_nothrow_copy_assignable<throw_foo>::value);
+static_assert(!std::is_nothrow_move_assignable<throw_foo>::value);
 
 struct throw_large {
   [[noreturn]] throw_large() { throw nullptr; }
@@ -546,11 +546,11 @@ struct throw_large {
   std::array<char, 8192> payload;
 };
 
-static_assert(!std::is_nothrow_default_constructible<throw_large>::value, "");
-static_assert(!std::is_nothrow_copy_constructible<throw_large>::value, "");
-static_assert(!std::is_nothrow_move_constructible<throw_large>::value, "");
-static_assert(!std::is_nothrow_copy_assignable<throw_large>::value, "");
-static_assert(!std::is_nothrow_move_assignable<throw_large>::value, "");
+static_assert(!std::is_nothrow_default_constructible<throw_large>::value);
+static_assert(!std::is_nothrow_copy_constructible<throw_large>::value);
+static_assert(!std::is_nothrow_move_constructible<throw_large>::value);
+static_assert(!std::is_nothrow_copy_assignable<throw_large>::value);
+static_assert(!std::is_nothrow_move_assignable<throw_large>::value);
 
 struct nothrow_foo {
   nothrow_foo() noexcept {}
@@ -560,18 +560,18 @@ struct nothrow_foo {
   nothrow_foo &operator =(nothrow_foo &&) noexcept { return *this; }
 };
 
-static_assert(std::is_nothrow_default_constructible<nothrow_foo>::value, "");
-static_assert(std::is_nothrow_copy_constructible<nothrow_foo>::value, "");
-static_assert(std::is_nothrow_move_constructible<nothrow_foo>::value, "");
-static_assert(std::is_nothrow_copy_assignable<nothrow_foo>::value, "");
-static_assert(std::is_nothrow_move_assignable<nothrow_foo>::value, "");
+static_assert(std::is_nothrow_default_constructible<nothrow_foo>::value);
+static_assert(std::is_nothrow_copy_constructible<nothrow_foo>::value);
+static_assert(std::is_nothrow_move_constructible<nothrow_foo>::value);
+static_assert(std::is_nothrow_copy_assignable<nothrow_foo>::value);
+static_assert(std::is_nothrow_move_assignable<nothrow_foo>::value);
 
 FATAL_TEST(variant, noexcept) {
-  static_assert(std::is_nothrow_default_constructible<empty_var>::value, "");
-  static_assert(std::is_nothrow_copy_constructible<empty_var>::value, "");
-  static_assert(std::is_nothrow_move_constructible<empty_var>::value, "");
-  static_assert(std::is_nothrow_copy_assignable<empty_var>::value, "");
-  static_assert(std::is_nothrow_move_assignable<empty_var>::value, "");
+  static_assert(std::is_nothrow_default_constructible<empty_var>::value);
+  static_assert(std::is_nothrow_copy_constructible<empty_var>::value);
+  static_assert(std::is_nothrow_move_constructible<empty_var>::value);
+  static_assert(std::is_nothrow_copy_assignable<empty_var>::value);
+  static_assert(std::is_nothrow_move_assignable<empty_var>::value);
 
 # define TEST_IMPL(MayThrow, DefaultMoveMayThrow, ...) \
   do { \

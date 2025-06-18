@@ -34,7 +34,7 @@ struct s {
     Visitor &&visitor,
     Args &&...args
   ) {
-    static_assert(Offset + (Size / 2) < size<T>::value, "");
+    static_assert(Offset + (Size / 2) < size<T>::value);
     using pivot = at<T, Offset + (Size / 2)>;
     using filtered = typename Filter::template apply<pivot>;
     return Comparer::template greater<filtered>(needle)
@@ -82,7 +82,7 @@ struct s<Offset, 1> {
     Visitor &&visitor,
     Args &&...args
   ) {
-    static_assert(Offset < size<T>::value,  "");
+    static_assert(Offset < size<T>::value);
     using filtered = typename Filter::template apply<at<T, Offset>>;
     return Comparer::template equal<filtered>(needle) && (
       visitor(
@@ -109,7 +109,7 @@ struct s<Offset, 2> {
     Visitor &&visitor,
     Args &&...args
   ) {
-    static_assert(Offset + 1 < size<T>::value,  "");
+    static_assert(Offset + 1 < size<T>::value);
     using filtered = typename Filter::template apply<at<T, Offset>>;
     using filtered_next = typename Filter::template apply<at<T, Offset + 1>>;
     return (

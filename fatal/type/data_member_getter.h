@@ -98,7 +98,7 @@ public:
 
   template <typename Owner>
   static constexpr inline reference<Owner> ref(Owner &&owner) {
-    static_assert(std::is_reference<reference<Owner>>::value, "");
+    static_assert(std::is_reference<reference<Owner>>::value);
     return impl::ref(std::forward<Owner>(owner));
   }
 
@@ -107,7 +107,7 @@ public:
 
   template <typename Owner>
   static constexpr inline pointer<Owner> ptr(Owner &owner) {
-    static_assert(std::is_pointer<pointer<Owner>>::value, "");
+    static_assert(std::is_pointer<pointer<Owner>>::value);
     return std::addressof(ref(owner));
   }
 
@@ -154,8 +154,7 @@ struct data_member_referencer {
     Owner &&owner
   ) const {
     static_assert(
-      std::is_reference<typename Getter::template reference<Owner>>::value,
-      ""
+      std::is_reference<typename Getter::template reference<Owner>>::value
     );
     return Getter::ref(std::forward<Owner>(owner));
   }
@@ -168,8 +167,7 @@ struct data_member_pointer {
     Owner &owner
   ) const {
     static_assert(
-      std::is_pointer<typename Getter::template pointer<Owner>>::value,
-      ""
+      std::is_pointer<typename Getter::template pointer<Owner>>::value
     );
     return Getter::ptr(owner);
   }
@@ -182,8 +180,7 @@ struct data_member_try_getter {
     Owner &owner
   ) const {
     static_assert(
-      std::is_pointer<typename Getter::template pointer<Owner>>::value,
-      ""
+      std::is_pointer<typename Getter::template pointer<Owner>>::value
     );
     return Getter::try_get(owner);
   }
@@ -204,7 +201,7 @@ struct data_member_try_getter {
         Owner && \
       >; \
       \
-      static_assert(::std::is_reference<ref_impl>::value, ""); \
+      static_assert(::std::is_reference<ref_impl>::value); \
     }; \
     \
     FATAL_S(name, FATAL_TO_STR(__VA_ARGS__)); \

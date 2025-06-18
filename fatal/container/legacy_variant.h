@@ -882,7 +882,7 @@ public:
     assert(Index == variant.tag());
 
     using variant_type = typename std::decay<UVariant>::type;
-    static_assert(sizeof(variant_type) >= 0, "");
+    static_assert(sizeof(variant_type) >= 0);
     result = visit<UCondition<U>::value>(
       variant.variant_type::template get<U>(),
       std::forward<UVisitor>(visitor),
