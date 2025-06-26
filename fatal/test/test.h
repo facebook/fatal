@@ -1348,6 +1348,234 @@ struct gtest_printer {
   }
 };
 
+struct gtest_json_printer {
+ private:
+  struct case_info {
+    std::string name;
+    timestamp_t time;
+    duration_t elapsed;
+    std::unique_ptr<results> result;
+  };
+  struct suite_info {
+    std::string name;
+    timestamp_t time;
+    duration_t elapsed;
+    std::vector<case_info> cases;
+  };
+  struct suite_list_info {
+    timestamp_t time;
+    duration_t elapsed{};
+    std::vector<suite_info> suites;
+  };
+
+ public:
+  explicit gtest_json_printer(std::ostream &out_) : out{out_} {}
+
+  void start_run(std::size_t, std::size_t, timestamp_t start) {
+    suite_list.time = start;
+  }
+
+  template <typename TGroup>
+  void start_group(TGroup const &group, std::size_t, timestamp_t start) {
+    suite_list.suites.emplace_back();
+    auto &suite = suite_list.suites.back();
+    suite.name = group;
+    suite.time = start;
+  }
+
+  template <typename TGroup, typename TName>
+  void start_test(
+    TGroup const &, TName const &name, source_info const &, timestamp_t start
+  ) {
+    auto &suite = suite_list.suites.back();
+    suite.cases.emplace_back();
+    auto &case_ = suite.cases.back();
+    case_.name = name;
+    case_.time = start;
+  }
+
+  template <typename TName>
+  void issue(
+    TName const &, source_info const &, test_issue const &, std::size_t
+  ) {}
+
+  template <typename TGroup, typename TName>
+  void end_test(
+    results const &result, TGroup const &, TName const &, source_info const &
+  ) {
+    auto &suite = suite_list.suites.back();
+    auto &case_ = suite.cases.back();
+    case_.result = std::make_unique<results>(result);
+  }
+
+  template <typename TGroup>
+  void end_group(TGroup const &, std::size_t, duration_t time) {
+    auto &suite = suite_list.suites.back();
+    suite.elapsed = time;
+  }
+
+  void end_run(std::size_t, std::size_t, std::size_t, duration_t time) {
+    suite_list.elapsed = time;
+
+    emit_suite_list(out, suite_list);
+  }
+
+ private:
+  static std::string json_escape(std::string const &text) {
+    std::ostringstream escaped;
+    for (char c : text) {
+      switch (c) {
+        case '"': escaped << "\\\""; break;
+        case '\\': escaped << "\\\\"; break;
+        case '\b': escaped << "\\b"; break;
+        case '\f': escaped << "\\f"; break;
+        case '\n': escaped << "\\n"; break;
+        case '\r': escaped << "\\r"; break;
+        case '\t': escaped << "\\t"; break;
+        default:
+          if (c >= 0 && c < 32) {
+            escaped << "\\u" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(c);
+          } else {
+            escaped << c;
+          }
+          break;
+      }
+    }
+    return escaped.str();
+  }
+
+  static std::string json_quote(std::string const &text) {
+    return "\"" + json_escape(text) + "\"";
+  }
+
+  static std::string json_quote_time(duration_t elapsed) {
+    using ms = std::chrono::milliseconds;
+    auto const elapsed_ms = std::chrono::duration_cast<ms>(elapsed);
+    std::ostringstream out;
+    out << "\"" << std::setprecision(3) << (double(elapsed_ms.count()) / 1000) << "s\"";
+    return out.str();
+  }
+
+  static std::string json_quote_timestamp(timestamp_t time) {
+    using ms = std::chrono::milliseconds;
+    auto const time_ms = std::chrono::time_point_cast<ms>(time);
+    auto const elapsed_ms = time_ms.time_since_epoch();
+    constexpr std::size_t bufsize = 32;
+    char buf[bufsize];
+    auto const ct = clock::to_time_t(time);
+    auto const tm = ::localtime(&ct);
+    [[maybe_unused]] auto const len = ::strftime(buf, bufsize, "%Y-%m-%dT%H:%M:%S", tm);
+    assert(len == 19);
+    std::ostringstream out;
+    out << "\"" << buf << "." << std::setfill('0') << std::setw(3) << (elapsed_ms.count() % 1000) << "Z\"";
+    return out.str();
+  }
+
+  template <typename TOut>
+  static void emit_case(
+    TOut &out, suite_info const &suite, case_info const& case_,
+    bool is_first
+  ) {
+    if (!is_first) {
+      out << ",";
+    }
+    out << "\n        {\n";
+    out << "          \"name\": " << json_quote(case_.name) << ",\n";
+    out << "          \"status\": \"RUN\",\n";
+    out << "          \"result\": \"COMPLETED\",\n";
+    out << "          \"time\": " << json_quote_time(case_.result->elapsed()) << ",\n";
+    out << "          \"timestamp\": " << json_quote_timestamp(case_.time) << ",\n";
+    out << "          \"classname\": " << json_quote(suite.name);
+
+    if (!case_.result->empty()) {
+      out << ",\n          \"failures\": [";
+      bool first_failure = true;
+      for (auto const &failure : *case_.result) {
+        if (!first_failure) {
+          out << ",";
+        }
+        out << "\n            {\n";
+        out << "              \"failure\": " << json_quote(failure.message()) << ",\n";
+        out << "              \"type\": \"\"\n";
+        out << "            }";
+        first_failure = false;
+      }
+      out << "\n          ]";
+    }
+    out << "\n        }";
+  }
+
+  template <typename TOut>
+  static void emit_suite(
+    TOut &out, suite_info const &suite, bool is_first
+  ) {
+    std::size_t tests = 0;
+    std::size_t failures = 0;
+    for (auto const &case_ : suite.cases) {
+      ++tests;
+      if (!case_.result->empty()) {
+        ++failures;
+      }
+    }
+
+    if (!is_first) {
+      out << ",";
+    }
+    out << "\n    {\n";
+    out << "      \"name\": " << json_quote(suite.name) << ",\n";
+    out << "      \"tests\": " << tests << ",\n";
+    out << "      \"failures\": " << failures << ",\n";
+    out << "      \"disabled\": 0,\n";
+    out << "      \"errors\": 0,\n";
+    out << "      \"time\": " << json_quote_time(suite.elapsed) << ",\n";
+    out << "      \"timestamp\": " << json_quote_timestamp(suite.time) << ",\n";
+    out << "      \"testsuite\": [";
+
+    bool first_case = true;
+    for (auto const &case_ : suite.cases) {
+      emit_case(out, suite, case_, first_case);
+      first_case = false;
+    }
+    out << "\n      ]\n";
+    out << "    }";
+  }
+
+  template <typename TOut>
+  static void emit_suite_list(TOut &out, suite_list_info const &list) {
+    std::size_t tests = 0;
+    std::size_t failures = 0;
+    for (auto const &suite : list.suites) {
+      for (auto const &case_ : suite.cases) {
+        ++tests;
+        if (!case_.result->empty()) {
+          ++failures;
+        }
+      }
+    }
+
+    out << "{\n";
+    out << "  \"tests\": " << tests << ",\n";
+    out << "  \"failures\": " << failures << ",\n";
+    out << "  \"disabled\": 0,\n";
+    out << "  \"errors\": 0,\n";
+    out << "  \"time\": " << json_quote_time(list.elapsed) << ",\n";
+    out << "  \"timestamp\": " << json_quote_timestamp(list.time) << ",\n";
+    out << "  \"name\": \"AllTests\",\n";
+    out << "  \"testsuites\": [";
+
+    bool first_suite = true;
+    for (auto const &suite : list.suites) {
+      emit_suite(out, suite, first_suite);
+      first_suite = false;
+    }
+    out << "\n  ]\n";
+    out << "}\n";
+  }
+
+  std::ostream &out;
+  suite_list_info suite_list;
+};
+
 struct gtest_xml_printer {
  private:
   struct case_info {

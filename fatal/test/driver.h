@@ -39,6 +39,7 @@ int main(
   auto const arg_gtest_output = std::string("--gtest_output");
 
   auto const xml_ = std::string("xml:");
+  auto const json_ = std::string("json:");
 
   if (argc == 0) {
     return 1; // protect parse_args below
@@ -84,17 +85,26 @@ int main(
       iter_arg_output != opts.end() ? iter_arg_output->second :
       iter_env_output != envs.end() ? iter_env_output->second :
       empty;
-    if (!outspec.empty() && outspec.find(xml_) != 0) {
-      std::cerr << "error: gtest-output value requires prefix xml:" << std::endl;
+
+    if (!outspec.empty() && outspec.find(xml_) != 0 && outspec.find(json_) != 0) {
+      std::cerr << "error: gtest-output value requires prefix xml: or json:" << std::endl;
       return 1;
     }
-    if (!outspec.empty()) {
+
+    if (outspec.empty()) {
+      return fatal::test::run_one(printer, iter_gtest_filter->second);
+    }
+
+    if (outspec.find(xml_) == 0) {
       std::ofstream out{outspec.substr(xml_.size())};
       auto printer2 = fatal::test::gtest_xml_printer{out};
       auto printer3 = combine_printers(printer, printer2);
       return fatal::test::run_one(printer3, iter_gtest_filter->second);
-    } else {
-      return fatal::test::run_one(printer, iter_gtest_filter->second);
+    } else if (outspec.find(json_) == 0) {
+      std::ofstream out{outspec.substr(json_.size())};
+      auto printer2 = fatal::test::gtest_json_printer{out};
+      auto printer3 = combine_printers(printer, printer2);
+      return fatal::test::run_one(printer3, iter_gtest_filter->second);
     }
   }
 
