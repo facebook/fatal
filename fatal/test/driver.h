@@ -76,15 +76,23 @@ int main(
     return fatal::test::run_one(printer, iter_filter->second);
   }
   auto const iter_gtest_filter = opts.find(arg_gtest_filter);
+  auto const iter_arg_output = opts.find(arg_gtest_output);
+  auto const iter_env_output = envs.find(env_gtest_output);
+  auto const &empty = std::string("");
+  auto const &outspec =
+    iter_arg_output != opts.end() ? iter_arg_output->second :
+    iter_env_output != envs.end() ? iter_env_output->second :
+    empty;
+
+  // If gtest_output is specified but no gtest_filter, default to "*" (run all)
+  std::string filter_value = "*";
   if (iter_gtest_filter != opts.end()) {
+    filter_value = iter_gtest_filter->second;
+  }
+
+  // Only proceed if we have a filter (explicit or implicit) or output specified
+  if (iter_gtest_filter != opts.end() || !outspec.empty()) {
     auto printer = fatal::test::gtest_printer{std::cout};
-    auto const iter_arg_output = opts.find(arg_gtest_output);
-    auto const iter_env_output = envs.find(env_gtest_output);
-    auto const &empty = std::string("");
-    auto const &outspec =
-      iter_arg_output != opts.end() ? iter_arg_output->second :
-      iter_env_output != envs.end() ? iter_env_output->second :
-      empty;
 
     if (!outspec.empty() && outspec.find(xml_) != 0 && outspec.find(json_) != 0) {
       std::cerr << "error: gtest-output value requires prefix xml: or json:" << std::endl;
@@ -92,19 +100,31 @@ int main(
     }
 
     if (outspec.empty()) {
-      return fatal::test::run_one(printer, iter_gtest_filter->second);
+      if (filter_value == "*" || filter_value.empty()) {
+        return fatal::test::run_all(printer);
+      } else {
+        return fatal::test::run_one(printer, filter_value);
+      }
     }
 
     if (outspec.find(xml_) == 0) {
       std::ofstream out{outspec.substr(xml_.size())};
       auto printer2 = fatal::test::gtest_xml_printer{out};
       auto printer3 = combine_printers(printer, printer2);
-      return fatal::test::run_one(printer3, iter_gtest_filter->second);
+      if (filter_value == "*" || filter_value.empty()) {
+        return fatal::test::run_all(printer3);
+      } else {
+        return fatal::test::run_one(printer3, filter_value);
+      }
     } else if (outspec.find(json_) == 0) {
       std::ofstream out{outspec.substr(json_.size())};
       auto printer2 = fatal::test::gtest_json_printer{out};
       auto printer3 = combine_printers(printer, printer2);
-      return fatal::test::run_one(printer3, iter_gtest_filter->second);
+      if (filter_value == "*" || filter_value.empty()) {
+        return fatal::test::run_all(printer3);
+      } else {
+        return fatal::test::run_one(printer3, filter_value);
+      }
     }
   }
 
