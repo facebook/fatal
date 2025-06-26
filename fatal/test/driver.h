@@ -64,10 +64,36 @@ int main(
     auto printer = fatal::test::default_printer{std::cout};
     return fatal::test::list(printer);
   }
+
   auto const iter_gtest_list = opts.find(arg_gtest_list);
   if (iter_gtest_list != opts.end()) {
-    auto printer = fatal::test::gtest_printer{std::cout};
-    return fatal::test::list(printer);
+    auto const iter_arg_output = opts.find(arg_gtest_output);
+    auto const iter_env_output = envs.find(env_gtest_output);
+    auto const &empty = std::string("");
+    auto const &outspec =
+      iter_arg_output != opts.end() ? iter_arg_output->second :
+      iter_env_output != envs.end() ? iter_env_output->second :
+      empty;
+
+    if (!outspec.empty() && outspec.find(xml_) != 0 && outspec.find(json_) != 0) {
+      std::cerr << "error: gtest-output value requires prefix xml: or json:" << std::endl;
+      return 1;
+    }
+
+    if (outspec.empty()) {
+      auto printer = fatal::test::gtest_printer{std::cout};
+      return fatal::test::list(printer);
+    }
+
+    if (outspec.find(json_) == 0) {
+      std::ofstream out{outspec.substr(json_.size())};
+      auto printer = fatal::test::gtest_json_list_printer{out};
+      return fatal::test::list(printer);
+    } else if (outspec.find(xml_) == 0) {
+      // XML listing not implemented yet, fall back to regular gtest printer
+      auto printer = fatal::test::gtest_printer{std::cout};
+      return fatal::test::list(printer);
+    }
   }
 
   auto const iter_filter = opts.find(arg_filter);

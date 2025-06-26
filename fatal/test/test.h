@@ -1576,6 +1576,117 @@ struct gtest_json_printer {
   suite_list_info suite_list;
 };
 
+struct gtest_json_list_printer {
+ private:
+  struct test_info {
+    std::string name;
+    std::string file;
+    std::size_t line;
+  };
+  struct suite_info {
+    std::string name;
+    std::vector<test_info> tests;
+  };
+  std::vector<suite_info> suites;
+
+ public:
+  explicit gtest_json_list_printer(std::ostream &out_) : out{out_} {}
+
+  template <typename TGroup>
+  void list_start_group(TGroup const &group) {
+    suites.emplace_back();
+    auto &suite = suites.back();
+    suite.name = group;
+  }
+
+  template <typename TGroup, typename TName>
+  void list_entry(TGroup const &, TName const &name) {
+    auto &suite = suites.back();
+    suite.tests.emplace_back();
+    auto &test = suite.tests.back();
+    test.name = name;
+    // Note: file and line info not available in current listing interface
+    test.file = "";
+    test.line = 0;
+  }
+
+  template <typename TGroup>
+  void list_end_group(TGroup const &) {
+    // Nothing to do here
+  }
+
+  ~gtest_json_list_printer() {
+    emit_json();
+  }
+
+ private:
+  static std::string json_escape(std::string const &text) {
+    std::ostringstream escaped;
+    for (char c : text) {
+      switch (c) {
+        case '"': escaped << "\\\""; break;
+        case '\\': escaped << "\\\\"; break;
+        case '\b': escaped << "\\b"; break;
+        case '\f': escaped << "\\f"; break;
+        case '\n': escaped << "\\n"; break;
+        case '\r': escaped << "\\r"; break;
+        case '\t': escaped << "\\t"; break;
+        default:
+          if (c >= 0 && c < 32) {
+            escaped << "\\u" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(c);
+          } else {
+            escaped << c;
+          }
+          break;
+      }
+    }
+    return escaped.str();
+  }
+
+  static std::string json_quote(std::string const &text) {
+    return "\"" + json_escape(text) + "\"";
+  }
+
+  void emit_json() {
+    out << "{\n";
+    out << "  \"testsuites\": [";
+
+    bool first_suite = true;
+    for (auto const &suite : suites) {
+      if (!first_suite) {
+        out << ",";
+      }
+      out << "\n    {\n";
+      out << "      \"name\": " << json_quote(suite.name) << ",\n";
+      out << "      \"testsuite\": [";
+
+      bool first_test = true;
+      for (auto const &test : suite.tests) {
+        if (!first_test) {
+          out << ",";
+        }
+        out << "\n        {\n";
+        out << "          \"name\": " << json_quote(test.name);
+        if (!test.file.empty()) {
+          out << ",\n          \"file\": " << json_quote(test.file);
+        }
+        if (test.line > 0) {
+          out << ",\n          \"line\": " << test.line;
+        }
+        out << "\n        }";
+        first_test = false;
+      }
+      out << "\n      ]\n";
+      out << "    }";
+      first_suite = false;
+    }
+    out << "\n  ]\n";
+    out << "}\n";
+  }
+
+  std::ostream &out;
+};
+
 struct gtest_xml_printer {
  private:
   struct case_info {
