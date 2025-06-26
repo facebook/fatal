@@ -133,7 +133,7 @@ struct any1_ {
   using apply = Impl<I, T...>;
 };
 
-#if _MSC_VER && _MSC_VER < /* vs2019 = */ 1920
+#if defined(_MSC_VER) && _MSC_VER < /* vs2019 = */ 1920
 using any_ = any1_<rec>;
 #else
 using any_ = any1_<set>;

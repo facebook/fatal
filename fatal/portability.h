@@ -42,7 +42,7 @@
 # define FATAL_GCC_DIAGNOSTIC_IGNORED(warningName)
 #endif
 
-#if __GNUC__ && __GNUC__ < 5
+#if defined(__GNUC__) && __GNUC__ < 5
 # define FATAL_GCC_DIAGNOSTIC_IGNORED_SHADOW_IF_BROKEN \
   FATAL_GCC_DIAGNOSTIC_IGNORED("-Wshadow")
 #else
