@@ -24,14 +24,14 @@ template <std::size_t Id>
 using itag = std::integral_constant<std::size_t, Id>;
 
 FATAL_TEST(tuple_tags, tags) {
-  typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
+  using tags = tuple_tags<Foo, Bar, Baz, Gaz>;
 
   FATAL_EXPECT_SAME<list<Foo, Bar, Baz, Gaz>, tags::list>();
 }
 
 FATAL_TEST(tuple_tags, map) {
-  typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
-  typedef std::tuple<int, double, bool, long> tuple;
+  using tags = tuple_tags<Foo, Bar, Baz, Gaz>;
+  using tuple = std::tuple<int, double, bool, long>;
 
   FATAL_EXPECT_SAME<
     list<
@@ -45,7 +45,7 @@ FATAL_TEST(tuple_tags, map) {
 }
 
 FATAL_TEST(tuple_tags, index_of) {
-  typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
+  using tags = tuple_tags<Foo, Bar, Baz, Gaz>;
   std::tuple<int, double, bool, long> tuple(10, 5.6, true, 999);
 
   FATAL_EXPECT_EQ(10, std::get<tags::index_of<Foo>::value>(tuple));
@@ -55,8 +55,8 @@ FATAL_TEST(tuple_tags, index_of) {
 }
 
 FATAL_TEST(tuple_tags, type_of) {
-  typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
-  typedef std::tuple<int, double, bool, long> tuple;
+  using tags = tuple_tags<Foo, Bar, Baz, Gaz>;
+  using tuple = std::tuple<int, double, bool, long>;
 
   FATAL_EXPECT_SAME<int, tags::type_of<Foo, tuple>>();
   FATAL_EXPECT_SAME<double, tags::type_of<Bar, tuple>>();
@@ -65,7 +65,7 @@ FATAL_TEST(tuple_tags, type_of) {
 }
 
 FATAL_TEST(tuple_tags, get) {
-  typedef tuple_tags<Foo, Bar, Baz, Gaz> tags;
+  using tags = tuple_tags<Foo, Bar, Baz, Gaz>;
   std::tuple<int, double, bool, long> tuple(10, 5.6, true, 999);
 
   FATAL_EXPECT_EQ(10, tags::get<Foo>(tuple));

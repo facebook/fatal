@@ -25,18 +25,18 @@ protected:
   unsigned n_;
 };
 
-typedef x<0> x0t; x0t const x0(0); x0t const y0;
-typedef x<1> x1t; x1t const x1(1); x1t const y1;
-typedef x<2> x2t; x2t const x2(2); x2t const y2;
-typedef x<3> x3t; x3t const x3(3); x3t const y3(0);
-typedef x<4> x4t; x4t const x4(4); x4t const y4(1);
-typedef x<5> x5t; x5t const x5(5); x5t const y5(2);
-typedef x<6> x6t; x6t const x6; x6t const y6(3);
-typedef x<7> x7t; x7t const x7; x7t const y7(4);
-typedef x<8> x8t; x8t const x8; x8t const y8(5);
+using x0t = x<0>; x0t const x0(0); x0t const y0;
+using x1t = x<1>; x1t const x1(1); x1t const y1;
+using x2t = x<2>; x2t const x2(2); x2t const y2;
+using x3t = x<3>; x3t const x3(3); x3t const y3(0);
+using x4t = x<4>; x4t const x4(4); x4t const y4(1);
+using x5t = x<5>; x5t const x5(5); x5t const y5(2);
+using x6t = x<6>; x6t const x6; x6t const y6(3);
+using x7t = x<7>; x7t const x7; x7t const y7(4);
+using x8t = x<8>; x8t const x8; x8t const y8(5);
 
-typedef flag_set<x0t, x1t, x2t, x3t, x4t, x5t> fx;
-typedef flag_set<x3t, x4t, x5t, x6t, x7t, x8t> fy;
+using fx = flag_set<x0t, x1t, x2t, x3t, x4t, x5t>;
+using fy = flag_set<x3t, x4t, x5t, x6t, x7t, x8t>;
 fx const x0s(x0); fx const x1s(x1); fx const x2s(x2);
 fx const x3s(x3); fx const x4s(x4); fx const x5s(x5);
 fx const x01s(x0, x1); fx const x23s(x2, x3); fx const x45s(x4, x5);
