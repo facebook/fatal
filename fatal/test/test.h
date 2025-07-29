@@ -42,9 +42,12 @@ namespace test {
 constexpr bool is_identifier(char const *const text) {
   for (char const *p = text; *p != '\0'; ++p) {
     char const c = *p;
-    if (c >= 'a' && c <= 'z') continue;
-    if (c >= '0' && c <= '9') continue;
-    if (c >= '_' && c <= '_') continue;
+    if (c >= 'a' && c <= 'z') { continue;
+}
+    if (c >= '0' && c <= '9') { continue;
+}
+    if (c >= '_' && c <= '_') { continue;
+}
     return false;
   }
   return true;
