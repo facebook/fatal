@@ -72,17 +72,14 @@ struct reflect_template {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef T type;
+  using type = T;
 
   /**
    * The category of the reflected class template.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef std::integral_constant<
-    reflect_template_category,
-    reflect_template_category::non_template
-  > category;
+  using category = std::integral_constant<reflect_template_category, reflect_template_category::non_template>;
 
   /**
    * Tells if the original reflected type was instantiated from the same
@@ -214,7 +211,7 @@ struct reflect_template<T<V, Values...>> {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef V value_type;
+  using value_type = V;
 
   /**
    * Rebinds the reflected class template with new type and values.
@@ -232,14 +229,14 @@ struct reflect_template<T<V, Values...>> {
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef sequence<V, Values...> values;
+  using values = sequence<V, Values...>;
 
   /**
    * A `type_list` of `std::integral_constant`s for all values.
    *
    * @author: Marcelo Juchem <marcelo@fb.com>
    */
-  typedef type_list<std::integral_constant<V, Values>...> types;
+  using types = type_list<std::integral_constant<V, Values>...>;
 
   /**
    * Tells if the original reflected type was instantiated from the same

@@ -26,7 +26,7 @@ template <typename, typename...> struct T6 {};
 
 template <typename TFirst, typename TSecond>
 void check_type_pair_types() {
-  typedef type_pair<TFirst, TSecond> pair_t;
+  using pair_t = type_pair<TFirst, TSecond>;
 
   FATAL_EXPECT_SAME<TFirst, typename pair_t::first>();
   FATAL_EXPECT_SAME<TSecond, typename pair_t::second>();
@@ -48,8 +48,8 @@ FATAL_TEST(type_pair, types) {
 
 template <typename TFirst, typename TSecond>
 void check_invert() {
-  typedef type_pair<TFirst, TSecond> pair;
-  typedef type_pair<TSecond, TFirst> expected;
+  using pair = type_pair<TFirst, TSecond>;
+  using expected = type_pair<TSecond, TFirst>;
   FATAL_EXPECT_SAME<expected, typename pair::invert>();
 }
 
@@ -76,10 +76,8 @@ template <
   template <typename...> class TSecondTransform = identity
 >
 void check_transform() {
-  typedef type_pair<TExpectedFirst, TExpectedSecond> expected;
-  typedef typename type_pair<TFirst, TSecond>::template transform<
-    TFirstTransform, TSecondTransform
-  > actual;
+  using expected = type_pair<TExpectedFirst, TExpectedSecond>;
+  using actual = typename type_pair<TFirst, TSecond>::template transform<TFirstTransform, TSecondTransform>;
 
   FATAL_EXPECT_SAME<expected, actual>();
 }
@@ -106,10 +104,8 @@ template <
   template <typename...> class TSecondTransform = identity
 >
 void check_type_pair_from() {
-  typedef type_pair<TExpectedFirst, TExpectedSecond> expected;
-  typedef typename type_pair_from<
-    TFirstTransform, TSecondTransform
-  >::template type<T> actual;
+  using expected = type_pair<TExpectedFirst, TExpectedSecond>;
+  using actual = typename type_pair_from<TFirstTransform, TSecondTransform>::template type<T>;
 
   FATAL_EXPECT_SAME<expected, actual>();
 }
@@ -130,7 +126,7 @@ FATAL_TEST(type_pair_from, list) {
 
 template <typename TFirst, typename TSecond>
 void check_type_get() {
-  typedef type_pair<TFirst, TSecond> pair_t;
+  using pair_t = type_pair<TFirst, TSecond>;
 
   FATAL_EXPECT_SAME<
     typename pair_t::first, type_get<0>::template from<pair_t>
