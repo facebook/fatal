@@ -641,8 +641,8 @@ using largest_mersenne_prime_for_type = typename std::enable_if<
  */
 template <typename TDiscrete, typename TContinuous>
 struct discrete_to_continuous {
-  typedef TDiscrete discrete_type;
-  typedef TContinuous continuous_type;
+  using discrete_type = TDiscrete;
+  using continuous_type = TContinuous;
 
   discrete_to_continuous(
     discrete_type discreteMin, discrete_type discreteMax,
