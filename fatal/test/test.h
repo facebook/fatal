@@ -1045,7 +1045,7 @@ public:
     auto i = groups_.find(e->group());
     if (i == groups_.end()) {
       auto const index = entries_.size();
-      groups_order_.push_back(e->group());
+      groups_order_.emplace_back(e->group());
       groups_.emplace(groups_order_.back(), index);
 
       entries_.emplace_back();
