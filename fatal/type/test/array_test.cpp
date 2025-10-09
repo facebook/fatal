@@ -81,7 +81,7 @@ constexpr A<T, sizeof...(V)> static_array<A, T, V...>::value;
 
 template <typename T, T... V>
 struct static_array<raw, T, V...> {
-  static constexpr raw<T, sizeof...(V)> value{V...};
+  static constexpr raw<T, sizeof...(V)> value{V...}; // NOLINT(facebook-hte-CArray)
 };
 #if FATAL_CPLUSPLUS < 201703L
 template <typename T, T... V>
