@@ -16,6 +16,7 @@
 #include <fatal/test/driver.h>
 
 #include <algorithm>
+#include <array>
 #include <vector>
 
 #include <cstdint>
@@ -108,17 +109,17 @@ FATAL_TEST(functional, static_caster) {
 FATAL_TEST(functional, reinterpret_caster) {
   reinterpret_caster<char const *> f;
 
-  char const str[8] = "fatal::";
-  FATAL_EXPECT_EQ(sizeof(str), std::strlen(str) + 1); // sanity
+  constexpr std::array<char, 8> str = {"fatal::"};
+  FATAL_EXPECT_EQ(str.size(), std::strlen(str.data()) + 1); // sanity
 
   std::int64_t x;
-  static_assert(sizeof(x) == sizeof(str), "mismatched sizes");
-  std::memcpy(&x, str, sizeof(str));
+  static_assert(sizeof(x) == str.size() * sizeof(str[0]), "mismatched sizes");
+  std::memcpy(&x, str.data(), str.size() * sizeof(str[0]));
   FATAL_EXPECT_EQ(reinterpret_cast<char const *>(&x), f(&x));
 
   double y;
-  static_assert(sizeof(y) == sizeof(str), "mismatched sizes");
-  std::memcpy(&y, str, sizeof(str));
+  static_assert(sizeof(y) == str.size() * sizeof(str[0]), "mismatched sizes");
+  std::memcpy(&y, str.data(), str.size() * sizeof(str[0]));
   FATAL_EXPECT_EQ(reinterpret_cast<char const *>(&y), f(&y));
 }
 
