@@ -9,7 +9,6 @@
 
 #include <fatal/benchmark/cases.h>
 #include <fatal/type/deprecated/type_list.h>
-#include <fatal/type/sort.h>
 
 int main() {
   using namespace fatal;
