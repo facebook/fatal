@@ -36,7 +36,13 @@ struct logger {
     explicit writer(TOut *out) noexcept: out_(out) {}
 
     writer(writer const &) = delete;
-    writer(writer &&rhs) noexcept: out_(rhs.out_) { rhs.out_ = nullptr; }
+    writer& operator=(writer const &) = delete;
+    writer(writer &&that) noexcept: out_(std::exchange(that.out_, nullptr)) {}
+    writer& operator=(writer &&that) noexcept {
+      auto copy = std::move(that);
+      out_ = std::exchange(copy.out_, nullptr);
+      return *this;
+    }
 
     template <typename T>
     writer &operator <<(T &&value) & {
@@ -72,7 +78,9 @@ struct logger {
   {}
 
   logger(logger const &) = delete;
-  logger(logger &&rhs) = default;
+  logger& operator=(logger const &) = delete;
+  logger(logger &&rhs) noexcept = default;
+  logger& operator=(logger &&) noexcept = default;
 
   ~logger() {
     if (info::abort::value) {
