@@ -254,7 +254,9 @@ struct variadic_union_impl<> {
 #define FATAL_IMPL_VARIADIC_UNION_CTOR \
   union_type() noexcept {} \
   union_type(union_type const &) = delete; \
+  union_type &operator=(union_type const &) = delete; \
   union_type(union_type &&) = delete; \
+  union_type &operator=(union_type &&) = delete; \
   ~union_type() noexcept {}
 
 #define FATAL_IMPL_VARIADIC_UNION_GET(Type, Member, Modifier) \
