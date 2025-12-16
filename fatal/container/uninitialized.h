@@ -31,6 +31,9 @@ struct uninitialized {
   uninitialized() = default;
   uninitialized(uninitialized const &) = delete;
   uninitialized(uninitialized &&) = delete;
+  ~uninitialized() = default;
+  uninitialized &operator=(uninitialized const &) = delete;
+  uninitialized &operator=(uninitialized &&) = delete;
 
   template <typename... Args>
   reference construct(Args &&...args)
