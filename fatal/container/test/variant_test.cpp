@@ -2069,7 +2069,7 @@ FATAL_TEST(variant, variant_vector) {
   v.reserve(1);
   FATAL_EXPECT_EQ(0, v.size());
 
-  v.push_back(var(allocator, 10));
+  v.emplace_back(allocator, 10);
   FATAL_EXPECT_EQ(1, v.size());
   FATAL_EXPECT_TRUE(v[0].is_of<int>());
   FATAL_EXPECT_EQ(10, (v[0].get<int>()));
@@ -2379,7 +2379,7 @@ FATAL_TEST(variant, container_assignment) {
   VECTOR v1(allocator);
   v1.reserve(1);
 
-  v1.push_back(VAR(allocator, 10));
+  v1.emplace_back(allocator, 10);
   v1.emplace_back(allocator, 5.6);
   v1.resize(3);
   v1[2] = VAR(allocator, test_string("HELLO, WORLD", allocator));
