@@ -261,7 +261,7 @@ public:
     FATAL_ASSUME_LE(chunk, count);
     FATAL_ASSUME_EQ(offset_ == 0, count == chunk);
     for (auto const end = count - chunk; offset_ < end; ++offset_) {
-      queue_[offset_].~value_type();
+      queue_[offset_].value.~value_type();
     }
 
     size_ -= count;
