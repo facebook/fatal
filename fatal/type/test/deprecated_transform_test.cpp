@@ -149,7 +149,7 @@ FATAL_TEST(identity, identity) {
 /////////////////////
 
 FATAL_TEST(fixed_transform, fixed_transform) {
-  typedef fixed_transform<int> i;
+  using i = fixed_transform<int>;
   FATAL_EXPECT_SAME<int, i::apply<>>();
   FATAL_EXPECT_SAME<int, i::apply<bool>>();
   FATAL_EXPECT_SAME<int, i::apply<int>>();
@@ -158,7 +158,7 @@ FATAL_TEST(fixed_transform, fixed_transform) {
   FATAL_EXPECT_SAME<int, i::apply<double, void>>();
   FATAL_EXPECT_SAME<int, i::apply<identity<double>>>();
 
-  typedef fixed_transform<bool> b;
+  using b = fixed_transform<bool>;
   FATAL_EXPECT_SAME<bool, b::apply<>>();
   FATAL_EXPECT_SAME<bool, b::apply<bool>>();
   FATAL_EXPECT_SAME<bool, b::apply<int>>();
@@ -174,7 +174,7 @@ FATAL_TEST(fixed_transform, fixed_transform) {
 
 FATAL_TEST(constant_transform, constant_transform) {
   constexpr int ic = 12345;
-  typedef constant_transform<std::decay<decltype(ic)>::type, ic> i;
+  using i = constant_transform<std::decay<decltype(ic)>::type, ic>;
   FATAL_EXPECT_EQ(ic, (i::apply<>::value));
   FATAL_EXPECT_EQ(ic, (i::apply<bool>::value));
   FATAL_EXPECT_EQ(ic, (i::apply<int>::value));
@@ -184,7 +184,7 @@ FATAL_TEST(constant_transform, constant_transform) {
   FATAL_EXPECT_EQ(ic, (i::apply<identity<double>>::value));
 
   constexpr bool bc = true;
-  typedef constant_transform<std::decay<decltype(bc)>::type, bc> b;
+  using b = constant_transform<std::decay<decltype(bc)>::type, bc>;
   FATAL_EXPECT_EQ(bc, (b::apply<>::value));
   FATAL_EXPECT_EQ(bc, (b::apply<bool>::value));
   FATAL_EXPECT_EQ(bc, (b::apply<int>::value));
@@ -204,7 +204,7 @@ void check_compose() {
 }
 
 FATAL_TEST(compose, compose) {
-  typedef compose<T1, T2, T3> ttt;
+  using ttt = compose<T1, T2, T3>;
 
   check_compose<ttt, T3<T2<T1<int>>>, int>();
   check_compose<ttt, T3<T2<T1<int &&>>>, int &&>();
@@ -679,25 +679,25 @@ FATAL_TEST(get_member_type, get_member_type) {
   CREATE_TEST(index, get_member_type_test);
   CREATE_TEST(flag, get_member_type_test);
 
-  typedef std::add_const<int> a_c;
+  using a_c = std::add_const<int>;
   CREATE_TEST(type, a_c);
 
-  typedef std::pair<double, long> pair;
+  using pair = std::pair<double, long>;
   CREATE_TEST(first_type, pair);
   CREATE_TEST(second_type, pair);
 
-  typedef std::map<std::string, bool> map;
+  using map = std::map<std::string, bool>;
   CREATE_TEST(key_type, map);
   CREATE_TEST(mapped_type, map);
   CREATE_TEST(value_type, map);
 
-  typedef std::shared_ptr<float> ptr;
+  using ptr = std::shared_ptr<float>;
   CREATE_TEST(element_type, ptr);
 
-  typedef std::char_traits<char> ctraits;
+  using ctraits = std::char_traits<char>;
   CREATE_TEST(char_type, ctraits);
 
-  typedef std::string str;
+  using str = std::string;
   CREATE_TEST(traits_type, str);
   CREATE_TEST(allocator_type, str);
 
@@ -1018,7 +1018,7 @@ FATAL_TEST(type_member_transform, type_member_transform) {
 ////////////////////////////
 
 FATAL_TEST(transform_alias, apply) {
-  typedef transform_alias<std::tuple, int, double> c1;
+  using c1 = transform_alias<std::tuple, int, double>;
 
   FATAL_EXPECT_SAME<
     std::tuple<int, double>,
@@ -1036,7 +1036,7 @@ FATAL_TEST(transform_alias, apply) {
 ///////////////////////////
 
 FATAL_TEST(transform_alias, type) {
-  typedef transform_alias<std::tuple, int, double> c1;
+  using c1 = transform_alias<std::tuple, int, double>;
 
   FATAL_EXPECT_SAME<
     std::tuple<int, double>,
@@ -1054,8 +1054,8 @@ FATAL_TEST(transform_alias, type) {
 ////////////////////////////
 
 FATAL_TEST(transform_alias, curry) {
-  typedef transform_alias<std::tuple, int, double> c1;
-  typedef c1::curry<long, std::string> c2;
+  using c1 = transform_alias<std::tuple, int, double>;
+  using c2 = c1::curry<long, std::string>;
 
   FATAL_EXPECT_SAME<
     std::tuple<int, double, long, std::string>,
@@ -1073,8 +1073,8 @@ FATAL_TEST(transform_alias, curry) {
 /////////////////////////////
 
 FATAL_TEST(transform_alias, rebind) {
-  typedef transform_alias<std::tuple, int, double> c1;
-  typedef c1::rebind<long, std::string> c2;
+  using c1 = transform_alias<std::tuple, int, double>;
+  using c2 = c1::rebind<long, std::string>;
 
   FATAL_EXPECT_SAME<
     std::tuple<long, std::string>,
@@ -1092,14 +1092,14 @@ FATAL_TEST(transform_alias, rebind) {
 //////////////////////////////
 
 FATAL_TEST(transform_alias, uncurry) {
-  typedef transform_alias<std::tuple, int, double> c1;
+  using c1 = transform_alias<std::tuple, int, double>;
 
   FATAL_EXPECT_SAME<
     std::tuple<long, std::string>,
     c1::uncurry<long, std::string>
   >();
 
-  typedef transform_alias<c1::template uncurry, long, std::string> c2;
+  using c2 = transform_alias<c1::template uncurry, long, std::string>;
 
   FATAL_EXPECT_SAME<
     std::tuple<long, std::string>,
@@ -1117,7 +1117,7 @@ FATAL_TEST(transform_alias, uncurry) {
 //////////////////////////////////
 
 FATAL_TEST(transform_alias, rebind_args) {
-  typedef transform_alias<std::tuple, int, double> c1;
+  using c1 = transform_alias<std::tuple, int, double>;
 
   FATAL_EXPECT_SAME<
     V1<int, double>,
@@ -1135,7 +1135,7 @@ FATAL_TEST(transform_alias, rebind_args) {
 /////////////////////////////////
 
 FATAL_TEST(transform_alias, apply_args) {
-  typedef transform_alias<std::tuple, int, double> c1;
+  using c1 = transform_alias<std::tuple, int, double>;
 
   FATAL_EXPECT_SAME<
     V1<int, double>,
@@ -2601,7 +2601,7 @@ template <typename, std::size_t, typename...> struct check_type_get_impl;
 template <typename T, std::size_t Index, typename TExpected, typename... Args>
 struct check_type_get_impl<T, Index, TExpected, Args...> {
   static void check() {
-    typedef typename type_get<Index>::template from<T> TActual;
+    using TActual = typename type_get<Index>::template from<T>;
     FATAL_EXPECT_SAME<TExpected, TActual>();
     check_type_get_impl<T, Index + 1, Args...>::check();
   }

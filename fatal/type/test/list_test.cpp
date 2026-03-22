@@ -1032,7 +1032,7 @@ void check_split_impl() {
 
 template <typename... Args>
 void check_split() {
-  typedef type_list<Args...> list;
+  using list = type_list<Args...>;
 
   check_split_impl<list, 0>();
   check_split_impl<list, list::size / 4>();
@@ -1110,7 +1110,7 @@ template <
   typename TExpectedSecond
 >
 void check_separate()  {
-  typedef typename TList::template separate<TPredicate> actual;
+  using actual = typename TList::template separate<TPredicate>;
   FATAL_EXPECT_SAME<TExpectedFirst, typename actual::first>();
   FATAL_EXPECT_SAME<TExpectedSecond, typename actual::second>();
 }
@@ -1203,7 +1203,7 @@ FATAL_TEST(remove, remove) {
 
 template <typename TLHS, typename TRHS, typename TExpected>
 void check_zip()  {
-  typedef typename TRHS::template apply<TLHS::template zip> actual;
+  using actual = typename TRHS::template apply<TLHS::template zip>;
   FATAL_EXPECT_SAME<TExpected, actual>();
 }
 
@@ -1286,34 +1286,34 @@ template <
   typename TExpected
 >
 void check_search() {
-  typedef typename TList::template search<TPredicate, TDefault> actual;
+  using actual = typename TList::template search<TPredicate, TDefault>;
   FATAL_EXPECT_SAME<TExpected, actual>();
 }
 
 FATAL_TEST(search, search) {
-  typedef transform_alias<std::is_same, T0> same_as_t0;
+  using same_as_t0 = transform_alias<std::is_same, T0>;
   check_search<el, same_as_t0::template apply, void, void>();
   check_search<tl, same_as_t0::template apply, void, T0>();
   check_search<tp, same_as_t0::template apply, void, void>();
 
-  typedef transform_alias<std::is_same, T1> same_as_t1;
+  using same_as_t1 = transform_alias<std::is_same, T1>;
   check_search<el, same_as_t1::template apply, void, void>();
   check_search<tl, same_as_t1::template apply, void, T1>();
   check_search<tp, same_as_t1::template apply, void, void>();
 
-  typedef transform_alias<std::is_same, T2> same_as_t2;
+  using same_as_t2 = transform_alias<std::is_same, T2>;
   check_search<el, same_as_t2::template apply, void, void>();
   check_search<tl, same_as_t2::template apply, void, T2>();
   check_search<tp, same_as_t2::template apply, void, void>();
 
-  typedef is_template<std::basic_string> is_std_string;
-  typedef is_template<std::tuple> is_std_tuple;
+  using is_std_string = is_template<std::basic_string>;
+  using is_std_tuple = is_template<std::tuple>;
 
-  typedef type_list<int, std::string, double, long> types1;
+  using types1 = type_list<int, std::string, double, long>;
   check_search<types1, is_std_string::type, void, std::string>();
   check_search<types1, is_std_tuple::type, void, void>();
 
-  typedef type_list<int, float, double, std::tuple<long, bool>> types2;
+  using types2 = type_list<int, float, double, std::tuple<long, bool>>;
   check_search<types2, is_std_string::type, void, void>();
   check_search<types2, is_std_tuple::type, void, std::tuple<long, bool>>();
 }
@@ -1578,7 +1578,7 @@ FATAL_TEST(merge, merge) {
 
 template <typename TExpectedList, std::int64_t... Values>
 void check_sort() {
-  typedef TExpectedList expected;
+  using expected = TExpectedList;
 
   static_assert(
     expected::template is_sorted<>::value,
@@ -2007,7 +2007,7 @@ struct check_type_get_visitor {
 
 template <typename... Args>
 void check_type_get() {
-  typedef type_list<Args...> list;
+  using list = type_list<Args...>;
   list::foreach(check_type_get_visitor<list>());
 }
 
