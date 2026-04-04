@@ -70,7 +70,7 @@ inline constexpr T integral_reverse(
   return phase == end_phase
     ? value
     : integral_reverse<T>(
-      ((value >> phase) & mask) | ((value << phase) & ~mask),
+      static_cast<T>(((value >> phase) & mask) | ((value << phase) & ~mask)),
       end_phase,
       phase >> 1,
       mask ^ (T(mask << (phase >> 1)))

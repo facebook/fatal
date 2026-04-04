@@ -34,13 +34,21 @@ struct pick_var_<Variadic<Args...>> {
 };
 template <
   template <typename V, V...> class Variadic,
-  typename T, T... Args
+  typename T, T First, T... Args
 >
-struct pick_var_<Variadic<T, Args...>> {
+struct pick_var_<Variadic<T, First, Args...>> {
   template <std::size_t i>
-  using t = __type_pack_element<i, std::integral_constant<T, Args>...>;
+  using t = __type_pack_element<i, std::integral_constant<T, First>, std::integral_constant<T, Args>...>;
   template <std::size_t... i>
   using apply = Variadic<T, t<i>::value...>;
+};
+template <
+  template <typename V, V...> class Variadic,
+  typename T
+>
+struct pick_var_<Variadic<T>> {
+  template <std::size_t... i>
+  using apply = Variadic<T>;
 };
 
 template <typename Seq>
@@ -53,12 +61,6 @@ struct pick_seq_<index_sequence<Indexes...>> {
 
 template <typename> struct a;
 
-template <template <typename> class Single, typename T>
-struct a<Single<T>> {
-  template <std::size_t Index>
-  using apply = __type_pack_element<Index, T>;
-};
-
 template <
   template <typename...> class List,
   typename... Args
@@ -70,12 +72,12 @@ struct a<List<Args...>> {
 
 template <
   template <typename V, V...> class Sequence,
-  typename T, T... Values
+  typename T, T First, T... Values
 >
-struct a<Sequence<T, Values...>> {
+struct a<Sequence<T, First, Values...>> {
   template <std::size_t Index>
   using apply =
-    __type_pack_element<Index, std::integral_constant<T, Values>...>;
+    __type_pack_element<Index, std::integral_constant<T, First>, std::integral_constant<T, Values>...>;
 };
 
 template <typename Default>

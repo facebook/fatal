@@ -187,7 +187,7 @@ struct reflect_template<T<Types...>> {
  *
  * @author: Marcelo Juchem <marcelo@fb.com>
  */
-template <typename V, template <typename, V...> class T, V... Values>
+template <typename V, template <typename X, X...> class T, V... Values>
 struct reflect_template<T<V, Values...>> {
   /**
    * The original reflected type (whatever was passed to `reflect_template`).
