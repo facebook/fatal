@@ -31,6 +31,7 @@ int main(
   char const *const *const envp
 ) {
   auto const env_gtest_output = std::string("GTEST_OUTPUT");
+  auto const env_gtest_filter = std::string("GTEST_FILTER");
   auto const arg_list = std::string("--list");
   auto const arg_filter = std::string("--filter");
   auto const arg_gtest = std::string("--gtest");
@@ -102,6 +103,7 @@ int main(
     return fatal::test::run_one(printer, iter_filter->second);
   }
   auto const iter_gtest_filter = opts.find(arg_gtest_filter);
+  auto const iter_env_filter = envs.find(env_gtest_filter);
   auto const iter_arg_output = opts.find(arg_gtest_output);
   auto const iter_env_output = envs.find(env_gtest_output);
   auto const &empty = std::string("");
@@ -110,14 +112,19 @@ int main(
     iter_env_output != envs.end() ? iter_env_output->second :
     empty;
 
-  // If gtest_output is specified but no gtest_filter, default to "*" (run all)
+  // Filter from the --gtest_filter flag, else the GTEST_FILTER env var (the
+  // test runner delivers the per-test selection via the environment), else "*".
+  bool const has_gtest_filter =
+    iter_gtest_filter != opts.end() || iter_env_filter != envs.end();
   std::string filter_value = "*";
   if (iter_gtest_filter != opts.end()) {
     filter_value = iter_gtest_filter->second;
+  } else if (iter_env_filter != envs.end()) {
+    filter_value = iter_env_filter->second;
   }
 
   // Only proceed if we have a filter (explicit or implicit) or output specified
-  if (iter_gtest_filter != opts.end() || !outspec.empty()) {
+  if (has_gtest_filter || !outspec.empty()) {
     auto printer = fatal::test::gtest_printer{std::cout};
 
     if (!outspec.empty() && outspec.find(xml_) != 0 && outspec.find(json_) != 0) {
