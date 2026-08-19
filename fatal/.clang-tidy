@@ -10,6 +10,7 @@ facebook-hte-StdToStringUse,
 -facebook-hte-ConstantArgumentPassByValue,
 -facebook-hte-NullableReturn,
 -facebook-hte-UsingDeclarationInHeader,
+-facebook-hte-CArray,
 -modernize-avoid-c-arrays,
 '
 ...
