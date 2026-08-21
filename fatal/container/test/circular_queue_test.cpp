@@ -306,6 +306,69 @@ FATAL_TEST(circular_queue, shift_to_back_by) {
   }
 }
 
+FATAL_TEST(circular_queue, pop_front_count) {
+  circular_queue<int> q;
+  for (int i = 0; i < 10; ++i) {
+    q.push_back(i);
+  }
+  CHECK_CONTENTS(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+
+  // popping a prefix that does not wrap around the buffer
+  q.pop_front(3);
+  CHECK_CONTENTS(3, 4, 5, 6, 7, 8, 9);
+
+  // popping zero elements is a no-op
+  q.pop_front(0);
+  CHECK_CONTENTS(3, 4, 5, 6, 7, 8, 9);
+
+  // popping the remainder drains the queue
+  q.pop_front(7);
+  CHECK_CONTENTS();
+
+  FATAL_EXPECT_TRUE(q.empty());
+}
+
+FATAL_TEST(circular_queue, pop_front_count_wrap) {
+  circular_queue<int> q;
+  for (int i = 0; i < 10; ++i) {
+    q.push_back(i);
+  }
+
+  // drain the queue so the elements wrap around the buffer on the next pushes
+  q.pop_front(10);
+  for (int i = 0; i < 8; ++i) {
+    q.push_back(i);
+  }
+  CHECK_CONTENTS(0, 1, 2, 3, 4, 5, 6, 7);
+
+  // the first chunk does not reach the end of the buffer
+  q.pop_front(5);
+  CHECK_CONTENTS(5, 6, 7);
+
+  // the first chunk reaches the end of the buffer and the remainder wraps
+  q.pop_front(3);
+  CHECK_CONTENTS();
+
+  FATAL_EXPECT_TRUE(q.empty());
+}
+
+FATAL_TEST(circular_queue, empty_after_drain) {
+  circular_queue<int> q;
+  FATAL_EXPECT_TRUE(q.empty());
+
+  for (int i = 0; i < 10; ++i) {
+    q.push_back(i);
+    FATAL_EXPECT_FALSE(q.empty());
+  }
+
+  while (!q.empty()) {
+    q.pop_front();
+  }
+
+  FATAL_EXPECT_EQ(0, q.size());
+  FATAL_EXPECT_TRUE(q.empty());
+}
+
 # undef CHECK_CONTENTS
 
 template <typename Data, typename Factory>
