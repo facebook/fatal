@@ -259,7 +259,9 @@ public:
     FATAL_ASSUME_LT(offset_, queue_.size());
 
     FATAL_ASSUME_LE(chunk, count);
-    FATAL_ASSUME_EQ(offset_ == 0, count == chunk);
+    // when there are more elements to destroy beyond the first chunk, the
+    // first chunk must have wrapped around the buffer (resetting offset_)
+    FATAL_ASSUME_IF(FATAL_GT(count, chunk), FATAL_IS_TRUE(offset_ == 0));
     for (auto const end = count - chunk; offset_ < end; ++offset_) {
       queue_[offset_].value.~value_type();
     }
@@ -475,13 +477,7 @@ public:
 
   fatal::fast_pass<size_type> size() const noexcept { return size_; }
 
-  bool empty() const noexcept {
-    static_assert(
-      noexcept(queue_.empty()),
-      "underlying container must provide a noexcept empty()"
-    );
-    return queue_.empty();
-  }
+  bool empty() const noexcept { return size_ == 0; }
 
   using const_iterator = random_access_iterator<circular_queue, true>;
   using iterator = random_access_iterator<circular_queue, false>;
